@@ -4,6 +4,7 @@ const { User } = require('../../models');
 const { StatusCodes } = require('http-status-codes');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
+const logger = require('../middlewares/logger');
 
 
 const getAllUsers = async (req, res) => {
@@ -24,7 +25,7 @@ const getAllUsers = async (req, res) => {
         const users = await User.findAll({ where });
         res.status(StatusCodes.OK).json(users);
     } catch (error) {
-        console.error('Error fetching users:', error);
+        logger.error('Error fetching users:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
     }
 };
@@ -38,7 +39,7 @@ const getUserById = async (req, res) => {
         }
         res.status(StatusCodes.OK).json(user);
     } catch (error) {
-        console.error('Error fetching user:', error);
+        logger.error('Error fetching user:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
     }
 };
@@ -53,7 +54,7 @@ const createUser = async (req, res) => {
         const newUser = await User.create({ email, name, passwordHash, role, status });
         res.status(StatusCodes.CREATED).json(newUser);
     } catch (error) {
-        console.error('Error creating user:', error);
+        logger.error('Error creating user:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
     }
 };
@@ -73,7 +74,7 @@ const updateUser = async (req, res) => {
         await user.update(updates);
         res.status(StatusCodes.OK).json(user);
     } catch (error) {
-        console.error('Error updating user:', error);
+        logger.error('Error updating user:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
     }
 };
@@ -88,7 +89,7 @@ const deleteUser = async (req, res) => {
         await user.destroy();
         res.status(StatusCodes.NO_CONTENT).send();
     } catch (error) {
-        console.error('Error deleting user:', error);
+        logger.error('Error deleting user:', error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
     }
 };
