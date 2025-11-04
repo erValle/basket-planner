@@ -5,9 +5,10 @@ const { StatusCodes } = require('http-status-codes');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 const logger = require('../middlewares/logger');
+const errorUtils = require('../libs/errorHelper');
 
 
-const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res, next) => {
     try {
         const { email, role, status } = req.query;
         const where = {};
@@ -26,28 +27,28 @@ const getAllUsers = async (req, res) => {
         res.status(StatusCodes.OK).json(users);
     } catch (error) {
         logger.error('Error fetching users:', error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
+        return next(error);
     }
 };
 
-const getUserById = async (req, res) => {
+const getUserById = async (req, res, next) => {
     const { id } = req.params;
     try {
         const user = await User.findByPk(id);
         if (!user) {
-            return res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+            return next(errorUtils.httpError(StatusCodes.NOT_FOUND, 'USER_NOT_FOUND', 'User not found'));
         }
         res.status(StatusCodes.OK).json(user);
     } catch (error) {
         logger.error('Error fetching user:', error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
+        return next(error);
     }
 };
 
-const createUser = async (req, res) => {
+const createUser = async (req, res, next) => {
     const { email, name, password, role, status } = req.body;
     if (!password) {
-        return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Password is required' });
+        return next(errorUtils.httpError(StatusCodes.BAD_REQUEST, 'PASSWORD_REQUIRED', 'Password is required'));
     }
     try {
         const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
@@ -55,17 +56,25 @@ const createUser = async (req, res) => {
         res.status(StatusCodes.CREATED).json(newUser);
     } catch (error) {
         logger.error('Error creating user:', error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
+
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return next(errorUtils.httpError(StatusCodes.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'Email already exists'));
+        }
+        if(error.name === 'SequelizeValidationError'){
+            const messages = error.errors.map(err => err.message);
+            return next(errorUtils.httpError(StatusCodes.BAD_REQUEST, 'VALIDATION_ERROR', messages.join(', ')));
+        }
+        return next(error);
     }
 };
 
-const updateUser = async (req, res) => {
+const updateUser = async (req, res, next) => {
     const { id } = req.params;
     const { email, name, password, role, status } = req.body;
     try {
         const user = await User.findByPk(id);
         if (!user) {
-            return res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+            return next(errorUtils.httpError(StatusCodes.NOT_FOUND, 'USER_NOT_FOUND', 'User not found'));
         }
         const updates = { email, name, role, status };
         if (password) {
@@ -75,22 +84,29 @@ const updateUser = async (req, res) => {
         res.status(StatusCodes.OK).json(user);
     } catch (error) {
         logger.error('Error updating user:', error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
+        if (error.name === 'SequelizeUniqueConstraintError') {
+            return next(errorUtils.httpError(StatusCodes.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'Email already exists'));
+        }
+        if(error.name === 'SequelizeValidationError'){
+            const messages = error.errors.map(err => err.message);
+            return next(errorUtils.httpError(StatusCodes.BAD_REQUEST, 'VALIDATION_ERROR', messages.join(', ')));
+        }
+        return next(error);
     }
 };
 
-const deleteUser = async (req, res) => {
+const deleteUser = async (req, res, next) => {
     const { id } = req.params;
     try {
         const user = await User.findByPk(id);
         if (!user) {
-            return res.status(StatusCodes.NOT_FOUND).json({ error: 'User not found' });
+            return next(errorUtils.httpError(StatusCodes.NOT_FOUND, 'USER_NOT_FOUND', 'User not found'));
         }
         await user.destroy();
         res.status(StatusCodes.NO_CONTENT).send();
     } catch (error) {
         logger.error('Error deleting user:', error);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Internal Server Error' });
+        return next(error);
     }
 };
 
