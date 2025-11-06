@@ -4,3 +4,7 @@ Sistema web full-stack para generar planificaciones de entrenamiento personaliza
 -Node version: 24.11.0
 -npm version: 11.6.1
 
+-> Clonar repo
+-> npm install
+-> docker-compose up -d
+-> npm start
