@@ -79,7 +79,7 @@ const updateUser = async (req, res, next) => {
         }
         const updates = { email, name, role, status };
         if (password) {
-            updates.passwordHash = await bcrypt.hash(password, ENCRYPTION_CONSTSALT_ROUNDS);
+            updates.passwordHash = await bcrypt.hash(password, ENCRYPTION_CONST.SALT_ROUNDS);
         }
         await user.update(updates);
         res.status(StatusCodes.OK).json(user);
