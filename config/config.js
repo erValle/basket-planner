@@ -7,5 +7,9 @@ module.exports = {
         database: process.env.DB_NAME,
         host: process.env.DB_HOST,
         dialect: 'postgres',
+        auth: {
+            secret: process.env.JWT_SECRET,
+            expiresIn: '5h'
+        }
     }
 };
