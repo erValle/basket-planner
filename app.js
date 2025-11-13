@@ -9,6 +9,7 @@ const { authenticateToken } = require('./src/middlewares/auth');
 
 const usersRouter = require('./routes/userRouter');
 const authRouter = require('./routes/authRouter');
+const exercisesRouter = require('./routes/exercisesRouter');
 const {sequelize} = require('./models');
 const { errorHandler } = require('./src/middlewares/errorHandler');
 
@@ -41,6 +42,7 @@ app.get('/api/health', (req, res) => { res.json({ status: 'OK' }); });
 
 app.use('/auth', authRouter);
 app.use('/users', authenticateToken, usersRouter);
+app.use('/exercises', authenticateToken, exercisesRouter);
 
 app.use(errorHandler);
 
