@@ -5,7 +5,7 @@ module.exports = {
   async up(queryInterface, Sequelize) {
 
     await queryInterface.sequelize.query(
-      "CREATE TYPE enum_users_role AS ENUM ('admin','coach','player');"
+      "CREATE TYPE enum_users_role AS ENUM ('admin', 'technical_director','coach','player', 'user');"
     );
     await queryInterface.sequelize.query(
       "CREATE TYPE enum_users_status AS ENUM ('pending','active','blocked');"
@@ -18,14 +18,18 @@ module.exports = {
         autoIncrement: true,
         allowNull: false,
       },
+      firstName: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      lastName: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       email: {
         type: Sequelize.STRING,
         allowNull: false,
         unique: true,
-      },
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false,
       },
       passwordHash: {
         type: Sequelize.STRING,
@@ -34,12 +38,32 @@ module.exports = {
       role: {
         type: 'enum_users_role',
         allowNull: false,
-        defaultValue: 'coach',
+        defaultValue: 'user',
       },
       status: {
         type: 'enum_users_status',
         allowNull: false,
         defaultValue: 'pending',
+      },
+      dateOfBirth: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      maxCategory: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      position: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      category: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      height: {
+        type: Sequelize.FLOAT,
+        allowNull: true,
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -61,7 +85,7 @@ module.exports = {
     await queryInterface.removeIndex('users', 'users_role_idx');
     await queryInterface.removeIndex('users', 'users_email_unique');
     await queryInterface.dropTable('users');
-    await queryInterface.sequelize.query('DROP TYPE IF EXISTS enum_users_status;');
     await queryInterface.sequelize.query('DROP TYPE IF EXISTS enum_users_role;');
+    await queryInterface.sequelize.query('DROP TYPE IF EXISTS enum_users_status;');
   },
 };
