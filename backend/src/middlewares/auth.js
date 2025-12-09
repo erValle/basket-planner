@@ -29,6 +29,23 @@ const authenticateToken = (req, res, next) => {
     }
 };
 
+// Simple role guard: allows if req.user.role is in provided roles
+const authorizeRoles = (...roles) => (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+        return res.status(StatusCodes.FORBIDDEN).json({ error: 'FORBIDDEN', message: 'Insufficient permissions' });
+    }
+    next();
+};
+
+// Allow if user matches path param (self) or has one of roles
+const authorizeSelfOrRoles = (paramName = 'id', ...roles) => (req, res, next) => {
+    const isSelf = req.user && String(req.user.id) === String(req.params[paramName]);
+    if (isSelf) return next();
+    return authorizeRoles(...roles)(req, res, next);
+};
+
 module.exports = {
-    authenticateToken
+        authenticateToken,
+        authorizeRoles,
+        authorizeSelfOrRoles
 };

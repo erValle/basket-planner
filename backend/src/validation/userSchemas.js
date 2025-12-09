@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const ROLE_VALUES = ['admin', 'coach', 'player'];
+const ROLE_VALUES = ['admin', 'technical_director', 'coach', 'player'];
 const STATUS_VALUES = ['pending', 'active', 'blocked'];
 
 const userQuerySchema = Joi.object({

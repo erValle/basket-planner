@@ -9,7 +9,16 @@ const { authenticateToken } = require('./src/middlewares/auth');
 
 const usersRouter = require('./routes/userRouter');
 const authRouter = require('./routes/authRouter');
-const exercisesRouter = require('./routes/exercisesRouter');
+const clubsRouter = require('./routes/clubs.routes');
+const teamsRouter = require('./routes/teams.routes');
+const equipmentRouter = require('./routes/equipment.routes');
+const exercisesRouter = require('./routes/exercises.routes');
+const userClubsRouter = require('./routes/userClubs.routes');
+const trainingPlansRouter = require('./routes/trainingPlans.routes');
+const trainingPlanVersionsRouter = require('./routes/trainingPlanVersions.routes');
+const planAssignmentsRouter = require('./routes/planAssignments.routes');
+const feedbacksRouter = require('./routes/feedbacks.routes');
+const metricsRouter = require('./routes/metrics.routes');
 const {sequelize} = require('./models');
 const { errorHandler } = require('./src/middlewares/errorHandler');
 
@@ -40,9 +49,19 @@ app.use(cors({
 
 app.get('/api/health', (req, res) => { res.json({ status: 'OK' }); });
 
-app.use('/auth', authRouter);
-app.use('/users', authenticateToken, usersRouter);
-app.use('/exercises', authenticateToken, exercisesRouter);
+app.use('/api/auth', authRouter);
+app.use('/api/users', authenticateToken, usersRouter);
+app.use('/api/clubs', clubsRouter);
+app.use('/api/teams', teamsRouter);
+app.use('/api/equipment', equipmentRouter);
+app.use('/api/exercises', exercisesRouter);
+app.use('/api/user-clubs', userClubsRouter);
+app.use('/api/training-plans', trainingPlansRouter);
+app.use('/api/training-plans/:trainingPlanId/versions', trainingPlanVersionsRouter);
+app.use('/api/plan-assignments', planAssignmentsRouter);
+app.use('/api/feedbacks', feedbacksRouter);
+app.use('/api/metrics', metricsRouter);
+app.use('/api/exercises/:exerciseId/equipment', require('./routes/exerciseEquipment.routes'));
 
 app.use(errorHandler);
 
