@@ -18,7 +18,7 @@ module.exports = {
         allowNull: true
       },
       difficulty: {
-        type: Sequelize.ENUM('easy', 'medium', 'hard'),
+        type: Sequelize.JSONB,
         allowNull: false
       },
       type: {

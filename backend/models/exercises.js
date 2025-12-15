@@ -33,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true 
     },
     difficulty: { 
-      type: DataTypes.STRING, 
+      type: DataTypes.JSONB, 
       allowNull: true 
     },
     duration: { 
