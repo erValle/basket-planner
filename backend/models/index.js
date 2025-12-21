@@ -10,6 +10,13 @@ const dbConfig = config[env];
 const logger = require('../src/middlewares/logger');
 const db = {};
 
+if (!dbConfig) {
+  throw new Error(
+    `Missing database configuration for NODE_ENV="${env}". ` +
+      'Make sure backend/config/config.js exports a matching environment key.'
+  );
+}
+
 const sequelize = new Sequelize(
   dbConfig.database,
   dbConfig.username,
@@ -51,7 +58,9 @@ async function testConnection() {
   }
 }
 
-testConnection();
+if (process.env.NODE_ENV !== 'test') {
+  testConnection();
+}
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
