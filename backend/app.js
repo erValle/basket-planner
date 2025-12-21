@@ -19,6 +19,7 @@ const trainingPlanVersionsRouter = require('./routes/trainingPlanVersions.routes
 const planAssignmentsRouter = require('./routes/planAssignments.routes');
 const feedbacksRouter = require('./routes/feedbacks.routes');
 const metricsRouter = require('./routes/metrics.routes');
+const planningRouter = require('./routes/planning.routes');
 const {sequelize} = require('./models');
 const { errorHandler } = require('./src/middlewares/errorHandler');
 
@@ -61,6 +62,7 @@ app.use('/api/training-plans/:trainingPlanId/versions', trainingPlanVersionsRout
 app.use('/api/plan-assignments', planAssignmentsRouter);
 app.use('/api/feedbacks', feedbacksRouter);
 app.use('/api/metrics', metricsRouter);
+app.use('/api/planning', planningRouter);
 app.use('/api/exercises/:exerciseId/equipment', require('./routes/exerciseEquipment.routes'));
 
 app.use(errorHandler);
