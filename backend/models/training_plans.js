@@ -15,6 +15,12 @@ module.exports = (sequelize, DataTypes) => {
         as: 'versions',
       });
 
+      this.belongsTo(models.TrainingPlanVersion, {
+        foreignKey: 'activeVersionId',
+        as: 'activeVersion',
+        constraints: false,
+      });
+
       // New: assignments to users
       this.hasMany(models.PlanAssignment, {
         foreignKey: 'trainingPlanId',
@@ -67,6 +73,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING, 
         allowNull: false, 
         defaultValue: 'draft' 
+      },
+
+      activeVersionId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
       },
     },
     {

@@ -9,6 +9,12 @@ module.exports = (sequelize, DataTypes) => {
         as: 'trainingPlan',
       });
 
+      this.hasOne(models.TrainingPlan, {
+        foreignKey: 'activeVersionId',
+        as: 'activeForPlan',
+        constraints: false,
+      });
+
       this.hasMany(models.Feedback, {
         foreignKey: 'trainingPlanVersionId',
         as: 'feedbacks',
