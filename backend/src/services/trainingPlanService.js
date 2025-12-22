@@ -1,6 +1,6 @@
 const { StatusCodes } = require('http-status-codes');
 
-const { TrainingPlan } = require('../../models');
+const { TrainingPlan, TrainingPlanVersion } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
 
 const listTrainingPlans = async ({ createdById, targetType, status } = {}) => {
@@ -12,7 +12,12 @@ const listTrainingPlans = async ({ createdById, targetType, status } = {}) => {
 };
 
 const getTrainingPlanById = async (id) => {
-  const row = await TrainingPlan.findByPk(id);
+  const row = await TrainingPlan.findByPk(id, {
+    include: [
+      { model: TrainingPlanVersion, as: 'activeVersion', required: false },
+      { model: TrainingPlanVersion, as: 'versions', required: false },
+    ],
+  });
   if (!row) {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'TRAINING_PLAN_NOT_FOUND', 'Training plan not found');
   }
