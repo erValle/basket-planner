@@ -15,6 +15,32 @@ const listVersions = async (trainingPlanId) => {
   return TrainingPlanVersion.findAll({ where: { trainingPlanId } });
 };
 
+const listVersionsPaged = async (trainingPlanId, { page = 1, pageSize = 10 } = {}) => {
+  const plan = await getPlan(trainingPlanId);
+
+  const safePageSize = Math.max(1, Math.min(100, Number(pageSize) || 10));
+  const safePage = Math.max(1, Number(page) || 1);
+  const offset = (safePage - 1) * safePageSize;
+
+  const { count: total, rows } = await TrainingPlanVersion.findAndCountAll({
+    where: { trainingPlanId },
+    order: [['versionNumber', 'DESC']],
+    limit: safePageSize,
+    offset,
+  });
+
+  return {
+    page: safePage,
+    pageSize: safePageSize,
+    total,
+    activeVersionId: plan.activeVersionId,
+    versions: rows.map((v) => ({
+      ...v.toJSON(),
+      isActive: plan.activeVersionId === v.id,
+    })),
+  };
+};
+
 const getVersion = async (trainingPlanId, id) => {
   const row = await TrainingPlanVersion.findOne({ where: { id, trainingPlanId } });
   if (!row) {
@@ -33,6 +59,44 @@ const createVersion = async (trainingPlanId, payload) => {
   }
 
   return created;
+};
+
+const createNewVersion = async (trainingPlanId, content, metadata = {}) => {
+  const plan = await getPlan(trainingPlanId);
+
+  const lastVersion = await TrainingPlanVersion.findOne({
+    where: { trainingPlanId },
+    order: [['versionNumber', 'DESC']],
+  });
+
+  const nextVersionNumber = (lastVersion?.versionNumber || 0) + 1;
+
+  const payload = {
+    versionNumber: nextVersionNumber,
+    source: metadata.source || 'manual',
+    date: metadata.date ? new Date(metadata.date) : new Date(),
+    comments: metadata.comments ?? null,
+    items: content ? structuredClone(content) : null,
+  };
+
+  const created = await TrainingPlanVersion.create({ trainingPlanId, ...payload });
+  await plan.update({ activeVersionId: created.id });
+  return created;
+};
+
+const restoreVersion = async (trainingPlanId, versionId, metadata = {}) => {
+  const sourceVersion = await getVersion(trainingPlanId, versionId);
+  const restoredContent = sourceVersion.items ? structuredClone(sourceVersion.items) : null;
+
+  const comment = [metadata.comments, `restored-from:${sourceVersion.id}`]
+    .filter(Boolean)
+    .join(' | ');
+
+  return createNewVersion(trainingPlanId, restoredContent, {
+    source: metadata.source || 'manual',
+    comments: comment || null,
+    date: metadata.date,
+  });
 };
 
 const setActiveVersion = async (trainingPlanId, versionId) => {
@@ -67,8 +131,11 @@ const deleteVersion = async (trainingPlanId, id) => {
 
 module.exports = {
   listVersions,
+  listVersionsPaged,
   getVersion,
   createVersion,
+  createNewVersion,
+  restoreVersion,
   updateVersion,
   setActiveVersion,
   deleteVersion,
