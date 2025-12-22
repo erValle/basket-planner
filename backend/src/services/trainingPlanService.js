@@ -2,7 +2,6 @@ const { StatusCodes } = require('http-status-codes');
 
 const { TrainingPlan, TrainingPlanVersion } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
-const trainingPlanVersionService = require('./trainingPlanVersionService');
 
 const listTrainingPlans = async ({ createdById, targetType, status } = {}) => {
   const where = {};
@@ -29,22 +28,8 @@ const createTrainingPlan = async (payload) => TrainingPlan.create(payload);
 
 const updateTrainingPlan = async (id, payload) => {
   const row = await getTrainingPlanById(id);
-
-  const { content, metadata, ...planPatch } = payload || {};
-
-  if (Object.keys(planPatch).length > 0) {
-    await row.update(planPatch);
-  }
-
-  if (content) {
-    await trainingPlanVersionService.createNewVersion(row.id, content, {
-      source: 'manual',
-      comments: metadata?.comments,
-      date: metadata?.date,
-    });
-  }
-
-  return getTrainingPlanById(id);
+  await row.update(payload);
+  return row;
 };
 
 const deleteTrainingPlan = async (id) => {
