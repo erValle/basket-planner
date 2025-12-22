@@ -18,7 +18,12 @@ const updateTrainingPlanSchema = Joi.object({
   type: Joi.string().max(60),
   intensity: Joi.string().max(60),
   duration: Joi.number().integer().min(1),
-  status: Joi.string().valid('draft','active','archived')
+  status: Joi.string().valid('draft','active','archived'),
+  content: Joi.object().unknown(true),
+  metadata: Joi.object({
+    comments: Joi.string().allow('', null).optional(),
+    date: Joi.date().optional(),
+  }).optional(),
 }).min(1);
 
 module.exports = { createTrainingPlanSchema, updateTrainingPlanSchema };

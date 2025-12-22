@@ -52,4 +52,18 @@ const deleteVersion = async (req, res, next) => {
   }
 };
 
-module.exports = { listVersions, getVersion, createVersion, updateVersion, deleteVersion };
+const restoreVersion = async (req, res, next) => {
+  try {
+    const created = await trainingPlanVersionService.restoreVersion(
+      req.params.trainingPlanId,
+      req.params.id,
+      req.body
+    );
+    return res.status(StatusCodes.CREATED).json(created);
+  } catch (error) {
+    logger.error('Error restoring version:', error);
+    return next(error);
+  }
+};
+
+module.exports = { listVersions, getVersion, createVersion, updateVersion, restoreVersion, deleteVersion };
