@@ -26,7 +26,7 @@ const getUserById = async (req, res, next) => {
 
 const createUser = async (req, res, next) => {
     try {
-        const newUser = await userService.createUser(req.body);
+        const newUser = await userService.createUser(req.body, { user: req.user, requestId: req.requestId });
         return res.status(StatusCodes.CREATED).json(newUser);
     } catch (error) {
         logger.error('Error creating user:', error);
@@ -37,7 +37,7 @@ const createUser = async (req, res, next) => {
 const updateUser = async (req, res, next) => {
     const { id } = req.params;
     try {
-        const user = await userService.updateUser(id, req.body);
+        const user = await userService.updateUser(id, req.body, { user: req.user, requestId: req.requestId });
         return res.status(StatusCodes.OK).json(user);
     } catch (error) {
         logger.error('Error updating user:', error);
