@@ -35,7 +35,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.JSON, 
         allowNull: false 
       },
-      comment: { 
+      comments: { 
         type: DataTypes.TEXT, 
         allowNull: true 
       },

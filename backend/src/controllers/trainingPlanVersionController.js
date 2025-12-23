@@ -34,7 +34,10 @@ const getVersion = async (req, res, next) => {
 
 const createVersion = async (req, res, next) => {
   try {
-    const created = await trainingPlanVersionService.createVersion(req.params.trainingPlanId, req.body);
+    const created = await trainingPlanVersionService.createVersion(req.params.trainingPlanId, req.body, {
+      user: req.user,
+      requestId: req.requestId,
+    });
     return res.status(StatusCodes.CREATED).json(created);
   } catch (error) {
     logger.error('Error creating version:', error);

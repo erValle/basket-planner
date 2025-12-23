@@ -2,6 +2,7 @@ const { StatusCodes } = require('http-status-codes');
 
 const { TrainingPlan, TrainingPlanVersion } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
+const auditLogService = require('./auditLogService');
 
 const listTrainingPlans = async ({ createdById, targetType, status } = {}) => {
   const where = {};
@@ -24,11 +25,37 @@ const getTrainingPlanById = async (id) => {
   return row;
 };
 
-const createTrainingPlan = async (payload) => TrainingPlan.create(payload);
+const createTrainingPlan = async (payload, auditCtx = {}) => {
+  const created = await TrainingPlan.create(payload);
 
-const updateTrainingPlan = async (id, payload) => {
+  await auditLogService.createAuditLog({
+    user: auditCtx.user,
+    requestId: auditCtx.requestId,
+    action: 'training_plan.created',
+    entity: 'TrainingPlan',
+    entityId: created.id,
+    metadata: { name: created.name, targetType: created.targetType, status: created.status },
+  });
+
+  return created;
+};
+
+const updateTrainingPlan = async (id, payload, auditCtx = {}) => {
   const row = await getTrainingPlanById(id);
+
+  const before = { name: row.name, status: row.status, targetType: row.targetType, createdById: row.createdById };
   await row.update(payload);
+
+  const after = { name: row.name, status: row.status, targetType: row.targetType, createdById: row.createdById };
+  await auditLogService.createAuditLog({
+    user: auditCtx.user,
+    requestId: auditCtx.requestId,
+    action: 'training_plan.updated',
+    entity: 'TrainingPlan',
+    entityId: row.id,
+    metadata: { before, after },
+  });
+
   return row;
 };
 

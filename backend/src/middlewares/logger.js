@@ -3,8 +3,9 @@ const logger = (req, res, next) => {
 
     const method = req.method;
     const url = req.originalUrl;
+    const requestId = req.requestId;
     const time = new Date().toLocaleString();
-    console.log(`[${time}] ${method} ${url}`);
+    console.log(`[${time}]${requestId ? ` [${requestId}]` : ''} ${method} ${url}`);
     next();
 
 };

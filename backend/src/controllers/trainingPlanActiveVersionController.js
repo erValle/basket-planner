@@ -6,7 +6,8 @@ const setActiveVersion = async (req, res, next) => {
   try {
     const plan = await trainingPlanVersionService.setActiveVersion(
       req.params.trainingPlanId,
-      req.params.id
+      req.params.id,
+      { user: req.user, requestId: req.requestId }
     );
     return res.status(StatusCodes.OK).json(plan);
   } catch (error) {
