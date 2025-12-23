@@ -5,6 +5,7 @@ require('dotenv').config();
 const app = express();
 
 const logger = require('./src/middlewares/logger');
+const { requestIdMiddleware } = require('./src/middlewares/requestId');
 const { authenticateToken } = require('./src/middlewares/auth');
 
 const usersRouter = require('./routes/userRouter');
