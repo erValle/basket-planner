@@ -54,6 +54,13 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.JSONB, 
         allowNull: true 
       },
+
+      // Trace of inputs/context used to create this version (ML dataset friendly)
+      // e.g. { request: {...}, goals: [...], constraints: {...}, profiles: [...], model: { name, version } }
+      createdFrom: {
+        type: DataTypes.JSONB,
+        allowNull: true,
+      },
     },
     {
       sequelize,

@@ -29,16 +29,16 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true 
     },
     type: { 
-      type: DataTypes.STRING, 
-      allowNull: true 
+      type: DataTypes.ENUM('cardio', 'strength', 'flexibility', 'balance'), 
+      allowNull: false 
     },
     difficulty: { 
       type: DataTypes.JSONB, 
-      allowNull: true 
+      allowNull: false 
     },
     duration: { 
       type: DataTypes.INTEGER, 
-      allowNull: true 
+      allowNull: false 
     },
     tags: {
       type: DataTypes.JSONB, 

@@ -87,6 +87,7 @@ const createNewVersion = async (trainingPlanId, content, metadata = {}) => {
     date: metadata.date ? new Date(metadata.date) : new Date(),
     comments: metadata.comments ?? null,
     items: content ? structuredClone(content) : null,
+    createdFrom: metadata.createdFrom ?? null,
   };
 
   const created = await TrainingPlanVersion.create({ trainingPlanId, ...payload });
@@ -106,6 +107,8 @@ const restoreVersion = async (trainingPlanId, versionId, metadata = {}) => {
     source: metadata.source || 'manual',
     comments: comment || null,
     date: metadata.date,
+    // Keep traceability: caller can provide a new createdFrom, otherwise default to cloning source's.
+    createdFrom: metadata.createdFrom ?? (sourceVersion.createdFrom ? structuredClone(sourceVersion.createdFrom) : null),
   });
 };
 
