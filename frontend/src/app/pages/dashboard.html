@@ -1,0 +1,270 @@
+<div
+	class="min-h-screen flex flex-col"
+	style="background: radial-gradient(circle at top left, #111827, #020617); color: #f9fafb"
+>
+	<header class="bg-[#020617] border-b border-[#1f2937] px-6 py-3 flex items-center justify-between">
+		<div class="flex items-center gap-6">
+			<div class="text-[20px] text-[#f9fafb]">BasketPlanner</div>
+			<p-select
+				[options]="teams"
+				[(ngModel)]="selectedTeam"
+				placeholder="Selecciona equipo"
+				styleClass="bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+				[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+				[showClear]="false"
+			></p-select>
+		</div>
+
+		<div class="flex items-center gap-4">
+			<button
+				type="button"
+				class="text-[#9ca3af] hover:text-[#e5e7eb] text-[13px] flex items-center gap-2 transition-colors"
+			>
+				<span class="inline-flex h-4 w-4 items-center justify-center">🔔</span>
+				Notificaciones
+			</button>
+
+			<div
+				class="w-9 h-9 rounded-full flex items-center justify-center text-[14px]"
+				style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
+			>
+				PV
+			</div>
+		</div>
+	</header>
+
+	<div class="flex flex-1">
+		<aside class="w-64 bg-[#020617] border-r border-[#1f2937] flex flex-col">
+			<div class="p-6 border-b border-[#1f2937]">
+				<div class="flex items-center gap-3">
+					<div
+						class="w-10 h-10 rounded-full flex items-center justify-center text-[14px]"
+						style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
+					>
+						BP
+					</div>
+					<div class="flex flex-col">
+						<span class="text-[14px] text-[#f9fafb]">BasketPlanner</span>
+						<span class="text-[11px] text-[#9ca3af]">Panel entrenador</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="flex-1 overflow-y-auto px-3 py-4">
+				<div class="mb-4">
+					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">General</div>
+					<nav>
+						<a
+							routerLink="/dashboard"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#111827] text-[#f9fafb] text-[13px] mb-1"
+						>
+							<span>🏠</span>
+							<span>Dashboard</span>
+						</a>
+						<a
+							routerLink="/planning/new"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+						>
+							<span>📅</span>
+							<span>Planificaciones</span>
+						</a>
+						<a
+							routerLink="/players"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+						>
+							<span>🧍</span>
+							<span>Jugadores</span>
+						</a>
+						<a
+							routerLink="/exercises"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+						>
+							<span>📚</span>
+							<span>Ejercicios</span>
+						</a>
+					</nav>
+				</div>
+
+				<div>
+					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">Control</div>
+					<nav>
+						<a
+							routerLink="/feedback"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+						>
+							<span>⭐</span>
+							<span>Feedback y métricas</span>
+						</a>
+						<a
+							routerLink="/monitoring"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+						>
+							<span>🛠️</span>
+							<span>Monitorización IA</span>
+						</a>
+					</nav>
+				</div>
+			</div>
+
+			<div class="p-4 border-t border-[#1f2937]">
+				<div class="text-[12px] text-[#9ca3af] mb-1">Usuario: Pablo Valle</div>
+				<div class="inline-block text-[11px] px-2 py-1 rounded bg-[#111827] text-[#22d3ee] border border-[#1f2937]">
+					Rol: Entrenador
+				</div>
+			</div>
+		</aside>
+
+		<main class="flex-1 overflow-y-auto">
+			<div class="max-w-7xl mx-auto p-6">
+				<div class="flex items-start justify-between mb-6">
+					<div>
+						<h1 class="text-[24px] text-[#f9fafb] mb-1">Dashboard entrenador</h1>
+						<p class="text-[13px] text-[#9ca3af]">Resumen de planificaciones, jugadores y actividad reciente.</p>
+					</div>
+					<div class="flex gap-2">
+						<a
+							routerLink="/planning/new"
+							class="text-[13px] px-4 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
+						>
+							Nueva planificación grupal
+						</a>
+						<a
+							routerLink="/planning/new"
+							class="text-[13px] px-4 py-2 rounded-lg text-[#0f172a] border-none cursor-pointer"
+							style="background: linear-gradient(90deg, #0ea5e9, #22c55e)"
+						>
+							Nueva planificación individual
+						</a>
+					</div>
+				</div>
+
+				<div class="grid grid-cols-4 gap-4 mb-6">
+					<div
+						class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+						style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+					>
+						<div class="text-[13px] text-[#9ca3af] mb-2">Jugadores activos</div>
+						<div class="text-[32px] text-[#f9fafb] mb-1">82</div>
+						<div class="text-[11px] text-[#6b7280]">Con sesiones asignadas esta semana.</div>
+					</div>
+					<div
+						class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+						style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+					>
+						<div class="text-[13px] text-[#9ca3af] mb-2">Equipos en seguimiento</div>
+						<div class="text-[32px] text-[#f9fafb] mb-1">6</div>
+						<div class="text-[11px] text-[#6b7280]">Con planificación monitorizada.</div>
+					</div>
+					<div
+						class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+						style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+					>
+						<div class="text-[13px] text-[#9ca3af] mb-2">Planificaciones esta semana</div>
+						<div class="text-[32px] text-[#f9fafb] mb-1">18</div>
+						<div class="text-[11px] text-[#6b7280]">Individuales y grupales.</div>
+					</div>
+					<div
+						class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+						style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+					>
+						<div class="text-[13px] text-[#9ca3af] mb-2">Feedback medio</div>
+						<div class="text-[32px] text-[#f9fafb] mb-1">4.4 / 5</div>
+						<div class="text-[11px] text-[#6b7280]">Sobre las últimas 20 sesiones.</div>
+					</div>
+				</div>
+
+				<div
+					class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mb-6"
+					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+				>
+					<div class="text-[16px] text-[#f9fafb] mb-1">Acciones rápidas</div>
+					<div class="text-[13px] text-[#9ca3af] mb-4">Tareas habituales del entrenador.</div>
+
+					<div class="grid grid-cols-3 gap-3">
+						<a
+							routerLink="/planning/new"
+							class="bg-[#111827] hover:bg-[#1a2332] border border-[#1f2937] rounded-lg p-4 text-left transition-colors"
+						>
+							<div class="text-[14px] text-[#f9fafb] mb-1">Planificación individual</div>
+							<div class="text-[12px] text-[#9ca3af]">Generar sesión para un jugador concreto usando IA.</div>
+						</a>
+						<a
+							routerLink="/planning/new"
+							class="bg-[#111827] hover:bg-[#1a2332] border border-[#1f2937] rounded-lg p-4 text-left transition-colors"
+						>
+							<div class="text-[14px] text-[#f9fafb] mb-1">Planificación grupal</div>
+							<div class="text-[12px] text-[#9ca3af]">Crear sesión completa para un equipo.</div>
+						</a>
+						<a
+							routerLink="/exercises/new"
+							class="bg-[#111827] hover:bg-[#1a2332] border border-[#1f2937] rounded-lg p-4 text-left transition-colors"
+						>
+							<div class="text-[14px] text-[#f9fafb] mb-1">Registrar ejercicio</div>
+							<div class="text-[12px] text-[#9ca3af]">Añadir nuevo ejercicio al catálogo del club.</div>
+						</a>
+					</div>
+				</div>
+
+				<div
+					class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+				>
+					<div class="text-[16px] text-[#f9fafb] mb-1">Próximas planificaciones</div>
+					<div class="text-[13px] text-[#9ca3af] mb-4">Sesiones planificadas en los próximos días.</div>
+
+					<div class="overflow-x-auto">
+						<table class="w-full">
+							<thead>
+								<tr class="border-b border-[#1f2937]">
+									<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Fecha</th>
+									<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Equipo / Jugador</th>
+									<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Tipo</th>
+									<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Estado</th>
+									<th class="text-left text-[12px] text-[#9ca3af] pb-3"></th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr class="border-b border-[#1f2937]">
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">15/12 · 19:30</td>
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">Senior Masculino</td>
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">Grupal</td>
+									<td class="py-4 pr-4">
+										<span class="inline-block text-[11px] px-2 py-1 rounded bg-[#065f46] text-[#6ee7b7]">
+											Publicada
+										</span>
+									</td>
+									<td class="py-4">
+										<a
+											routerLink="/planning/session"
+											class="text-[12px] text-[#38bdf8] hover:text-[#22d3ee] underline"
+											style="text-underline-offset: 2px"
+										>
+											Ver detalle
+										</a>
+									</td>
+								</tr>
+								<tr>
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">16/12 · 18:00</td>
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">Jugador: Juan Pérez</td>
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">Individual</td>
+									<td class="py-4 pr-4">
+										<span class="inline-block text-[11px] px-2 py-1 rounded bg-[#78350f] text-[#fcd34d]">Borrador</span>
+									</td>
+									<td class="py-4">
+										<a
+											routerLink="/planning/new"
+											class="text-[12px] text-[#38bdf8] hover:text-[#22d3ee] underline"
+											style="text-underline-offset: 2px"
+										>
+											Continuar
+										</a>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+</div>

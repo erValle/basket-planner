@@ -1,0 +1,277 @@
+<div
+	class="min-h-screen flex flex-col"
+	style="background: radial-gradient(circle at top left, #111827, #020617); color: #f9fafb"
+>
+	<!-- Topbar -->
+	<header class="bg-[#020617] border-b border-[#1f2937] px-6 py-3 flex items-center justify-between">
+		<div class="flex items-center gap-6">
+			<div class="text-[20px] text-[#f9fafb]">BasketPlanner</div>
+			<p-select
+				[options]="teams"
+				[(ngModel)]="selectedTeam"
+				placeholder="Selecciona equipo"
+				styleClass="bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+				[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+				[showClear]="false"
+			></p-select>
+		</div>
+		<div class="flex items-center gap-4">
+			<button
+				type="button"
+				class="text-[#9ca3af] hover:text-[#e5e7eb] text-[13px] flex items-center gap-2 transition-colors"
+			>
+				<span class="inline-flex h-4 w-4 items-center justify-center">🔔</span>
+				Notificaciones
+			</button>
+			<div
+				class="w-9 h-9 rounded-full flex items-center justify-center text-[14px]"
+				style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
+			>
+				PV
+			</div>
+		</div>
+	</header>
+
+	<div class="flex flex-1">
+		<!-- Sidebar -->
+		<aside class="w-64 bg-[#020617] border-r border-[#1f2937] flex flex-col">
+			<div class="p-6 border-b border-[#1f2937]">
+				<div class="flex items-center gap-3">
+					<div
+						class="w-10 h-10 rounded-full flex items-center justify-center text-[14px]"
+						style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
+					>
+						BP
+					</div>
+					<div class="flex flex-col">
+						<span class="text-[14px] text-[#f9fafb]">BasketPlanner</span>
+						<span class="text-[11px] text-[#9ca3af]">Panel entrenador</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="flex-1 overflow-y-auto px-3 py-4">
+				<div class="mb-4">
+					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">General</div>
+					<nav>
+						<a
+							routerLink="/dashboard"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+						>
+							<span>🏠</span>
+							<span>Dashboard</span>
+						</a>
+						<a
+							routerLink="/planning/new"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#111827] text-[#f9fafb] text-[13px] mb-1"
+						>
+							<span>📅</span>
+							<span>Planificaciones</span>
+						</a>
+						<a
+							routerLink="/players"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+						>
+							<span>🧍</span>
+							<span>Jugadores</span>
+						</a>
+						<a
+							routerLink="/exercises"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+						>
+							<span>📚</span>
+							<span>Ejercicios</span>
+						</a>
+					</nav>
+				</div>
+
+				<div>
+					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">Control</div>
+					<nav>
+						<a
+							routerLink="/feedback"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+						>
+							<span>⭐</span>
+							<span>Feedback y métricas</span>
+						</a>
+						<a
+							routerLink="/monitoring"
+							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+						>
+							<span>🛠️</span>
+							<span>Monitorización IA</span>
+						</a>
+					</nav>
+				</div>
+			</div>
+
+			<div class="p-4 border-t border-[#1f2937]">
+				<div class="text-[12px] text-[#9ca3af] mb-1">Usuario: Pablo Valle</div>
+				<div
+					class="inline-block text-[11px] px-2 py-1 rounded bg-[#111827] text-[#22d3ee] border border-[#1f2937]"
+				>
+					Rol: Entrenador
+				</div>
+			</div>
+		</aside>
+
+		<!-- Main Content -->
+		<main class="flex-1 overflow-y-auto">
+			<div class="max-w-5xl mx-auto p-6">
+				<!-- Page Header -->
+				<div class="mb-6">
+					<h1 class="text-[24px] text-[#f9fafb] mb-1">Nueva planificación individual</h1>
+					<p class="text-[13px] text-[#9ca3af]">
+						Define parámetros básicos y deja que la IA proponga la sesión.
+					</p>
+				</div>
+
+				<!-- Stepper -->
+				<div
+					class="bg-[#020617] rounded-lg p-4 border border-[#1f2937] mb-6"
+					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+				>
+					<div class="flex items-center justify-between">
+						@for (step of steps; track step.number; let idx = $index) {
+							<div class="flex items-center gap-2">
+								<div
+									class="w-8 h-8 rounded-full flex items-center justify-center text-[13px]"
+									[ngClass]="{
+										'text-[#0f172a]': step.number === currentStep,
+										'bg-[#065f46] text-[#6ee7b7]': step.number < currentStep,
+										'bg-[#111827] text-[#6b7280]': step.number > currentStep
+									}"
+									[ngStyle]="step.number === currentStep ? { background: 'linear-gradient(90deg, #0ea5e9, #22c55e)' } : null"
+								>
+									{{ step.number }}
+								</div>
+								<div class="flex flex-col">
+									<span
+										class="text-[12px]"
+										[ngClass]="{ 'text-[#f9fafb]': step.number === currentStep, 'text-[#6b7280]': step.number !== currentStep }"
+									>
+										Paso {{ step.number }}
+									</span>
+									<span
+										class="text-[11px]"
+										[ngClass]="{ 'text-[#e5e7eb]': step.number === currentStep, 'text-[#6b7280]': step.number !== currentStep }"
+									>
+										{{ step.label }}
+									</span>
+								</div>
+							</div>
+							@if (idx < steps.length - 1) {
+								<div class="flex-1 h-[1px] bg-[#1f2937] mx-3"></div>
+							}
+						}
+					</div>
+				</div>
+
+				<!-- Form Card -->
+				<div
+					class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mb-6"
+					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+				>
+					<div class="grid grid-cols-2 gap-6">
+						<!-- Name -->
+						<div class="col-span-2">
+							<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre de la planificación</label>
+							<input
+								pInputText
+								type="text"
+								[(ngModel)]="formData.name"
+								name="planName"
+								placeholder="Ej.: Sesión técnica tiro 3 puntos"
+								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px] placeholder-[#6b7280]"
+							/>
+						</div>
+
+						<!-- Duration -->
+						<div>
+							<label class="block text-[#e5e7eb] text-[13px] mb-2">Duración total (min)</label>
+							<p-inputNumber
+								[(ngModel)]="formData.duration"
+								name="duration"
+								[inputStyleClass]="'w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px]'"
+								[styleClass]="'w-full'"
+								[min]="10"
+								[max]="240"
+								[showButtons]="false"
+							></p-inputNumber>
+						</div>
+
+						<!-- Objective -->
+						<div>
+							<label class="block text-[#e5e7eb] text-[13px] mb-2">Objetivo principal</label>
+							<p-select
+								[options]="objectiveOptions"
+								[(ngModel)]="formData.objective"
+								name="objective"
+								optionLabel="label"
+								optionValue="value"
+								styleClass="bg-[#111827] text-[#e5e7eb] text-[14px] rounded-lg border border-[#1f2937]"
+								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+								[showClear]="false"
+							></p-select>
+						</div>
+
+						<!-- Summary -->
+						<div class="col-span-2">
+							<label class="block text-[#e5e7eb] text-[13px] mb-2">Resumen para el jugador</label>
+							<textarea
+								pTextarea
+								[(ngModel)]="formData.summary"
+								name="summary"
+								rows="4"
+								placeholder="Mensaje breve que verá el jugador al consultar la sesión."
+								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px] placeholder-[#6b7280] resize-none"
+							></textarea>
+						</div>
+
+						<!-- Intensity -->
+						<div>
+							<label class="block text-[#e5e7eb] text-[13px] mb-2">Intensidad prevista</label>
+							<p-select
+								[options]="intensityOptions"
+								[(ngModel)]="formData.intensity"
+								name="intensity"
+								optionLabel="label"
+								optionValue="value"
+								styleClass="bg-[#111827] text-[#e5e7eb] text-[14px] rounded-lg border border-[#1f2937]"
+								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+								[showClear]="false"
+							></p-select>
+						</div>
+					</div>
+				</div>
+
+				<!-- Action Buttons -->
+				<div class="flex justify-between items-center">
+					<p-button
+						label="Cancelar"
+						severity="secondary"
+						[outlined]="true"
+						(click)="cancel()"
+						styleClass="text-[13px] px-5 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
+					></p-button>
+					<div class="flex gap-2">
+						<p-button
+							label="Atrás"
+							severity="secondary"
+							[outlined]="false"
+							[disabled]="currentStep === 1"
+							(click)="back()"
+							styleClass="text-[13px] px-5 py-2 rounded-lg bg-[#111827] text-[#6b7280] border border-[#1f2937]"
+						></p-button>
+						<p-button
+							label="Siguiente"
+							(click)="next()"
+							styleClass="text-[13px] px-5 py-2 rounded-lg text-[#0f172a] border-none"
+						></p-button>
+					</div>
+				</div>
+			</div>
+		</main>
+	</div>
+</div>
