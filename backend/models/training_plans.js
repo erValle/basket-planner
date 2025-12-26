@@ -54,12 +54,12 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true 
       },
       goal: { 
-        type: DataTypes.STRING, 
+        type: DataTypes.TEXT, 
         allowNull: true 
       },
       type: { 
         type: DataTypes.STRING, 
-        allowNull: true 
+        allowNull: false 
       },
       intensity: { 
         type: DataTypes.STRING, 
