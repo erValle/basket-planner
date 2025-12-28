@@ -1,1 +1,151 @@
-<p>player-detail works!</p>
+<div class="p-6">
+	<div class="flex items-center justify-between mb-4">
+		<div>
+			<h2 class="text-[20px] text-[#f9fafb] mb-1">Jugador: {{ player.name }}</h2>
+			<p class="text-[13px] text-[#9ca3af]">Ficha completa del jugador y asignaciones actuales.</p>
+		</div>
+		<p-tag
+			[value]="player.status === 'active' ? 'Activo' : 'En revisión'"
+			[severity]="player.status === 'active' ? 'success' : 'warn'"
+		></p-tag>
+	</div>
+
+	<div class="grid grid-cols-3 gap-6">
+		<!-- Left Column -->
+		<div class="col-span-2 space-y-6">
+			<div>
+				<h3 class="text-[16px] text-[#f9fafb] mb-1">Datos personales</h3>
+				<p class="text-[12px] text-[#9ca3af] mb-4">Información básica del jugador.</p>
+
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre</label>
+						<input
+							pInputText
+							[(ngModel)]="player.firstName"
+							name="firstName"
+							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+						/>
+					</div>
+					<div>
+						<label class="block text-[#e5e7eb] text-[13px] mb-2">Apellidos</label>
+						<input
+							pInputText
+							[(ngModel)]="player.lastName"
+							name="lastName"
+							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+						/>
+					</div>
+					<div>
+						<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha de nacimiento</label>
+						<input
+							pInputText
+							[(ngModel)]="player.birthDate"
+							name="birthDate"
+							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+						/>
+					</div>
+					<div>
+						<label class="block text-[#e5e7eb] text-[13px] mb-2">DNI / ID</label>
+						<input
+							pInputText
+							[(ngModel)]="player.dni"
+							name="dni"
+							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+						/>
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<h3 class="text-[16px] text-[#f9fafb] mb-1">Datos deportivos</h3>
+				<p class="text-[12px] text-[#9ca3af] mb-4">Información clave para la planificación.</p>
+
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label class="block text-[#e5e7eb] text-[13px] mb-2">Posición</label>
+						<input
+							pInputText
+							[(ngModel)]="player.position"
+							name="position"
+							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+						/>
+					</div>
+					<div>
+						<label class="block text-[#e5e7eb] text-[13px] mb-2">Altura (cm)</label>
+						<input
+							pInputText
+							type="number"
+							[(ngModel)]="player.height"
+							name="height"
+							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+						/>
+					</div>
+					<div>
+						<label class="block text-[#e5e7eb] text-[13px] mb-2">Peso (kg)</label>
+						<input
+							pInputText
+							type="number"
+							[(ngModel)]="player.weight"
+							name="weight"
+							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+						/>
+					</div>
+					<div>
+						<label class="block text-[#e5e7eb] text-[13px] mb-2">Mano dominante</label>
+						<input
+							pInputText
+							[(ngModel)]="player.dominantHand"
+							name="dominantHand"
+							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+						/>
+					</div>
+				</div>
+			</div>
+
+			<div>
+				<label class="block text-[#e5e7eb] text-[13px] mb-2">Notas del entrenador</label>
+				<textarea
+					pTextarea
+					[(ngModel)]="player.notes"
+					name="notes"
+					rows="4"
+					placeholder="Anota observaciones relevantes..."
+					class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] resize-none"
+				></textarea>
+			</div>
+		</div>
+
+		<!-- Right Column -->
+		<div class="space-y-6">
+			<div class="bg-[#111827] rounded-lg p-5 border border-[#1f2937]">
+				<h3 class="text-[16px] text-[#f9fafb] mb-1">Resumen y asignaciones</h3>
+				<p class="text-[12px] text-[#9ca3af] mb-4">Club, equipo y carga reciente.</p>
+
+				<div class="space-y-4">
+					<div>
+						<h4 class="text-[13px] text-[#e5e7eb] mb-1">Club actual</h4>
+						<p class="text-[12px] text-[#9ca3af]">{{ player.club }}</p>
+					</div>
+					<div>
+						<h4 class="text-[13px] text-[#e5e7eb] mb-1">Equipo actual</h4>
+						<p class="text-[12px] text-[#9ca3af]">{{ player.currentTeam }}</p>
+					</div>
+					<div>
+						<h4 class="text-[13px] text-[#e5e7eb] mb-1">Carga semana actual</h4>
+						<p class="text-[12px] text-[#9ca3af]">{{ player.weeklyLoad }}</p>
+					</div>
+					<div>
+						<h4 class="text-[13px] text-[#e5e7eb] mb-1">Último feedback</h4>
+						<p class="text-[12px] text-[#9ca3af]">{{ player.lastFeedback }}</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="mt-6 flex justify-between items-center">
+		<p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="onCancel()"></p-button>
+		<p-button label="Guardar cambios" (click)="onSave()"></p-button>
+	</div>
+</div>
