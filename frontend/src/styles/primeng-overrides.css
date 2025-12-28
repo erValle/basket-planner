@@ -1,0 +1,37 @@
+/* PrimeNG overrides for a consistent dialog look & feel */
+
+/*
+  Usage:
+  - Add `styleClass="bp-dialog"` to any <p-dialog>
+  - Keep content padding consistent even when dialogs render custom headers/footers
+*/
+
+.bp-dialog .p-dialog {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Header */
+.bp-dialog .p-dialog-header {
+  background: rgba(9, 9, 11, 0.98); /* zinc-950-ish */
+  border-bottom: 1px solid rgba(39, 39, 42, 1); /* zinc-800 */
+  padding: 16px 20px;
+}
+
+.bp-dialog .p-dialog-title {
+  color: rgba(244, 244, 245, 1);
+  font-weight: 600;
+}
+
+/* Content */
+.bp-dialog .p-dialog-content {
+  background: rgba(2, 6, 23, 0.95); /* slate-950-ish */
+  padding: 20px;
+}
+
+/* Footer */
+.bp-dialog .p-dialog-footer {
+  background: rgba(9, 9, 11, 0.98);
+  border-top: 1px solid rgba(39, 39, 42, 1);
+  padding: 14px 20px;
+}
