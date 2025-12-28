@@ -1,0 +1,21 @@
+<div class="flex items-start justify-between gap-4">
+	<div>
+		<h1 class="text-[24px] text-[#f9fafb] mb-1">{{ title }}</h1>
+		@if (subtitle) {
+			<p class="text-[13px] text-[#9ca3af]">{{ subtitle }}</p>
+		}
+	</div>
+
+	@if (actionLabel) {
+		<p-button
+			[label]="actionLabel"
+			[icon]="actionIcon"
+			[severity]="actionSeverity"
+			[outlined]="actionOutlined"
+			[disabled]="actionDisabled"
+			[ariaLabel]="actionAriaLabel || actionLabel"
+			(click)="onActionClick()"
+			styleClass="text-[13px] px-4 py-2 rounded-lg"
+		></p-button>
+	}
+</div>
