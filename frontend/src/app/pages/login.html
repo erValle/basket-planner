@@ -40,6 +40,7 @@
 				<div class="flex flex-col gap-1">
 					<label for="email" class="text-[#e5e7eb] text-[13px]">Correo electrónico</label>
 					<input
+						pInputText
 						type="email"
 						id="email"
 						formControlName="email"
@@ -52,6 +53,7 @@
 				<div class="flex flex-col gap-1">
 					<label for="password" class="text-[#e5e7eb] text-[13px]">Contraseña</label>
 					<input
+						pInputText
 						type="password"
 						id="password"
 						formControlName="password"
@@ -62,22 +64,20 @@
 				</div>
 
 				<div class="flex justify-between items-center mt-4 gap-2 text-[12px]">
-					<button
+					<p-button
 						type="submit"
-						class="rounded-full px-[18px] py-2 border-none text-[#0f172a] cursor-pointer text-[14px]"
-						style="background: linear-gradient(90deg, #0ea5e9, #22c55e)"
+						label="Acceder"
 						[disabled]="form.invalid"
-					>
-						Acceder
-					</button>
+						styleClass="rounded-full px-[18px] py-2 border-none text-[#0f172a] text-[14px]"
+						[style]="{ background: 'linear-gradient(90deg, #0ea5e9, #22c55e)' }"
+					></p-button>
 
-					<button
+					<p-button
 						type="button"
-						class="border-none bg-transparent text-[#9ca3af] cursor-pointer text-[12px] underline"
-						style="text-underline-offset: 2px"
-					>
-						¿Has olvidado la contraseña?
-					</button>
+						label="¿Has olvidado la contraseña?"
+						[link]="true"
+						styleClass="text-[#9ca3af] text-[12px] underline"
+					></p-button>
 				</div>
 			</form>
 
