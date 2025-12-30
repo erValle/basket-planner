@@ -1,154 +1,118 @@
-<div class="min-h-screen bg-zinc-950 text-zinc-100">
-	<div class="mx-auto max-w-6xl px-6 py-8">
-		<div class="flex flex-col gap-6">
-			<div class="flex items-start justify-between gap-4">
+<app-shell title="Ejercicios" subtitle="Crea y gestiona tu biblioteca de ejercicios." [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+	<div class="max-w-6xl mx-auto">
+		<app-page-header
+			[title]="'Ejercicios'"
+			[subtitle]="'Crea y gestiona tu biblioteca de ejercicios.'"
+			[actionLabel]="'Nuevo ejercicio'"
+			[actionIcon]="'pi pi-plus'"
+			[action]="openNewExercise.bind(this)"
+		></app-page-header>
+
+		<div
+			class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mt-6"
+			style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+		>
+			<div class="grid grid-cols-1 gap-4 md:grid-cols-4">
 				<div>
-					<h1 class="text-2xl font-semibold tracking-tight">Ejercicios</h1>
-					<p class="mt-1 text-sm text-zinc-400">Crea y gestiona tu biblioteca de ejercicios.</p>
-				</div>
-
-				<button
-					type="button"
-					pButton
-					label="Nuevo ejercicio"
-					icon="pi pi-plus"
-					class="p-button-sm"
-					(click)="openNewExercise()"
-				></button>
-			</div>
-
-			<div class="grid grid-cols-1 gap-3 rounded-xl border border-zinc-800 bg-zinc-900/50 p-4 md:grid-cols-4">
-				<div class="md:col-span-1">
-					<label class="mb-1 block text-xs font-medium text-zinc-400">Equipo</label>
-					<p-select
-						[options]="teams"
-						[(ngModel)]="selectedTeam"
-						[placeholder]="'Selecciona equipo'"
-						styleClass="w-full"
-					/>
-				</div>
-
-				<div class="md:col-span-1">
-					<label class="mb-1 block text-xs font-medium text-zinc-400">Tipo</label>
+					<label class="block text-[#9ca3af] text-[12px] mb-2">Tipo</label>
 					<p-select
 						[options]="tipoOptions"
 						optionLabel="label"
 						optionValue="value"
 						[(ngModel)]="filters.tipo"
-						styleClass="w-full"
-					/>
+						styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+						[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+					></p-select>
 				</div>
 
-				<div class="md:col-span-1">
-					<label class="mb-1 block text-xs font-medium text-zinc-400">Duración</label>
+				<div>
+					<label class="block text-[#9ca3af] text-[12px] mb-2">Duración</label>
 					<p-select
 						[options]="duracionOptions"
 						optionLabel="label"
 						optionValue="value"
 						[(ngModel)]="filters.duracion"
-						styleClass="w-full"
+						styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+						[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+					></p-select>
+				</div>
+
+				<div class="md:col-span-2">
+					<label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
+					<input
+						pInputText
+						class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
+						type="text"
+						placeholder="Buscar por nombre"
+						[(ngModel)]="filters.search"
 					/>
 				</div>
+			</div>
+		</div>
 
-				<div class="md:col-span-1">
-					<label class="mb-1 block text-xs font-medium text-zinc-400">Buscar</label>
-					<span class="p-input-icon-left w-full">
-						<i class="pi pi-search"></i>
-						<input
-							pInputText
-							class="w-full"
-							type="text"
-							placeholder="Buscar por nombre"
-							[(ngModel)]="filters.search"
-						/>
-					</span>
-				</div>
+		<div
+			class="bg-[#020617] rounded-lg border border-[#1f2937] mt-6"
+			style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+		>
+			@if (loading) {
+				<div class="border-b border-[#1f2937] px-4 py-3 text-[13px] text-[#9ca3af]">Cargando ejercicios…</div>
+			}
+			@if (loadError) {
+				<div class="border-b border-red-900/60 bg-red-950/40 px-4 py-3 text-[13px] text-red-200">{{ loadError }}</div>
+			}
+
+			<div class="border-b border-[#1f2937] px-4 py-3">
+				<div class="text-[13px] text-[#e5e7eb]">{{ filteredExercises.length }} ejercicio(s)</div>
 			</div>
 
-			<div class="rounded-xl border border-zinc-800 bg-zinc-900/40">
-				@if (loading) {
-					<div class="border-b border-zinc-800 px-4 py-3 text-sm text-zinc-400">
-						Cargando ejercicios…
-					</div>
-				}
-				@if (loadError) {
-					<div class="border-b border-red-900/60 bg-red-950/40 px-4 py-3 text-sm text-red-200">
-						{{ loadError }}
-					</div>
-				}
-
-						<div class="border-b border-zinc-800 px-4 py-3">
-							<div class="text-sm text-zinc-300">{{ filteredExercises.length }} ejercicio(s)</div>
-						</div>
-
-						<div class="p-4">
-							@if (filteredExercises.length === 0) {
-								<div class="py-10 text-center text-sm text-zinc-400">No hay ejercicios con esos filtros.</div>
-							} @else {
-								<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-									@for (exercise of filteredExercises; track exercise.id) {
-										<div class="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
-											<div class="flex items-start justify-between gap-3">
-												<div>
-													<div class="text-base font-semibold text-zinc-100">{{ exercise.nombre }}</div>
-													<div class="mt-1 flex flex-wrap items-center gap-2 text-xs">
-														<p-tag [value]="exercise.tipo" severity="info" />
-														<span class="rounded-full bg-zinc-800 px-2 py-1 text-zinc-200">{{ exercise.duracion }} min</span>
-														<span class="text-zinc-500">ID: {{ exercise.id }}</span>
-													</div>
-												</div>
-
-												<div class="flex shrink-0 gap-1">
-													<button
-														type="button"
-														pButton
-														icon="pi pi-eye"
-														class="p-button-text p-button-sm"
-														aria-label="Ver"
-																				(click)="openViewExercise(exercise)"
-													></button>
-													<button
-														type="button"
-														pButton
-														icon="pi pi-pencil"
-														class="p-button-text p-button-sm"
-														aria-label="Editar"
-																				(click)="openEditExercise(exercise)"
-													></button>
-													<button
-														type="button"
-														pButton
-														icon="pi pi-copy"
-														class="p-button-text p-button-sm"
-														aria-label="Copiar"
-																				(click)="copyExercise(exercise)"
-													></button>
-												</div>
-											</div>
-
-											<div class="mt-4">
-												<div class="text-xs font-medium text-zinc-400">Material</div>
-												<div class="mt-2 flex flex-wrap gap-2">
-													@for (mat of exercise.material; track mat) {
-														<span class="rounded-full bg-zinc-800 px-2 py-1 text-xs text-zinc-200">{{ mat }}</span>
-													}
-													@if (exercise.material.length === 0) {
-														<span class="text-xs text-zinc-500">Sin material</span>
-													}
-												</div>
-											</div>
+			<div class="p-4">
+				@if (filteredExercises.length === 0) {
+					<div class="py-10 text-center text-[13px] text-[#9ca3af]">No hay ejercicios con esos filtros.</div>
+				} @else {
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+						@for (exercise of filteredExercises; track exercise.id) {
+							<div class="bg-[#111827] rounded-lg p-5 border border-[#1f2937]">
+								<div class="flex items-start justify-between gap-3">
+									<div>
+										<div class="text-[15px] font-semibold text-[#f9fafb]">{{ exercise.nombre }}</div>
+										<div class="mt-2 flex flex-wrap items-center gap-2">
+											<p-tag [value]="exercise.tipo" severity="info" />
+											<span class="inline-flex items-center rounded-full bg-[#020617] border border-[#1f2937] px-2 py-1 text-[11px] text-[#e5e7eb]">
+												{{ exercise.duracion }} min
+											</span>
+											<span class="text-[11px] text-[#6b7280]">ID: {{ exercise.id }}</span>
 										</div>
-									}
+									</div>
+
+									<div class="flex shrink-0 gap-1">
+										<button type="button" pButton icon="pi pi-eye" class="p-button-text p-button-sm" aria-label="Ver" (click)="openViewExercise(exercise)"></button>
+										<button type="button" pButton icon="pi pi-pencil" class="p-button-text p-button-sm" aria-label="Editar" (click)="openEditExercise(exercise)"></button>
+										<button type="button" pButton icon="pi pi-copy" class="p-button-text p-button-sm" aria-label="Copiar" (click)="copyExercise(exercise)"></button>
+									</div>
 								</div>
-							}
-						</div>
+
+								<div class="mt-4">
+									<div class="text-[12px] text-[#9ca3af]">Material</div>
+									<div class="mt-2 flex flex-wrap gap-2">
+										@for (mat of exercise.material; track mat) {
+											<span class="rounded-full bg-[#020617] border border-[#1f2937] px-2 py-1 text-[11px] text-[#e5e7eb]">{{ mat }}</span>
+										}
+										@if (exercise.material.length === 0) {
+											<span class="text-[12px] text-[#6b7280]">Sin material</span>
+										}
+									</div>
+								</div>
+							</div>
+						}
+					</div>
+				}
 			</div>
 		</div>
 	</div>
 
-		<p-dialog
-			styleClass="bp-dialog"
-			[header]="dialogHeader"
+	<p-dialog
+		styleClass="bp-dialog"
+		[header]="dialogHeader"
 		[(visible)]="newExerciseVisible"
 		[modal]="true"
 		[draggable]="false"
@@ -156,11 +120,11 @@
 		[style]="{ width: 'min(960px, 96vw)' }"
 		(onHide)="closeNewExercise()"
 	>
-			<app-exercise-form
-				[mode]="dialogMode"
-				[initialValue]="initialDraft"
-				(cancel)="closeNewExercise()"
-				(save)="saveNewExercise($event)"
-			/>
+		<app-exercise-form
+			[mode]="dialogMode"
+			[initialValue]="initialDraft"
+			(cancel)="closeNewExercise()"
+			(save)="saveNewExercise($event)"
+		/>
 	</p-dialog>
-</div>
+</app-shell>

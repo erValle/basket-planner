@@ -13,6 +13,9 @@ import { TagModule } from 'primeng/tag';
 import { PlayerDetail, PlayerDetailModel } from '../modals/player-detail/player-detail';
 import { PlayerSelection, PlayerSelectionItem } from '../modals/player-selection/player-selection';
 
+import { PageHeader } from '../components/page-header/page-header';
+import { AppShell } from '../layout/app-shell/app-shell';
+
 type PlayerStatus = 'active' | 'revision';
 
 interface Player {
@@ -52,13 +55,15 @@ type Option = { label: string; value: string };
     TagModule,
     PlayerDetail,
     PlayerSelection,
+		PageHeader,
+		AppShell,
   ],
   templateUrl: './players.html',
   styleUrl: './players.css',
 })
 export class Players {
-  teams: string[] = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam: string = this.teams[0];
+  teamsTop: string[] = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
+  selectedTeam: string = this.teamsTop[0];
 
   selectedPlayer: PlayerDetailModel | null = null;
   playerDetailVisible = false;

@@ -1,145 +1,12 @@
-<div
-	class="min-h-screen flex flex-col"
-	style="background: radial-gradient(circle at top left, #111827, #020617); color: #f9fafb"
->
-	<!-- Topbar -->
-	<header class="bg-[#020617] border-b border-[#1f2937] px-6 py-3 flex items-center justify-between">
-		<div class="flex items-center gap-6">
-			<div class="text-[20px] text-[#f9fafb]">BasketPlanner</div>
-			<p-select
-				[options]="teams"
-				[(ngModel)]="selectedTeam"
-				placeholder="Selecciona equipo"
-				styleClass="bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-				[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
-				[showClear]="false"
-			></p-select>
-		</div>
-		<div class="flex items-center gap-4">
-			<button
-				type="button"
-				pButton
-				label="Notificaciones"
-				icon="pi pi-bell"
-				class="p-button-text p-button-sm"
-				style="color: #9ca3af"
-			></button>
-			<div
-				class="w-9 h-9 rounded-full flex items-center justify-center text-[14px]"
-				style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
-			>
-				PV
-			</div>
-		</div>
-	</header>
-
-	<div class="flex flex-1">
-		<!-- Sidebar -->
-		<aside class="w-64 bg-[#020617] border-r border-[#1f2937] flex flex-col">
-			<div class="p-6 border-b border-[#1f2937]">
-				<div class="flex items-center gap-3">
-					<div
-						class="w-10 h-10 rounded-full flex items-center justify-center text-[14px]"
-						style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
-					>
-						BP
-					</div>
-					<div class="flex flex-col">
-						<span class="text-[14px] text-[#f9fafb]">BasketPlanner</span>
-						<span class="text-[11px] text-[#9ca3af]">Panel entrenador</span>
-					</div>
-				</div>
-			</div>
-
-			<div class="flex-1 overflow-y-auto px-3 py-4">
-				<div class="mb-4">
-					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">General</div>
-					<nav>
-						<a
-							routerLink="/dashboard"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>🏠</span>
-							<span>Dashboard</span>
-						</a>
-						<a
-							routerLink="/planning/new"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>📅</span>
-							<span>Planificaciones</span>
-						</a>
-						<a
-							routerLink="/players"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#111827] text-[#f9fafb] text-[13px] mb-1"
-						>
-							<span>🧍</span>
-							<span>Jugadores</span>
-						</a>
-						<a
-							routerLink="/exercises"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>📚</span>
-							<span>Ejercicios</span>
-						</a>
-					</nav>
-				</div>
-
-				<div>
-					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">Control</div>
-					<nav>
-						<a
-							routerLink="/feedback"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>⭐</span>
-							<span>Feedback y métricas</span>
-						</a>
-						<a
-							routerLink="/monitoring"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>🛠️</span>
-							<span>Monitorización IA</span>
-						</a>
-					</nav>
-				</div>
-			</div>
-
-			<div class="p-4 border-t border-[#1f2937]">
-				<div class="text-[12px] text-[#9ca3af] mb-1">Usuario: Pablo Valle</div>
-				<div
-					class="inline-block text-[11px] px-2 py-1 rounded bg-[#111827] text-[#22d3ee] border border-[#1f2937]"
-				>
-					Rol: Entrenador
-				</div>
-			</div>
-		</aside>
-
-		<!-- Main Content -->
-		<main class="flex-1 overflow-y-auto">
-			<div class="max-w-7xl mx-auto p-6">
-				<!-- Page Header -->
-				<div class="flex items-start justify-between mb-6">
-					<div>
-						<h1 class="text-[24px] text-[#f9fafb] mb-1">Jugadores</h1>
-						<p class="text-[13px] text-[#9ca3af]">Gestión de jugadores del club y asignación a equipos.</p>
-					</div>
-					<div class="flex gap-2">
-						<p-button
-							label="Exportar CSV"
-							severity="secondary"
-							[outlined]="true"
-							styleClass="text-[13px] px-4 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
-						></p-button>
-						<p-button
-							label="Nuevo jugador"
-							(click)="openPlayerSelection()"
-							styleClass="text-[13px] px-4 py-2 rounded-lg text-[#0f172a] border-none"
-						></p-button>
-					</div>
-				</div>
+<app-shell title="Jugadores" subtitle="Gestión de jugadores" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+	<div class="max-w-7xl mx-auto">
+		<app-page-header
+			[title]="'Jugadores'"
+			[subtitle]="'Listado y detalle de jugadores del club.'"
+			[actionLabel]="'Añadir jugadores'"
+			[actionIcon]="'pi pi-plus'"
+			[action]="openPlayerSelection.bind(this)"
+		></app-page-header>
 
 				<!-- Filters -->
 				<div
@@ -251,8 +118,6 @@
 					</p-table>
 				</div>
 			</div>
-		</main>
-	</div>
 
 	<!-- Player Detail (Dialog) -->
 	<p-dialog
@@ -296,4 +161,4 @@
 			(confirm)="confirmPlayerSelection($event)"
 		></app-player-selection>
 	</p-dialog>
-</div>
+</app-shell>

@@ -1,1 +1,77 @@
-<p>new-material works!</p>
+<app-shell title="Nuevo material" subtitle="Añade un nuevo elemento al inventario." [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+	<div class="max-w-7xl mx-auto">
+		<app-page-header
+			[title]="'Nuevo material'"
+			[subtitle]="'Añade un nuevo elemento al inventario.'"
+		></app-page-header>
+
+				<div
+					class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mt-6"
+					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+				>
+					<div class="grid grid-cols-2 gap-6">
+						<div class="col-span-2">
+							<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre</label>
+							<input
+								pInputText
+								[(ngModel)]="form.name"
+								name="name"
+								placeholder="Ej.: Balón talla 7"
+								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px] placeholder-[#6b7280]"
+							/>
+						</div>
+
+						<div>
+							<label class="block text-[#e5e7eb] text-[13px] mb-2">Categoría</label>
+							<p-select
+								[options]="categoryOptions"
+								[(ngModel)]="form.category"
+								name="category"
+								optionLabel="label"
+								optionValue="value"
+								styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[14px] rounded-lg border border-[#1f2937]"
+								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+							></p-select>
+						</div>
+
+						<div>
+							<label class="block text-[#e5e7eb] text-[13px] mb-2">Total</label>
+							<p-inputNumber
+								[(ngModel)]="form.total"
+								name="total"
+								[min]="0"
+								[showButtons]="false"
+								styleClass="w-full"
+							></p-inputNumber>
+						</div>
+
+						<div>
+							<label class="block text-[#e5e7eb] text-[13px] mb-2">Disponibles</label>
+							<p-inputNumber
+								[(ngModel)]="form.available"
+								name="available"
+								[min]="0"
+								[showButtons]="false"
+								styleClass="w-full"
+							></p-inputNumber>
+						</div>
+					</div>
+
+					<div class="mt-6 flex justify-between items-center">
+						<p-button
+							label="Cancelar"
+							severity="secondary"
+							[outlined]="true"
+							(click)="cancel()"
+							styleClass="text-[13px] px-5 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
+						></p-button>
+						<p-button
+							label="Guardar"
+							(click)="save()"
+							[disabled]="!form.name.trim()"
+							styleClass="text-[13px] px-5 py-2 rounded-lg text-[#0f172a] border-none"
+						></p-button>
+					</div>
+				</div>
+	</div>
+</app-shell>

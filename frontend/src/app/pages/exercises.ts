@@ -10,6 +10,8 @@ import { TagModule } from 'primeng/tag';
 
 import { ExerciseDraft, ExerciseForm, ExerciseFormValue } from '../components/exercise-form/exercise-form';
 import { ExercisesApi, ExerciseDto, ExerciseType } from '../services/exercises.api';
+import { AppShell } from '../layout/app-shell/app-shell';
+import { PageHeader } from '../components/page-header/page-header';
 
 type Option = { label: string; value: string };
 
@@ -34,6 +36,8 @@ type UiType = 'Técnico' | 'Táctico' | 'Físico';
     DialogModule,
     TagModule,
     ExerciseForm,
+		AppShell,
+		PageHeader,
   ],
   templateUrl: './exercises.html',
   styleUrl: './exercises.css',
@@ -41,8 +45,8 @@ type UiType = 'Técnico' | 'Táctico' | 'Físico';
 export class Exercises implements OnInit {
   private readonly exercisesApi = inject(ExercisesApi);
 
-  teams: string[] = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam: string = this.teams[0];
+  teamsTop: string[] = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
+  selectedTeam: string = this.teamsTop[0];
 
   tipoOptions: Option[] = [
     { label: 'Todos', value: 'Todos' },

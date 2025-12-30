@@ -1,13 +1,20 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { distinctUntilChanged, map } from 'rxjs';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
+import { ChipModule } from 'primeng/chip';
+import { CheckboxModule } from 'primeng/checkbox';
+
+import { AppShell } from '../layout/app-shell/app-shell';
+import { PageHeader } from '../components/page-header/page-header';
+import { PlayerSelectCard } from '../components/player-select-card/player-select-card';
 
 type Step = { number: number; label: string };
 type Option = { label: string; value: string };
@@ -15,21 +22,27 @@ type Option = { label: string; value: string };
 @Component({
   selector: 'app-new-planification',
   imports: [
-    CommonModule,
-    FormsModule,
+  CommonModule,
+  FormsModule,
+  ReactiveFormsModule,
     RouterLink,
     ButtonModule,
     InputTextModule,
     InputNumberModule,
     TextareaModule,
     SelectModule,
+		ChipModule,
+		CheckboxModule,
+		AppShell,
+		PageHeader,
+    PlayerSelectCard,
   ],
   templateUrl: './new-planification.html',
   styleUrl: './new-planification.css',
 })
 export class NewPlanification {
-  teams: string[] = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam: string = this.teams[0];
+  teamsTop: string[] = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
+  selectedTeam: string = this.teamsTop[0];
 
   currentStep = 1;
 
@@ -38,7 +51,6 @@ export class NewPlanification {
     { number: 2, label: 'Destino' },
     { number: 3, label: 'Restricciones' },
     { number: 4, label: 'Revisión' },
-    { number: 5, label: 'Confirmación' },
   ];
 
   objectiveOptions: Option[] = [
@@ -62,15 +74,294 @@ export class NewPlanification {
     intensity: 'Media',
   };
 
+  modeOptions: Option[] = [
+    { label: 'Individual', value: 'individual' },
+    { label: 'Grupal', value: 'group' },
+  ];
+
+  // Step 2 - Destino
+  planningMode: 'individual' | 'group' = 'individual';
+
+  onPlanningModeChange(mode: 'individual' | 'group'): void {
+    this.planningMode = mode;
+
+    // Reset selections that don't make sense across modes to avoid validation/UI glitches.
+    this.selectedPlayerId = null;
+    this.selectedGroupId = null;
+    this.selectedPlayerIds = [];
+
+    // Reset filters so the group list renders immediately and predictably.
+    this.filterName = '';
+    this.filterPosition = null;
+    this.filterCategory = null;
+    this.filterTeam = null;
+
+    this.syncWizardQueryParams();
+  }
+
+  playerOptions: Option[] = [
+    { label: 'Pablo Valle', value: 'player-1' },
+    { label: 'María López', value: 'player-2' },
+    { label: 'Carlos Martín', value: 'player-3' },
+  ];
+
+  // Extra filters
+  positionOptions = [
+    { label: 'Base', value: 'base' },
+    { label: 'Escolta', value: 'guard' },
+    { label: 'Alero', value: 'wing' },
+    { label: 'Ala-pívot', value: 'forward' },
+    { label: 'Pívot', value: 'center' },
+  ];
+
+  categoryOptions = [
+    { label: 'Senior', value: 'senior' },
+    { label: 'Juvenil', value: 'junior' },
+    { label: 'Infantil', value: 'kid' },
+  ];
+
+  teamOptions = [
+    { label: 'Equipo A', value: 'team-a' },
+    { label: 'Equipo B', value: 'team-b' },
+  ];
+
+  // Filters state
+  filterName = '';
+  filterPosition: string | null = null;
+  filterCategory: string | null = null;
+  filterTeam: string | null = null;
+
+  // Multi-select (group) support
+  selectedPlayerIds: string[] = [];
+
+  get selectedPlayers() {
+    const selected = new Set(this.selectedPlayerIds);
+    return this.players.filter((p) => selected.has(p.id));
+  }
+
+  togglePlayerSelection(playerId: string): void {
+    const exists = this.selectedPlayerIds.includes(playerId);
+    this.selectedPlayerIds = exists
+      ? this.selectedPlayerIds.filter((id) => id !== playerId)
+      : [...this.selectedPlayerIds, playerId];
+  }
+
+  // Mock players dataset (with metadata) used for filtering
+  players = [
+    { id: 'player-1', name: 'Pablo Valle', position: 'guard', category: 'senior', team: 'team-a' },
+    { id: 'player-2', name: 'María López', position: 'wing', category: 'senior', team: 'team-b' },
+    { id: 'player-3', name: 'Carlos Martín', position: 'center', category: 'junior', team: 'team-a' },
+  ];
+
+  // Step 2 UX helpers (until players come from API)
+  playersLoading = false;
+
+  get hasFilteredPlayers(): boolean {
+    return this.filteredPlayers.length > 0;
+  }
+
+  clearPlayerFilters(): void {
+    this.filterName = '';
+    this.filterPosition = null;
+    this.filterCategory = null;
+    this.filterTeam = null;
+  }
+
+  get filteredPlayers() {
+    return this.players.filter((p) => {
+      if (this.filterName && !p.name.toLowerCase().includes(this.filterName.toLowerCase())) return false;
+      if (this.filterPosition && p.position !== this.filterPosition) return false;
+      if (this.filterCategory && p.category !== this.filterCategory) return false;
+      if (this.filterTeam && p.team !== this.filterTeam) return false;
+      return true;
+    });
+  }
+
+  get playerOptionsFiltered(): Option[] {
+    return this.filteredPlayers.map((p) => ({ label: p.name, value: p.id }));
+  }
+
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+  ) {
+    // initialize material map
+    for (const m of this.materialOptions) {
+      this.materialSelectedMap[m.id] = false;
+    }
+
+    // Restore & keep wizard state in sync with query params.
+    // This avoids a "needs one extra click" situation when landing directly on
+    // /planning/new?step=2&mode=group.
+    this.route.queryParamMap
+      .pipe(
+        map((p) => {
+          const step = Number(p.get('step') ?? '1');
+          const rawMode = p.get('mode');
+          const mode: 'individual' | 'group' | null = rawMode === 'individual' || rawMode === 'group' ? rawMode : null;
+          return {
+            step: Number.isNaN(step) ? null : Math.min(this.steps.length, Math.max(1, step)),
+            mode,
+          };
+        }),
+        distinctUntilChanged((a, b) => a.step === b.step && a.mode === b.mode),
+      )
+      .subscribe(({ step, mode }) => {
+        if (step != null) this.currentStep = step;
+
+        // Use the same state reset logic as the manual mode switch.
+        // Notice: we intentionally DO NOT call syncWizardQueryParams() here to
+        // avoid navigation loops on initial load.
+        if (mode && mode !== this.planningMode) {
+          this.planningMode = mode;
+          this.selectedPlayerId = null;
+          this.selectedGroupId = null;
+          this.selectedPlayerIds = [];
+          this.filterName = '';
+          this.filterPosition = null;
+          this.filterCategory = null;
+          this.filterTeam = null;
+        }
+      });
+  }
+
+  syncWizardQueryParams(): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      replaceUrl: true,
+      queryParams: {
+        step: this.currentStep,
+        mode: this.planningMode,
+      },
+      queryParamsHandling: 'merge',
+    });
+  }
+
+  groupOptions: Option[] = [
+    { label: 'Senior Masculino (equipo completo)', value: 'group-senior-m' },
+    { label: 'Bases', value: 'group-bases' },
+    { label: 'Interiores', value: 'group-interiores' },
+  ];
+
+  selectedPlayerId: string | null = null;
+  selectedGroupId: string | null = null;
+
+  selectedTargetLabel(): string {
+    const options = this.planningMode === 'individual' ? this.playerOptions : this.groupOptions;
+    const selected = this.planningMode === 'individual' ? this.selectedPlayerId : this.selectedGroupId;
+    return options.find((o) => o.value === selected)?.label ?? '—';
+  }
+
+  // Step 3 - Restricciones
+  materialOptions = [
+    { id: 'ball', label: 'Balón' },
+    { id: 'cones', label: 'Conos' },
+    { id: 'ladder', label: 'Escalera de coordinación' },
+    { id: 'bands', label: 'Bandas elásticas' },
+    { id: 'hurdles', label: 'Vallas' },
+    { id: 'shooting-machine', label: 'Máquina de tiro' },
+  ];
+
+  selectedMaterials = new Set<string>();
+  // Use a map for two-way binding with PrimeNG checkboxes
+  materialSelectedMap: Record<string, boolean> = {};
+  restrictionTagsInput = '';
+  restrictionTags: string[] = [];
+  tagsControl = new FormControl('');
+
+	private normalizeTag(raw: string): string {
+		return raw.trim();
+	}
+
+	addTag(raw: string): void {
+		const tag = this.normalizeTag(raw);
+		if (!tag) return;
+		if (this.restrictionTags.includes(tag)) return;
+		this.restrictionTags = [...this.restrictionTags, tag];
+	}
+
+  syncRestrictionTags(): void {
+		// Accept comma-separated input but APPEND into the array (do not replace it)
+    const raw = (this.tagsControl?.value ?? this.restrictionTagsInput) as string;
+    raw
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean)
+			.forEach((t) => this.addTag(t));
+  }
+
+  addTagFromInput(e: any) {
+    if (e && typeof e.preventDefault === 'function') e.preventDefault();
+    this.syncRestrictionTags();
+    this.tagsControl.setValue('');
+  }
+
+  addTagManually() {
+    this.syncRestrictionTags();
+    this.tagsControl.setValue('');
+  }
+
+  removeTag(tag: string) {
+    this.restrictionTags = this.restrictionTags.filter((t) => t !== tag);
+  }
+
+  isMaterialSelected(id: string): boolean {
+    return !!this.materialSelectedMap[id];
+  }
+
+  toggleMaterial(id: string, checked: boolean): void {
+    this.materialSelectedMap[id] = checked;
+    if (checked) this.selectedMaterials.add(id);
+    else this.selectedMaterials.delete(id);
+  }
+
+  get selectedMaterialLabels(): string[] {
+    return this.materialOptions
+      .filter((m) => this.selectedMaterials.has(m.id))
+      .map((m) => m.label);
+  }
+
+  // Validation / navigation
+  stepIsValid(step: number): boolean {
+    if (step === 1) {
+      return this.formData.name.trim().length > 0 && this.formData.duration >= 10;
+    }
+    if (step === 2) {
+			if (this.planningMode === 'individual') return !!this.selectedPlayerId;
+			// grupal: selección manual
+			return this.selectedPlayerIds.length > 0 || !!this.selectedGroupId;
+    }
+    // Step 3 and 4: optional, always valid
+    return true;
+  }
+
+  canGoNext(): boolean {
+    return this.stepIsValid(this.currentStep);
+  }
+
   cancel() {
     // TODO: navigate back when we have a dedicated listing page
   }
 
   back() {
     this.currentStep = Math.max(1, this.currentStep - 1);
+    this.syncWizardQueryParams();
   }
 
   next() {
-    this.currentStep = Math.min(5, this.currentStep + 1);
+    // Make sure we capture latest tag input before leaving the step.
+    if (this.currentStep === 3) {
+      this.syncRestrictionTags();
+    }
+
+    if (!this.canGoNext()) return;
+    this.currentStep = Math.min(this.steps.length, this.currentStep + 1);
+		this.syncWizardQueryParams();
   }
+
+	confirm() {
+		// TODO: wire to backend endpoint to generate the planification
+		// For now we keep it as a stub to avoid breaking flow.
+		this.currentStep = this.steps.length;
+	}
 }

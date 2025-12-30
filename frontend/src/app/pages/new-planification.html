@@ -1,278 +1,468 @@
-<div
-	class="min-h-screen flex flex-col"
-	style="background: radial-gradient(circle at top left, #111827, #020617); color: #f9fafb"
+<app-shell
+  title="Nueva planificación"
+  subtitle="Define parámetros y deja que la IA proponga la sesión."
+  [teams]="teamsTop"
+  [(selectedTeam)]="selectedTeam"
 >
-	<!-- Topbar -->
-	<header class="bg-[#020617] border-b border-[#1f2937] px-6 py-3 flex items-center justify-between">
-		<div class="flex items-center gap-6">
-			<div class="text-[20px] text-[#f9fafb]">BasketPlanner</div>
-			<p-select
-				[options]="teams"
-				[(ngModel)]="selectedTeam"
-				placeholder="Selecciona equipo"
-				styleClass="bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-				[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
-				[showClear]="false"
-			></p-select>
-		</div>
-		<div class="flex items-center gap-4">
-			<button
-				type="button"
-				pButton
-				label="Notificaciones"
-				icon="pi pi-bell"
-				class="p-button-text p-button-sm"
-				style="color: #9ca3af"
-			></button>
-			<div
-				class="w-9 h-9 rounded-full flex items-center justify-center text-[14px]"
-				style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
-			>
-				PV
-			</div>
-		</div>
-	</header>
+  <div class="max-w-5xl mx-auto">
+    <app-page-header
+      [title]="planningMode === 'individual' ? 'Nueva planificación individual' : 'Nueva planificación grupal'"
+      [subtitle]="planningMode === 'individual' ? 'Define parámetros básicos para un jugador.' : 'Define parámetros básicos para un grupo de jugadores.'"
+    ></app-page-header>
 
-	<div class="flex flex-1">
-		<!-- Sidebar -->
-		<aside class="w-64 bg-[#020617] border-r border-[#1f2937] flex flex-col">
-			<div class="p-6 border-b border-[#1f2937]">
-				<div class="flex items-center gap-3">
-					<div
-						class="w-10 h-10 rounded-full flex items-center justify-center text-[14px]"
-						style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
-					>
-						BP
-					</div>
-					<div class="flex flex-col">
-						<span class="text-[14px] text-[#f9fafb]">BasketPlanner</span>
-						<span class="text-[11px] text-[#9ca3af]">Panel entrenador</span>
-					</div>
-				</div>
-			</div>
+    <form (submit)="$event.preventDefault()">
+      <!-- Stepper -->
+      <div
+        class="bg-[#020617] rounded-lg p-4 border border-[#1f2937] mb-6"
+        style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+      >
+        <div class="flex items-center justify-between">
+          @for (step of steps; track step.number; let idx = $index) {
+            <div class="flex items-center gap-2">
+              <div
+                class="w-8 h-8 rounded-full flex items-center justify-center text-[13px]"
+                [ngClass]="{
+                  'text-[#0f172a]': step.number === currentStep,
+                  'bg-[#065f46] text-[#6ee7b7]': step.number < currentStep,
+                  'bg-[#111827] text-[#6b7280]': step.number > currentStep
+                }"
+                [ngStyle]="step.number === currentStep ? { background: 'linear-gradient(90deg, #0ea5e9, #22c55e)' } : null"
+              >
+                {{ step.number }}
+              </div>
 
-			<div class="flex-1 overflow-y-auto px-3 py-4">
-				<div class="mb-4">
-					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">General</div>
-					<nav>
-						<a
-							routerLink="/dashboard"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>🏠</span>
-							<span>Dashboard</span>
-						</a>
-						<a
-							routerLink="/planning/new"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#111827] text-[#f9fafb] text-[13px] mb-1"
-						>
-							<span>📅</span>
-							<span>Planificaciones</span>
-						</a>
-						<a
-							routerLink="/players"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>🧍</span>
-							<span>Jugadores</span>
-						</a>
-						<a
-							routerLink="/exercises"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>📚</span>
-							<span>Ejercicios</span>
-						</a>
-					</nav>
-				</div>
+              <div class="flex flex-col">
+                <span class="text-[12px]" [ngClass]="{ 'text-[#f9fafb]': step.number === currentStep, 'text-[#6b7280]': step.number !== currentStep }">
+                  Paso {{ step.number }}
+                </span>
+                <span class="text-[11px]" [ngClass]="{ 'text-[#e5e7eb]': step.number === currentStep, 'text-[#6b7280]': step.number !== currentStep }">
+                  {{ step.label }}
+                </span>
+              </div>
+            </div>
 
-				<div>
-					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">Control</div>
-					<nav>
-						<a
-							routerLink="/feedback"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>⭐</span>
-							<span>Feedback y métricas</span>
-						</a>
-						<a
-							routerLink="/monitoring"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>🛠️</span>
-							<span>Monitorización IA</span>
-						</a>
-					</nav>
-				</div>
-			</div>
+            @if (idx < steps.length - 1) {
+              <div class="flex-1 h-[1px] bg-[#1f2937] mx-3"></div>
+            }
+          }
+        </div>
+      </div>
 
-			<div class="p-4 border-t border-[#1f2937]">
-				<div class="text-[12px] text-[#9ca3af] mb-1">Usuario: Pablo Valle</div>
-				<div
-					class="inline-block text-[11px] px-2 py-1 rounded bg-[#111827] text-[#22d3ee] border border-[#1f2937]"
-				>
-					Rol: Entrenador
-				</div>
-			</div>
-		</aside>
+      <!-- Step content -->
+      <div
+        class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mb-6"
+        style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+      >
+        <!-- STEP 1 -->
+        @if (currentStep === 1) {
+          <div class="grid grid-cols-2 gap-6">
+            <div class="col-span-2">
+              <label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre de la planificación</label>
+              <input
+                pInputText
+                type="text"
+                [(ngModel)]="formData.name"
+                name="planName"
+                placeholder="Ej.: Sesión técnica tiro 3 puntos"
+                class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px] placeholder-[#6b7280]"
+              />
+            </div>
 
-		<!-- Main Content -->
-		<main class="flex-1 overflow-y-auto">
-			<div class="max-w-5xl mx-auto p-6">
-				<!-- Page Header -->
-				<div class="mb-6">
-					<h1 class="text-[24px] text-[#f9fafb] mb-1">Nueva planificación individual</h1>
-					<p class="text-[13px] text-[#9ca3af]">
-						Define parámetros básicos y deja que la IA proponga la sesión.
-					</p>
-				</div>
+            <div>
+              <label class="block text-[#e5e7eb] text-[13px] mb-2">Duración total (min)</label>
+              <p-inputNumber
+                [(ngModel)]="formData.duration"
+                name="duration"
+                [inputStyleClass]="'w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px]'"
+                [styleClass]="'w-full'"
+                [min]="10"
+                [max]="240"
+                [showButtons]="false"
+              ></p-inputNumber>
+            </div>
 
-				<!-- Stepper -->
-				<div
-					class="bg-[#020617] rounded-lg p-4 border border-[#1f2937] mb-6"
-					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
-				>
-					<div class="flex items-center justify-between">
-						@for (step of steps; track step.number; let idx = $index) {
-							<div class="flex items-center gap-2">
-								<div
-									class="w-8 h-8 rounded-full flex items-center justify-center text-[13px]"
-									[ngClass]="{
-										'text-[#0f172a]': step.number === currentStep,
-										'bg-[#065f46] text-[#6ee7b7]': step.number < currentStep,
-										'bg-[#111827] text-[#6b7280]': step.number > currentStep
-									}"
-									[ngStyle]="step.number === currentStep ? { background: 'linear-gradient(90deg, #0ea5e9, #22c55e)' } : null"
-								>
-									{{ step.number }}
-								</div>
-								<div class="flex flex-col">
-									<span
-										class="text-[12px]"
-										[ngClass]="{ 'text-[#f9fafb]': step.number === currentStep, 'text-[#6b7280]': step.number !== currentStep }"
-									>
-										Paso {{ step.number }}
-									</span>
-									<span
-										class="text-[11px]"
-										[ngClass]="{ 'text-[#e5e7eb]': step.number === currentStep, 'text-[#6b7280]': step.number !== currentStep }"
-									>
-										{{ step.label }}
-									</span>
-								</div>
-							</div>
-							@if (idx < steps.length - 1) {
-								<div class="flex-1 h-[1px] bg-[#1f2937] mx-3"></div>
-							}
-						}
-					</div>
-				</div>
+            <div>
+              <label class="block text-[#e5e7eb] text-[13px] mb-2">Objetivo principal</label>
+              <p-select
+                [options]="objectiveOptions"
+                [(ngModel)]="formData.objective"
+                name="objective"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="bg-[#111827] text-[#e5e7eb] text-[14px] rounded-lg border border-[#1f2937]"
+                [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+                [showClear]="false"
+              ></p-select>
+            </div>
 
-				<!-- Form Card -->
-				<div
-					class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mb-6"
-					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
-				>
-					<div class="grid grid-cols-2 gap-6">
-						<!-- Name -->
-						<div class="col-span-2">
-							<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre de la planificación</label>
-							<input
-								pInputText
-								type="text"
-								[(ngModel)]="formData.name"
-								name="planName"
-								placeholder="Ej.: Sesión técnica tiro 3 puntos"
-								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px] placeholder-[#6b7280]"
-							/>
-						</div>
+            <div class="col-span-2">
+              <label class="block text-[#e5e7eb] text-[13px] mb-2">Resumen para el jugador</label>
+              <textarea
+                pTextarea
+                [(ngModel)]="formData.summary"
+                name="summary"
+                rows="4"
+                placeholder="Mensaje breve que verá el jugador al consultar la sesión."
+                class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px] placeholder-[#6b7280] resize-none"
+              ></textarea>
+            </div>
 
-						<!-- Duration -->
-						<div>
-							<label class="block text-[#e5e7eb] text-[13px] mb-2">Duración total (min)</label>
-							<p-inputNumber
-								[(ngModel)]="formData.duration"
-								name="duration"
-								[inputStyleClass]="'w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px]'"
-								[styleClass]="'w-full'"
-								[min]="10"
-								[max]="240"
-								[showButtons]="false"
-							></p-inputNumber>
-						</div>
+            <div>
+              <label class="block text-[#e5e7eb] text-[13px] mb-2">Intensidad prevista</label>
+              <p-select
+                [options]="intensityOptions"
+                [(ngModel)]="formData.intensity"
+                name="intensity"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="bg-[#111827] text-[#e5e7eb] text-[14px] rounded-lg border border-[#1f2937]"
+                [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+                [showClear]="false"
+              ></p-select>
+            </div>
+          </div>
+        }
 
-						<!-- Objective -->
-						<div>
-							<label class="block text-[#e5e7eb] text-[13px] mb-2">Objetivo principal</label>
-							<p-select
-								[options]="objectiveOptions"
-								[(ngModel)]="formData.objective"
-								name="objective"
-								optionLabel="label"
-								optionValue="value"
-								styleClass="bg-[#111827] text-[#e5e7eb] text-[14px] rounded-lg border border-[#1f2937]"
-								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
-								[showClear]="false"
-							></p-select>
-						</div>
+        <!-- STEP 2 -->
+        @if (currentStep === 2) {
+          <div class="grid grid-cols-2 gap-6">
+            <div class="col-span-2">
+              <label class="block text-[#e5e7eb] text-[13px] mb-2">Modo de planificación</label>
+              <p-select
+                [options]="modeOptions"
+                [(ngModel)]="planningMode"
+                (ngModelChange)="onPlanningModeChange($event)"
+                name="planningMode"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Selecciona"
+                styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[14px] rounded-lg border border-[#1f2937]"
+                [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+                [showClear]="false"
+              ></p-select>
+              <p class="mt-2 text-[12px] text-[#94a3b8]">
+                Individual: un jugador. Grupal: selecciona varios jugadores manualmente o por filtros.
+              </p>
+            </div>
 
-						<!-- Summary -->
-						<div class="col-span-2">
-							<label class="block text-[#e5e7eb] text-[13px] mb-2">Resumen para el jugador</label>
-							<textarea
-								pTextarea
-								[(ngModel)]="formData.summary"
-								name="summary"
-								rows="4"
-								placeholder="Mensaje breve que verá el jugador al consultar la sesión."
-								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px] placeholder-[#6b7280] resize-none"
-							></textarea>
-						</div>
+            @if (planningMode === 'group') {
+              <!-- Filtros (solo grupal) -->
+              <div class="col-span-2 grid grid-cols-4 gap-3 items-end">
+                <div class="col-span-2">
+                  <input
+                    pInputText
+                    placeholder="Buscar por nombre"
+                    [(ngModel)]="filterName"
+                    name="filterName"
+                    class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
+                  />
+                </div>
+                <div>
+                  <p-select
+                    [options]="positionOptions"
+                    [(ngModel)]="filterPosition"
+                    name="filterPosition"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Posición"
+                    styleClass="w-full bg-[#111827] text-[#e5e7eb] rounded-lg border border-[#1f2937]"
+                    [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+                  ></p-select>
+                </div>
+                <div>
+                  <p-select
+                    [options]="categoryOptions"
+                    [(ngModel)]="filterCategory"
+                    name="filterCategory"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Categoría"
+                    styleClass="w-full bg-[#111827] text-[#e5e7eb] rounded-lg border border-[#1f2937]"
+                    [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+                  ></p-select>
+                </div>
+              </div>
+            }
 
-						<!-- Intensity -->
-						<div>
-							<label class="block text-[#e5e7eb] text-[13px] mb-2">Intensidad prevista</label>
-							<p-select
-								[options]="intensityOptions"
-								[(ngModel)]="formData.intensity"
-								name="intensity"
-								optionLabel="label"
-								optionValue="value"
-								styleClass="bg-[#111827] text-[#e5e7eb] text-[14px] rounded-lg border border-[#1f2937]"
-								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
-								[showClear]="false"
-							></p-select>
-						</div>
-					</div>
-				</div>
+            @if (planningMode === 'individual') {
+              <div class="col-span-2">
+                <label class="block text-[#e5e7eb] text-[13px] mb-2">Selecciona jugador</label>
 
-				<!-- Action Buttons -->
-				<div class="flex justify-between items-center">
-					<p-button
-						label="Cancelar"
-						severity="secondary"
-						[outlined]="true"
-						(click)="cancel()"
-						styleClass="text-[13px] px-5 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
-					></p-button>
-					<div class="flex gap-2">
-						<p-button
-							label="Atrás"
-							severity="secondary"
-							[outlined]="false"
-							[disabled]="currentStep === 1"
-							(click)="back()"
-							styleClass="text-[13px] px-5 py-2 rounded-lg bg-[#111827] text-[#6b7280] border border-[#1f2937]"
-						></p-button>
-						<p-button
-							label="Siguiente"
-							(click)="next()"
-							styleClass="text-[13px] px-5 py-2 rounded-lg text-[#0f172a] border-none"
-						></p-button>
-					</div>
-				</div>
-			</div>
-		</main>
-	</div>
-</div>
+                @if (playersLoading) {
+                  <div class="grid grid-cols-1 gap-2">
+                    @for (i of [1, 2, 3, 4]; track i) {
+                      <div class="w-full p-3 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+                        <div class="h-4 w-40 bg-[#111827] rounded mb-2"></div>
+                        <div class="h-3 w-24 bg-[#111827] rounded"></div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  @if (!hasFilteredPlayers) {
+                    <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+                      <div class="text-[13px] text-[#e5e7eb]">No hay jugadores que coincidan.</div>
+                      <div class="mt-2 text-[12px] text-[#94a3b8]">Prueba a limpiar filtros o cambia el modo.</div>
+                      <div class="mt-3">
+                        <button type="button" class="text-[12px] text-[#38bdf8] hover:underline" (click)="clearPlayerFilters()">
+                          Limpiar filtros
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="grid grid-cols-1 gap-2">
+                      @for (p of filteredPlayers; track p.id) {
+                        <button
+                          type="button"
+                          class="w-full text-left focus:outline-none"
+                          (click)="selectedPlayerId = (selectedPlayerId === p.id ? null : p.id)"
+                          [attr.aria-label]="'Seleccionar jugador ' + p.name"
+                        >
+                          <app-player-select-card
+                            [player]="p"
+                            [selected]="selectedPlayerId === p.id"
+                            mode="single"
+                            actionLabel="Seleccionar"
+                            selectedLabel="Seleccionado"
+                          ></app-player-select-card>
+                        </button>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            } @else {
+              <div class="col-span-2">
+                <label class="block text-[#e5e7eb] text-[13px] mb-2">Selecciona jugadores</label>
+
+                @if (selectedPlayers.length > 0) {
+                  <div class="mb-4">
+                    <div class="text-[12px] text-[#94a3b8] mb-2">Seleccionados</div>
+                    <div class="flex flex-wrap gap-2">
+                      @for (p of selectedPlayers; track p.id) {
+                        <button
+                          type="button"
+                          class="flex items-center gap-2 px-3 py-1.5 rounded-full border bg-[#0b1220] text-left transition-colors hover:bg-[#111827]"
+                          [ngClass]="{ 'border-[#22c55e]': true }"
+                          (click)="togglePlayerSelection(p.id)"
+                          [attr.aria-label]="'Quitar jugador ' + p.name"
+                        >
+                          <span class="text-[13px] text-[#e5e7eb]">{{ p.name }}</span>
+                          <span class="text-[12px] text-[#22c55e]">✓</span>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+
+                <label class="block text-[#e5e7eb] text-[13px] mb-2">Jugadores disponibles</label>
+
+                @if (playersLoading) {
+                  <div class="grid grid-cols-1 gap-2">
+                    @for (i of [1, 2, 3, 4]; track i) {
+                      <div class="w-full p-3 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+                        <div class="h-4 w-40 bg-[#111827] rounded mb-2"></div>
+                        <div class="h-3 w-24 bg-[#111827] rounded"></div>
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  @if (!hasFilteredPlayers) {
+                    <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+                      <div class="text-[13px] text-[#e5e7eb]">No hay jugadores que coincidan.</div>
+                      <div class="mt-2 text-[12px] text-[#94a3b8]">Prueba a limpiar filtros o cambia el modo.</div>
+                      <div class="mt-3">
+                        <button type="button" class="text-[12px] text-[#38bdf8] hover:underline" (click)="clearPlayerFilters()">
+                          Limpiar filtros
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="grid grid-cols-1 gap-2">
+                      @for (p of filteredPlayers; track p.id) {
+                        <button
+                          type="button"
+                          class="w-full text-left focus:outline-none"
+                          (click)="togglePlayerSelection(p.id)"
+                          [attr.aria-label]="(selectedPlayerIds.includes(p.id) ? 'Quitar jugador ' : 'Añadir jugador ') + p.name"
+                        >
+                          <app-player-select-card
+                            [player]="p"
+                            [selected]="selectedPlayerIds.includes(p.id)"
+                            mode="multi"
+                            actionLabel="Añadir"
+                            selectedLabel="Añadido"
+                          ></app-player-select-card>
+                        </button>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- STEP 3 -->
+        @if (currentStep === 3) {
+          <div class="grid grid-cols-2 gap-6">
+            <div class="col-span-2">
+              <label class="block text-[#e5e7eb] text-[13px] mb-2">Material disponible (opcional)</label>
+              <p class="text-[12px] text-[#94a3b8] mb-3">Selecciona material específico para orientar la recomendación del modelo.</p>
+
+              <div class="grid grid-cols-2 gap-3">
+                @for (m of materialOptions; track m.id) {
+                  <button
+                    type="button"
+                    class="flex items-center gap-2 p-3 rounded-lg border border-[#1f2937] bg-[#0b1220] text-left hover:bg-[#111827] transition-colors"
+                    (click)="toggleMaterial(m.id, !materialSelectedMap[m.id])"
+                  >
+                    <p-checkbox [binary]="true" [(ngModel)]="materialSelectedMap[m.id]" [attr.name]="'mat-' + m.id"></p-checkbox>
+                    <span class="text-[13px] text-[#e5e7eb]">{{ m.label }}</span>
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="col-span-2">
+              <label class="block text-[#e5e7eb] text-[13px] mb-2">Etiquetas / contexto (opcional)</label>
+              <p class="text-[12px] text-[#94a3b8] mb-3">Añade etiquetas para mejorar la calidad de la recomendación.</p>
+
+              <div class="flex gap-2 items-center">
+                <input
+                  pInputText
+                  [formControl]="tagsControl"
+                  (keydown.enter)="addTagFromInput($event)"
+                  placeholder="Escribe una etiqueta y pulsa Enter"
+                  class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px] placeholder-[#6b7280]"
+                />
+                <p-button type="button" label="Añadir" (click)="addTagManually()" styleClass="p-button-sm"></p-button>
+              </div>
+
+              <div class="mt-3 flex flex-wrap gap-2">
+                @for (tag of restrictionTags; track tag) {
+                  <div class="flex items-center gap-2 bg-[#0b1220] border border-[#1f2937] px-3 py-1 rounded-full">
+                    <p-chip [label]="tag"></p-chip>
+                    <button type="button" class="text-[#f87171] text-[12px]" (click)="removeTag(tag)">✕</button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- STEP 4 -->
+        @if (currentStep === 4) {
+          <div class="grid grid-cols-2 gap-6">
+            <div class="col-span-2">
+              <h3 class="text-[#e5e7eb] font-semibold mb-2">Revisión</h3>
+              <p class="text-[12px] text-[#94a3b8]">Confirma que los datos son correctos antes de generar la sesión.</p>
+            </div>
+
+            <div class="col-span-2 grid grid-cols-2 gap-4">
+              <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+                <div class="text-[12px] text-[#94a3b8]">Nombre</div>
+                <div class="text-[14px] text-[#e5e7eb] mt-1">{{ formData.name || '—' }}</div>
+              </div>
+
+              <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+                <div class="text-[12px] text-[#94a3b8]">Duración</div>
+                <div class="text-[14px] text-[#e5e7eb] mt-1">{{ formData.duration }} min</div>
+              </div>
+
+              <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+                <div class="text-[12px] text-[#94a3b8]">Objetivo</div>
+                <div class="text-[14px] text-[#e5e7eb] mt-1">{{ formData.objective }}</div>
+              </div>
+
+              <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+                <div class="text-[12px] text-[#94a3b8]">Intensidad</div>
+                <div class="text-[14px] text-[#e5e7eb] mt-1">{{ formData.intensity }}</div>
+              </div>
+            </div>
+
+            <div class="col-span-2 p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+              <div class="text-[12px] text-[#94a3b8]">Destino</div>
+              <div class="text-[14px] text-[#e5e7eb] mt-1">{{ selectedTargetLabel() }}</div>
+              <div class="mt-2 text-[12px] text-[#94a3b8]">
+                Modo:
+                <span class="text-[#e5e7eb]">{{ planningMode === 'individual' ? 'Individual' : 'Grupal' }}</span>
+              </div>
+            </div>
+
+            <div class="col-span-2 p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+              <div class="text-[12px] text-[#94a3b8]">Material seleccionado</div>
+              @if (selectedMaterialLabels.length === 0) {
+                <div class="text-[13px] text-[#e5e7eb] mt-1">—</div>
+              } @else {
+                <div class="mt-2 flex flex-wrap gap-2">
+                  @for (label of selectedMaterialLabels; track label) {
+                    <p-chip [label]="label"></p-chip>
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="col-span-2 p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+              <div class="text-[12px] text-[#94a3b8]">Etiquetas</div>
+              @if (restrictionTags.length === 0) {
+                <div class="text-[13px] text-[#e5e7eb] mt-1">—</div>
+              } @else {
+                <div class="mt-2 flex flex-wrap gap-2">
+                  @for (tag of restrictionTags; track tag) {
+                    <p-chip [label]="tag"></p-chip>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-between items-center">
+        <p-button
+          label="Cancelar"
+          icon="pi pi-times"
+          severity="secondary"
+          [outlined]="true"
+          (click)="cancel()"
+          type="button"
+          styleClass="text-[13px] px-5 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
+        ></p-button>
+
+        <div class="flex gap-2">
+          <p-button
+            label="Atrás"
+            icon="pi pi-arrow-left"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="currentStep === 1"
+            (click)="back()"
+            type="button"
+            styleClass="text-[13px] px-5 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
+          ></p-button>
+
+          @if (currentStep < steps.length) {
+            <p-button
+              label="Siguiente"
+              icon="pi pi-arrow-right"
+              iconPos="right"
+              (click)="next()"
+              [disabled]="!canGoNext()"
+              type="button"
+              styleClass="text-[13px] px-5 py-2 rounded-lg text-[#0f172a] border-none"
+            ></p-button>
+          } @else {
+            <p-button
+              label="Confirmar"
+              icon="pi pi-check"
+              (click)="confirm()"
+              type="button"
+              styleClass="text-[13px] px-5 py-2 rounded-lg text-[#0f172a] border-none"
+            ></p-button>
+          }
+        </div>
+      </div>
+    </form>
+  </div>
+</app-shell>

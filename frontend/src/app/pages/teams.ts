@@ -10,10 +10,11 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 
 import { PageHeader } from '../components/page-header/page-header';
+import { AppShell } from '../layout/app-shell/app-shell';
 
 @Component({
   selector: 'app-teams',
-  imports: [CommonModule, FormsModule, RouterLink, ButtonModule, DialogModule, InputTextModule, SelectModule, TagModule, PageHeader],
+	imports: [CommonModule, FormsModule, RouterLink, ButtonModule, DialogModule, InputTextModule, SelectModule, TagModule, PageHeader, AppShell],
   templateUrl: './teams.html',
   styleUrl: './teams.css',
 })

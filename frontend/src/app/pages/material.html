@@ -1,1 +1,156 @@
-<p>material works!</p>
+<app-shell title="Material" subtitle="Inventario y disponibilidad del material deportivo." [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+	<div class="max-w-7xl mx-auto">
+		<app-page-header
+			[title]="'Material'"
+			[subtitle]="'Inventario y disponibilidad del material deportivo.'"
+			[actionLabel]="'Nuevo material'"
+			[actionIcon]="'pi pi-plus'"
+			[action]="openCreate.bind(this)"
+		></app-page-header>
+
+				<!-- Filters -->
+				<div
+					class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6"
+					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+				>
+					<div class="grid grid-cols-4 gap-4">
+						<div class="col-span-2">
+							<label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
+							<input
+								pInputText
+								[(ngModel)]="filters.search"
+								name="search"
+								placeholder="Nombre del material"
+								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+							/>
+						</div>
+						<div>
+							<label class="block text-[#9ca3af] text-[12px] mb-2">Categoría</label>
+							<p-select
+								[options]="categoryOptions"
+								[(ngModel)]="filters.category"
+								name="category"
+								optionLabel="label"
+								optionValue="value"
+								styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+							></p-select>
+						</div>
+						<div>
+							<label class="block text-[#9ca3af] text-[12px] mb-2">Stock</label>
+							<p-select
+								[options]="statusOptions"
+								[(ngModel)]="filters.status"
+								name="status"
+								optionLabel="label"
+								optionValue="value"
+								styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+							></p-select>
+						</div>
+					</div>
+					<div class="mt-4 flex justify-end">
+						<button
+							type="button"
+							pButton
+							label="Limpiar filtros"
+							class="p-button-text p-button-sm"
+							(click)="clearFilters()"
+						></button>
+					</div>
+				</div>
+
+				<!-- Items list -->
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					@for (it of filteredItems; track it.id) {
+						<div
+							class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+							style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+						>
+							<div class="flex items-start justify-between gap-3">
+								<div>
+									<div class="text-[16px] text-[#f9fafb] font-semibold">{{ it.name }}</div>
+									<div class="text-[12px] text-[#9ca3af] mt-1">{{ it.category }} · {{ it.available }}/{{ it.total }} disponibles</div>
+								</div>
+								@let tag = stockTag(it);
+								<p-tag [value]="tag.label" [severity]="tag.severity"></p-tag>
+							</div>
+
+							<div class="mt-4 flex justify-end gap-2">
+								<button
+									type="button"
+									pButton
+									label="Editar"
+									icon="pi pi-pencil"
+									class="p-button-text p-button-sm"
+									(click)="openEdit(it)"
+								></button>
+							</div>
+						</div>
+					}
+				</div>
+
+				@if (filteredItems.length === 0) {
+					<div class="mt-10 text-center text-[13px] text-[#9ca3af]">No hay material con esos filtros.</div>
+				}
+	</div>
+
+	<!-- Material dialog -->
+	<p-dialog
+		styleClass="bp-dialog"
+		[header]="dialogMode === 'create' ? 'Nuevo material' : 'Editar material'"
+		[(visible)]="materialDialogVisible"
+		[modal]="true"
+		[dismissableMask]="true"
+		[draggable]="false"
+		[resizable]="false"
+		[style]="{ width: 'min(760px, 95vw)' }"
+		(onHide)="closeDialog()"
+	>
+		<div class="grid grid-cols-2 gap-4">
+			<div class="col-span-2">
+				<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre</label>
+				<input
+					pInputText
+					[(ngModel)]="draft.name"
+					name="materialName"
+					placeholder="Ej.: Balón talla 7"
+					class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
+				/>
+			</div>
+			<div>
+				<label class="block text-[#e5e7eb] text-[13px] mb-2">Categoría</label>
+				<p-select
+					[options]="categoryOptionsWithoutAll"
+					[(ngModel)]="draft.category"
+					name="materialCategory"
+					optionLabel="label"
+					optionValue="value"
+					styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+					[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+				></p-select>
+			</div>
+			<div>
+				<label class="block text-[#e5e7eb] text-[13px] mb-2">Total</label>
+				<p-inputNumber [(ngModel)]="draft.total" name="materialTotal" [min]="0" [showButtons]="false" styleClass="w-full"></p-inputNumber>
+			</div>
+			<div>
+				<label class="block text-[#e5e7eb] text-[13px] mb-2">Disponibles</label>
+				<p-inputNumber [(ngModel)]="draft.available" name="materialAvailable" [min]="0" [showButtons]="false" styleClass="w-full"></p-inputNumber>
+			</div>
+		</div>
+
+		<ng-template pTemplate="footer">
+			<div class="flex justify-between gap-2">
+				<button type="button" pButton label="Cancelar" class="p-button-text" (click)="closeDialog()"></button>
+				<button
+					type="button"
+					pButton
+					[label]="dialogMode === 'create' ? 'Crear material' : 'Guardar cambios'"
+					[disabled]="!draft.name.trim()"
+					(click)="saveDialog()"
+				></button>
+			</div>
+		</ng-template>
+	</p-dialog>
+</app-shell>

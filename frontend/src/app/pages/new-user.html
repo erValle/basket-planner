@@ -1,1 +1,78 @@
-<p>new-user works!</p>
+<app-shell title="Nuevo usuario" subtitle="Crea un usuario y asígnale un rol." [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+	<div class="max-w-4xl mx-auto">
+		<app-page-header
+			[title]="'Nuevo usuario'"
+			[subtitle]="'Crea un usuario y asígnale un rol.'"
+		></app-page-header>
+
+		<div
+			class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mt-6"
+			style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+		>
+			<div class="grid grid-cols-2 gap-6">
+				<div>
+					<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre</label>
+					<input
+						pInputText
+						[(ngModel)]="form.firstName"
+						name="firstName"
+						placeholder="Ej.: Pablo"
+						class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
+					/>
+				</div>
+
+				<div>
+					<label class="block text-[#e5e7eb] text-[13px] mb-2">Apellidos</label>
+					<input
+						pInputText
+						[(ngModel)]="form.lastName"
+						name="lastName"
+						placeholder="Ej.: Valle"
+						class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
+					/>
+				</div>
+
+				<div class="col-span-2">
+					<label class="block text-[#e5e7eb] text-[13px] mb-2">Email</label>
+					<input
+						pInputText
+						[(ngModel)]="form.email"
+						name="email"
+						type="email"
+						placeholder="usuario@club.com"
+						class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
+					/>
+				</div>
+
+				<div class="col-span-2">
+					<label class="block text-[#e5e7eb] text-[13px] mb-2">Rol</label>
+					<p-select
+						[options]="roleOptions"
+						[(ngModel)]="form.role"
+						name="role"
+						optionLabel="label"
+						optionValue="value"
+						styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+						[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+					></p-select>
+				</div>
+			</div>
+
+			<div class="mt-6 flex justify-end gap-2">
+				<p-button
+					label="Cancelar"
+					severity="secondary"
+					[outlined]="true"
+					(click)="cancel()"
+					styleClass="text-[13px] px-5 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
+				></p-button>
+				<p-button
+					label="Guardar"
+					(click)="save()"
+					[disabled]="!form.firstName.trim() || !form.lastName.trim()"
+					styleClass="text-[13px] px-5 py-2 rounded-lg text-[#0f172a] border-none"
+				></p-button>
+			</div>
+		</div>
+	</div>
+</app-shell>

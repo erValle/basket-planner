@@ -1,130 +1,5 @@
-<div
-	class="min-h-screen flex flex-col"
-	style="background: radial-gradient(circle at top left, #111827, #020617); color: #f9fafb"
->
-	<!-- Topbar -->
-	<header class="bg-[#020617] border-b border-[#1f2937] px-6 py-3 flex items-center justify-between">
-		<div class="flex items-center gap-6">
-			<div class="text-[20px] text-[#f9fafb]">BasketPlanner</div>
-			<p-select
-				[options]="teams"
-				[(ngModel)]="selectedTeam"
-				placeholder="Selecciona equipo"
-				styleClass="bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-				[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
-				[showClear]="false"
-			></p-select>
-		</div>
-		<div class="flex items-center gap-4">
-			<button
-				type="button"
-				pButton
-				label="Notificaciones"
-				icon="pi pi-bell"
-				class="p-button-text p-button-sm"
-				style="color: #9ca3af"
-			></button>
-			<div
-				class="w-9 h-9 rounded-full flex items-center justify-center text-[14px]"
-				style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
-			>
-				PV
-			</div>
-		</div>
-	</header>
-
-	<div class="flex flex-1">
-		<!-- Sidebar -->
-		<aside class="w-64 bg-[#020617] border-r border-[#1f2937] flex flex-col">
-			<div class="p-6 border-b border-[#1f2937]">
-				<div class="flex items-center gap-3">
-					<div
-						class="w-10 h-10 rounded-full flex items-center justify-center text-[14px]"
-						style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
-					>
-						BP
-					</div>
-					<div class="flex flex-col">
-						<span class="text-[14px] text-[#f9fafb]">BasketPlanner</span>
-						<span class="text-[11px] text-[#9ca3af]">Panel entrenador</span>
-					</div>
-				</div>
-			</div>
-
-			<div class="flex-1 overflow-y-auto px-3 py-4">
-				<div class="mb-4">
-					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">General</div>
-					<nav>
-						<a
-							routerLink="/dashboard"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>🏠</span>
-							<span>Dashboard</span>
-						</a>
-						<a
-							routerLink="/planning/new"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>📅</span>
-							<span>Planificaciones</span>
-						</a>
-						<a
-							routerLink="/players"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>🧍</span>
-							<span>Jugadores</span>
-						</a>
-						<a
-							routerLink="/exercises"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>📚</span>
-							<span>Ejercicios</span>
-						</a>
-						<a
-							routerLink="/clubs"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg bg-[#111827] text-[#f9fafb] text-[13px] mb-1"
-						>
-							<span>🏟️</span>
-							<span>Clubes</span>
-						</a>
-						<a
-							routerLink="/teams"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>👥</span>
-							<span>Equipos</span>
-						</a>
-						<a
-							routerLink="/material"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>🏀</span>
-							<span>Material</span>
-						</a>
-					</nav>
-				</div>
-
-				<div>
-					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">Control</div>
-					<nav>
-						<a
-							routerLink="/monitoring"
-							class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-						>
-							<span>🛠️</span>
-							<span>Monitorización IA</span>
-						</a>
-					</nav>
-				</div>
-			</div>
-		</aside>
-
-		<!-- Main Content -->
-		<main class="flex-1 overflow-y-auto">
-			<div class="max-w-7xl mx-auto p-6">
+<app-shell title="Clubes" subtitle="Gestión de clubes" [teams]="teams" [(selectedTeam)]="selectedTeam">
+	<div class="max-w-7xl mx-auto">
 				<app-page-header
 					[title]="'Clubes'"
 					[subtitle]="'Gestión de clubes y estructura base del sistema.'"
@@ -208,8 +83,6 @@
 				@if (filteredClubs.length === 0) {
 					<div class="mt-10 text-center text-[13px] text-[#9ca3af]">No hay clubes con esos filtros.</div>
 				}
-			</div>
-		</main>
 	</div>
 
 	<!-- Club dialog -->
@@ -275,4 +148,4 @@
 			</div>
 		</ng-template>
 	</p-dialog>
-</div>
+</app-shell>
