@@ -11,10 +11,17 @@ import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
 import { ChipModule } from 'primeng/chip';
 import { CheckboxModule } from 'primeng/checkbox';
+import { DialogModule } from 'primeng/dialog';
+import { ToastModule } from 'primeng/toast';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 import { PlayerSelectCard } from '../components/player-select-card/player-select-card';
+
+import { PlanificationsApi } from '../services/planifications.api';
+import { PlanificationDraft } from '../models/planification';
 
 type Step = { number: number; label: string };
 type Option = { label: string; value: string };
@@ -33,12 +40,16 @@ type Option = { label: string; value: string };
     SelectModule,
 		ChipModule,
 		CheckboxModule,
+		DialogModule,
+		ToastModule,
+		ConfirmDialogModule,
 		AppShell,
 		PageHeader,
     PlayerSelectCard,
   ],
   templateUrl: './new-planification.html',
   styleUrl: './new-planification.css',
+  providers: [MessageService, ConfirmationService],
 })
 export class NewPlanification {
   teamsTop: string[] = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
@@ -184,6 +195,9 @@ export class NewPlanification {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
+    private readonly api: PlanificationsApi,
+    private readonly toast: MessageService,
+    private readonly confirmation: ConfirmationService,
   ) {
     // initialize material map
     for (const m of this.materialOptions) {
@@ -360,8 +374,68 @@ export class NewPlanification {
   }
 
 	confirm() {
-		// TODO: wire to backend endpoint to generate the planification
-		// For now we keep it as a stub to avoid breaking flow.
-		this.currentStep = this.steps.length;
+    this.confirmation.confirm({
+      header: 'Confirmar generación',
+      message: '¿Quieres generar la sesión con estos parámetros?',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Generar',
+      rejectLabel: 'Cancelar',
+      accept: () => this.generate(),
+    });
 	}
+
+  // UI states required across screens
+  saving = false;
+  saveError: string | null = null;
+
+  completedDialogVisible = false;
+  generatedResultId: string | null = null;
+
+  private buildDraft(): PlanificationDraft {
+    // make sure tags reflect the latest input before sending
+    this.syncRestrictionTags();
+
+    const materialIds = Object.entries(this.materialSelectedMap)
+      .filter(([, selected]) => !!selected)
+      .map(([id]) => id);
+
+    return {
+      name: this.formData.name,
+      duration: this.formData.duration,
+      summary: this.formData.summary,
+      objective: this.formData.objective,
+      intensity: this.formData.intensity,
+      mode: this.planningMode,
+      playerId: this.planningMode === 'individual' ? this.selectedPlayerId : null,
+      playerIds: this.planningMode === 'group' ? this.selectedPlayerIds : [],
+      groupId: this.planningMode === 'group' ? this.selectedGroupId : null,
+      materialIds,
+      tags: this.restrictionTags,
+    };
+  }
+
+  private generate(): void {
+    this.saveError = null;
+    this.saving = true;
+    const draft = this.buildDraft();
+
+    this.api.generatePlanification(draft).subscribe({
+      next: (res) => {
+        this.saving = false;
+        this.generatedResultId = res?.id ?? null;
+        this.toast.add({
+          severity: 'success',
+          summary: 'Sesión generada',
+          detail: 'La propuesta se ha generado correctamente.',
+        });
+        this.completedDialogVisible = true;
+      },
+      error: (e: unknown) => {
+        this.saving = false;
+        const msg = e instanceof Error ? e.message : 'No se pudo generar la sesión.';
+        this.saveError = msg;
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
+  }
 }

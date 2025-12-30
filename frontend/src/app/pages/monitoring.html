@@ -3,109 +3,136 @@
 		<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
 			<app-page-header
 				[title]="'Monitoring'"
-				[subtitle]="'Alertas, recomendaciones y eventos recientes'"
+				[subtitle]="'Estado del sistema, recomendador y exportaciones'"
 				[actionLabel]="'Actualizar'"
 				[actionIcon]="'pi pi-refresh'"
 				[actionSeverity]="'secondary'"
-				[action]="clearFilters.bind(this)"
+				[action]="refresh.bind(this)"
 			></app-page-header>
 
-				<div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
-					<div class="rounded-xl border border-white/10 bg-zinc-950/40 p-3">
-						<div class="text-xs text-zinc-400">Alertas (24h)</div>
-						<div class="mt-1 text-2xl font-semibold">{{ kpis.alerts24h }}</div>
-					</div>
-					<div class="rounded-xl border border-white/10 bg-zinc-950/40 p-3">
-						<div class="text-xs text-zinc-400">Jugadores riesgo alto</div>
-						<div class="mt-1 text-2xl font-semibold">{{ kpis.highRiskPlayers }}</div>
-					</div>
-					<div class="rounded-xl border border-white/10 bg-zinc-950/40 p-3">
-						<div class="text-xs text-zinc-400">Recomendaciones</div>
-						<div class="mt-1 text-2xl font-semibold">{{ kpis.recommendations }}</div>
-					</div>
+			<div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-12">
+				<div class="md:col-span-5">
+					<label class="block text-[#9ca3af] text-[12px] mb-2">Desde</label>
+					<p-datepicker
+						[(ngModel)]="range.from"
+						[showIcon]="true"
+						[showButtonBar]="true"
+						dateFormat="yy-mm-dd"
+						styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+						[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+					></p-datepicker>
 				</div>
+				<div class="md:col-span-5">
+					<label class="block text-[#9ca3af] text-[12px] mb-2">Hasta</label>
+					<p-datepicker
+						[(ngModel)]="range.to"
+						[showIcon]="true"
+						[showButtonBar]="true"
+						dateFormat="yy-mm-dd"
+						styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+						[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+					></p-datepicker>
+				</div>
+				<div class="md:col-span-2 flex items-end gap-2">
+					<button pButton type="button" label="Limpiar" icon="pi pi-filter-slash" class="p-button-text p-button-sm w-full" (click)="clearRange()"></button>
+				</div>
+			</div>
 		</div>
 
+		<p-toast></p-toast>
+
 		<div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-				<div class="grid grid-cols-1 gap-3 md:grid-cols-12">
-					<div class="md:col-span-7">
-						<label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
-						<input
-							pInputText
-							[(ngModel)]="filters.search"
-							placeholder="fatiga, descanso, sesión…"
-							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
-						/>
-					</div>
-					<div class="md:col-span-3">
-						<label class="block text-[#9ca3af] text-[12px] mb-2">Severidad</label>
-						<p-select
-							[(ngModel)]="filters.severity"
-							[options]="severityOptions"
-							optionLabel="label"
-							optionValue="value"
-							styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-							[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
-						></p-select>
-					</div>
-					<div class="flex items-end gap-2 md:col-span-2">
-						<button
-							pButton
-							type="button"
-							label="Limpiar"
-							icon="pi pi-filter-slash"
-							class="p-button-text p-button-sm w-full"
-							(click)="clearFilters()"
-						></button>
-					</div>
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				<div class="text-sm text-zinc-300">
+					Informe para el rango seleccionado.
+					@if (!hasRange()) {
+						<span class="text-zinc-500"> (sin rango: datos globales)</span>
+					}
+				</div>
+				<div class="flex items-center gap-2">
+					<button pButton type="button" icon="pi pi-refresh" class="p-button-text" label="Recargar" (click)="refresh()"></button>
+					<button pButton type="button" icon="pi pi-download" label="Exportar informe CSV" class="p-button-sm" (click)="exportCsv()"></button>
 				</div>
 			</div>
+		</div>
 
-			<div class="space-y-3">
-				@for (item of filteredLogs; track item.id) {
-					<div class="flex items-start justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-						<div class="min-w-0">
-							<div class="flex flex-wrap items-center gap-2">
-								<div class="truncate text-sm font-semibold">{{ item.title }}</div>
-								<p-tag [value]="item.severity" [severity]="item.severity"></p-tag>
-								<div class="text-xs text-zinc-500">{{ item.when }}</div>
-							</div>
-							<div class="mt-1 text-sm text-zinc-300">{{ item.message }}</div>
+		@if (loading) {
+			<div class="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-zinc-400">
+				<p-progressSpinner styleClass="w-8 h-8"></p-progressSpinner>
+				<div class="mt-3">Cargando monitoring…</div>
+			</div>
+		} @else if (error) {
+			<div class="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-zinc-400">
+				<div class="text-sm text-red-300">{{ error }}</div>
+				<div class="mt-3">
+					<button pButton type="button" label="Reintentar" icon="pi pi-refresh" class="p-button-text" (click)="refresh()"></button>
+				</div>
+			</div>
+		} @else if (!overview) {
+			<div class="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-zinc-400">
+				No hay datos disponibles.
+			</div>
+		} @else {
+			<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+				<div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+					<div class="flex items-center justify-between gap-2">
+						<div class="text-sm font-semibold">Backend</div>
+						<p-tag value="OK" severity="success"></p-tag>
+					</div>
+					<div class="mt-3 space-y-2 text-sm">
+						<div class="flex items-center justify-between">
+							<div class="text-zinc-400">Latencia</div>
+							<div class="font-medium">{{ overview.backend.latencyMs }} ms</div>
 						</div>
-						<button pButton type="button" icon="pi pi-chevron-right" class="p-button-text" (click)="openDetail(item)"></button>
+						<div class="flex items-center justify-between">
+							<div class="text-zinc-400">Errores</div>
+							<div class="font-medium">{{ overview.backend.errorRatePct }}%</div>
+						</div>
+						<div class="flex items-center justify-between">
+							<div class="text-zinc-400">Throughput</div>
+							<div class="font-medium">{{ overview.backend.throughputRps }} rps</div>
+						</div>
 					</div>
-				}
-
-				@if (filteredLogs.length === 0) {
-					<div class="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-zinc-400">
-						No hay eventos que coincidan con los filtros.
-					</div>
-				}
-			</div>
-	</div>
-
-	<p-dialog
-		[(visible)]="logDialogVisible"
-		[modal]="true"
-		[draggable]="false"
-		[resizable]="false"
-		[styleClass]="'bp-dialog'"
-		header="Detalle"
-		(onHide)="closeDetail()"
-	>
-		@if (selectedLog) {
-			<div class="space-y-2">
-				<div class="flex flex-wrap items-center justify-between gap-2">
-					<div class="text-base font-semibold">{{ selectedLog.title }}</div>
-					<p-tag [value]="selectedLog.severity" [severity]="selectedLog.severity"></p-tag>
 				</div>
-				<div class="text-sm text-zinc-300">{{ selectedLog.message }}</div>
-				<div class="text-xs text-zinc-500">{{ selectedLog.when }}</div>
 
-				<div class="mt-4 flex justify-end">
-					<button pButton type="button" label="Cerrar" class="p-button-secondary" (click)="closeDetail()"></button>
+				<div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+					<div class="flex items-center justify-between gap-2">
+						<div class="text-sm font-semibold">Recomendador</div>
+						<p-tag [value]="overview.recommender.techCost" [severity]="techCostSeverity(overview.recommender.techCost)"></p-tag>
+					</div>
+					<div class="mt-3 space-y-2 text-sm">
+						<div class="flex items-center justify-between">
+							<div class="text-zinc-400">Versión activa</div>
+							<div class="font-medium">{{ overview.recommender.activeVersion }}</div>
+						</div>
+						<div class="flex items-center justify-between">
+							<div class="text-zinc-400">Última ejecución</div>
+							<div class="font-medium">{{ formatIso(overview.recommender.lastRunAt) }}</div>
+						</div>
+						<div class="flex items-center justify-between">
+							<div class="text-zinc-400">CPU / RAM</div>
+							<div class="font-medium">{{ overview.recommender.cpuPct }}% / {{ overview.recommender.ramPct }}%</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+					<div class="flex items-center justify-between gap-2">
+						<div class="text-sm font-semibold">Exportaciones</div>
+						<p-tag value="CSV" severity="info"></p-tag>
+					</div>
+					<div class="mt-3 space-y-2 text-sm">
+						<div class="flex items-center justify-between">
+							<div class="text-zinc-400">Nº por día</div>
+							<div class="font-medium">{{ overview.exports.exportsPerDay }}</div>
+						</div>
+						<div class="flex items-center justify-between">
+							<div class="text-zinc-400">Fallos</div>
+							<div class="font-medium">{{ overview.exports.failuresPerDay }}</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		}
-	</p-dialog>
+	</div>
 </app-shell>

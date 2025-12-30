@@ -1,0 +1,145 @@
+<app-shell title="Administración" subtitle="Usuarios" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+
+  <div class="max-w-7xl mx-auto">
+    <app-page-header
+      [title]="'Usuarios'"
+      [subtitle]="'Administra accesos, roles y estados.'"
+      [actionLabel]="'Nuevo usuario'"
+      [actionIcon]="'pi pi-plus'"
+      [action]="openNew.bind(this)"
+    ></app-page-header>
+
+    <!-- Filters -->
+    <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      <div class="grid grid-cols-6 gap-4">
+        <div class="col-span-2">
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
+          <input
+            pInputText
+            [(ngModel)]="filters.search"
+            name="search"
+            placeholder="Nombre o email…"
+            class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+          />
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Rol</label>
+          <p-select
+            [options]="roleOptions"
+            [(ngModel)]="filters.role"
+            name="role"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+          ></p-select>
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Estado</label>
+          <p-select
+            [options]="statusOptions"
+            [(ngModel)]="filters.status"
+            name="status"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+          ></p-select>
+        </div>
+
+        <div class="col-span-2 flex items-end justify-end gap-2">
+          <button type="button" pButton label="Aplicar" class="p-button-sm" (click)="load()"></button>
+          <button type="button" pButton label="Limpiar" class="p-button-text p-button-sm" (click)="clearFilters()"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      @if (loading) {
+        <div class="border-b border-[#1f2937] pb-4 mb-4 text-[13px] text-[#9ca3af] flex items-center gap-2">
+          <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+          Cargando usuarios…
+        </div>
+      }
+
+      @if (loadError) {
+        <div class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200 mb-4">
+          {{ loadError }}
+        </div>
+      }
+
+      <p-table
+        [value]="filteredUsers"
+        [paginator]="true"
+        [rows]="rows"
+        [first]="first"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        (onPage)="onPageChange($event)"
+        [tableStyle]="{ width: '100%' }"
+        styleClass="p-datatable-sm"
+      >
+        <ng-template pTemplate="header">
+          <tr class="border-b border-[#1f2937]">
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Nombre</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Email</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Rol</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Estado</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Creado</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-u>
+          <tr class="border-b border-[#1f2937]">
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ u.name }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ u.email }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ roleLabel(u.role) }}</td>
+            <td class="py-4 pr-4"><p-tag [value]="statusLabel(u.status)" [severity]="statusSeverity(u.status)"></p-tag></td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ u.createdAt }}</td>
+            <td class="py-4">
+              <div class="flex items-center gap-1">
+                <button type="button" pButton icon="pi pi-pencil" class="p-button-text p-button-sm" aria-label="Editar" (click)="edit(u)"></button>
+
+                <button
+                  type="button"
+                  pButton
+                  [icon]="u.status === 'blocked' ? 'pi pi-lock-open' : 'pi pi-lock'"
+                  class="p-button-text p-button-sm"
+                  [disabled]="mutatingId === u.id"
+                  [attr.aria-label]="u.status === 'blocked' ? 'Desbloquear' : 'Bloquear'"
+                  (click)="toggleBlock(u)"
+                ></button>
+
+                <button
+                  type="button"
+                  pButton
+                  icon="pi pi-trash"
+                  class="p-button-text p-button-sm"
+                  aria-label="Eliminar"
+                  [disabled]="mutatingId === u.id"
+                  (click)="confirmDelete(u)"
+                ></button>
+
+                @if (mutatingId === u.id) {
+                  <div class="flex items-center gap-2 pl-1 text-[12px] text-[#9ca3af]">
+                    <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+                    Actualizando…
+                  </div>
+                }
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      @if (!loading && filteredUsers.length === 0) {
+        <div class="mt-8 text-center text-[13px] text-[#9ca3af]">No hay usuarios con esos filtros.</div>
+      }
+    </div>
+  </div>
+</app-shell>

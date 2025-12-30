@@ -1,0 +1,88 @@
+<app-shell title="Administración" subtitle="Usuarios" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+  <p-toast></p-toast>
+
+  <div class="max-w-4xl mx-auto space-y-4">
+    <div class="flex items-center justify-between gap-2">
+      <a pButton routerLink="/admin/users" label="Volver" icon="pi pi-arrow-left" class="p-button-text p-button-sm"></a>
+    </div>
+
+    @if (loading) {
+      <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] text-[13px] text-[#9ca3af] flex items-center gap-2" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+        Cargando usuario…
+      </div>
+    }
+
+    @if (loadError) {
+      <div class="bg-red-950/40 border border-red-900/60 rounded-lg px-4 py-3 text-[13px] text-red-200">{{ loadError }}</div>
+    }
+
+    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      <app-page-header
+        [title]="isEdit ? 'Editar usuario' : 'Nuevo usuario'"
+        [subtitle]="isEdit ? ('ID: ' + userId) : 'Crea un nuevo usuario para el sistema.'"
+      ></app-page-header>
+
+      <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Nombre</label>
+          <input
+            pInputText
+            [(ngModel)]="form.name"
+            name="name"
+            (blur)="markTouched('name')"
+            class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+          />
+          @if (touched.has('name') && !nameValid) {
+            <div class="mt-2 text-[12px] text-red-200">El nombre es obligatorio (mín. 2 caracteres).</div>
+          }
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Email</label>
+          <input
+            pInputText
+            [(ngModel)]="form.email"
+            name="email"
+            (blur)="markTouched('email')"
+            class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+          />
+          @if (touched.has('email') && !emailValid) {
+            <div class="mt-2 text-[12px] text-red-200">Introduce un email válido.</div>
+          }
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Rol</label>
+          <p-select
+            [options]="roleOptions"
+            [(ngModel)]="form.role"
+            name="role"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+          ></p-select>
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Estado</label>
+          <p-select
+            [options]="statusOptions"
+            [(ngModel)]="form.status"
+            name="status"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+          ></p-select>
+        </div>
+      </div>
+
+      <div class="mt-8 flex items-center justify-end gap-2">
+        <button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" [disabled]="saving" (click)="cancel()"></button>
+        <button type="button" pButton label="Guardar" icon="pi pi-check" class="p-button-sm" [loading]="saving" [disabled]="saving || !canSave" (click)="save()"></button>
+      </div>
+    </div>
+  </div>
+</app-shell>

@@ -1,93 +1,115 @@
-import { Component } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
-import { InputTextModule } from 'primeng/inputtext';
-import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
+import { DatePickerModule } from 'primeng/datepicker';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 import { PageHeader } from '../components/page-header/page-header';
 import { AppShell } from '../layout/app-shell/app-shell';
 
+import { MonitoringApiService } from '../services/monitoring.api';
+import { MonitoringOverview, MonitoringRange } from '../models/monitoring';
+
 @Component({
   selector: 'app-monitoring',
-  imports: [CommonModule, FormsModule, RouterLink, ButtonModule, DialogModule, InputTextModule, SelectModule, TagModule, PageHeader, AppShell],
+  imports: [CommonModule, FormsModule, ButtonModule, TagModule, DatePickerModule, ProgressSpinnerModule, ToastModule, PageHeader, AppShell],
   templateUrl: './monitoring.html',
   styleUrl: './monitoring.css',
+  providers: [MessageService],
 })
 export class Monitoring {
+  private readonly api = inject(MonitoringApiService);
+  private readonly messageService = inject(MessageService);
+
   teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
   selectedTeam = this.teamsTop[0];
 
-  severityOptions = [
-    { label: 'Todas', value: 'all' },
-    { label: 'Info', value: 'info' },
-    { label: 'Aviso', value: 'warn' },
-    { label: 'Crítico', value: 'danger' },
-  ];
-
-  filters = {
-    search: '',
-    severity: 'all',
+  range: MonitoringRange = {
+    from: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
+    to: new Date(),
   };
 
-  kpis = {
-    alerts24h: 3,
-    highRiskPlayers: 1,
-    recommendations: 7,
-  };
+  loading = false;
+  error: string | null = null;
+  overview: MonitoringOverview | null = null;
 
-  logs = [
-    {
-      id: 'l1',
-      title: 'Riesgo de fatiga alto',
-      message: 'El jugador #8 muestra carga elevada 3 días consecutivos.',
-      severity: 'danger' as const,
-      when: 'Hoy · 18:40',
-    },
-    {
-      id: 'l2',
-      title: 'Recomendación de descanso',
-      message: 'Reducir intensidad en la sesión de mañana (grupo Senior).',
-      severity: 'warn' as const,
-      when: 'Hoy · 12:15',
-    },
-    {
-      id: 'l3',
-      title: 'Análisis completado',
-      message: 'Se han actualizado métricas de la última sesión.',
-      severity: 'info' as const,
-      when: 'Ayer · 20:05',
-    },
-  ];
+  hasRange = computed(() => Boolean(this.range.from && this.range.to));
 
-  selectedLog: (typeof this.logs)[number] | null = null;
-  logDialogVisible = false;
+  ngOnInit(): void {
+    this.refresh();
+  }
 
-  get filteredLogs() {
-    const q = this.filters.search.trim().toLowerCase();
-    return this.logs.filter((l) => {
-      const matchesQuery = !q || l.title.toLowerCase().includes(q) || l.message.toLowerCase().includes(q);
-      const matchesSeverity = this.filters.severity === 'all' || l.severity === this.filters.severity;
-      return matchesQuery && matchesSeverity;
+  refresh(): void {
+    this.loading = true;
+    this.error = null;
+
+    this.api.getOverview(this.range).subscribe({
+      next: (res) => {
+        this.overview = res;
+        this.loading = false;
+      },
+      error: (e: unknown) => {
+        this.loading = false;
+        this.error = e instanceof Error ? e.message : 'No se ha podido cargar monitoring.';
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Monitoring',
+          detail: this.error,
+        });
+      },
     });
   }
 
-  clearFilters(): void {
-    this.filters.search = '';
-    this.filters.severity = 'all';
+  clearRange(): void {
+    this.range.from = null;
+    this.range.to = null;
+    this.refresh();
   }
 
-  openDetail(item: (typeof this.logs)[number]): void {
-    this.selectedLog = item;
-    this.logDialogVisible = true;
+  exportCsv(): void {
+    this.api.exportCsv(this.range).subscribe({
+      next: (blob) => {
+        const from = this.range.from ? this.range.from.toISOString().slice(0, 10) : 'all';
+        const to = this.range.to ? this.range.to.toISOString().slice(0, 10) : 'all';
+        const filename = `monitoring_${from}_${to}.csv`;
+
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Exportación',
+          detail: 'Informe CSV descargado.',
+        });
+      },
+      error: (e: unknown) => {
+        const msg = e instanceof Error ? e.message : 'No se pudo exportar el CSV.';
+        this.messageService.add({ severity: 'error', summary: 'Exportación', detail: msg });
+      },
+    });
   }
 
-  closeDetail(): void {
-    this.logDialogVisible = false;
-    this.selectedLog = null;
+  techCostSeverity(cost: MonitoringOverview['recommender']['techCost']): 'success' | 'warn' | 'danger' {
+    if (cost === 'low') return 'success';
+    if (cost === 'medium') return 'warn';
+    return 'danger';
+  }
+
+  formatIso(iso: string): string {
+    try {
+      const d = new Date(iso);
+      return isNaN(d.getTime()) ? iso : d.toLocaleString();
+    } catch {
+      return iso;
+    }
   }
 }

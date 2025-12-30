@@ -1,5 +1,8 @@
+<p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
+
 <div class="p-6">
-	<div class="flex items-center justify-between mb-4">
+	<div class="flex items-center justify-between mb-2">
 		<div>
 			<h2 class="text-[20px] text-[#f9fafb] mb-1">Jugador: {{ player.name }}</h2>
 			<p class="text-[13px] text-[#9ca3af]">Ficha completa del jugador y asignaciones actuales.</p>
@@ -10,142 +13,351 @@
 		></p-tag>
 	</div>
 
-	<div class="grid grid-cols-3 gap-6">
-		<!-- Left Column -->
-		<div class="col-span-2 space-y-6">
-			<div>
-				<h3 class="text-[16px] text-[#f9fafb] mb-1">Datos personales</h3>
-				<p class="text-[12px] text-[#9ca3af] mb-4">Información básica del jugador.</p>
+	<p-tabs [(value)]="activeTabIndex">
+		<p-tablist>
+			<p-tab [value]="0">Datos</p-tab>
+			<p-tab [value]="1">Pertenencias</p-tab>
+			<p-tab [value]="2">Histórico</p-tab>
+		</p-tablist>
 
-				<div class="grid grid-cols-2 gap-4">
-					<div>
-						<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre</label>
-						<input
-							pInputText
-							[(ngModel)]="player.firstName"
-							name="firstName"
-							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
-						/>
+		<p-tabpanels>
+			<p-tabpanel [value]="0">
+				<div class="grid grid-cols-3 gap-6 mt-4">
+					<!-- Left Column -->
+					<div class="col-span-2 space-y-6">
+						<div>
+							<h3 class="text-[16px] text-[#f9fafb] mb-1">Datos personales</h3>
+							<p class="text-[12px] text-[#9ca3af] mb-4">Información básica del jugador.</p>
+
+							<div class="grid grid-cols-2 gap-4">
+								<div>
+									<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre</label>
+									<input
+										pInputText
+										[(ngModel)]="player.firstName"
+										name="firstName"
+										class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+									/>
+								</div>
+								<div>
+									<label class="block text-[#e5e7eb] text-[13px] mb-2">Apellidos</label>
+									<input
+										pInputText
+										[(ngModel)]="player.lastName"
+										name="lastName"
+										class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+									/>
+								</div>
+								<div>
+									<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha de nacimiento</label>
+									<input
+										pInputText
+										[(ngModel)]="player.birthDate"
+										name="birthDate"
+										class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+									/>
+								</div>
+								<div>
+									<label class="block text-[#e5e7eb] text-[13px] mb-2">DNI / ID</label>
+									<input
+										pInputText
+										[(ngModel)]="player.dni"
+										name="dni"
+										class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+									/>
+								</div>
+							</div>
+						</div>
+
+						<div>
+							<h3 class="text-[16px] text-[#f9fafb] mb-1">Datos deportivos</h3>
+							<p class="text-[12px] text-[#9ca3af] mb-4">Información clave para la planificación.</p>
+
+							<div class="grid grid-cols-2 gap-4">
+								<div>
+									<label class="block text-[#e5e7eb] text-[13px] mb-2">Posición</label>
+									<input
+										pInputText
+										[(ngModel)]="player.position"
+										name="position"
+										class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+									/>
+								</div>
+								<div>
+									<label class="block text-[#e5e7eb] text-[13px] mb-2">Altura (cm)</label>
+									<input
+										pInputText
+										type="number"
+										[(ngModel)]="player.height"
+										name="height"
+										class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+									/>
+								</div>
+								<div>
+									<label class="block text-[#e5e7eb] text-[13px] mb-2">Peso (kg)</label>
+									<input
+										pInputText
+										type="number"
+										[(ngModel)]="player.weight"
+										name="weight"
+										class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+									/>
+								</div>
+								<div>
+									<label class="block text-[#e5e7eb] text-[13px] mb-2">Mano dominante</label>
+									<input
+										pInputText
+										[(ngModel)]="player.dominantHand"
+										name="dominantHand"
+										class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
+									/>
+								</div>
+							</div>
+						</div>
+
+						<div>
+							<label class="block text-[#e5e7eb] text-[13px] mb-2">Notas del entrenador</label>
+							<textarea
+								pTextarea
+								[(ngModel)]="player.notes"
+								name="notes"
+								rows="4"
+								placeholder="Anota observaciones relevantes..."
+								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] resize-none"
+							></textarea>
+						</div>
 					</div>
-					<div>
-						<label class="block text-[#e5e7eb] text-[13px] mb-2">Apellidos</label>
-						<input
-							pInputText
-							[(ngModel)]="player.lastName"
-							name="lastName"
-							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
-						/>
-					</div>
-					<div>
-						<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha de nacimiento</label>
-						<input
-							pInputText
-							[(ngModel)]="player.birthDate"
-							name="birthDate"
-							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
-						/>
-					</div>
-					<div>
-						<label class="block text-[#e5e7eb] text-[13px] mb-2">DNI / ID</label>
-						<input
-							pInputText
-							[(ngModel)]="player.dni"
-							name="dni"
-							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
-						/>
+
+					<!-- Right Column -->
+					<div class="space-y-6">
+						<div class="bg-[#111827] rounded-lg p-5 border border-[#1f2937]">
+							<h3 class="text-[16px] text-[#f9fafb] mb-1">Resumen y asignaciones</h3>
+							<p class="text-[12px] text-[#9ca3af] mb-4">Club, equipo y carga reciente.</p>
+
+							<div class="space-y-4">
+								<div>
+									<h4 class="text-[13px] text-[#e5e7eb] mb-1">Club actual</h4>
+									<p class="text-[12px] text-[#9ca3af]">{{ player.club }}</p>
+								</div>
+								<div>
+									<h4 class="text-[13px] text-[#e5e7eb] mb-1">Equipo actual</h4>
+									<p class="text-[12px] text-[#9ca3af]">{{ player.currentTeam }}</p>
+								</div>
+								<div>
+									<h4 class="text-[13px] text-[#e5e7eb] mb-1">Carga semana actual</h4>
+									<p class="text-[12px] text-[#9ca3af]">{{ player.weeklyLoad }}</p>
+								</div>
+								<div>
+									<h4 class="text-[13px] text-[#e5e7eb] mb-1">Último feedback</h4>
+									<p class="text-[12px] text-[#9ca3af]">{{ player.lastFeedback }}</p>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
-			</div>
+			</p-tabpanel>
 
-			<div>
-				<h3 class="text-[16px] text-[#f9fafb] mb-1">Datos deportivos</h3>
-				<p class="text-[12px] text-[#9ca3af] mb-4">Información clave para la planificación.</p>
+			<p-tabpanel [value]="1">
+				<div class="mt-4 bg-[#111827] rounded-lg p-5 border border-[#1f2937]">
+					<div class="flex items-center justify-between gap-3">
+						<div>
+							<h3 class="text-[16px] text-[#f9fafb] mb-1">Pertenencias</h3>
+							<p class="text-[12px] text-[#9ca3af]">Altas, cierres y principal.</p>
+						</div>
+						<div class="flex items-center gap-2">
+							<p-button label="Recargar" severity="secondary" [outlined]="true" (click)="loadMemberships()" [disabled]="membershipsLoading"></p-button>
+							<p-button label="Añadir" severity="secondary" [outlined]="true" (click)="openAdd()" [disabled]="membershipsLoading"></p-button>
+							<p-button label="Transferir" (click)="openTransfer()" [disabled]="membershipsLoading"></p-button>
+						</div>
+					</div>
 
-				<div class="grid grid-cols-2 gap-4">
-					<div>
-						<label class="block text-[#e5e7eb] text-[13px] mb-2">Posición</label>
-						<input
-							pInputText
-							[(ngModel)]="player.position"
-							name="position"
-							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
-						/>
-					</div>
-					<div>
-						<label class="block text-[#e5e7eb] text-[13px] mb-2">Altura (cm)</label>
-						<input
-							pInputText
-							type="number"
-							[(ngModel)]="player.height"
-							name="height"
-							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
-						/>
-					</div>
-					<div>
-						<label class="block text-[#e5e7eb] text-[13px] mb-2">Peso (kg)</label>
-						<input
-							pInputText
-							type="number"
-							[(ngModel)]="player.weight"
-							name="weight"
-							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
-						/>
-					</div>
-					<div>
-						<label class="block text-[#e5e7eb] text-[13px] mb-2">Mano dominante</label>
-						<input
-							pInputText
-							[(ngModel)]="player.dominantHand"
-							name="dominantHand"
-							class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
-						/>
-					</div>
+					@if (membershipsLoading) {
+						<div class="mt-4 flex items-center gap-2 text-[13px] text-[#e5e7eb]">
+							<p-progressSpinner styleClass="w-4 h-4" strokeWidth="6"></p-progressSpinner>
+							Cargando…
+						</div>
+					} @else if (membershipsError) {
+						<div class="mt-4 text-[13px] text-red-200 bg-red-950/30 border border-red-900/50 rounded-lg p-3">{{ membershipsError }}</div>
+					} @else if (!memberships?.length) {
+						<div class="mt-4 text-[13px] text-[#9ca3af]">No hay pertenencias registradas.</div>
+					} @else {
+						<div class="mt-4">
+							<p-table [value]="memberships" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,20]" styleClass="p-datatable-sm">
+								<ng-template pTemplate="header">
+									<tr>
+										<th>Club</th>
+										<th>Inicio</th>
+										<th>Fin</th>
+										<th>Principal</th>
+										<th>Estado</th>
+										<th class="w-[220px]"></th>
+									</tr>
+								</ng-template>
+								<ng-template pTemplate="body" let-m>
+									<tr>
+										<td class="text-[13px] text-[#f9fafb]">{{ m.club }}</td>
+										<td class="text-[13px] text-[#9ca3af]">{{ m.startDate }}</td>
+										<td class="text-[13px] text-[#9ca3af]">{{ m.endDate || '—' }}</td>
+										<td>
+											@if (m.isPrimary) {
+												<p-tag severity="success" value="Sí"></p-tag>
+											} @else {
+												<span class="text-[12px] text-[#9ca3af]">No</span>
+											}
+										</td>
+										<td>
+											@if (m.status === 'active') {
+												<p-tag severity="info" value="Activa"></p-tag>
+											} @else {
+												<p-tag severity="secondary" value="Cerrada"></p-tag>
+											}
+										</td>
+										<td>
+											<div class="flex justify-end gap-2">
+												<p-button label="Principal" severity="secondary" [outlined]="true" size="small" (click)="markPrimary(m)" [disabled]="savingMembership || m.isPrimary || m.status !== 'active'"></p-button>
+												<p-button label="Cerrar" severity="secondary" [outlined]="true" size="small" (click)="openClose(m)" [disabled]="savingMembership || m.status !== 'active'"></p-button>
+											</div>
+										</td>
+									</tr>
+								</ng-template>
+							</p-table>
+						</div>
+					}
 				</div>
-			</div>
+			</p-tabpanel>
 
-			<div>
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Notas del entrenador</label>
-				<textarea
-					pTextarea
-					[(ngModel)]="player.notes"
-					name="notes"
-					rows="4"
-					placeholder="Anota observaciones relevantes..."
-					class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] resize-none"
-				></textarea>
-			</div>
-		</div>
+			<p-tabpanel [value]="2">
+				<div class="mt-4 bg-[#111827] rounded-lg p-5 border border-[#1f2937]">
+					<h3 class="text-[16px] text-[#f9fafb] mb-1">Histórico</h3>
+					<p class="text-[12px] text-[#9ca3af]">Pertenencias por orden cronológico.</p>
 
-		<!-- Right Column -->
-		<div class="space-y-6">
-			<div class="bg-[#111827] rounded-lg p-5 border border-[#1f2937]">
-				<h3 class="text-[16px] text-[#f9fafb] mb-1">Resumen y asignaciones</h3>
-				<p class="text-[12px] text-[#9ca3af] mb-4">Club, equipo y carga reciente.</p>
-
-				<div class="space-y-4">
-					<div>
-						<h4 class="text-[13px] text-[#e5e7eb] mb-1">Club actual</h4>
-						<p class="text-[12px] text-[#9ca3af]">{{ player.club }}</p>
-					</div>
-					<div>
-						<h4 class="text-[13px] text-[#e5e7eb] mb-1">Equipo actual</h4>
-						<p class="text-[12px] text-[#9ca3af]">{{ player.currentTeam }}</p>
-					</div>
-					<div>
-						<h4 class="text-[13px] text-[#e5e7eb] mb-1">Carga semana actual</h4>
-						<p class="text-[12px] text-[#9ca3af]">{{ player.weeklyLoad }}</p>
-					</div>
-					<div>
-						<h4 class="text-[13px] text-[#e5e7eb] mb-1">Último feedback</h4>
-						<p class="text-[12px] text-[#9ca3af]">{{ player.lastFeedback }}</p>
-					</div>
+					@if (!memberships?.length) {
+						<div class="mt-4 text-[13px] text-[#9ca3af]">No hay datos todavía.</div>
+					} @else {
+						<div class="mt-4">
+							<p-table [value]="memberships" [paginator]="true" [rows]="5" styleClass="p-datatable-sm">
+								<ng-template pTemplate="header">
+									<tr>
+										<th>Inicio</th>
+										<th>Club</th>
+										<th>Fin</th>
+										<th>Principal</th>
+									</tr>
+								</ng-template>
+								<ng-template pTemplate="body" let-m>
+									<tr>
+										<td class="text-[13px] text-[#9ca3af]">{{ m.startDate }}</td>
+										<td class="text-[13px] text-[#f9fafb]">{{ m.club }}</td>
+										<td class="text-[13px] text-[#9ca3af]">{{ m.endDate || '—' }}</td>
+										<td>
+											@if (m.isPrimary) {
+												<p-tag severity="success" value="Principal"></p-tag>
+											}
+										</td>
+									</tr>
+								</ng-template>
+							</p-table>
+						</div>
+					}
 				</div>
-			</div>
-		</div>
-	</div>
+			</p-tabpanel>
+		</p-tabpanels>
+	</p-tabs>
 
 	<div class="mt-6 flex justify-between items-center">
 		<p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="onCancel()"></p-button>
 		<p-button label="Guardar cambios" (click)="onSave()"></p-button>
 	</div>
 </div>
+
+<p-dialog [(visible)]="addDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Añadir pertenencia" [style]="{ width: '520px', maxWidth: 'calc(100vw - 3rem)' }">
+	<div class="bg-[#111827] rounded-lg p-4 border border-[#1f2937]">
+		<div class="grid grid-cols-1 gap-4">
+			<div>
+				<label class="block text-[#e5e7eb] text-[13px] mb-2">Club</label>
+				<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="addForm.club" placeholder="Selecciona club" class="w-full"></p-select>
+			</div>
+			<div>
+				<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha inicio</label>
+				<p-datePicker [(ngModel)]="addForm.startDate" class="w-full"></p-datePicker>
+			</div>
+			<div class="flex items-center justify-between">
+				<span class="text-[13px] text-[#e5e7eb]">Marcar como principal</span>
+				<input type="checkbox" [(ngModel)]="addForm.isPrimary" />
+			</div>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="addDialogOpen = false" [disabled]="savingMembership"></p-button>
+			<p-button label="Añadir" (click)="confirmAdd()" [disabled]="savingMembership"></p-button>
+		</div>
+	</ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="closeDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Cerrar pertenencia" [style]="{ width: '520px', maxWidth: 'calc(100vw - 3rem)' }">
+	<div class="bg-[#111827] rounded-lg p-4 border border-[#1f2937]">
+		<div class="text-[13px] text-[#e5e7eb]">Se cerrará: <span class="text-[#f9fafb]">{{ selectedMembership?.club }}</span></div>
+		<div class="mt-4">
+			<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha fin</label>
+			<p-datePicker [(ngModel)]="closeForm.endDate" class="w-full"></p-datePicker>
+		</div>
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-end gap-2">
+			<p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="closeDialogOpen = false" [disabled]="savingMembership"></p-button>
+			<p-button label="Cerrar" (click)="confirmClose()" [disabled]="savingMembership"></p-button>
+		</div>
+	</ng-template>
+</p-dialog>
+
+<p-dialog [(visible)]="transferDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Transferir jugador" [style]="{ width: '640px', maxWidth: 'calc(100vw - 3rem)' }">
+	<div class="bg-[#111827] rounded-lg p-4 border border-[#1f2937]">
+		@if (transferStep === 0) {
+			<p class="text-[12px] text-[#9ca3af]">Paso 1/2 · Datos de la transferencia</p>
+			<div class="grid grid-cols-2 gap-4 mt-4">
+				<div>
+					<label class="block text-[#e5e7eb] text-[13px] mb-2">Nuevo club</label>
+					<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="transferForm.newClub" placeholder="Selecciona club" class="w-full"></p-select>
+				</div>
+				<div>
+					<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha de transferencia</label>
+					<p-datePicker [(ngModel)]="transferForm.transferDate" class="w-full"></p-datePicker>
+				</div>
+			</div>
+		} @else {
+			<p class="text-[12px] text-[#9ca3af]">Paso 2/2 · Resumen</p>
+			<div class="mt-4 bg-[#0b1220] rounded-lg p-4 border border-[#1f2937]">
+				<div class="flex justify-between text-[13px]">
+					<span class="text-[#9ca3af]">Jugador</span>
+					<span class="text-[#f9fafb]">{{ player.firstName }} {{ player.lastName }}</span>
+				</div>
+				<div class="flex justify-between text-[13px] mt-2">
+					<span class="text-[#9ca3af]">Nuevo club</span>
+					<span class="text-[#f9fafb]">{{ transferForm.newClub }}</span>
+				</div>
+				<div class="flex justify-between text-[13px] mt-2">
+					<span class="text-[#9ca3af]">Fecha</span>
+					<span class="text-[#f9fafb]">{{ transferForm.transferDate ? transferForm.transferDate.toISOString().slice(0,10) : '—' }}</span>
+				</div>
+			</div>
+			<p class="mt-3 text-[12px] text-[#9ca3af]">Se cerrará la pertenencia principal activa (si existe) y se creará una nueva principal.</p>
+		}
+	</div>
+
+	<ng-template pTemplate="footer">
+		<div class="flex justify-between items-center">
+			<span class="text-[12px] text-[#9ca3af]">Wizard stub (sin backend real)</span>
+			<div class="flex gap-2">
+				<p-button label="Atrás" severity="secondary" [outlined]="true" (click)="prevTransfer()" [disabled]="savingMembership || transferStep === 0"></p-button>
+				@if (transferStep === 0) {
+					<p-button label="Siguiente" (click)="nextTransfer()" [disabled]="savingMembership"></p-button>
+				} @else {
+					<p-button label="Confirmar" (click)="confirmTransfer()" [disabled]="savingMembership"></p-button>
+				}
+			</div>
+		</div>
+	</ng-template>
+</p-dialog>

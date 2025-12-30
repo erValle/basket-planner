@@ -1,0 +1,284 @@
+<app-shell title="Planificaciones" subtitle="Listado de planificaciones" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+
+  <p-dialog
+    header="Enviar planificación"
+    [(visible)]="sendDialogOpen"
+    [modal]="true"
+    [draggable]="false"
+    [closable]="!sendingEmail"
+    [dismissableMask]="!sendingEmail"
+    [style]="{ width: '720px' }"
+    [contentStyle]="{ background: '#020617', border: '1px solid #1f2937' }"
+  >
+    <div class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Formato</label>
+          <p-select
+            [options]="formatOptions"
+            [(ngModel)]="emailModel.format"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+          ></p-select>
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Versión</label>
+          <input
+            pInputText
+            [(ngModel)]="emailModel.version"
+            placeholder="v1, v2, ... (opcional)"
+            class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+          />
+          <div class="mt-2 text-[12px] text-[#6b7280]">Si lo dejas vacío, se enviará la última.</div>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[#9ca3af] text-[12px] mb-2">Destinatarios</label>
+        <div class="flex gap-2">
+          <input
+            pInputText
+            [(ngModel)]="recipientDraft"
+            (keydown.enter)="$event.preventDefault(); addRecipient()"
+            placeholder="email@club.com"
+            class="flex-1 bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+          />
+          <button type="button" pButton label="Añadir" class="p-button-sm" (click)="addRecipient()"></button>
+        </div>
+
+        @if (emailModel.recipients.length === 0) {
+          <div class="mt-2 text-[12px] text-[#6b7280]">Añade al menos un destinatario.</div>
+        } @else {
+          <div class="mt-3 flex flex-wrap gap-2">
+            @for (r of emailModel.recipients; track r) {
+              <div class="flex items-center gap-2 rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2 text-[13px] text-[#e5e7eb]">
+                <span>{{ r }}</span>
+                <button type="button" pButton icon="pi pi-times" class="p-button-text p-button-sm" aria-label="Quitar" (click)="removeRecipient(r)"></button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div>
+        <label class="block text-[#9ca3af] text-[12px] mb-2">Asunto</label>
+        <input
+          pInputText
+          [(ngModel)]="emailModel.subject"
+          placeholder="Asunto del correo"
+          class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+        />
+      </div>
+
+      <div>
+        <label class="block text-[#9ca3af] text-[12px] mb-2">Mensaje (opcional)</label>
+        <textarea
+          pTextarea
+          [(ngModel)]="emailModel.message"
+          rows="4"
+          class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280] resize-none"
+        ></textarea>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        @if (sendingEmail) {
+          <div class="flex items-center gap-2 text-[12px] text-[#9ca3af]">
+            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+            Enviando…
+          </div>
+        } @else {
+          <div class="text-[12px] text-[#6b7280]">Se enviará un adjunto con el formato seleccionado (stub).</div>
+        }
+
+        <div class="flex gap-2">
+          <button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" [disabled]="sendingEmail" (click)="sendDialogOpen = false"></button>
+          <button type="button" pButton label="Enviar" icon="pi pi-send" class="p-button-sm" [disabled]="sendingEmail || !canSendEmail()" (click)="sendEmail()"></button>
+        </div>
+      </div>
+    </div>
+  </p-dialog>
+
+  <div class="max-w-7xl mx-auto">
+    <app-page-header
+      [title]="'Planificaciones'"
+      [subtitle]="'Consulta, gestiona y versiona tus sesiones.'"
+      [actionLabel]="'Nueva planificación'"
+      [actionIcon]="'pi pi-plus'"
+      [action]="openNew.bind(this)"
+    ></app-page-header>
+
+    <!-- Filters -->
+    <div
+      class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6"
+      style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+    >
+      <div class="grid grid-cols-6 gap-4">
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Club</label>
+          <p-select
+            [options]="clubOptions"
+            [(ngModel)]="filters.club"
+            name="club"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+          ></p-select>
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Equipo</label>
+          <p-select
+            [options]="teamOptions"
+            [(ngModel)]="filters.team"
+            name="team"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+          ></p-select>
+        </div>
+
+        <div class="col-span-2">
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Rango de fechas</label>
+          <p-datePicker
+            [(ngModel)]="filters.dateRange"
+            name="dateRange"
+            selectionMode="range"
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            inputStyleClass="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+            styleClass="w-full"
+          ></p-datePicker>
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Estado</label>
+          <p-select
+            [options]="statusOptions"
+            [(ngModel)]="filters.status"
+            name="status"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+          ></p-select>
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
+          <input
+            pInputText
+            [(ngModel)]="filters.search"
+            name="search"
+            placeholder="Equipo, objetivo, autor…"
+            class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+          />
+        </div>
+      </div>
+
+      <div class="mt-4 flex justify-between items-center">
+        <div class="text-[12px] text-[#94a3b8]">
+          Usa filtros para acotar resultados. La paginación se aplicará desde API cuando esté disponible.
+        </div>
+        <div class="flex gap-2">
+          <button type="button" pButton label="Aplicar" class="p-button-sm" (click)="load()"></button>
+          <button type="button" pButton label="Limpiar filtros" class="p-button-text p-button-sm" (click)="clearFilters()"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div
+      class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+      style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+    >
+      @if (loading) {
+        <div class="border-b border-[#1f2937] pb-4 mb-4 text-[13px] text-[#9ca3af]">Cargando planificaciones…</div>
+      }
+      @if (loadError) {
+        <div class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200 mb-4">
+          {{ loadError }}
+        </div>
+      }
+
+      <p-table
+        [value]="filteredPlannings"
+        [paginator]="true"
+        [rows]="rows"
+        [first]="first"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        (onPage)="onPageChange($event)"
+        [tableStyle]="{ width: '100%' }"
+        styleClass="p-datatable-sm"
+      >
+        <ng-template pTemplate="header">
+          <tr class="border-b border-[#1f2937]">
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Fecha</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Equipo</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Objetivo</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Estado</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Versión</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Autor</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-item>
+          <tr class="border-b border-[#1f2937]">
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ item.date }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ item.team }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ item.objective }}</td>
+            <td class="py-4 pr-4">
+              <p-tag [value]="statusLabel(item.status)" [severity]="statusSeverity(item.status)"></p-tag>
+            </td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ item.version }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ item.author }}</td>
+            <td class="py-4">
+              <div class="flex items-center gap-1">
+                <button type="button" pButton icon="pi pi-eye" class="p-button-text p-button-sm" aria-label="Ver" (click)="view(item)"></button>
+                <button type="button" pButton icon="pi pi-pencil" class="p-button-text p-button-sm" aria-label="Editar" (click)="editAsNewVersion(item)"></button>
+
+                <p-menu #exportMenu [popup]="true" [model]="exportMenuItems"></p-menu>
+                <button
+                  type="button"
+                  pButton
+                  icon="pi pi-download"
+                  class="p-button-text p-button-sm"
+                  aria-label="Exportar"
+                  [disabled]="downloadingForId === item.id"
+                  (click)="openExportMenuFor(item); exportMenu.toggle($event)"
+                ></button>
+
+                @if (downloadingForId === item.id) {
+                  <div class="flex items-center gap-2 pl-1 text-[12px] text-[#9ca3af]">
+                    <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+                    {{ downloadingFormat?.toUpperCase() }}…
+                  </div>
+                }
+
+                <button
+                  type="button"
+                  pButton
+                  icon="pi pi-trash"
+                  class="p-button-text p-button-sm"
+                  aria-label="Eliminar"
+                  (click)="confirmDelete(item)"
+                ></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      @if (!loading && filteredPlannings.length === 0) {
+        <div class="mt-8 text-center text-[13px] text-[#9ca3af]">No hay planificaciones con esos filtros.</div>
+      }
+    </div>
+  </div>
+</app-shell>
