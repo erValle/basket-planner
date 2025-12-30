@@ -59,9 +59,10 @@
 			class="bg-[#020617] border-r border-[#1f2937] flex flex-col z-50 sm:z-auto"
 			[ngClass]="
 				isMobileNavOpen
-					? 'fixed top-0 left-0 h-full w-72 sm:static sm:h-auto sm:w-64'
-					: 'hidden sm:flex sm:w-64'
+					? 'fixed top-0 left-0 h-full w-72 sm:static sm:h-auto sm:w-64 translate-x-0 opacity-100'
+					: 'fixed top-0 left-0 h-full w-72 sm:static sm:h-auto sm:w-64 -translate-x-full sm:translate-x-0 opacity-0 sm:opacity-100 pointer-events-none sm:pointer-events-auto'
 			"
+			style="transition: transform 200ms ease, opacity 200ms ease"
 		>
 			<div class="p-6 border-b border-[#1f2937]">
 				<div class="flex items-center gap-3">
