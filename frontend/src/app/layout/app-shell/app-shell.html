@@ -1,0 +1,126 @@
+<div
+	class="min-h-screen flex flex-col"
+	style="background: radial-gradient(circle at top left, #111827, #020617); color: #f9fafb"
+>
+	<!-- Topbar -->
+	<header class="bg-[#020617] border-b border-[#1f2937] px-4 sm:px-6 py-3 flex items-center justify-between">
+		<div class="flex items-center gap-3 sm:gap-6">
+			<button
+				type="button"
+				pButton
+				icon="pi pi-bars"
+				class="p-button-text p-button-sm sm:hidden"
+				(click)="toggleMobileNav()"
+				aria-label="Abrir menú"
+				style="color: #9ca3af"
+			></button>
+			<a routerLink="/dashboard" class="text-[20px] text-[#f9fafb]">BasketPlanner</a>
+			@if (showTeamSelect) {
+				<p-select
+					[options]="teams"
+					[(ngModel)]="selectedTeam"
+					(ngModelChange)="onSelectedTeamChange($event)"
+					placeholder="Selecciona equipo"
+					styleClass="w-[220px] sm:w-auto bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
+					[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+					[showClear]="false"
+				></p-select>
+			}
+		</div>
+		<div class="flex items-center gap-4">
+			<button
+				type="button"
+				pButton
+				label="Notificaciones"
+				icon="pi pi-bell"
+				class="p-button-text p-button-sm"
+				style="color: #9ca3af"
+			></button>
+			<div
+				class="w-9 h-9 rounded-full flex items-center justify-center text-[14px]"
+				style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
+			>
+				PV
+			</div>
+		</div>
+	</header>
+
+	<div class="flex flex-1 relative">
+		@if (isMobileNavOpen) {
+			<button
+				type="button"
+				class="fixed inset-0 bg-black/60 z-40 sm:hidden"
+				(click)="closeMobileNav()"
+				aria-label="Cerrar menú"
+			></button>
+		}
+		<!-- Sidebar -->
+		<aside
+			class="bg-[#020617] border-r border-[#1f2937] flex flex-col z-50 sm:z-auto"
+			[ngClass]="
+				isMobileNavOpen
+					? 'fixed top-0 left-0 h-full w-72 sm:static sm:h-auto sm:w-64'
+					: 'hidden sm:flex sm:w-64'
+			"
+		>
+			<div class="p-6 border-b border-[#1f2937]">
+				<div class="flex items-center gap-3">
+					<div
+						class="w-10 h-10 rounded-full flex items-center justify-center text-[14px]"
+						style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
+					>
+						BP
+					</div>
+					<div class="flex flex-col">
+						<span class="text-[14px] text-[#f9fafb]">BasketPlanner</span>
+						<span class="text-[11px] text-[#9ca3af]">Panel entrenador</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="flex-1 overflow-y-auto px-3 py-4" (click)="closeMobileNav()">
+				<div class="mb-4">
+					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">General</div>
+					<nav>
+						@for (item of generalNav; track item.route) {
+							<a
+								[routerLink]="item.route"
+								routerLinkActive="bg-[#111827] text-[#f9fafb]"
+								[routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+								class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+							>
+								@if (item.icon) {
+									<i class="{{ item.icon }}"></i>
+								}
+								<span>{{ item.label }}</span>
+							</a>
+						}
+					</nav>
+				</div>
+
+				<div>
+					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">Control</div>
+					<nav>
+						@for (item of controlNav; track item.route) {
+							<a
+								[routerLink]="item.route"
+								routerLinkActive="bg-[#111827] text-[#f9fafb]"
+								class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+							>
+								@if (item.icon) {
+									<i class="{{ item.icon }}"></i>
+								}
+								<span>{{ item.label }}</span>
+							</a>
+						}
+					</nav>
+				</div>
+			</div>
+		</aside>
+
+		<!-- Content -->
+		<main class="flex-1 p-4 sm:p-6">
+			<ng-content></ng-content>
+		</main>
+	</div>
+</div>
