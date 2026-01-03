@@ -1,4 +1,4 @@
-<app-shell title="Nuevo ejercicio" subtitle="Acceso rápido a la creación de ejercicios." [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Nuevo ejercicio" subtitle="Acceso rápido a la creación de ejercicios.">
 	<div class="max-w-4xl mx-auto">
 		<app-page-header
 			[title]="'Nuevo ejercicio'"
@@ -18,14 +18,14 @@
 				<p-button
 					label="Ir a Ejercicios"
 					(click)="goToExercises()"
-					styleClass="text-[13px] px-5 py-2 rounded-lg text-[#0f172a] border-none"
+					styleClass="bp-btn bp-btn-primary"
 				></p-button>
 				<p-button
 					label="Volver"
 					severity="secondary"
 					[outlined]="true"
 					(click)="cancel()"
-					styleClass="text-[13px] px-5 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
+					styleClass="bp-btn bp-btn-secondary"
 				></p-button>
 			</div>
 		</div>

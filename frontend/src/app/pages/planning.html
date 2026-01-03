@@ -1,4 +1,4 @@
-<app-shell title="Planificaciones" subtitle="Listado de planificaciones" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Planificaciones" subtitle="Listado de planificaciones">
   <p-toast></p-toast>
   <p-confirmDialog></p-confirmDialog>
 
@@ -21,8 +21,8 @@
             [(ngModel)]="emailModel.format"
             optionLabel="label"
             optionValue="value"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
 
@@ -32,7 +32,7 @@
             pInputText
             [(ngModel)]="emailModel.version"
             placeholder="v1, v2, ... (opcional)"
-            class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+            class="w-full"
           />
           <div class="mt-2 text-[12px] text-[#6b7280]">Si lo dejas vacío, se enviará la última.</div>
         </div>
@@ -46,7 +46,7 @@
             [(ngModel)]="recipientDraft"
             (keydown.enter)="$event.preventDefault(); addRecipient()"
             placeholder="email@club.com"
-            class="flex-1 bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+            class="flex-1"
           />
           <button type="button" pButton label="Añadir" class="p-button-sm" (click)="addRecipient()"></button>
         </div>
@@ -71,7 +71,7 @@
           pInputText
           [(ngModel)]="emailModel.subject"
           placeholder="Asunto del correo"
-          class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+          class="w-full"
         />
       </div>
 
@@ -81,7 +81,7 @@
           pTextarea
           [(ngModel)]="emailModel.message"
           rows="4"
-          class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280] resize-none"
+          class="w-full resize-none"
         ></textarea>
       </div>
 
@@ -126,8 +126,8 @@
             name="club"
             optionLabel="label"
             optionValue="value"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
 
@@ -139,8 +139,8 @@
             name="team"
             optionLabel="label"
             optionValue="value"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
 
@@ -152,7 +152,7 @@
             selectionMode="range"
             [showIcon]="true"
             dateFormat="dd/mm/yy"
-            inputStyleClass="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+            inputStyleClass="w-full"
             styleClass="w-full"
           ></p-datePicker>
         </div>
@@ -165,8 +165,8 @@
             name="status"
             optionLabel="label"
             optionValue="value"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
 
@@ -177,7 +177,7 @@
             [(ngModel)]="filters.search"
             name="search"
             placeholder="Equipo, objetivo, autor…"
-            class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+            class="w-full"
           />
         </div>
       </div>
@@ -215,7 +215,7 @@
         [rowsPerPageOptions]="[10, 20, 50]"
         (onPage)="onPageChange($event)"
         [tableStyle]="{ width: '100%' }"
-        styleClass="p-datatable-sm"
+        styleClass="bp-table p-datatable-sm"
       >
         <ng-template pTemplate="header">
           <tr class="border-b border-[#1f2937]">

@@ -1,4 +1,4 @@
-<app-shell title="Clubes" subtitle="Gestión de clubes" [teams]="teams" [(selectedTeam)]="selectedTeam">
+<app-shell title="Clubes" subtitle="Gestión de clubes">
 	<div class="max-w-7xl mx-auto">
 				<app-page-header
 					[title]="'Clubes'"
@@ -32,19 +32,13 @@
 								name="status"
 								optionLabel="label"
 								optionValue="value"
-								styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
 							></p-select>
 						</div>
 					</div>
 					<div class="mt-4 flex justify-end">
-						<button
-							type="button"
-							pButton
-							label="Limpiar filtros"
-							class="p-button-text p-button-sm"
-							(click)="clearFilters()"
-						></button>
+						<button type="button" pButton label="Limpiar filtros" class="bp-btn bp-btn-ghost bp-btn-sm" (click)="clearFilters()"></button>
 					</div>
 				</div>
 
@@ -72,7 +66,7 @@
 									pButton
 									label="Editar"
 									icon="pi pi-pencil"
-									class="p-button-text p-button-sm"
+									class="bp-btn bp-btn-ghost bp-btn-sm"
 									(click)="openEdit(club)"
 								></button>
 							</div>
@@ -129,20 +123,20 @@
 					name="clubStatus"
 					optionLabel="label"
 					optionValue="value"
-					styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-					[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+					styleClass="bp-select"
+					[panelStyleClass]="'bp-select-panel'"
 				></p-select>
 			</div>
 		</div>
 
 		<ng-template pTemplate="footer">
 			<div class="flex justify-between gap-2">
-				<button type="button" pButton label="Cancelar" class="p-button-text" (click)="closeDialog()"></button>
 				<button
 					type="button"
 					pButton
 					[label]="dialogMode === 'create' ? 'Crear club' : 'Guardar cambios'"
 					[disabled]="!draft.name.trim()"
+					class="bp-btn bp-btn-primary"
 					(click)="saveDialog()"
 				></button>
 			</div>

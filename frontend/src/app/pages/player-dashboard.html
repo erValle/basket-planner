@@ -1,8 +1,8 @@
-<app-shell title="Jugador" subtitle="Resumen y métricas" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Jugador" subtitle="Resumen y métricas">
 	<div class="max-w-6xl mx-auto space-y-4">
 		<div class="flex justify-end gap-2">
-			<a pButton routerLink="/players" label="Volver" icon="pi pi-arrow-left" class="p-button-text p-button-sm"></a>
-			<a pButton routerLink="/monitoring" label="Monitoring" icon="pi pi-chart-line" class="p-button-text p-button-sm"></a>
+			<a pButton routerLink="/players" label="Volver" icon="pi pi-arrow-left" class="bp-btn bp-btn-secondary"></a>
+			<a pButton routerLink="/monitoring" label="Monitoring" icon="pi pi-chart-line" class="bp-btn bp-btn-secondary"></a>
 		</div>
 
 		<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
@@ -35,7 +35,7 @@
 						<div class="text-[14px] font-semibold text-[#f9fafb]">Últimas encuestas</div>
 						<div class="mt-1 text-[12px] text-[#9ca3af]">RPE, fatiga, dolor y bienestar.</div>
 					</div>
-					<button pButton type="button" label="Recargar" class="p-button-text p-button-sm" icon="pi pi-refresh" (click)="loadFeedback()"></button>
+					<button pButton type="button" label="Recargar" icon="pi pi-refresh" (click)="loadFeedback()" class="bp-btn bp-btn-secondary"></button>
 				</div>
 
 				@if (feedbackLoading) {

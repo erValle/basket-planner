@@ -1,5 +1,5 @@
 <div
-	class="min-h-screen flex items-center justify-center px-4"
+	class="bp-login min-h-screen flex items-center justify-center px-4"
 	style="background: radial-gradient(circle at top left, #111827, #020617)"
 >
 	<div class="w-full max-w-[420px] p-4">
@@ -36,6 +36,12 @@
 				Accede para gestionar tu ecosistema de clubes, equipos y planificaciones.
 			</p>
 
+			@if (error) {
+				<div class="mb-3 border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200">
+					{{ error }}
+				</div>
+			}
+
 			<form class="flex flex-col gap-[14px]" [formGroup]="form" (ngSubmit)="submit()">
 				<div class="flex flex-col gap-1">
 					<label for="email" class="text-[#e5e7eb] text-[13px]">Correo electrónico</label>
@@ -45,8 +51,7 @@
 						id="email"
 						formControlName="email"
 						placeholder="tuusuario@club.com"
-						class="bg-[#020617] text-[#f9fafb] px-2.5 py-[9px] rounded-[10px] border border-[#111827] focus:border-[#38bdf8] focus:outline-none text-[14px] placeholder-gray-500"
-						style="box-shadow: none"
+						class="w-full"
 					/>
 				</div>
 
@@ -58,8 +63,7 @@
 						id="password"
 						formControlName="password"
 						placeholder="••••••••"
-						class="bg-[#020617] text-[#f9fafb] px-2.5 py-[9px] rounded-[10px] border border-[#111827] focus:border-[#38bdf8] focus:outline-none text-[14px] placeholder-gray-500"
-						style="box-shadow: none"
+						class="w-full"
 					/>
 				</div>
 
@@ -67,9 +71,9 @@
 					<p-button
 						type="submit"
 						label="Acceder"
-						[disabled]="form.invalid"
-						styleClass="rounded-full px-[18px] py-2 border-none text-[#0f172a] text-[14px]"
-						[style]="{ background: 'linear-gradient(90deg, #0ea5e9, #22c55e)' }"
+						[disabled]="form.invalid || loading"
+						[loading]="loading"
+						styleClass="bp-btn bp-btn-primary"
 					></p-button>
 
 					<p-button

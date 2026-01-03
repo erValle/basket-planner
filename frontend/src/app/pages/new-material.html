@@ -1,4 +1,4 @@
-<app-shell title="Nuevo material" subtitle="Añade un nuevo elemento al inventario." [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Nuevo material" subtitle="Añade un nuevo elemento al inventario.">
 	<div class="max-w-7xl mx-auto">
 		<app-page-header
 			[title]="'Nuevo material'"
@@ -17,7 +17,7 @@
 								[(ngModel)]="form.name"
 								name="name"
 								placeholder="Ej.: Balón talla 7"
-								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[14px] placeholder-[#6b7280]"
+								class="w-full"
 							/>
 						</div>
 
@@ -29,8 +29,8 @@
 								name="category"
 								optionLabel="label"
 								optionValue="value"
-								styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[14px] rounded-lg border border-[#1f2937]"
-								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
 							></p-select>
 						</div>
 
@@ -63,13 +63,13 @@
 							severity="secondary"
 							[outlined]="true"
 							(click)="cancel()"
-							styleClass="text-[13px] px-5 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
+							styleClass="bp-btn bp-btn-secondary"
 						></p-button>
 						<p-button
 							label="Guardar"
 							(click)="save()"
 							[disabled]="!form.name.trim()"
-							styleClass="text-[13px] px-5 py-2 rounded-lg text-[#0f172a] border-none"
+							styleClass="bp-btn bp-btn-primary"
 						></p-button>
 					</div>
 				</div>

@@ -217,7 +217,7 @@
             </div>
           }
 
-          <button type="button" pButton label="Añadir material" icon="pi pi-plus" class="p-button-text" (click)="openMaterialModal()"></button>
+          <p-button label="Añadir material" icon="pi pi-plus" severity="secondary" [text]="true" styleClass="bp-btn" (click)="openMaterialModal()"></p-button>
         </div>
 
         <app-material-selection
@@ -249,20 +249,20 @@
 
     <!-- Footer buttons -->
     <div class="flex items-center justify-between">
-      <button type="button" pButton label="Cancelar" class="p-button-text" (click)="onCancel()"></button>
+      <p-button label="Cancelar" severity="secondary" [text]="true" styleClass="bp-btn" (click)="onCancel()"></p-button>
 
       @if (mode === 'view') {
         <div>
-          <button type="button" pButton label="Cerrar" (click)="onCancel()"></button>
+          <p-button label="Cerrar" styleClass="bp-btn bp-btn-primary" (click)="onCancel()"></p-button>
         </div>
       } @else {
         <div class="flex gap-2">
-          <button type="button" pButton label="Anterior" class="p-button-outlined" [disabled]="!canGoPrev()" (click)="goPrev()"></button>
+          <p-button label="Anterior" severity="secondary" [outlined]="true" styleClass="bp-btn bp-btn-secondary" [disabled]="!canGoPrev()" (click)="goPrev()"></p-button>
 
           @if (canGoNext()) {
-            <button type="button" pButton label="Siguiente" (click)="goNext()"></button>
+            <p-button label="Siguiente" styleClass="bp-btn bp-btn-primary" (click)="goNext()"></p-button>
           } @else {
-            <button type="submit" pButton [label]="titleForSave()"></button>
+            <p-button type="submit" [label]="titleForSave()" styleClass="bp-btn bp-btn-primary"></p-button>
           }
         </div>
       }

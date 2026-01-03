@@ -1,8 +1,11 @@
 import { Component } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
+
+import { AuthService } from '../core/auth/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -11,6 +14,13 @@ import { InputTextModule } from 'primeng/inputtext';
   styleUrl: './login.css',
 })
 export class Login {
+  loading = false;
+  error: string | null = null;
+
+  constructor(
+    private readonly auth: AuthService,
+    private readonly router: Router,
+  ) {}
 
   readonly form = new FormGroup({
     email: new FormControl('', { nonNullable: true, validators: [Validators.required, Validators.email] }),
@@ -18,8 +28,27 @@ export class Login {
   });
 
   submit() {
-    // TODO: connect to backend /api/auth/login
-    // This is only to keep template functional while we port the rest.
-    console.log('Login attempt:', this.form.getRawValue());
+    if (this.loading) return;
+    this.error = null;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    const { email, password } = this.form.getRawValue();
+    this.loading = true;
+    this.auth.login(email ?? '', password ?? '').subscribe({
+      next: () => {
+        this.loading = false;
+
+			// Players don't have access to /dashboard.
+			const role = this.auth.getRoleSnapshot();
+			this.router.navigateByUrl(role === 'player' ? '/player' : '/dashboard');
+      },
+      error: (e: unknown) => {
+        this.loading = false;
+        this.error = e instanceof Error ? e.message : 'No se pudo iniciar sesión.';
+      },
+    });
   }
 }

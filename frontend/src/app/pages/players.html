@@ -1,4 +1,4 @@
-<app-shell title="Jugadores" subtitle="Gestión de jugadores" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Jugadores" subtitle="Gestión de jugadores">
 	<div class="max-w-7xl mx-auto">
 		<app-page-header
 			[title]="'Jugadores'"
@@ -22,8 +22,8 @@
 								name="club"
 								optionLabel="label"
 								optionValue="value"
-								styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
 							></p-select>
 						</div>
 						<div>
@@ -34,8 +34,8 @@
 								name="team"
 								optionLabel="label"
 								optionValue="value"
-								styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
 							></p-select>
 						</div>
 						<div>
@@ -46,8 +46,8 @@
 								name="category"
 								optionLabel="label"
 								optionValue="value"
-								styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
 							></p-select>
 						</div>
 						<div>
@@ -66,7 +66,7 @@
 							type="button"
 							pButton
 							label="Limpiar filtros"
-							class="p-button-text p-button-sm"
+							class="bp-btn bp-btn-ghost bp-btn-sm"
 							(click)="clearFilters()"
 						></button>
 					</div>
@@ -80,7 +80,7 @@
 					<p-table
 						[value]="filteredPlayers"
 						[tableStyle]="{ width: '100%' }"
-						styleClass="p-datatable-sm"
+						styleClass="bp-table p-datatable-sm"
 					>
 						<ng-template pTemplate="header">
 							<tr class="border-b border-[#1f2937]">
@@ -109,7 +109,7 @@
 										type="button"
 										pButton
 										label="Ver"
-										class="p-button-text p-button-sm"
+										class="bp-btn bp-btn-ghost bp-btn-sm"
 										(click)="openPlayer(player)"
 									></button>
 								</td>
@@ -121,7 +121,7 @@
 
 	<!-- Player Detail (Dialog) -->
 	<p-dialog
-		styleClass="bp-dialog"
+		styleClass="bp-dialog bp-dialog-strong"
 		[header]="'Detalle de jugador'"
 		[(visible)]="playerDetailVisible"
 		[modal]="true"

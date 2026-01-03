@@ -1,4 +1,4 @@
-<app-shell title="Material" subtitle="Inventario y disponibilidad del material deportivo." [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Material" subtitle="Inventario y disponibilidad del material deportivo.">
 	<div class="max-w-7xl mx-auto">
 		<app-page-header
 			[title]="'Material'"
@@ -32,8 +32,8 @@
 								name="category"
 								optionLabel="label"
 								optionValue="value"
-								styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
 							></p-select>
 						</div>
 						<div>
@@ -44,8 +44,8 @@
 								name="status"
 								optionLabel="label"
 								optionValue="value"
-								styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-								[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
 							></p-select>
 						</div>
 					</div>
@@ -54,7 +54,7 @@
 							type="button"
 							pButton
 							label="Limpiar filtros"
-							class="p-button-text p-button-sm"
+							class="bp-btn bp-btn-ghost bp-btn-sm"
 							(click)="clearFilters()"
 						></button>
 					</div>
@@ -82,7 +82,7 @@
 									pButton
 									label="Editar"
 									icon="pi pi-pencil"
-									class="p-button-text p-button-sm"
+									class="bp-btn bp-btn-ghost bp-btn-sm"
 									(click)="openEdit(it)"
 								></button>
 							</div>
@@ -126,8 +126,8 @@
 					name="materialCategory"
 					optionLabel="label"
 					optionValue="value"
-					styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-					[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
 				></p-select>
 			</div>
 			<div>
@@ -142,12 +142,13 @@
 
 		<ng-template pTemplate="footer">
 			<div class="flex justify-between gap-2">
-				<button type="button" pButton label="Cancelar" class="p-button-text" (click)="closeDialog()"></button>
+				<button type="button" pButton label="Cancelar" class="bp-btn bp-btn-secondary" (click)="closeDialog()"></button>
 				<button
 					type="button"
 					pButton
 					[label]="dialogMode === 'create' ? 'Crear material' : 'Guardar cambios'"
 					[disabled]="!draft.name.trim()"
+					class="bp-btn bp-btn-primary"
 					(click)="saveDialog()"
 				></button>
 			</div>

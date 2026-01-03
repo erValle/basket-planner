@@ -1,4 +1,4 @@
-<app-shell title="Planificación" subtitle="Detalle" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Planificación" subtitle="Detalle">
   <p-toast></p-toast>
 
   <p-dialog
@@ -20,8 +20,8 @@
             [(ngModel)]="emailModel.format"
             optionLabel="label"
             optionValue="value"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
         <div>
@@ -30,8 +30,8 @@
             [options]="versionOptions"
             [(ngModel)]="emailModel.version"
             placeholder="Versión"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
             [showClear]="true"
           ></p-select>
           <div class="mt-2 text-[12px] text-[#6b7280]">Si no seleccionas versión, se enviará la última.</div>
@@ -46,7 +46,7 @@
             [(ngModel)]="recipientDraft"
             (keydown.enter)="$event.preventDefault(); addRecipient()"
             placeholder="email@club.com"
-            class="flex-1 bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+            class="flex-1"
           />
           <button type="button" pButton label="Añadir" class="p-button-sm" (click)="addRecipient()"></button>
         </div>
@@ -78,7 +78,7 @@
           pInputText
           [(ngModel)]="emailModel.subject"
           placeholder="Asunto del correo"
-          class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+          class="w-full"
         />
       </div>
 
@@ -88,7 +88,7 @@
           pTextarea
           [(ngModel)]="emailModel.message"
           rows="4"
-          class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280] resize-none"
+          class="w-full resize-none"
         ></textarea>
       </div>
 
@@ -133,8 +133,8 @@
             optionLabel="label"
             optionValue="value"
             [(ngModel)]="draftSurvey.rpe"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
         <div>
@@ -145,8 +145,8 @@
             optionLabel="label"
             optionValue="value"
             [(ngModel)]="draftSurvey.fatigue"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
         <div>
@@ -157,8 +157,8 @@
             optionLabel="label"
             optionValue="value"
             [(ngModel)]="draftSurvey.pain"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
         <div>
@@ -169,8 +169,8 @@
             optionLabel="label"
             optionValue="value"
             [(ngModel)]="draftSurvey.sleep"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
         <div>
@@ -181,8 +181,8 @@
             optionLabel="label"
             optionValue="value"
             [(ngModel)]="draftSurvey.stress"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
         <div>
@@ -193,8 +193,8 @@
             optionLabel="label"
             optionValue="value"
             [(ngModel)]="draftSurvey.mood"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
       </div>
@@ -205,7 +205,7 @@
           pTextarea
           [(ngModel)]="draftSurvey.notes"
           rows="4"
-          class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280] resize-none"
+          class="w-full resize-none"
         ></textarea>
       </div>
 
@@ -239,8 +239,8 @@
             [(ngModel)]="selectedVersion"
             (ngModelChange)="onVersionChange($event)"
             placeholder="Versión"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
             [showClear]="false"
           ></p-select>
         </div>

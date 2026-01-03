@@ -52,8 +52,8 @@
 
 	<ng-template pTemplate="footer">
 		<div class="flex justify-between gap-2">
-			<button type="button" pButton label="Cancelar" class="p-button-text" (click)="onHide()"></button>
-			<button type="button" pButton label="Añadir materiales" (click)="onConfirm()"></button>
+			<p-button label="Cancelar" severity="secondary" [outlined]="true" styleClass="bp-btn bp-btn-secondary" (click)="onHide()"></p-button>
+			<p-button label="Añadir materiales" styleClass="bp-btn bp-btn-primary" (click)="onConfirm()"></p-button>
 		</div>
 	</ng-template>
 </p-dialog>

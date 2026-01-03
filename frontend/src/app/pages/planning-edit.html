@@ -1,4 +1,4 @@
-<app-shell title="Editar planificación" subtitle="Nueva versión" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Editar planificación" subtitle="Nueva versión">
   <p-toast></p-toast>
   <p-confirmDialog></p-confirmDialog>
 
@@ -26,7 +26,7 @@
             [outlined]="true"
             (click)="cancel()"
             type="button"
-            styleClass="text-[13px] px-5 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
+            styleClass="bp-btn bp-btn-secondary"
           ></p-button>
           <p-button
             label="Guardar"
@@ -35,7 +35,7 @@
             [loading]="saving"
             [disabled]="saving || !canSave()"
             type="button"
-            styleClass="text-[13px] px-5 py-2 rounded-lg text-[#0f172a] border-none"
+            styleClass="bp-btn bp-btn-primary"
           ></p-button>
         </div>
       </div>
@@ -72,7 +72,7 @@
                     [(ngModel)]="s.title"
                     [name]="'session-title-' + s.id"
                     (blur)="markTouched('s-title-' + s.id)"
-                    class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px]"
+                    class="w-full"
                   />
                   @if (hasError('s-title-' + s.id, isSessionValid(s))) {
                     <div class="mt-2 text-[12px] text-red-200">El título es obligatorio.</div>
@@ -103,7 +103,7 @@
                             [(ngModel)]="b.name"
                             [name]="'block-name-' + b.id"
                             (blur)="markTouched('b-name-' + b.id)"
-                            class="w-full bg-[#0b1220] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px]"
+                            class="w-full"
                           />
                           @if (hasError('b-name-' + b.id, b.name.trim().length > 0)) {
                             <div class="mt-2 text-[12px] text-red-200">El nombre del bloque es obligatorio.</div>
@@ -118,7 +118,7 @@
                             (blur)="markTouched('b-dur-' + b.id)"
                             [min]="1"
                             [showButtons]="true"
-                            [inputStyleClass]="'w-full bg-[#0b1220] text-[#f9fafb] px-3 py-[7px] rounded-lg border border-[#1f2937]'"
+                            [inputStyleClass]="'w-full'"
                             styleClass="w-full"
                           ></p-inputNumber>
                           @if (hasError('b-dur-' + b.id, b.durationMin > 0)) {
@@ -141,7 +141,7 @@
                         [(ngModel)]="b.notes"
                         [name]="'block-notes-' + b.id"
                         rows="2"
-                        class="w-full bg-[#0b1220] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] resize-none"
+                        class="w-full resize-none"
                       ></textarea>
                     </div>
 
@@ -161,7 +161,7 @@
                                 [(ngModel)]="e.name"
                                 [name]="'ex-name-' + e.id"
                                 (blur)="markTouched('e-name-' + e.id)"
-                                class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px]"
+                                class="w-full"
                               />
                               @if (hasError('e-name-' + e.id, e.name.trim().length > 0)) {
                                 <div class="mt-2 text-[12px] text-red-200">El nombre es obligatorio.</div>
@@ -184,7 +184,7 @@
                                 (blur)="markTouched('e-series-' + e.id)"
                                 [min]="1"
                                 [showButtons]="true"
-                                [inputStyleClass]="'w-full bg-[#111827] text-[#f9fafb] px-3 py-[7px] rounded-lg border border-[#1f2937]'"
+                                [inputStyleClass]="'w-full'"
                                 styleClass="w-full"
                               ></p-inputNumber>
                               @if (hasError('e-series-' + e.id, e.series > 0)) {
@@ -199,7 +199,7 @@
                                 (blur)="markTouched('e-reps-' + e.id)"
                                 [min]="1"
                                 [showButtons]="true"
-                                [inputStyleClass]="'w-full bg-[#111827] text-[#f9fafb] px-3 py-[7px] rounded-lg border border-[#1f2937]'"
+                                [inputStyleClass]="'w-full'"
                                 styleClass="w-full"
                               ></p-inputNumber>
                               @if (hasError('e-reps-' + e.id, e.reps > 0)) {
@@ -214,7 +214,7 @@
                                 (blur)="markTouched('e-dur-' + e.id)"
                                 [min]="1"
                                 [showButtons]="true"
-                                [inputStyleClass]="'w-full bg-[#111827] text-[#f9fafb] px-3 py-[7px] rounded-lg border border-[#1f2937]'"
+                                [inputStyleClass]="'w-full'"
                                 styleClass="w-full"
                               ></p-inputNumber>
                               @if (hasError('e-dur-' + e.id, e.durationMin > 0)) {
@@ -229,8 +229,8 @@
                                 [name]="'ex-int-' + e.id"
                                 optionLabel="label"
                                 optionValue="value"
-                                styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-                                [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+                                styleClass="bp-select"
+                                [panelStyleClass]="'bp-select-panel'"
                               ></p-select>
                             </div>
                             <div>
@@ -241,7 +241,7 @@
                                 (blur)="markTouched('e-rest-' + e.id)"
                                 [min]="0"
                                 [showButtons]="true"
-                                [inputStyleClass]="'w-full bg-[#111827] text-[#f9fafb] px-3 py-[7px] rounded-lg border border-[#1f2937]'"
+                                [inputStyleClass]="'w-full'"
                                 styleClass="w-full"
                               ></p-inputNumber>
                               @if (hasError('e-rest-' + e.id, e.restSec >= 0)) {
@@ -274,7 +274,7 @@
                               [(ngModel)]="e.notes"
                               [name]="'ex-notes-' + e.id"
                               rows="2"
-                              class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] resize-none"
+                              class="w-full resize-none"
                             ></textarea>
                           </div>
                         </div>

@@ -1,4 +1,4 @@
-<app-shell title="Nuevo equipo" subtitle="Crea un equipo y define su temporada." [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Nuevo equipo" subtitle="Crea un equipo y define su temporada.">
 	<div class="max-w-4xl mx-auto">
 		<app-page-header
 			[title]="'Nuevo equipo'"
@@ -17,7 +17,7 @@
 						[(ngModel)]="form.name"
 						name="name"
 						placeholder="Ej.: Senior Masculino A"
-						class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
+						class="w-full"
 					/>
 				</div>
 
@@ -28,7 +28,7 @@
 						[(ngModel)]="form.season"
 						name="season"
 						placeholder="Ej.: 2025/26"
-						class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
+						class="w-full"
 					/>
 				</div>
 
@@ -37,7 +37,7 @@
 					<p-inputNumber
 						[(ngModel)]="form.playersCount"
 						name="playersCount"
-						[inputStyleClass]="'w-full bg-[#111827] text-[#f9fafb] px-3 py-[7px] rounded-lg border border-[#1f2937]'"
+						[inputStyleClass]="'w-full'"
 						styleClass="w-full"
 						[min]="0"
 					></p-inputNumber>
@@ -50,13 +50,13 @@
 					severity="secondary"
 					[outlined]="true"
 					(click)="cancel()"
-					styleClass="text-[13px] px-5 py-2 rounded-lg bg-transparent border border-[#1f2937] text-[#e5e7eb] hover:bg-[#111827] transition-colors"
+					styleClass="bp-btn bp-btn-secondary"
 				></p-button>
 				<p-button
 					label="Guardar"
 					(click)="save()"
 					[disabled]="!form.name.trim()"
-					styleClass="text-[13px] px-5 py-2 rounded-lg text-[#0f172a] border-none"
+					styleClass="bp-btn bp-btn-primary"
 				></p-button>
 			</div>
 		</div>

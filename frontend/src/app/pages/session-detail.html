@@ -1,4 +1,4 @@
-<app-shell title="Sesión" subtitle="Detalle de planificación" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Sesión" subtitle="Detalle de planificación">
 	<p-toast></p-toast>
 	<div class="max-w-6xl mx-auto space-y-4">
 		<div class="flex justify-end gap-2">
@@ -96,27 +96,27 @@
 			<div class="grid grid-cols-2 gap-4">
 				<div>
 					<label class="mb-2 block text-[13px] text-[#e5e7eb]">RPE (1-10)</label>
-					<p-select class="w-full" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.rpe"></p-select>
+					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.rpe"></p-select>
 				</div>
 				<div>
 					<label class="mb-2 block text-[13px] text-[#e5e7eb]">Fatiga (1-10)</label>
-					<p-select class="w-full" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.fatigue"></p-select>
+					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.fatigue"></p-select>
 				</div>
 				<div>
 					<label class="mb-2 block text-[13px] text-[#e5e7eb]">Dolor (0-10)</label>
-					<p-select class="w-full" [options]="scale0to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.pain"></p-select>
+					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale0to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.pain"></p-select>
 				</div>
 				<div>
 					<label class="mb-2 block text-[13px] text-[#e5e7eb]">Sueño (1-5)</label>
-					<p-select class="w-full" [options]="scale1to5" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.sleep"></p-select>
+					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to5" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.sleep"></p-select>
 				</div>
 				<div>
 					<label class="mb-2 block text-[13px] text-[#e5e7eb]">Estrés (1-5)</label>
-					<p-select class="w-full" [options]="scale1to5" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.stress"></p-select>
+					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to5" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.stress"></p-select>
 				</div>
 				<div>
 					<label class="mb-2 block text-[13px] text-[#e5e7eb]">Ánimo (1-5)</label>
-					<p-select class="w-full" [options]="scale1to5" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.mood"></p-select>
+					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to5" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.mood"></p-select>
 				</div>
 			</div>
 

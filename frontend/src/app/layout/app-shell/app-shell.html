@@ -2,49 +2,6 @@
 	class="min-h-screen flex flex-col"
 	style="background: radial-gradient(circle at top left, #111827, #020617); color: #f9fafb"
 >
-	<!-- Topbar -->
-	<header class="bg-[#020617] border-b border-[#1f2937] px-4 sm:px-6 py-3 flex items-center justify-between">
-		<div class="flex items-center gap-3 sm:gap-6">
-			<button
-				type="button"
-				pButton
-				icon="pi pi-bars"
-				class="p-button-text p-button-sm sm:hidden"
-				(click)="toggleMobileNav()"
-				aria-label="Abrir menú"
-				style="color: #9ca3af"
-			></button>
-			<a routerLink="/dashboard" class="text-[20px] text-[#f9fafb]">BasketPlanner</a>
-			@if (showTeamSelect) {
-				<p-select
-					[options]="teams"
-					[(ngModel)]="selectedTeam"
-					(ngModelChange)="onSelectedTeamChange($event)"
-					placeholder="Selecciona equipo"
-					styleClass="w-[220px] sm:w-auto bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-					[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
-					[showClear]="false"
-				></p-select>
-			}
-		</div>
-		<div class="flex items-center gap-4">
-			<button
-				type="button"
-				pButton
-				label="Notificaciones"
-				icon="pi pi-bell"
-				class="p-button-text p-button-sm"
-				style="color: #9ca3af"
-			></button>
-			<div
-				class="w-9 h-9 rounded-full flex items-center justify-center text-[14px]"
-				style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
-			>
-				PV
-			</div>
-		</div>
-	</header>
-
 	<div class="flex flex-1 relative">
 		@if (isMobileNavOpen) {
 			<button
@@ -115,6 +72,23 @@
 							</a>
 						}
 					</nav>
+				</div>
+			</div>
+
+			<div class="p-4 border-t border-[#1f2937]">
+				<div class="rounded-xl border border-white/10 bg-white/5 p-3 flex items-center justify-between gap-3">
+					<div class="min-w-0">
+						<div class="text-[13px] font-semibold text-[#f9fafb] truncate">{{ currentUserName }}</div>
+						<div class="text-[11px] text-[#9ca3af]">{{ currentRoleLabel }}</div>
+					</div>
+					<button
+						type="button"
+						pButton
+						icon="pi pi-sign-out"
+						label="Salir"
+						class="p-button-text p-button-sm"
+						(click)="logout()"
+					></button>
 				</div>
 			</div>
 		</aside>

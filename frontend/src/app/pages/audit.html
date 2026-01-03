@@ -1,4 +1,4 @@
-<app-shell title="Administración" subtitle="Audit log" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Administración" subtitle="Audit log">
   <p-toast></p-toast>
 
   <p-dialog
@@ -93,8 +93,8 @@
             [(ngModel)]="filters.entity"
             optionLabel="label"
             optionValue="value"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
 
@@ -103,20 +103,19 @@
           <p-select
             [options]="actionOptions"
             [(ngModel)]="filters.action"
+            name="action"
             optionLabel="label"
             optionValue="value"
-            styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-            [panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
 
         <div class="col-span-2">
           <label class="block text-[#9ca3af] text-[12px] mb-2">Usuario</label>
           <input
-            pInputText
-            [(ngModel)]="filters.user"
             placeholder="Nombre, email o id…"
-            class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+            class="w-full"
           />
         </div>
 

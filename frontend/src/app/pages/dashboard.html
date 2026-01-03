@@ -1,4 +1,4 @@
-<app-shell title="Dashboard" subtitle="Resumen del equipo" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Dashboard" subtitle="Resumen del equipo">
 	<div class="max-w-7xl mx-auto">
 		<div class="text-[11px] text-[#6b7280] mb-4">Sobre las últimas 20 sesiones.</div>
 
@@ -32,8 +32,8 @@
 							name="selectedPlanningMode"
 							optionLabel="label"
 							optionValue="value"
-							styleClass="bg-[#0b1220] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-							[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+							styleClass="bp-select"
+							[panelStyleClass]="'bp-select-panel'"
 							[showClear]="false"
 						></p-select>
 					</div>
@@ -119,3 +119,6 @@
 		</div>
 	</div>
 </app-shell>
+
+							styleClass="bp-select"
+							[panelStyleClass]="'bp-select-panel'"

@@ -1,4 +1,4 @@
-<app-shell title="Equipos" subtitle="Gestión de equipos" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Equipos" subtitle="Gestión de equipos">
 	<div class="max-w-7xl mx-auto">
 		<app-page-header
 			[title]="'Equipos'"
@@ -18,30 +18,28 @@
 						name="club"
 						optionLabel="label"
 						optionValue="value"
-						styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-						[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+							styleClass="bp-select"
+							[panelStyleClass]="'bp-select-panel'"
 					></p-select>
 				</div>
 				<div>
 					<label class="block text-[#9ca3af] text-[12px] mb-2">Categoría</label>
 					<p-select
 						[options]="categoryOptions"
-						[(ngModel)]="filters.category"
-						name="category"
+							[(ngModel)]="filters.category"
+							name="category"
 						optionLabel="label"
 						optionValue="value"
-						styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-						[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+							styleClass="bp-select"
+							[panelStyleClass]="'bp-select-panel'"
 					></p-select>
 				</div>
 				<div class="col-span-2">
 					<label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
 					<input
 						pInputText
-						[(ngModel)]="filters.search"
-						name="search"
 						placeholder="Nombre del equipo"
-						class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+						class="w-full"
 					/>
 				</div>
 			</div>
@@ -87,7 +85,7 @@
 		<div class="grid grid-cols-2 gap-4">
 			<div class="col-span-2">
 				<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre</label>
-				<input pInputText [(ngModel)]="draft.name" name="teamName" placeholder="Ej.: Senior Masculino" class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]" />
+				<input pInputText [(ngModel)]="draft.name" name="teamName" placeholder="Ej.: Senior Masculino" class="w-full" />
 			</div>
 			<div>
 				<label class="block text-[#e5e7eb] text-[13px] mb-2">Club</label>
@@ -97,40 +95,36 @@
 					name="teamClub"
 					optionLabel="label"
 					optionValue="value"
-					styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-					[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+					styleClass="bp-select"
+					[panelStyleClass]="'bp-select-panel'"
 				></p-select>
 			</div>
 			<div>
 				<label class="block text-[#e5e7eb] text-[13px] mb-2">Categoría</label>
 				<p-select
 					[options]="categoryOptionsWithoutAll"
-					[(ngModel)]="draft.category"
-					name="teamCategory"
 					optionLabel="label"
 					optionValue="value"
-					styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-					[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+					styleClass="bp-select"
+					[panelStyleClass]="'bp-select-panel'"
 				></p-select>
 			</div>
 			<div>
 				<label class="block text-[#e5e7eb] text-[13px] mb-2">Estado</label>
 				<p-select
 					[options]="[{ label: 'Activo', value: 'active' }, { label: 'Inactivo', value: 'inactive' }]"
-					[(ngModel)]="draft.status"
-					name="teamStatus"
 					optionLabel="label"
 					optionValue="value"
-					styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-					[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+					styleClass="bp-select"
+					[panelStyleClass]="'bp-select-panel'"
 				></p-select>
 			</div>
 		</div>
 
 		<ng-template pTemplate="footer">
 			<div class="flex justify-between gap-2">
-				<button type="button" pButton label="Cancelar" class="p-button-text" (click)="closeDialog()"></button>
-				<button type="button" pButton [label]="dialogMode === 'create' ? 'Crear equipo' : 'Guardar cambios'" [disabled]="!draft.name.trim()" (click)="saveDialog()"></button>
+				<button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" (click)="closeDialog()"></button>
+				<button type="button" pButton label="Guardar" class="p-button-sm" (click)="saveDialog()"></button>
 			</div>
 		</ng-template>
 	</p-dialog>

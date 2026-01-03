@@ -165,9 +165,9 @@
 							<p class="text-[12px] text-[#9ca3af]">Altas, cierres y principal.</p>
 						</div>
 						<div class="flex items-center gap-2">
-							<p-button label="Recargar" severity="secondary" [outlined]="true" (click)="loadMemberships()" [disabled]="membershipsLoading"></p-button>
-							<p-button label="Añadir" severity="secondary" [outlined]="true" (click)="openAdd()" [disabled]="membershipsLoading"></p-button>
-							<p-button label="Transferir" (click)="openTransfer()" [disabled]="membershipsLoading"></p-button>
+							<p-button label="Recargar" (click)="loadMemberships()" [disabled]="membershipsLoading" styleClass="bp-btn bp-btn-ghost bp-btn-sm"></p-button>
+							<p-button label="Añadir" (click)="openAdd()" [disabled]="membershipsLoading" styleClass="bp-btn bp-btn-secondary bp-btn-sm"></p-button>
+							<p-button label="Transferir" (click)="openTransfer()" [disabled]="membershipsLoading" styleClass="bp-btn bp-btn-primary bp-btn-sm"></p-button>
 						</div>
 					</div>
 
@@ -214,8 +214,8 @@
 										</td>
 										<td>
 											<div class="flex justify-end gap-2">
-												<p-button label="Principal" severity="secondary" [outlined]="true" size="small" (click)="markPrimary(m)" [disabled]="savingMembership || m.isPrimary || m.status !== 'active'"></p-button>
-												<p-button label="Cerrar" severity="secondary" [outlined]="true" size="small" (click)="openClose(m)" [disabled]="savingMembership || m.status !== 'active'"></p-button>
+												<p-button label="Principal" (click)="markPrimary(m)" [disabled]="savingMembership || m.isPrimary || m.status !== 'active'" styleClass="bp-btn bp-btn-ghost bp-btn-sm"></p-button>
+												<p-button label="Cerrar" (click)="openClose(m)" [disabled]="savingMembership || m.status !== 'active'" styleClass="bp-btn bp-btn-danger bp-btn-sm"></p-button>
 											</div>
 										</td>
 									</tr>
@@ -265,17 +265,17 @@
 	</p-tabs>
 
 	<div class="mt-6 flex justify-between items-center">
-		<p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="onCancel()"></p-button>
-		<p-button label="Guardar cambios" (click)="onSave()"></p-button>
+		<p-button label="Cancelar" (click)="onCancel()" styleClass="bp-btn bp-btn-secondary"></p-button>
+		<p-button label="Guardar cambios" (click)="onSave()" styleClass="bp-btn bp-btn-primary"></p-button>
 	</div>
 </div>
 
-<p-dialog [(visible)]="addDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Añadir pertenencia" [style]="{ width: '520px', maxWidth: 'calc(100vw - 3rem)' }">
+<p-dialog [(visible)]="addDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Añadir pertenencia" styleClass="bp-dialog" [style]="{ width: '520px', maxWidth: 'calc(100vw - 3rem)' }">
 	<div class="bg-[#111827] rounded-lg p-4 border border-[#1f2937]">
 		<div class="grid grid-cols-1 gap-4">
 			<div>
 				<label class="block text-[#e5e7eb] text-[13px] mb-2">Club</label>
-				<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="addForm.club" placeholder="Selecciona club" class="w-full"></p-select>
+				<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="addForm.club" placeholder="Selecciona club" styleClass="bp-select" [panelStyleClass]="'bp-select-panel'"></p-select>
 			</div>
 			<div>
 				<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha inicio</label>
@@ -290,13 +290,13 @@
 
 	<ng-template pTemplate="footer">
 		<div class="flex justify-end gap-2">
-			<p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="addDialogOpen = false" [disabled]="savingMembership"></p-button>
-			<p-button label="Añadir" (click)="confirmAdd()" [disabled]="savingMembership"></p-button>
+			<p-button label="Cancelar" (click)="addDialogOpen = false" [disabled]="savingMembership" styleClass="bp-btn bp-btn-secondary"></p-button>
+			<p-button label="Añadir" (click)="confirmAdd()" [disabled]="savingMembership" styleClass="bp-btn bp-btn-primary"></p-button>
 		</div>
 	</ng-template>
 </p-dialog>
 
-<p-dialog [(visible)]="closeDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Cerrar pertenencia" [style]="{ width: '520px', maxWidth: 'calc(100vw - 3rem)' }">
+<p-dialog [(visible)]="closeDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Cerrar pertenencia" styleClass="bp-dialog" [style]="{ width: '520px', maxWidth: 'calc(100vw - 3rem)' }">
 	<div class="bg-[#111827] rounded-lg p-4 border border-[#1f2937]">
 		<div class="text-[13px] text-[#e5e7eb]">Se cerrará: <span class="text-[#f9fafb]">{{ selectedMembership?.club }}</span></div>
 		<div class="mt-4">
@@ -307,20 +307,20 @@
 
 	<ng-template pTemplate="footer">
 		<div class="flex justify-end gap-2">
-			<p-button label="Cancelar" severity="secondary" [outlined]="true" (click)="closeDialogOpen = false" [disabled]="savingMembership"></p-button>
-			<p-button label="Cerrar" (click)="confirmClose()" [disabled]="savingMembership"></p-button>
+			<p-button label="Cancelar" (click)="closeDialogOpen = false" [disabled]="savingMembership" styleClass="bp-btn bp-btn-secondary"></p-button>
+			<p-button label="Cerrar" (click)="confirmClose()" [disabled]="savingMembership" styleClass="bp-btn bp-btn-danger"></p-button>
 		</div>
 	</ng-template>
 </p-dialog>
 
-<p-dialog [(visible)]="transferDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Transferir jugador" [style]="{ width: '640px', maxWidth: 'calc(100vw - 3rem)' }">
+<p-dialog [(visible)]="transferDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Transferir jugador" styleClass="bp-dialog" [style]="{ width: '640px', maxWidth: 'calc(100vw - 3rem)' }">
 	<div class="bg-[#111827] rounded-lg p-4 border border-[#1f2937]">
 		@if (transferStep === 0) {
 			<p class="text-[12px] text-[#9ca3af]">Paso 1/2 · Datos de la transferencia</p>
 			<div class="grid grid-cols-2 gap-4 mt-4">
 				<div>
 					<label class="block text-[#e5e7eb] text-[13px] mb-2">Nuevo club</label>
-					<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="transferForm.newClub" placeholder="Selecciona club" class="w-full"></p-select>
+					<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="transferForm.newClub" placeholder="Selecciona club" styleClass="bp-select" [panelStyleClass]="'bp-select-panel'"></p-select>
 				</div>
 				<div>
 					<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha de transferencia</label>
@@ -351,11 +351,11 @@
 		<div class="flex justify-between items-center">
 			<span class="text-[12px] text-[#9ca3af]">Wizard stub (sin backend real)</span>
 			<div class="flex gap-2">
-				<p-button label="Atrás" severity="secondary" [outlined]="true" (click)="prevTransfer()" [disabled]="savingMembership || transferStep === 0"></p-button>
+				<p-button label="Atrás" (click)="prevTransfer()" [disabled]="savingMembership || transferStep === 0" styleClass="bp-btn bp-btn-secondary"></p-button>
 				@if (transferStep === 0) {
-					<p-button label="Siguiente" (click)="nextTransfer()" [disabled]="savingMembership"></p-button>
+					<p-button label="Siguiente" (click)="nextTransfer()" [disabled]="savingMembership" styleClass="bp-btn bp-btn-primary"></p-button>
 				} @else {
-					<p-button label="Confirmar" (click)="confirmTransfer()" [disabled]="savingMembership"></p-button>
+					<p-button label="Confirmar" (click)="confirmTransfer()" [disabled]="savingMembership" styleClass="bp-btn bp-btn-primary"></p-button>
 				}
 			</div>
 		</div>

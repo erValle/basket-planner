@@ -1,4 +1,4 @@
-<app-shell title="Ejercicios" subtitle="Crea y gestiona tu biblioteca de ejercicios." [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Ejercicios" subtitle="Crea y gestiona tu biblioteca de ejercicios.">
 	<div class="max-w-6xl mx-auto">
 		<app-page-header
 			[title]="'Ejercicios'"
@@ -20,8 +20,8 @@
 						optionLabel="label"
 						optionValue="value"
 						[(ngModel)]="filters.tipo"
-						styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-						[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+						styleClass="bp-select"
+						[panelStyleClass]="'bp-select-panel'"
 					></p-select>
 				</div>
 
@@ -32,8 +32,8 @@
 						optionLabel="label"
 						optionValue="value"
 						[(ngModel)]="filters.duracion"
-						styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-						[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+						styleClass="bp-select"
+						[panelStyleClass]="'bp-select-panel'"
 					></p-select>
 				</div>
 
@@ -85,9 +85,9 @@
 									</div>
 
 									<div class="flex shrink-0 gap-1">
-										<button type="button" pButton icon="pi pi-eye" class="p-button-text p-button-sm" aria-label="Ver" (click)="openViewExercise(exercise)"></button>
-										<button type="button" pButton icon="pi pi-pencil" class="p-button-text p-button-sm" aria-label="Editar" (click)="openEditExercise(exercise)"></button>
-										<button type="button" pButton icon="pi pi-copy" class="p-button-text p-button-sm" aria-label="Copiar" (click)="copyExercise(exercise)"></button>
+										<button type="button" pButton icon="pi pi-eye" class="bp-btn bp-btn-ghost bp-btn-sm" aria-label="Ver" (click)="openViewExercise(exercise)"></button>
+										<button type="button" pButton icon="pi pi-pencil" class="bp-btn bp-btn-ghost bp-btn-sm" aria-label="Editar" (click)="openEditExercise(exercise)"></button>
+										<button type="button" pButton icon="pi pi-copy" class="bp-btn bp-btn-ghost bp-btn-sm" aria-label="Copiar" (click)="copyExercise(exercise)"></button>
 									</div>
 								</div>
 

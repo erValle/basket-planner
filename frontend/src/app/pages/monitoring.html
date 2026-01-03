@@ -1,4 +1,4 @@
-<app-shell title="Monitoring" subtitle="Alertas, recomendaciones y eventos recientes" [teams]="teamsTop" [(selectedTeam)]="selectedTeam">
+<app-shell title="Monitoring" subtitle="Alertas, recomendaciones y eventos recientes">
 	<div class="max-w-6xl mx-auto space-y-4">
 		<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
 			<app-page-header
@@ -18,8 +18,8 @@
 						[showIcon]="true"
 						[showButtonBar]="true"
 						dateFormat="yy-mm-dd"
-						styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-						[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+						styleClass="bp-select"
+						[panelStyleClass]="'bp-select-panel'"
 					></p-datepicker>
 				</div>
 				<div class="md:col-span-5">
@@ -29,8 +29,8 @@
 						[showIcon]="true"
 						[showButtonBar]="true"
 						dateFormat="yy-mm-dd"
-						styleClass="w-full bg-[#111827] text-[#e5e7eb] text-[13px] rounded-lg border border-[#1f2937]"
-						[panelStyleClass]="'bg-[#020617] border border-[#1f2937] text-[#e5e7eb]'"
+						styleClass="bp-select"
+						[panelStyleClass]="'bp-select-panel'"
 					></p-datepicker>
 				</div>
 				<div class="md:col-span-2 flex items-end gap-2">

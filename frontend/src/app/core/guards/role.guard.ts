@@ -1,7 +1,11 @@
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
 
-import { AuthService, AppRole } from '../auth/auth.service';
+import { MessageService } from 'primeng/api';
+
+import { AuthService } from '../auth/auth.service';
+import { hasRole, Role } from '../auth/roles';
+import { resolveAllowedRolesFromUrl } from '../auth/permissions';
 
 /**
  * Usage:
@@ -11,13 +15,17 @@ import { AuthService, AppRole } from '../auth/auth.service';
 export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const auth = inject(AuthService);
   const router = inject(Router);
+    const toast = inject(MessageService);
 
-  const required = (route.data?.['roles'] ?? []) as AppRole[];
+  const fromMatrix = resolveAllowedRolesFromUrl(router.url);
+  const fromRouteData = (route.data?.['roles'] ?? []) as Role[];
+  const required = (fromMatrix ?? fromRouteData) as Role[];
   if (!required || required.length === 0) return true;
 
   const current = auth.getRoleSnapshot();
-  if (required.includes(current)) return true;
+    if (hasRole(current, required)) return true;
 
-  router.navigateByUrl('/dashboard');
+    toast.add({ severity: 'warn', summary: 'Acceso denegado', detail: 'No tienes permisos para acceder a esta sección.' });
+    router.navigateByUrl('/forbidden');
   return false;
 };
