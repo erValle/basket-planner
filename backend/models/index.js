@@ -30,7 +30,10 @@ if (shouldInitSequelize) {
   sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, {
     host: dbConfig.host,
     dialect: dbConfig.dialect,
-    logging: (msg) => logger.info(msg),
+    logging:
+      process.env.NODE_ENV === 'test'
+        ? false
+        : (msg) => logger.info(msg),
   });
 }
 

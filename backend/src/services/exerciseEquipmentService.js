@@ -1,10 +1,19 @@
 const { StatusCodes } = require('http-status-codes');
 
-const { ExerciseEquipment } = require('../../models');
+const { ExerciseEquipment, Equipment } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
 
 const listForExercise = async (exerciseId) => {
-  return ExerciseEquipment.findAll({ where: { exerciseId } });
+  return ExerciseEquipment.findAll({
+    where: { exerciseId },
+    include: [
+      {
+        model: Equipment,
+        as: 'equipmentItem',
+        attributes: ['id', 'name'],
+      },
+    ],
+  });
 };
 
 const createForExercise = async (exerciseId, { equipmentId, quantity }) => {

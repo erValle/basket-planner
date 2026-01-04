@@ -11,7 +11,8 @@ const listUsers = async ({ email, role, status }) => {
   const where = {};
 
   if (email) where.email = { [Op.iLike]: `%${email}%` };
-  if (role) where.role = role;
+  if (role === 'none') where.role = { [Op.is]: null };
+  else if (role) where.role = role;
   if (status) where.status = status;
 
   return User.findAll({ where });
@@ -25,14 +26,35 @@ const getUserById = async (id) => {
   return user;
 };
 
-const createUser = async ({ email, name, password, role, status }, auditCtx = {}) => {
+const splitName = (name = '') => {
+  const trimmed = String(name).trim();
+  if (!trimmed) return { firstName: null, lastName: null };
+  const parts = trimmed.split(/\s+/);
+  if (parts.length === 1) return { firstName: parts[0], lastName: parts[0] };
+  return { firstName: parts[0], lastName: parts.slice(1).join(' ') };
+};
+
+const createUser = async ({ email, name, firstName, lastName, password, role, status }, auditCtx = {}) => {
   if (!password) {
     throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'PASSWORD_REQUIRED', 'Password is required');
   }
 
+  const resolvedNames = (() => {
+    if (firstName && lastName) return { firstName, lastName };
+    if (name) return splitName(name);
+    return { firstName: null, lastName: null };
+  })();
+
   try {
     const passwordHash = await bcrypt.hash(password, ENCRYPTION_CONST.SALT_ROUNDS);
-    const created = await User.create({ email, name, passwordHash, role, status });
+    const created = await User.create({
+      email,
+      firstName: resolvedNames.firstName,
+      lastName: resolvedNames.lastName,
+      passwordHash,
+      role,
+      status
+    });
 
     await auditLogService.createAuditLog({
       user: auditCtx.user,
@@ -56,12 +78,24 @@ const createUser = async ({ email, name, password, role, status }, auditCtx = {}
   }
 };
 
-const updateUser = async (id, { email, name, password, role, status }, auditCtx = {}) => {
+const updateUser = async (id, { email, name, firstName, lastName, password, role, status }, auditCtx = {}) => {
   const user = await getUserById(id);
 
-  const before = { email: user.email, name: user.name, role: user.role, status: user.status };
+  const before = { email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, status: user.status };
 
-  const updates = { email, name, role, status };
+  const resolvedNames = (() => {
+    if (firstName && lastName) return { firstName, lastName };
+    if (name) return splitName(name);
+    return {};
+  })();
+
+  const updates = {
+    email,
+    ...(resolvedNames.firstName ? { firstName: resolvedNames.firstName } : {}),
+    ...(resolvedNames.lastName ? { lastName: resolvedNames.lastName } : {}),
+    role,
+    status
+  };
   if (password) {
     updates.passwordHash = await bcrypt.hash(password, ENCRYPTION_CONST.SALT_ROUNDS);
   }
@@ -69,7 +103,7 @@ const updateUser = async (id, { email, name, password, role, status }, auditCtx 
   try {
     await user.update(updates);
 
-    const after = { email: user.email, name: user.name, role: user.role, status: user.status };
+  const after = { email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, status: user.status };
     const roleChanged = before.role !== after.role;
 
     await auditLogService.createAuditLog({

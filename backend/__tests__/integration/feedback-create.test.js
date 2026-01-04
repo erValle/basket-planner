@@ -40,41 +40,14 @@ describe('Feedback API', () => {
       return;
     }
 
-    const token = signTestToken({ id: 999, role: 'player' });
+  // Use an existing seeded player user id.
+  // Seeders include users; id=1 is commonly present.
+  const seededPlayerId = 1;
+  const token = signTestToken({ id: seededPlayerId, role: 'player' });
 
-    const approveRes = await request(app)
-      .post('/api/planning/approve')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        proposal: {
-          kind: 'individual',
-          generatedAt: new Date().toISOString(),
-          inputSummary: { athleteId: 1, sessionsPerWeek: 1 },
-          sessions: [
-            {
-              sessionId: 'session-1',
-              day: 'mon',
-              focusTags: ['fundamentals'],
-              exercises: [
-                {
-                  id: 'wu-1',
-                  name: 'Warmup',
-                  type: 'warmup',
-                  durationMinutes: 10,
-                  intensity: 'low',
-                  estimatedLoad: 10,
-                },
-              ],
-              metrics: { durationMinutes: 10, estimatedLoad: 10 },
-            },
-          ],
-          metrics: { durationTotalMinutes: 10, estimatedLoadTotal: 10, sessionsCount: 1 },
-        },
-        plan: { targetType: 'user', name: 'Plan for feedback', status: 'draft' },
-      });
-
-    expect(approveRes.status).toBe(201);
-    const versionId = approveRes.body.activeVersionId;
+    // Use a seeded training plan version (the seeders create at least version id=1).
+    // If your seed data changes, update this id or make it discoverable via an API.
+  const versionId = 1;
 
     const res = await request(app)
       .post('/api/feedback')
@@ -92,7 +65,7 @@ describe('Feedback API', () => {
 
     expect(res.status).toBe(201);
     expect(res.body.trainingPlanVersionId).toBe(versionId);
-    expect(res.body.userId).toBe(999);
+  expect(res.body.userId).toBe(seededPlayerId);
     expect(res.body.rating).toEqual(
       expect.objectContaining({
         physicalEffort: 5,
