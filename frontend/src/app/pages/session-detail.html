@@ -3,8 +3,22 @@
 	<div class="max-w-6xl mx-auto space-y-4">
 		<div class="flex justify-end gap-2">
 			<a pButton routerLink="/planning" label="Volver" icon="pi pi-arrow-left" class="p-button-text p-button-sm"></a>
-			<button pButton type="button" label="Registrar feedback" icon="pi pi-clipboard" class="p-button-sm" (click)="openFeedback()"></button>
+			<button
+				pButton
+				type="button"
+				label="Registrar feedback"
+				icon="pi pi-clipboard"
+				class="p-button-sm"
+				[disabled]="!canRegisterFeedback"
+				(click)="openFeedback()"
+			></button>
 		</div>
+
+		@if (!canRegisterFeedback) {
+			<div class="text-[12px] text-[#94a3b8]">
+				El feedback de sesión todavía no está conectado al backend.
+			</div>
+		}
 
 		<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
 			<app-page-header

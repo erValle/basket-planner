@@ -188,6 +188,18 @@
                     [panelStyleClass]="'bp-select-panel'"
                   ></p-select>
                 </div>
+                <div>
+                  <p-select
+                    [options]="teamOptions"
+                    [(ngModel)]="filterTeam"
+                    name="filterTeam"
+                    optionLabel="label"
+                    optionValue="value"
+                    placeholder="Equipo"
+                    styleClass="bp-select"
+                    [panelStyleClass]="'bp-select-panel'"
+                  ></p-select>
+                </div>
               </div>
             }
 

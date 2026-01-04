@@ -38,9 +38,6 @@ import { FeedbackSurveyAnswers, FeedbackSurveyListItem } from '../models/feedbac
   providers: [MessageService],
 })
 export class SessionDetail {
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
-
   session = {
     id: 's1',
     title: 'Sesión · Senior Masculino',
@@ -95,7 +92,21 @@ export class SessionDetail {
 
   constructor(private readonly feedbackApi: FeedbackApiService, private readonly toast: MessageService) {}
 
+  // Backend feedback is currently linked to training plan versions (trainingPlanVersionId).
+  // There is no first-class “session feedback” endpoint yet.
+  get canRegisterFeedback(): boolean {
+    return false;
+  }
+
   openFeedback(): void {
+    if (!this.canRegisterFeedback) {
+      this.toast.add({
+        severity: 'info',
+        summary: 'No disponible',
+        detail: 'El feedback de sesión todavía no está conectado al backend.',
+      });
+      return;
+    }
     this.feedbackDialogVisible = true;
   }
 
@@ -106,6 +117,15 @@ export class SessionDetail {
   saveFeedback(): void {
     if (this.savingFeedback) return;
 
+    if (!this.canRegisterFeedback) {
+      this.toast.add({
+        severity: 'info',
+        summary: 'No disponible',
+        detail: 'El feedback de sesión todavía no está conectado al backend.',
+      });
+      return;
+    }
+
     // Basic validation
     const a = this.draftSurvey;
     const isMissing =
@@ -115,34 +135,7 @@ export class SessionDetail {
       return;
     }
 
-    this.savingFeedback = true;
-    this.feedbackApi
-      .createSurvey({
-        playerId: 'p1',
-        targetType: 'session',
-        targetId: this.session.id,
-        answers: this.draftSurvey,
-      })
-      .subscribe({
-        next: (res) => {
-          this.savingFeedback = false;
-          this.feedbackDialogVisible = false;
-          const createdAt = new Date().toISOString();
-          this.latestSurvey = {
-            id: res?.id ?? `fs-${Math.random().toString(16).slice(2)}`,
-            playerId: 'p1',
-            targetType: 'session',
-            targetId: this.session.id,
-            createdAt,
-            answers: { ...this.draftSurvey },
-          };
-          this.toast.add({ severity: 'success', summary: 'Guardado', detail: 'Encuesta registrada (stub).' });
-        },
-        error: (e: unknown) => {
-          this.savingFeedback = false;
-          const msg = e instanceof Error ? e.message : 'No se pudo guardar el feedback.';
-          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-        },
-      });
+    // Note: intentionally disabled. When backend supports session feedback,
+    // we should wire this to the authenticated user (playerId) like planning-detail.
   }
 }

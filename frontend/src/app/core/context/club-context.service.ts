@@ -1,5 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+
+import { UserContextService } from '../auth/user-context.service';
+import { ClubsApi, ClubDto } from '../../services/clubs.api';
+import { PlayerClubsApiService } from '../../services/player-clubs.api';
 
 /**
  * Frontend-only shared club/team selection.
@@ -7,21 +11,88 @@ import { BehaviorSubject } from 'rxjs';
  */
 @Injectable({ providedIn: 'root' })
 export class ClubContextService {
-	private readonly teams = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
+	private readonly userContext = inject(UserContextService);
+	private readonly playerClubsApi = inject(PlayerClubsApiService);
+	private readonly clubsApi = inject(ClubsApi);
 
-	private readonly selectedTeamSubject = new BehaviorSubject<string>(this.teams[0]);
-	readonly selectedTeam$ = this.selectedTeamSubject.asObservable();
+	private readonly clubsSubject = new BehaviorSubject<ClubDto[]>([]);
+	readonly clubs$ = this.clubsSubject.asObservable();
 
-	getTeams(): string[] {
-		return [...this.teams];
+	private readonly selectedClubIdSubject = new BehaviorSubject<number | null>(null);
+	readonly selectedClubId$ = this.selectedClubIdSubject.asObservable();
+
+	/**
+	 * Loads clubs associated to the current user via /api/user-clubs.
+	 * If that association can't be loaded, we fall back to listing all clubs.
+	 */
+	refresh(): void {
+		const userId = this.userContext.getUserSnapshot()?.id;
+		if (!userId) {
+			this.clubsSubject.next([]);
+			this.selectedClubIdSubject.next(null);
+			return;
+		}
+
+		this.playerClubsApi.listMemberships(String(userId)).subscribe({
+			next: (res) => {
+				const memberships = (res as any)?.items ?? (res as any)?.memberships ?? res ?? [];
+				const clubIds = Array.isArray(memberships)
+					? memberships
+							.map((m: any) => m?.clubId)
+							.filter((id: any) => id != null)
+					: [];
+				const uniqueClubIds = Array.from(new Set(clubIds.map((x: any) => Number(x)).filter((x) => Number.isFinite(x))));
+
+				if (!uniqueClubIds.length) {
+					this.clubsSubject.next([]);
+					this.selectedClubIdSubject.next(null);
+					return;
+				}
+
+				this.clubsApi.list().subscribe({
+					next: (allClubs) => {
+						const allowed = (allClubs ?? []).filter((c) => uniqueClubIds.includes(Number(c.id)));
+						this.clubsSubject.next(allowed);
+						this.ensureSelectedClub(allowed);
+					},
+					error: () => {
+						// Can't resolve club names: keep empty list.
+						this.clubsSubject.next([]);
+						this.selectedClubIdSubject.next(null);
+					},
+				});
+			},
+			error: () => {
+				// Fallback: if membership endpoint isn't usable for coaches yet, show all clubs.
+				this.clubsApi.list().subscribe({
+					next: (items) => {
+						this.clubsSubject.next(items ?? []);
+						this.ensureSelectedClub(items ?? []);
+					},
+					error: () => {
+						this.clubsSubject.next([]);
+						this.selectedClubIdSubject.next(null);
+					},
+				});
+			},
+		});
 	}
 
-	getSelectedTeam(): string {
-		return this.selectedTeamSubject.value;
+	getClubsSnapshot(): ClubDto[] {
+		return this.clubsSubject.value;
 	}
 
-	setSelectedTeam(team: string): void {
-		if (!team) return;
-		this.selectedTeamSubject.next(team);
+	getSelectedClubIdSnapshot(): number | null {
+		return this.selectedClubIdSubject.value;
+	}
+
+	setSelectedClubId(id: number | null): void {
+		this.selectedClubIdSubject.next(id);
+	}
+
+	private ensureSelectedClub(clubs: ClubDto[]): void {
+		const current = this.selectedClubIdSubject.value;
+		if (current != null && clubs.some((c) => Number(c.id) === Number(current))) return;
+		this.selectedClubIdSubject.next(clubs.length ? Number(clubs[0].id) : null);
 	}
 }

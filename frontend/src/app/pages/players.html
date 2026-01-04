@@ -24,6 +24,7 @@
 								optionValue="value"
 								styleClass="bp-select"
 								[panelStyleClass]="'bp-select-panel'"
+								(onChange)="load()"
 							></p-select>
 						</div>
 						<div>
@@ -36,6 +37,7 @@
 								optionValue="value"
 								styleClass="bp-select"
 								[panelStyleClass]="'bp-select-panel'"
+								(onChange)="load()"
 							></p-select>
 						</div>
 						<div>
@@ -58,6 +60,7 @@
 								name="search"
 								placeholder="Nombre o apellidos"
 								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+								(ngModelChange)="load()"
 							/>
 						</div>
 					</div>
@@ -135,7 +138,7 @@
 			<app-player-detail
 				[player]="selectedPlayer"
 				(cancel)="closePlayer()"
-				(save)="savePlayer()"
+				(save)="savePlayer($event)"
 			></app-player-detail>
 		}
 	</p-dialog>

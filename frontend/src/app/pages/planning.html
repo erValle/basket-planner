@@ -92,7 +92,7 @@
             Enviando…
           </div>
         } @else {
-          <div class="text-[12px] text-[#6b7280]">Se enviará un adjunto con el formato seleccionado (stub).</div>
+          <div class="text-[12px] text-[#6b7280]">El envío por correo aún no está disponible. Puedes exportar a PDF/CSV desde el menú de descarga.</div>
         }
 
         <div class="flex gap-2">
@@ -128,7 +128,11 @@
             optionValue="value"
             styleClass="bp-select"
             [panelStyleClass]="'bp-select-panel'"
+            [disabled]="filtersNotSupportedYet"
           ></p-select>
+          @if (filtersNotSupportedYet) {
+            <div class="mt-2 text-[12px] text-[#6b7280]">Filtro por club pendiente de soporte en API.</div>
+          }
         </div>
 
         <div>
@@ -141,7 +145,11 @@
             optionValue="value"
             styleClass="bp-select"
             [panelStyleClass]="'bp-select-panel'"
+            [disabled]="filtersNotSupportedYet"
           ></p-select>
+          @if (filtersNotSupportedYet) {
+            <div class="mt-2 text-[12px] text-[#6b7280]">Filtro por equipo pendiente de soporte en API.</div>
+          }
         </div>
 
         <div class="col-span-2">

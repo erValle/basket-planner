@@ -10,6 +10,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { TagModule } from 'primeng/tag';
 
 import { MaterialSelection } from '../../modals/material-selection/material-selection';
+import { EquipmentApi, EquipmentDto } from '../../services/equipment.api';
 
 export interface ExerciseFormValue {
   nombre: string;
@@ -24,6 +25,7 @@ export interface ExerciseFormValue {
   numeroJugadores: number;
   categoriaRecomendada: string[];
   materialNecesario: string[];
+  materialEquipo?: Array<{ equipmentId: number; name: string; quantity: number }>;
   observaciones: string;
 }
 
@@ -50,6 +52,7 @@ type Option = { label: string; value: string };
 })
 export class ExerciseForm implements OnChanges {
   private fb = inject(FormBuilder);
+  private equipmentApi = inject(EquipmentApi);
 
   @Input() initialValue: ExerciseDraft | null = null;
   @Input() mode: 'create' | 'edit' | 'view' = 'create';
@@ -59,6 +62,13 @@ export class ExerciseForm implements OnChanges {
 
   stepIndex = 0;
   materialModalVisible = false;
+  equipmentLoading = false;
+  equipmentError: string | null = null;
+  equipmentItems: EquipmentDto[] = [];
+
+  get availableEquipmentForModal(): Array<{ id: number; name: string }> {
+    return (this.equipmentItems ?? []).map((e) => ({ id: Number(e.id), name: String(e.name ?? '') }));
+  }
 
   // Títulos EXACTOS usados en el mockup para separar las secciones del formulario
   readonly steps = [
@@ -139,6 +149,7 @@ export class ExerciseForm implements OnChanges {
 
     // Step 4
     materialNecesario: this.fb.nonNullable.control<string[]>([]),
+  materialEquipo: this.fb.nonNullable.control<Array<{ equipmentId: number; name: string; quantity: number }>>([]),
 
     // Step 5
     observaciones: this.fb.nonNullable.control(''),
@@ -159,6 +170,7 @@ export class ExerciseForm implements OnChanges {
       numeroJugadores: this.initialValue.numeroJugadores ?? 10,
       categoriaRecomendada: this.initialValue.categoriaRecomendada ?? [],
       materialNecesario: this.initialValue.materialNecesario ?? [],
+      materialEquipo: this.initialValue.materialEquipo ?? [],
       observaciones: this.initialValue.observaciones ?? '',
     });
 
@@ -169,6 +181,30 @@ export class ExerciseForm implements OnChanges {
 
   ngOnInit(): void {
     if (this.mode === 'view') this.form.disable({ emitEvent: false });
+
+    // Load equipment list so material selection uses real inventory.
+    // If it fails, the modal will fall back to its internal default list.
+    this.equipmentLoading = true;
+    this.equipmentError = null;
+    this.equipmentApi.list({ limit: 200 } as any).subscribe({
+      next: (items) => {
+        this.equipmentLoading = false;
+        this.equipmentItems = items ?? [];
+      },
+      error: (e: unknown) => {
+        this.equipmentLoading = false;
+        this.equipmentError = e instanceof Error ? e.message : 'No se pudo cargar el material.';
+        this.equipmentItems = [];
+      },
+    });
+  }
+
+  get availableMaterials(): string[] {
+    // Use real equipment names when available.
+    const fromApi = (this.equipmentItems ?? [])
+      .map((e) => (e?.name ?? '').toString().trim())
+      .filter((x) => x.length > 0);
+    return Array.from(new Set(fromApi));
   }
 
   isStepActive(idx: number): boolean {
@@ -209,12 +245,29 @@ export class ExerciseForm implements OnChanges {
     this.form.controls.materialNecesario.setValue(current.filter((m) => m !== material));
   }
 
+  removeEquipment(equipmentId: number): void {
+    const id = Number(equipmentId);
+    const current = this.form.controls.materialEquipo.value;
+    this.form.controls.materialEquipo.setValue(current.filter((row) => Number(row.equipmentId) !== id));
+  }
+
   openMaterialModal(): void {
     this.materialModalVisible = true;
   }
 
   onMaterialsConfirmed(materials: string[]): void {
     this.form.controls.materialNecesario.setValue(materials);
+  }
+
+  onEquipmentConfirmed(items: Array<{ equipmentId: number; name: string; quantity: number }>): void {
+    // Source of truth for v2 material.
+    this.form.controls.materialEquipo.setValue(items ?? []);
+
+    // Keep legacy string list in sync (best-effort) so existing UI continues to show something.
+    const names = (items ?? [])
+      .map((x) => (x?.name ?? '').toString().trim())
+      .filter((x) => x.length > 0);
+    this.form.controls.materialNecesario.setValue(Array.from(new Set(names)));
   }
 
   onCancel(): void {

@@ -7,21 +7,38 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 import { PageHeader } from '../components/page-header/page-header';
 import { AppShell } from '../layout/app-shell/app-shell';
 
+import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
+
 @Component({
   selector: 'app-new-material',
-  imports: [CommonModule, FormsModule, RouterLink, ButtonModule, InputTextModule, SelectModule, InputNumberModule, PageHeader, AppShell],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    ButtonModule,
+    InputTextModule,
+    SelectModule,
+    InputNumberModule,
+    ToastModule,
+    PageHeader,
+    AppShell,
+  ],
   templateUrl: './new-material.html',
   styleUrl: './new-material.css',
+  providers: [MessageService],
 })
 export class NewMaterial {
-  constructor(private readonly router: Router) {}
-
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
+  constructor(
+    private readonly router: Router,
+    private readonly api: EquipmentApi,
+    private readonly toast: MessageService,
+  ) {}
 
   categoryOptions = [
     { label: 'Balones', value: 'Balones' },
@@ -37,12 +54,41 @@ export class NewMaterial {
     available: 0,
   };
 
+  saving = false;
+
   cancel(): void {
     this.router.navigateByUrl('/material');
   }
 
   save(): void {
-    // UI stub: for now simply return to the list.
-    this.router.navigateByUrl('/material');
+    const name = this.form.name.trim();
+    if (!name) return;
+
+    if (this.saving) return;
+    this.saving = true;
+
+    const total = Math.max(0, Number(this.form.total) || 0);
+    const available = Math.min(total, Math.max(0, Number(this.form.available) || 0));
+    const status: 'available' | 'unavailable' = available <= 0 ? 'unavailable' : 'available';
+
+    const payload: Partial<EquipmentDto> = {
+      name,
+      quantity: total,
+      status,
+      characteristics: { category: this.form.category },
+    };
+
+    this.api.create(payload).subscribe({
+      next: () => {
+        this.saving = false;
+        this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Material creado.' });
+        this.router.navigateByUrl('/material');
+      },
+      error: (e: unknown) => {
+        this.saving = false;
+        const msg = e instanceof Error ? e.message : 'No se pudo crear el material.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
   }
 }

@@ -44,6 +44,7 @@ export const routes: Routes = [
 			{ path: 'clubs/new', canActivate: [roleGuard], data: { roles: ROUTE_PERMISSIONS['/clubs/new'] }, loadComponent: () => import('./pages/new-club').then((m) => m.NewClub) },
 			{ path: 'teams', canActivate: [roleGuard], data: { roles: ROUTE_PERMISSIONS['/teams'] }, loadComponent: () => import('./pages/teams').then((m) => m.Teams) },
 			{ path: 'teams/new', canActivate: [roleGuard], data: { roles: ROUTE_PERMISSIONS['/teams/new'] }, loadComponent: () => import('./pages/new-team').then((m) => m.NewTeam) },
+			{ path: 'teams/:id', canActivate: [roleGuard], data: { roles: ROUTE_PERMISSIONS['/teams'] }, loadComponent: () => import('./pages/team-detail').then((m) => m.TeamDetail) },
 			{ path: 'material', canActivate: [roleGuard], data: { roles: ROUTE_PERMISSIONS['/material'] }, loadComponent: () => import('./pages/material').then((m) => m.Material) },
 			{ path: 'material/new', canActivate: [roleGuard], data: { roles: ROUTE_PERMISSIONS['/material/new'] }, loadComponent: () => import('./pages/new-material').then((m) => m.NewMaterial) },
 

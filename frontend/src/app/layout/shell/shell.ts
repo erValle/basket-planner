@@ -23,18 +23,22 @@ export class Shell {
   readonly user$ = this.userContext.user$;
   readonly role$ = this.userContext.role$;
 
-  readonly teamOptions = this.clubContext.getTeams();
-  selectedTeam = this.clubContext.getSelectedTeam();
+  readonly clubOptions = this.clubContext.clubs$;
+  selectedClubId = this.clubContext.getSelectedClubIdSnapshot();
+
+  constructor() {
+    this.clubContext.refresh();
+  }
 
   get showClubSelector(): boolean {
     const r = this.auth.getRoleSnapshot();
     return r === 'admin' || r === 'coach';
   }
 
-  onSelectedTeamChange(value: string | null): void {
-    if (!value) return;
-    this.selectedTeam = value;
-    this.clubContext.setSelectedTeam(value);
+  onSelectedClubChange(value: number | null): void {
+    if (value == null) return;
+    this.selectedClubId = value;
+    this.clubContext.setSelectedClubId(value);
   }
 
   readonly navItems$ = computed(() => {

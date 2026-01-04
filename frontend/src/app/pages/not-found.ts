@@ -13,6 +13,4 @@ import { AppShell } from '../layout/app-shell/app-shell';
   styleUrl: './not-found.css',
 })
 export class NotFoundPage {
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
 }

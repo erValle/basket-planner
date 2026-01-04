@@ -5,7 +5,7 @@ export interface AdminUserListItem {
   id: string;
   name: string;
   email: string;
-  role: AdminUserRole;
+  role: AdminUserRole | null;
   status: AdminUserStatus;
   createdAt: string; // ISO date
 }
@@ -14,7 +14,7 @@ export interface AdminUserDetail {
   id: string;
   name: string;
   email: string;
-  role: AdminUserRole;
+  role: AdminUserRole | null;
   status: AdminUserStatus;
   createdAt: string;
 }
@@ -35,6 +35,7 @@ export interface AdminUserListResponse {
 export interface AdminUserUpsertPayload {
   name: string;
   email: string;
-  role: AdminUserRole;
+  password?: string;
+  role?: AdminUserRole | null;
   status: AdminUserStatus;
 }

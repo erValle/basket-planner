@@ -78,6 +78,8 @@
         [paginator]="true"
         [rows]="rows"
         [first]="first"
+        [totalRecords]="totalRecords"
+        [lazy]="true"
         [rowsPerPageOptions]="[10, 20, 50]"
         (onPage)="onPageChange($event)"
         [tableStyle]="{ width: '100%' }"

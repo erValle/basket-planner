@@ -195,7 +195,7 @@
 								</ng-template>
 								<ng-template pTemplate="body" let-m>
 									<tr>
-										<td class="text-[13px] text-[#f9fafb]">{{ m.club }}</td>
+										<td class="text-[13px] text-[#f9fafb]">{{ m.clubName || ('#' + m.clubId) }}</td>
 										<td class="text-[13px] text-[#9ca3af]">{{ m.startDate }}</td>
 										<td class="text-[13px] text-[#9ca3af]">{{ m.endDate || '—' }}</td>
 										<td>
@@ -247,7 +247,7 @@
 								<ng-template pTemplate="body" let-m>
 									<tr>
 										<td class="text-[13px] text-[#9ca3af]">{{ m.startDate }}</td>
-										<td class="text-[13px] text-[#f9fafb]">{{ m.club }}</td>
+										<td class="text-[13px] text-[#f9fafb]">{{ m.clubName || ('#' + m.clubId) }}</td>
 										<td class="text-[13px] text-[#9ca3af]">{{ m.endDate || '—' }}</td>
 										<td>
 											@if (m.isPrimary) {
@@ -275,7 +275,7 @@
 		<div class="grid grid-cols-1 gap-4">
 			<div>
 				<label class="block text-[#e5e7eb] text-[13px] mb-2">Club</label>
-				<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="addForm.club" placeholder="Selecciona club" styleClass="bp-select" [panelStyleClass]="'bp-select-panel'"></p-select>
+				<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="addForm.clubId" placeholder="Selecciona club" styleClass="bp-select" [panelStyleClass]="'bp-select-panel'"></p-select>
 			</div>
 			<div>
 				<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha inicio</label>
@@ -298,7 +298,7 @@
 
 <p-dialog [(visible)]="closeDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Cerrar pertenencia" styleClass="bp-dialog" [style]="{ width: '520px', maxWidth: 'calc(100vw - 3rem)' }">
 	<div class="bg-[#111827] rounded-lg p-4 border border-[#1f2937]">
-		<div class="text-[13px] text-[#e5e7eb]">Se cerrará: <span class="text-[#f9fafb]">{{ selectedMembership?.club }}</span></div>
+		<div class="text-[13px] text-[#e5e7eb]">Se cerrará: <span class="text-[#f9fafb]">{{ selectedMembership?.clubName || ('#' + selectedMembership?.clubId) }}</span></div>
 		<div class="mt-4">
 			<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha fin</label>
 			<p-datePicker [(ngModel)]="closeForm.endDate" class="w-full"></p-datePicker>
@@ -320,7 +320,7 @@
 			<div class="grid grid-cols-2 gap-4 mt-4">
 				<div>
 					<label class="block text-[#e5e7eb] text-[13px] mb-2">Nuevo club</label>
-					<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="transferForm.newClub" placeholder="Selecciona club" styleClass="bp-select" [panelStyleClass]="'bp-select-panel'"></p-select>
+					<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="transferForm.newClubId" placeholder="Selecciona club" styleClass="bp-select" [panelStyleClass]="'bp-select-panel'"></p-select>
 				</div>
 				<div>
 					<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha de transferencia</label>
@@ -336,7 +336,7 @@
 				</div>
 				<div class="flex justify-between text-[13px] mt-2">
 					<span class="text-[#9ca3af]">Nuevo club</span>
-					<span class="text-[#f9fafb]">{{ transferForm.newClub }}</span>
+					<span class="text-[#f9fafb]">{{ clubNameById(transferForm.newClubId) || ('#' + transferForm.newClubId) }}</span>
 				</div>
 				<div class="flex justify-between text-[13px] mt-2">
 					<span class="text-[#9ca3af]">Fecha</span>
@@ -349,7 +349,7 @@
 
 	<ng-template pTemplate="footer">
 		<div class="flex justify-between items-center">
-			<span class="text-[12px] text-[#9ca3af]">Wizard stub (sin backend real)</span>
+			<span class="text-[12px] text-[#9ca3af]">Se aplicarán cambios en el club del jugador.</span>
 			<div class="flex gap-2">
 				<p-button label="Atrás" (click)="prevTransfer()" [disabled]="savingMembership || transferStep === 0" styleClass="bp-btn bp-btn-secondary"></p-button>
 				@if (transferStep === 0) {

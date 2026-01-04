@@ -22,6 +22,9 @@ import { PlayerSelectCard } from '../components/player-select-card/player-select
 
 import { PlanificationsApi } from '../services/planifications.api';
 import { PlanificationDraft } from '../models/planification';
+import { PlayersApi, PlayerDto } from '../services/players.api';
+import { TeamsApi, TeamDto } from '../services/teams.api';
+import { ClubContextService } from '../core/context/club-context.service';
 
 type Step = { number: number; label: string };
 type Option = { label: string; value: string };
@@ -52,9 +55,6 @@ type Option = { label: string; value: string };
   providers: [MessageService, ConfirmationService],
 })
 export class NewPlanification {
-  teamsTop: string[] = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam: string = this.teamsTop[0];
-
   currentStep = 1;
 
   steps: Step[] = [
@@ -110,11 +110,8 @@ export class NewPlanification {
     this.syncWizardQueryParams();
   }
 
-  playerOptions: Option[] = [
-    { label: 'Pablo Valle', value: 'player-1' },
-    { label: 'María López', value: 'player-2' },
-    { label: 'Carlos Martín', value: 'player-3' },
-  ];
+  // Options can be derived from loaded players (kept for potential dropdown usage).
+  playerOptions: Option[] = [];
 
   // Extra filters
   positionOptions = [
@@ -131,10 +128,7 @@ export class NewPlanification {
     { label: 'Infantil', value: 'kid' },
   ];
 
-  teamOptions = [
-    { label: 'Equipo A', value: 'team-a' },
-    { label: 'Equipo B', value: 'team-b' },
-  ];
+  teamOptions: Array<{ label: string; value: string }> = [];
 
   // Filters state
   filterName = '';
@@ -157,15 +151,62 @@ export class NewPlanification {
       : [...this.selectedPlayerIds, playerId];
   }
 
-  // Mock players dataset (with metadata) used for filtering
-  players = [
-    { id: 'player-1', name: 'Pablo Valle', position: 'guard', category: 'senior', team: 'team-a' },
-    { id: 'player-2', name: 'María López', position: 'wing', category: 'senior', team: 'team-b' },
-    { id: 'player-3', name: 'Carlos Martín', position: 'center', category: 'junior', team: 'team-a' },
-  ];
+  // Players loaded from backend (id is real userId). teamId is used for precise filtering.
+  players: Array<{ id: string; name: string; position?: string; category?: string; team?: string; teamId?: string }> = [];
 
   // Step 2 UX helpers (until players come from API)
   playersLoading = false;
+  playersError: string | null = null;
+
+  private toUiPlayer(
+    p: PlayerDto,
+  ): { id: string; name: string; position?: string; category?: string; team?: string; teamId?: string } {
+    const rawName = (p.name ?? '').toString().trim();
+    const email = (p.email ?? '').toString().trim();
+    const fallbackName = `${(p.firstName ?? '').toString().trim()} ${(p.lastName ?? '').toString().trim()}`.trim();
+    const name = rawName || fallbackName || email || `Jugador ${p.id}`;
+
+  const firstTeam = Array.isArray(p.teams) && p.teams.length ? p.teams[0] : null;
+
+    return {
+      id: String(p.id),
+      name,
+      position: (p.position ?? '').toString() || undefined,
+      category: (p.category ?? firstTeam?.category ?? '').toString() || undefined,
+      team: firstTeam?.name ? String(firstTeam.name) : undefined,
+      teamId: firstTeam?.id != null ? String(firstTeam.id) : undefined,
+    };
+  }
+
+  private loadTeams(): void {
+    const clubId = this.clubContext.getSelectedClubIdSnapshot();
+    this.teamsApi.list({ clubId: clubId != null ? String(clubId) : undefined }).subscribe({
+      next: (teams: TeamDto[]) => {
+        this.teamOptions = (teams ?? []).map((t) => ({ label: t.name, value: String(t.id) }));
+      },
+      error: () => {
+        this.teamOptions = [];
+      },
+    });
+  }
+
+  private loadPlayers(): void {
+    this.playersLoading = true;
+    this.playersError = null;
+    this.playersApi.list({ limit: 200 }).subscribe({
+      next: (items) => {
+        this.playersLoading = false;
+        this.players = (items ?? []).map((p) => this.toUiPlayer(p));
+        this.playerOptions = this.players.map((p) => ({ label: p.name, value: p.id }));
+      },
+      error: (e: unknown) => {
+        this.playersLoading = false;
+        this.playersError = e instanceof Error ? e.message : 'No se pudieron cargar los jugadores.';
+        this.players = [];
+        this.playerOptions = [];
+      },
+    });
+  }
 
   get hasFilteredPlayers(): boolean {
     return this.filteredPlayers.length > 0;
@@ -183,7 +224,7 @@ export class NewPlanification {
       if (this.filterName && !p.name.toLowerCase().includes(this.filterName.toLowerCase())) return false;
       if (this.filterPosition && p.position !== this.filterPosition) return false;
       if (this.filterCategory && p.category !== this.filterCategory) return false;
-      if (this.filterTeam && p.team !== this.filterTeam) return false;
+      if (this.filterTeam && p.teamId !== this.filterTeam) return false;
       return true;
     });
   }
@@ -198,11 +239,17 @@ export class NewPlanification {
     private readonly api: PlanificationsApi,
     private readonly toast: MessageService,
     private readonly confirmation: ConfirmationService,
+    private readonly playersApi: PlayersApi,
+    private readonly teamsApi: TeamsApi,
+    private readonly clubContext: ClubContextService,
   ) {
     // initialize material map
     for (const m of this.materialOptions) {
       this.materialSelectedMap[m.id] = false;
     }
+
+	this.loadTeams();
+	this.loadPlayers();
 
     // Restore & keep wizard state in sync with query params.
     // This avoids a "needs one extra click" situation when landing directly on

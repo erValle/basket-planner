@@ -9,7 +9,7 @@ export type AuthUser = {
   id: string;
   name: string;
   email: string;
-  role: Role;
+  role: Role | null;
 };
 
 export type AuthSession = {
@@ -28,12 +28,9 @@ export class AuthService {
 
   /**
    * POST /api/auth/login
-   * Frontend-only: if the backend is not available, we fall back to a mock session.
    */
   login(email: string, password: string) {
     return this.api.post<AuthSession>('/api/auth/login', { email, password }).pipe(
-      map((res) => res ?? this.mockSession(email)),
-      catchError(() => of(this.mockSession(email))),
       tap((session) => this.setSession(session)),
     );
   }
@@ -70,31 +67,10 @@ export class AuthService {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return null;
       const parsed = JSON.parse(raw) as AuthSession;
-      if (!parsed?.token || !parsed?.user?.role) return null;
+      if (!parsed?.token || !parsed?.user) return null;
       return parsed;
     } catch {
       return null;
     }
-  }
-
-  private mockSession(email: string): AuthSession {
-    const lower = (email ?? '').toLowerCase();
-    const role: Role = lower.includes('admin')
-      ? 'admin'
-      : lower.includes('coach') || lower.includes('trainer')
-        ? 'coach'
-        : lower.includes('staff')
-          ? 'staff'
-          : 'player';
-
-    return {
-      token: `mock-token-${Math.random().toString(16).slice(2)}`,
-      user: {
-        id: `u-${Math.random().toString(16).slice(2, 8)}`,
-        name: role === 'admin' ? 'Admin' : role === 'coach' ? 'Coach' : role === 'staff' ? 'Staff' : 'Jugador',
-        email,
-        role,
-      },
-    };
   }
 }

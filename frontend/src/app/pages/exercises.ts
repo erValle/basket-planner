@@ -10,6 +10,8 @@ import { TagModule } from 'primeng/tag';
 
 import { ExerciseDraft, ExerciseForm, ExerciseFormValue } from '../components/exercise-form/exercise-form';
 import { ExercisesApi, ExerciseDto, ExerciseType } from '../services/exercises.api';
+import { EquipmentApi } from '../services/equipment.api';
+import { ExerciseEquipmentApi } from '../services/exercise-equipment.api';
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 
@@ -21,6 +23,7 @@ interface Exercise {
   duracion: number;
   tipo: string;
   material: string[];
+  materialEquipo?: Array<{ equipmentId: number; name: string; quantity: number }>;
 }
 
 type UiType = 'Técnico' | 'Táctico' | 'Físico';
@@ -44,9 +47,8 @@ type UiType = 'Técnico' | 'Táctico' | 'Físico';
 })
 export class Exercises implements OnInit {
   private readonly exercisesApi = inject(ExercisesApi);
-
-  teamsTop: string[] = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam: string = this.teamsTop[0];
+  private readonly equipmentApi = inject(EquipmentApi);
+  private readonly exerciseEquipmentApi = inject(ExerciseEquipmentApi);
 
   tipoOptions: Option[] = [
     { label: 'Todos', value: 'Todos' },
@@ -76,8 +78,23 @@ export class Exercises implements OnInit {
   dialogMode: 'create' | 'edit' | 'view' = 'create';
   selectedExercise: Exercise | null = null;
 
+  private equipmentIndex = new Map<number, string>();
+
   ngOnInit() {
     this.refreshExercises();
+
+    // Best-effort load of equipment names to label materialEquipo.
+    this.equipmentApi.list({ limit: 500 } as any).subscribe({
+      next: (items) => {
+        this.equipmentIndex = new Map(
+          (items ?? []).map((e) => [Number(e.id), (e.name ?? '').toString()]),
+        );
+      },
+      error: () => {
+        // Honest UI: we just won't have labels; the form can still work.
+        this.equipmentIndex = new Map();
+      },
+    });
   }
 
   get filteredExercises(): Exercise[] {
@@ -104,12 +121,14 @@ export class Exercises implements OnInit {
   openViewExercise(exercise: Exercise) {
     this.dialogMode = 'view';
     this.selectedExercise = exercise;
+    this.loadExerciseEquipmentForDialog(exercise);
     this.newExerciseVisible = true;
   }
 
   openEditExercise(exercise: Exercise) {
     this.dialogMode = 'edit';
     this.selectedExercise = exercise;
+    this.loadExerciseEquipmentForDialog(exercise);
     this.newExerciseVisible = true;
   }
 
@@ -121,6 +140,8 @@ export class Exercises implements OnInit {
       id: '',
       nombre: `${exercise.nombre} (copia)`,
     };
+    // Copy should also copy material selections.
+    this.selectedExercise.materialEquipo = (exercise.materialEquipo ?? []).map((x) => ({ ...x }));
     this.newExerciseVisible = true;
   }
 
@@ -145,6 +166,7 @@ export class Exercises implements OnInit {
       tipo: exercise.tipo,
       duracionPredeterminada: exercise.duracion,
       materialNecesario: exercise.material,
+      materialEquipo: exercise.materialEquipo ?? [],
       estado: 'Activo',
       descripcion: '',
       subtipo: [],
@@ -169,8 +191,16 @@ export class Exercises implements OnInit {
       const id = Number(this.selectedExercise.id);
       this.exercisesApi.update(id, payload).subscribe({
         next: () => {
-          this.closeNewExercise();
-          this.refreshExercises();
+          this.syncExerciseEquipment(id, value.materialEquipo ?? [])
+            .then(() => {
+              this.closeNewExercise();
+              this.refreshExercises();
+            })
+            .catch((err: unknown) => {
+              const msg = err instanceof Error ? err.message : 'Error inesperado.';
+              // Exercise was saved, equipment sync failed.
+              this.loadError = `Ejercicio guardado, pero no se pudo guardar el material: ${msg}`;
+            });
         },
         error: (err: Error) => {
           this.loadError = err.message;
@@ -180,9 +210,23 @@ export class Exercises implements OnInit {
     }
 
     this.exercisesApi.create(payload).subscribe({
-      next: () => {
-        this.closeNewExercise();
-        this.refreshExercises();
+      next: (created) => {
+        const id = Number(created?.id);
+        if (!Number.isFinite(id)) {
+          this.closeNewExercise();
+          this.refreshExercises();
+          return;
+        }
+
+        this.syncExerciseEquipment(id, value.materialEquipo ?? [])
+          .then(() => {
+            this.closeNewExercise();
+            this.refreshExercises();
+          })
+          .catch((err: unknown) => {
+            const msg = err instanceof Error ? err.message : 'Error inesperado.';
+            this.loadError = `Ejercicio creado, pero no se pudo guardar el material: ${msg}`;
+          });
       },
       error: (err: Error) => {
         this.loadError = err.message;
@@ -213,6 +257,7 @@ export class Exercises implements OnInit {
       tipo: this.mapApiToUiType(dto.type),
       // Equipment relation isn't modeled in the API schema yet; keep empty for now.
       material: [],
+      materialEquipo: [],
     };
   }
 
@@ -245,5 +290,110 @@ export class Exercises implements OnInit {
     if (type === 'cardio') return 'Físico';
     if (type === 'balance') return 'Táctico';
     return 'Técnico';
+  }
+
+  private loadExerciseEquipmentForDialog(exercise: Exercise): void {
+    const exerciseId = Number(exercise.id);
+    if (!Number.isFinite(exerciseId)) return;
+
+    this.exerciseEquipmentApi.listForExercise(exerciseId).subscribe({
+      next: (rows) => {
+        const mapped = (rows ?? []).map((row) => {
+          const equipmentId = Number(row.equipmentId);
+          const fromJoin = (row as any)?.equipmentItem?.name;
+          return {
+            equipmentId,
+            name:
+              (typeof fromJoin === 'string' && fromJoin.trim().length > 0
+                ? fromJoin
+                : this.equipmentIndex.get(equipmentId)) ?? `Material #${equipmentId}`,
+            quantity: Number(row.quantity) || 1,
+          };
+        });
+
+        // Ensure selectedExercise is still the same one.
+        if (this.selectedExercise?.id === exercise.id) {
+          this.selectedExercise = {
+            ...exercise,
+            materialEquipo: mapped,
+            material: mapped.map((x) => x.name),
+          };
+        }
+      },
+      error: (err: Error) => {
+        // Honest UI: don't block opening; just show a message.
+        this.loadError = `No se pudo cargar el material del ejercicio: ${err.message}`;
+      },
+    });
+  }
+
+  private syncExerciseEquipment(
+    exerciseId: number,
+    desired: Array<{ equipmentId: number; name: string; quantity: number }>,
+  ): Promise<void> {
+    const listCurrent = () =>
+      new Promise<import('../services/exercise-equipment.api').ExerciseEquipmentRowDto[]>((resolve, reject) => {
+        this.exerciseEquipmentApi.listForExercise(exerciseId).subscribe({
+          next: (rows) => resolve(rows ?? []),
+          error: (e: unknown) => reject(e),
+        });
+      });
+
+    const currentRowsPromise = listCurrent();
+
+    return currentRowsPromise.then(async (currentRows) => {
+      const current = new Map<number, number>();
+      for (const row of currentRows ?? []) {
+        current.set(Number(row.equipmentId), Number(row.quantity) || 1);
+      }
+
+      const wanted = new Map<number, number>();
+      for (const item of desired ?? []) {
+        const equipmentId = Number(item.equipmentId);
+        if (!Number.isFinite(equipmentId)) continue;
+        const qty = Math.max(1, Number(item.quantity) || 1);
+        wanted.set(equipmentId, qty);
+      }
+
+      const toCreate: Array<{ equipmentId: number; quantity: number }> = [];
+      const toUpdate: Array<{ equipmentId: number; quantity: number }> = [];
+      const toDelete: number[] = [];
+
+      for (const [equipmentId, quantity] of wanted.entries()) {
+        if (!current.has(equipmentId)) toCreate.push({ equipmentId, quantity });
+        else if (current.get(equipmentId) !== quantity) toUpdate.push({ equipmentId, quantity });
+      }
+      for (const equipmentId of current.keys()) {
+        if (!wanted.has(equipmentId)) toDelete.push(equipmentId);
+      }
+
+      const createOne = (row: { equipmentId: number; quantity: number }) =>
+        new Promise<void>((resolve, reject) => {
+          this.exerciseEquipmentApi.createForExercise(exerciseId, row).subscribe({
+            next: () => resolve(),
+            error: (e: unknown) => reject(e),
+          });
+        });
+      const updateOne = (row: { equipmentId: number; quantity: number }) =>
+        new Promise<void>((resolve, reject) => {
+          this.exerciseEquipmentApi.updateForExercise(exerciseId, row.equipmentId, {
+            quantity: row.quantity,
+          }).subscribe({
+            next: () => resolve(),
+            error: (e: unknown) => reject(e),
+          });
+        });
+      const deleteOne = (equipmentId: number) =>
+        new Promise<void>((resolve, reject) => {
+          this.exerciseEquipmentApi.deleteForExercise(exerciseId, equipmentId).subscribe({
+            next: () => resolve(),
+            error: (e: unknown) => reject(e),
+          });
+        });
+
+      for (const row of toCreate) await createOne(row);
+      for (const row of toUpdate) await updateOne(row);
+      for (const equipmentId of toDelete) await deleteOne(equipmentId);
+    });
   }
 }

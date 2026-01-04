@@ -8,10 +8,16 @@ export class PlanificationsApi {
   constructor(private readonly api: ApiClient) {}
 
   /**
-   * Stub endpoint: backend contract TBD.
-   * Intention: send draft + get a generated session/planification.
+   * Backend endpoints live under /api/planning.
+   * This method maps the existing frontend draft to the backend contract.
    */
   generatePlanification(draft: PlanificationDraft) {
-    return this.api.post<PlanificationGenerated>('/api/planifications/generate', draft);
+    const mode = (draft as any)?.mode;
+    if (mode === 'group') {
+      return this.api.post<PlanificationGenerated>('/api/planning/generate/group', draft as any);
+    }
+
+    // Default to individual generation.
+    return this.api.post<PlanificationGenerated>('/api/planning/generate/individual', draft as any);
   }
 }

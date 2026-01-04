@@ -26,9 +26,6 @@ export class Monitoring {
   private readonly api = inject(MonitoringApiService);
   private readonly messageService = inject(MessageService);
 
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
-
   range: MonitoringRange = {
     from: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
     to: new Date(),

@@ -28,12 +28,18 @@ export class UsersApiService {
     return this.api.put<{ ok: boolean }>(`/api/users/${encodeURIComponent(id)}`, payload);
   }
 
+  setPassword(id: string, newPassword: string) {
+    return this.api.put<{ ok: boolean }>(`/api/users/${encodeURIComponent(id)}`, { password: newPassword } as any);
+  }
+
   block(id: string) {
-    return this.api.post<{ ok: boolean }>(`/api/users/${encodeURIComponent(id)}/block`, {});
+    // Backend does not expose /block|/unblock endpoints yet.
+    // Use PUT /api/users/:id with status change instead.
+    return this.update(id, { status: 'blocked' } as any);
   }
 
   unblock(id: string) {
-    return this.api.post<{ ok: boolean }>(`/api/users/${encodeURIComponent(id)}/unblock`, {});
+    return this.update(id, { status: 'active' } as any);
   }
 
   remove(id: string) {

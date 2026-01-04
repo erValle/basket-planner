@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -22,8 +22,9 @@ import {
   PlanningBlockEditor,
   PlanningExerciseEditor,
   PlanningSessionEditor,
-  PlanningVersionCreatePayload,
 } from '../models/planning';
+import { ClubContextService } from '../core/context/club-context.service';
+import { TeamsApi, TeamDto } from '../services/teams.api';
 
 type Option = { label: string; value: string };
 
@@ -50,8 +51,12 @@ type Option = { label: string; value: string };
   providers: [MessageService, ConfirmationService],
 })
 export class PlanningEdit {
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
+  private readonly clubContext = inject(ClubContextService);
+  private readonly teamsApi = inject(TeamsApi);
+
+  teams: TeamDto[] = [];
+  teamOptions: Option[] = [];
+  selectedTeamId: string | null = null;
 
   planningId: string | null = null;
   fromVersion: string | null = null;
@@ -80,10 +85,37 @@ export class PlanningEdit {
   ) {}
 
   ngOnInit(): void {
+    // Keep team options aligned with the global club selector.
+    this.clubContext.selectedClubId$.subscribe(() => {
+      this.loadTeams();
+    });
+
     this.route.paramMap.subscribe((p) => {
       this.planningId = p.get('id');
       this.fromVersion = this.route.snapshot.queryParamMap.get('fromVersion');
       this.bootstrapDraft();
+    });
+
+    this.loadTeams();
+  }
+
+  private loadTeams(): void {
+    const clubId = this.clubContext.getSelectedClubIdSnapshot();
+    this.teamsApi.list({ clubId: clubId != null ? String(clubId) : undefined }).subscribe({
+      next: (items) => {
+        this.teams = items ?? [];
+        this.teamOptions = this.teams.map((t) => ({ label: t.name, value: String(t.id) }));
+
+        // Default to first team if none selected.
+        if (!this.selectedTeamId && this.teamOptions.length) {
+          this.selectedTeamId = this.teamOptions[0].value;
+        }
+      },
+      error: () => {
+        this.teams = [];
+        this.teamOptions = [];
+        this.selectedTeamId = null;
+      },
     });
   }
 
@@ -313,19 +345,24 @@ export class PlanningEdit {
     this.saveError = null;
     this.saving = true;
 
-    const payload: PlanningVersionCreatePayload = {
-      fromVersion: this.fromVersion ?? undefined,
-      sessions: this.sessions,
+    const payload: any = {
+      source: 'manual',
+      date: new Date().toISOString(),
+      comments: this.fromVersion ? `created-from:${this.fromVersion}` : undefined,
+      createdFrom: this.fromVersion ? { fromVersionId: this.fromVersion } : undefined,
+      items: {
+        sessions: this.sessions,
+      },
     };
 
-    this.api.createVersion(this.planningId, payload).subscribe({
+    this.api.createNewVersion(this.planningId, payload).subscribe({
       next: (res) => {
         this.saving = false;
-        const newVersion = res?.version ?? 'vNueva';
+        const newVersionId = res?.id != null ? String(res.id) : undefined;
         this.toast.add({ severity: 'success', summary: 'Guardado', detail: 'Nueva versión creada.' });
 
         this.router.navigate(['/planning', this.planningId], {
-          queryParams: { version: newVersion },
+          queryParams: newVersionId ? { version: newVersionId } : {},
         });
       },
       error: (e: unknown) => {

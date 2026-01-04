@@ -200,18 +200,35 @@
         <p class="mt-1 text-sm text-zinc-400">Añade el material deportivo necesario para el ejercicio.</p>
 
         <div class="mt-4">
-          @if (form.controls.materialNecesario.value.length > 0) {
+          @if (form.controls.materialEquipo.value.length > 0) {
+            <div class="mb-4 flex flex-wrap gap-2">
+              @for (row of form.controls.materialEquipo.value; track row.equipmentId) {
+                <span class="inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950/20 px-3 py-1.5 text-sm text-zinc-200">
+                  {{ row.name }}
+                  <span class="rounded-md border border-zinc-800 bg-zinc-950/40 px-2 py-0.5 text-xs text-zinc-300">x{{ row.quantity }}</span>
+                  <button
+                    type="button"
+                    pButton
+                    icon="pi pi-times"
+                    class="p-button-text p-button-sm"
+                    (click)="removeEquipment(row.equipmentId)"
+                  ></button>
+                </span>
+              }
+            </div>
+          } @else if (form.controls.materialNecesario.value.length > 0) {
+            <!-- Legacy display (strings) -->
             <div class="mb-4 flex flex-wrap gap-2">
               @for (m of form.controls.materialNecesario.value; track m) {
                 <span class="inline-flex items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-950/20 px-3 py-1.5 text-sm text-zinc-200">
                   {{ m }}
-                    <button
-                      type="button"
-                      pButton
-                      icon="pi pi-times"
-                      class="p-button-text p-button-sm"
-                      (click)="removeMaterial(m)"
-                    ></button>
+                  <button
+                    type="button"
+                    pButton
+                    icon="pi pi-times"
+                    class="p-button-text p-button-sm"
+                    (click)="removeMaterial(m)"
+                  ></button>
                 </span>
               }
             </div>
@@ -222,8 +239,12 @@
 
         <app-material-selection
           [(visible)]="materialModalVisible"
+          [availableMaterials]="availableMaterials"
+          [availableEquipment]="availableEquipmentForModal"
           [selectedMaterials]="form.controls.materialNecesario.value"
+          [selectedEquipment]="form.controls.materialEquipo.value"
           (confirm)="onMaterialsConfirmed($event)"
+          (confirmEquipment)="onEquipmentConfirmed($event)"
           (cancel)="materialModalVisible = false"
         />
       </div>

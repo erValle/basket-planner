@@ -43,9 +43,6 @@ type Option<T extends string> = { label: string; value: T | 'all' };
   providers: [MessageService, ConfirmationService],
 })
 export class AdminUsers {
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
-
   roleOptions: Option<AdminUserRole>[] = [
     { label: 'Todos', value: 'all' },
     { label: 'Admin', value: 'admin' },
@@ -72,36 +69,12 @@ export class AdminUsers {
 
   rows = 10;
   first = 0;
+  totalRecords = 0;
 
   // Actions state
   mutatingId: string | null = null;
 
-  users: AdminUserListItem[] = [
-    {
-      id: 'u-1001',
-      name: 'P. Valle',
-      email: 'p.valle@club.com',
-      role: 'admin',
-      status: 'active',
-      createdAt: '2025-12-01',
-    },
-    {
-      id: 'u-1002',
-      name: 'Laura Sánchez',
-      email: 'laura@club.com',
-      role: 'coach',
-      status: 'active',
-      createdAt: '2025-12-10',
-    },
-    {
-      id: 'u-1003',
-      name: 'Invitado',
-      email: 'invited@club.com',
-      role: 'staff',
-      status: 'blocked',
-      createdAt: '2025-12-15',
-    },
-  ];
+  users: AdminUserListItem[] = [];
 
   constructor(
     private readonly api: UsersApiService,
@@ -130,6 +103,7 @@ export class AdminUsers {
         next: (res) => {
           this.loading = false;
           if (res?.items && Array.isArray(res.items)) this.users = res.items;
+          this.totalRecords = typeof (res as any)?.total === 'number' ? (res as any).total : (res as any)?.count ?? this.totalRecords;
         },
         error: (e: unknown) => {
           this.loading = false;
@@ -153,17 +127,8 @@ export class AdminUsers {
   }
 
   get filteredUsers(): AdminUserListItem[] {
-    // Client-side fallback filtering to keep UX working without backend.
-    const q = this.filters.search.trim().toLowerCase();
-    return this.users.filter((u) => {
-      if (this.filters.role !== 'all' && u.role !== this.filters.role) return false;
-      if (this.filters.status !== 'all' && u.status !== this.filters.status) return false;
-      if (q) {
-        const hay = `${u.name} ${u.email} ${u.role} ${u.status}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
+    // Backend already supports filtering; keep table aligned with server results.
+    return this.users;
   }
 
   roleLabel(role: AdminUserRole): string {
@@ -226,10 +191,7 @@ export class AdminUsers {
         req$.subscribe({
           next: () => {
             this.mutatingId = null;
-            // Stub: update locally
-            this.users = this.users.map((u) =>
-              u.id === user.id ? { ...u, status: shouldBlock ? 'blocked' : 'active' } : u,
-            );
+            this.load();
             this.toast.add({ severity: 'success', summary: 'Actualizado', detail: `Usuario ${actionLabel.toLowerCase()}ado.` });
           },
           error: (e: unknown) => {
@@ -259,9 +221,8 @@ export class AdminUsers {
     this.api.remove(user.id).subscribe({
       next: () => {
         this.mutatingId = null;
-        // Stub: remove locally
         this.users = this.users.filter((u) => u.id !== user.id);
-        this.toast.add({ severity: 'success', summary: 'Eliminado', detail: 'Usuario eliminado (stub).' });
+        this.toast.add({ severity: 'success', summary: 'Eliminado', detail: 'Usuario eliminado.' });
       },
       error: (e: unknown) => {
         this.mutatingId = null;

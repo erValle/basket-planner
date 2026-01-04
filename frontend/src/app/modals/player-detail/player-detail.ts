@@ -17,6 +17,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { PlayerClubsApiService } from '../../services/player-clubs.api';
+import { ClubsApi, ClubDto } from '../../services/clubs.api';
 import { PlayerMembership } from '../../models/player-memberships';
 
 type PlayerStatus = 'active' | 'revision';
@@ -83,7 +84,7 @@ export class PlayerDetail {
   selectedMembership: PlayerMembership | null = null;
 
   addForm = {
-    club: '',
+    clubId: null as number | null,
     startDate: null as Date | null,
     isPrimary: false,
   };
@@ -96,26 +97,43 @@ export class PlayerDetail {
   transferDialogOpen = false;
   transferStep = 0;
   transferForm = {
-    newClub: '',
+    newClubId: null as number | null,
     transferDate: null as Date | null,
   };
 
-  clubOptions = [
-    { label: 'Club Ficticio Valladolid', value: 'Club Ficticio Valladolid' },
-    { label: 'Club Norte', value: 'Club Norte' },
-    { label: 'Club Sur', value: 'Club Sur' },
-  ];
+  clubOptions: Array<{ label: string; value: number }> = [];
+  private clubsById = new Map<number, ClubDto>();
+
+  clubNameById(id: number | null | undefined): string {
+    if (!id) return '';
+    return this.clubsById.get(id)?.name ?? '';
+  }
 
   savingMembership = false;
 
   constructor(
     private readonly api: PlayerClubsApiService,
+    private readonly clubsApi: ClubsApi,
     private readonly toast: MessageService,
     private readonly confirm: ConfirmationService,
   ) {}
 
   ngOnInit(): void {
+    this.loadClubs();
     this.loadMemberships();
+  }
+
+  private loadClubs(): void {
+    this.clubsApi.list().subscribe({
+      next: (clubs) => {
+        this.clubsById = new Map<number, ClubDto>((clubs ?? []).map((c) => [c.id, c]));
+        this.clubOptions = (clubs ?? []).map((c) => ({ label: c.name, value: c.id }));
+      },
+      error: () => {
+        // Non-blocking
+        this.clubOptions = [];
+      },
+    });
   }
 
   private toIsoDate(d: Date): string {
@@ -130,53 +148,62 @@ export class PlayerDetail {
     this.membershipsLoading = true;
     this.membershipsError = null;
 
-    this.api.listMemberships(this.player.id).subscribe({
-      next: (res) => {
-        this.membershipsLoading = false;
-        if (res?.items && Array.isArray(res.items)) {
-          this.memberships = res.items;
-          return;
-        }
+    const mapToUi = (items: any[]) =>
+      (items ?? []).map((it: any) => {
+        const clubId = Number(it?.clubId);
+        const clubName = String(it?.club?.name || this.clubsById.get(clubId)?.name || '');
+        const startDate = it?.startDate ? String(it.startDate).slice(0, 10) : '';
+        const endDate = it?.endDate ? String(it.endDate).slice(0, 10) : undefined;
+        const status = endDate ? 'closed' : 'active';
+        return {
+          id: String(it?.id),
+          playerId: String(it?.userId ?? this.player.id),
+          clubId,
+          clubName,
+          startDate,
+          endDate,
+          isPrimary: !!it?.isPrimary,
+          status,
+        } as PlayerMembership;
+      });
 
-        // Backend not ready -> provide mock memberships (do not break UX)
-        this.memberships = [
-          {
-            id: 'm-1',
-            playerId: this.player.id,
-            club: this.player.club || 'Club Ficticio Valladolid',
-            startDate: '2024-09-01',
-            endDate: undefined,
-            isPrimary: true,
-            status: 'active',
-          },
-          {
-            id: 'm-2',
-            playerId: this.player.id,
-            club: 'Club Norte',
-            startDate: '2023-09-01',
-            endDate: '2024-06-30',
-            isPrimary: false,
-            status: 'closed',
-          },
-        ];
-      },
-      error: (e: unknown) => {
+    // Prefer player history endpoint (includes club name). Fallback to user-clubs list.
+    this.api.getPlayerHistory(this.player.id).subscribe({
+      next: (rows) => {
         this.membershipsLoading = false;
-        const msg = e instanceof Error ? e.message : 'No se pudieron cargar las pertenencias.';
-        this.membershipsError = msg;
-        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        this.memberships = mapToUi(Array.isArray(rows) ? rows : []);
+      },
+      error: () => {
+        // Honest UI: try fallback, but surface error if that also fails.
+        this.api.listMemberships(this.player.id).subscribe({
+          next: (res) => {
+            this.membershipsLoading = false;
+            const items = Array.isArray((res as any)?.items)
+              ? (res as any).items
+              : Array.isArray(res)
+                ? (res as any)
+                : [];
+            this.memberships = mapToUi(items);
+          },
+          error: (e2: unknown) => {
+            this.membershipsLoading = false;
+            const msg = e2 instanceof Error ? e2.message : 'No se pudieron cargar las pertenencias.';
+            this.membershipsError = msg;
+            this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+          },
+        });
       },
     });
   }
 
   openAdd(): void {
-    this.addForm = { club: '', startDate: new Date(), isPrimary: false };
+    this.addForm = { clubId: null, startDate: new Date(), isPrimary: false };
     this.addDialogOpen = true;
   }
 
   confirmAdd(): void {
     if (!this.player?.id) return;
-    if (!this.addForm.club || !this.addForm.startDate) {
+    if (!this.addForm.clubId || !this.addForm.startDate) {
       this.toast.add({ severity: 'warn', summary: 'Revisa el formulario', detail: 'Club y fecha son obligatorios.' });
       return;
     }
@@ -184,29 +211,16 @@ export class PlayerDetail {
     this.savingMembership = true;
     this.api
       .createMembership(this.player.id, {
-        club: this.addForm.club,
+        clubId: this.addForm.clubId,
         startDate: this.toIsoDate(this.addForm.startDate),
         isPrimary: this.addForm.isPrimary,
       })
       .subscribe({
-        next: (res) => {
+        next: () => {
           this.savingMembership = false;
           this.addDialogOpen = false;
-          // Stub: update locally
-          const newM: PlayerMembership = {
-            id: res?.id ?? `m-${Math.random().toString(16).slice(2)}`,
-            playerId: this.player.id,
-            club: this.addForm.club,
-            startDate: this.toIsoDate(this.addForm.startDate!),
-            endDate: undefined,
-            isPrimary: this.addForm.isPrimary,
-            status: 'active',
-          };
-          if (newM.isPrimary) {
-            this.memberships = this.memberships.map((m) => ({ ...m, isPrimary: false }));
-          }
-          this.memberships = [newM, ...this.memberships];
-          this.toast.add({ severity: 'success', summary: 'Añadido', detail: 'Pertenencia añadida (stub).' });
+          this.toast.add({ severity: 'success', summary: 'Añadido', detail: 'Pertenencia añadida.' });
+          this.loadMemberships();
         },
         error: (e: unknown) => {
           this.savingMembership = false;
@@ -230,18 +244,13 @@ export class PlayerDetail {
     }
     this.savingMembership = true;
     this.api
-      .closeMembership(this.player.id, this.selectedMembership.id, { endDate: this.toIsoDate(this.closeForm.endDate) })
+      .closeMembership(this.selectedMembership.id, { endDate: this.toIsoDate(this.closeForm.endDate) })
       .subscribe({
         next: () => {
           this.savingMembership = false;
           this.closeDialogOpen = false;
-          const end = this.toIsoDate(this.closeForm.endDate!);
-          this.memberships = this.memberships.map((x) =>
-            x.id === this.selectedMembership!.id
-              ? { ...x, endDate: end, status: 'closed', isPrimary: false }
-              : x,
-          );
-          this.toast.add({ severity: 'success', summary: 'Cerrada', detail: 'Pertenencia cerrada (stub).' });
+          this.toast.add({ severity: 'success', summary: 'Cerrada', detail: 'Pertenencia cerrada.' });
+          this.loadMemberships();
           this.selectedMembership = null;
         },
         error: (e: unknown) => {
@@ -260,11 +269,11 @@ export class PlayerDetail {
     }
 
     this.savingMembership = true;
-    this.api.setPrimary(this.player.id, m.id).subscribe({
+    this.api.setPrimary(m.id).subscribe({
       next: () => {
         this.savingMembership = false;
-        this.memberships = this.memberships.map((x) => ({ ...x, isPrimary: x.id === m.id }));
-        this.toast.add({ severity: 'success', summary: 'Actualizado', detail: 'Principal actualizado (stub).' });
+        this.toast.add({ severity: 'success', summary: 'Actualizado', detail: 'Principal actualizado.' });
+        this.loadMemberships();
       },
       error: (e: unknown) => {
         this.savingMembership = false;
@@ -275,13 +284,13 @@ export class PlayerDetail {
   }
 
   openTransfer(): void {
-    this.transferForm = { newClub: '', transferDate: new Date() };
+    this.transferForm = { newClubId: null, transferDate: new Date() };
     this.transferStep = 0;
     this.transferDialogOpen = true;
   }
 
   canProceedTransfer(): boolean {
-    return !!this.transferForm.newClub && !!this.transferForm.transferDate;
+    return !!this.transferForm.newClubId && !!this.transferForm.transferDate;
   }
 
   nextTransfer(): void {
@@ -298,37 +307,21 @@ export class PlayerDetail {
 
   confirmTransfer(): void {
     if (!this.player?.id || !this.transferForm.transferDate) return;
-    if (!this.transferForm.newClub) return;
+    if (!this.transferForm.newClubId) return;
 
     this.savingMembership = true;
+
     this.api
       .transfer(this.player.id, {
-        newClub: this.transferForm.newClub,
-        transferDate: this.toIsoDate(this.transferForm.transferDate),
+        newClubId: this.transferForm.newClubId!,
+        transferDate: this.toIsoDate(this.transferForm.transferDate!),
       })
       .subscribe({
         next: () => {
           this.savingMembership = false;
           this.transferDialogOpen = false;
-
-          // Stub: close current primary + create new active primary
-          const date = this.toIsoDate(this.transferForm.transferDate!);
-          this.memberships = this.memberships.map((m) =>
-            m.status === 'active' && m.isPrimary ? { ...m, endDate: date, status: 'closed', isPrimary: false } : m,
-          );
-          this.memberships = [
-            {
-              id: `m-${Math.random().toString(16).slice(2)}`,
-              playerId: this.player.id,
-              club: this.transferForm.newClub,
-              startDate: date,
-              endDate: undefined,
-              isPrimary: true,
-              status: 'active',
-            },
-            ...this.memberships,
-          ];
-          this.toast.add({ severity: 'success', summary: 'Transferido', detail: 'Transferencia registrada (stub).' });
+          this.toast.add({ severity: 'success', summary: 'Transferido', detail: 'Transferencia registrada.' });
+          this.loadMemberships();
         },
         error: (e: unknown) => {
           this.savingMembership = false;
@@ -343,6 +336,6 @@ export class PlayerDetail {
   }
 
   onSave() {
-    this.save.emit(this.player);
+    this.save.emit(structuredClone(this.player));
   }
 }

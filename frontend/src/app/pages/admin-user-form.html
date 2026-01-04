@@ -1,6 +1,52 @@
 <app-shell title="Administración" subtitle="Usuarios">
   <p-toast></p-toast>
 
+  <p-dialog
+    header="Restablecer contraseña"
+    [(visible)]="passwordResetOpen"
+    [modal]="true"
+    [draggable]="false"
+    [closable]="!resettingPassword"
+    [dismissableMask]="!resettingPassword"
+    [style]="{ width: '720px' }"
+    [contentStyle]="{ background: '#020617', border: '1px solid #1f2937' }"
+  >
+    <div class="space-y-4">
+      <div class="text-[13px] text-[#9ca3af]">
+        Se generará una nueva contraseña para el usuario. Cópiarla y compártela de forma segura.
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Nueva contraseña</label>
+          <input pInputText [ngModel]="newPassword" name="newPassword" readonly class="w-full font-mono" />
+          <div class="mt-2 text-[12px] text-[#6b7280]">Se muestra solo en este diálogo.</div>
+        </div>
+
+        <div class="flex items-end gap-2">
+          <button type="button" pButton label="Regenerar" class="p-button-text p-button-sm" [disabled]="resettingPassword" (click)="regeneratePassword()"></button>
+          <button type="button" pButton label="Copiar" icon="pi pi-copy" class="p-button-sm" [disabled]="!newPassword" (click)="copyPassword()"></button>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        @if (resettingPassword) {
+          <div class="flex items-center gap-2 text-[12px] text-[#9ca3af]">
+            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+            Actualizando…
+          </div>
+        } @else {
+          <div class="text-[12px] text-[#6b7280]">El usuario tendrá que iniciar sesión con esta nueva contraseña.</div>
+        }
+
+        <div class="flex gap-2">
+          <button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" [disabled]="resettingPassword" (click)="passwordResetOpen = false"></button>
+          <button type="button" pButton label="Confirmar" icon="pi pi-check" class="p-button-sm" [disabled]="resettingPassword" (click)="confirmPasswordReset()"></button>
+        </div>
+      </div>
+    </div>
+  </p-dialog>
+
   <div class="max-w-4xl mx-auto space-y-4">
     <div class="flex items-center justify-between gap-2">
       <a pButton routerLink="/admin/users" label="Volver" icon="pi pi-arrow-left" class="p-button-text p-button-sm"></a>
@@ -22,6 +68,16 @@
         [title]="isEdit ? 'Editar usuario' : 'Nuevo usuario'"
         [subtitle]="isEdit ? ('ID: ' + userId) : 'Crea un nuevo usuario para el sistema.'"
       ></app-page-header>
+
+      @if (isEdit) {
+        <div class="mt-4 rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 flex items-center justify-between gap-3">
+          <div>
+            <div class="text-[#e5e7eb] text-[13px] font-medium">Acceso</div>
+            <div class="mt-1 text-[12px] text-[#94a3b8]">Restablece la contraseña si el usuario no puede iniciar sesión.</div>
+          </div>
+          <button type="button" pButton label="Restablecer contraseña" icon="pi pi-key" class="p-button-sm" (click)="openPasswordReset()"></button>
+        </div>
+      }
 
       <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>

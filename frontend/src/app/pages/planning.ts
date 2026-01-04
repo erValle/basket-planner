@@ -16,11 +16,15 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
+import { firstValueFrom } from 'rxjs';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 
 import { PlanningApiService } from '../services/planning.api';
+import { ClubContextService } from '../core/context/club-context.service';
+import { ClubsApi, ClubDto } from '../services/clubs.api';
+import { TeamsApi, TeamDto } from '../services/teams.api';
 import { PlanningExportEmailPayload, PlanningExportFormat, PlanningListItem, PlanningStatus } from '../models/planning';
 
 type Option = { label: string; value: string };
@@ -51,19 +55,13 @@ type Option = { label: string; value: string };
   providers: [MessageService, ConfirmationService],
 })
 export class Planning {
-  teamsTop: string[] = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam: string = this.teamsTop[0];
+  private readonly selectedClubId: number | null;
 
-  clubOptions: Option[] = [
-    { label: 'Todos', value: 'Todos' },
-    { label: 'Club Ficticio', value: 'Club Ficticio' },
-  ];
+  clubs: ClubDto[] = [];
+  teams: TeamDto[] = [];
 
-  teamOptions: Option[] = [
-    { label: 'Todos', value: 'Todos' },
-    { label: 'Senior Masculino', value: 'Senior Masculino' },
-    { label: 'U18 A', value: 'U18 A' },
-  ];
+  clubOptions: Option[] = [{ label: 'Todos', value: 'Todos' }];
+  teamOptions: Option[] = [{ label: 'Todos', value: 'Todos' }];
 
   statusOptions: Array<{ label: string; value: PlanningStatus | 'all' }> = [
     { label: 'Todos', value: 'all' },
@@ -81,41 +79,18 @@ export class Planning {
     dateRange: null as Date[] | null,
   };
 
+  // Backend list endpoint currently ignores club/team filters.
+  filtersNotSupportedYet = true;
+
   loading = false;
   loadError: string | null = null;
 
   rows = 10;
   first = 0;
 
-  plannings: PlanningListItem[] = [
-    {
-      id: 'pl-1001',
-      date: '2025-12-29',
-      team: 'Senior Masculino',
-      objective: 'Mejora del tiro exterior',
-      status: 'generated',
-      version: 'v3',
-      author: 'P. Valle',
-    },
-    {
-      id: 'pl-1002',
-      date: '2025-12-27',
-      team: 'U18 A',
-      objective: 'Defensa individual',
-      status: 'draft',
-      version: 'v1',
-      author: 'P. Valle',
-    },
-    {
-      id: 'pl-1003',
-      date: '2025-12-22',
-      team: 'Senior Masculino',
-      objective: 'Condición física',
-      status: 'published',
-      version: 'v2',
-      author: 'Staff',
-    },
-  ];
+  plannings: PlanningListItem[] = [];
+
+  private bootstrappedFromBackend = true;
 
   // Export menu per row
   exportMenuVisibleForId: string | null = null;
@@ -145,10 +120,15 @@ export class Planning {
 
   constructor(
     private readonly api: PlanningApiService,
+    private readonly clubContext: ClubContextService,
+    private readonly clubsApi: ClubsApi,
+    private readonly teamsApi: TeamsApi,
     private readonly router: Router,
     private readonly toast: MessageService,
     private readonly confirmation: ConfirmationService,
   ) {
+    this.selectedClubId = this.clubContext.getSelectedClubIdSnapshot();
+
     this.exportMenuItems = [
       {
         label: 'Exportar PDF',
@@ -172,7 +152,46 @@ export class Planning {
   }
 
   ngOnInit(): void {
+    // Keep dropdown options aligned with the global club context.
+    this.clubContext.selectedClubId$.subscribe((clubId) => {
+      // Clubs/teams selectors are currently disabled for list filtering,
+      // but we still want sensible options and defaults.
+      if (clubId != null) this.filters.club = String(clubId);
+      this.loadFilters();
+    });
+
+    this.loadFilters();
     this.load();
+  }
+
+  private loadFilters(): void {
+    const clubId = this.clubContext.getSelectedClubIdSnapshot();
+
+    this.clubsApi.list().subscribe({
+      next: (items) => {
+        this.clubs = items ?? [];
+
+        // If a club is selected in the shell, keep the dropdown limited to that club.
+        const scopedClubs = clubId != null ? this.clubs.filter((c) => Number(c.id) === Number(clubId)) : this.clubs;
+        this.clubOptions = [{ label: 'Todos', value: 'Todos' }, ...scopedClubs.map((c) => ({ label: c.name, value: String(c.id) }))];
+      },
+      error: () => {
+        // keep defaults
+      },
+    });
+
+    this.teamsApi.list({ clubId: clubId != null ? String(clubId) : undefined }).subscribe({
+      next: (items) => {
+        this.teams = items ?? [];
+        this.teamOptions = [
+          { label: 'Todos', value: 'Todos' },
+          ...this.teams.map((t) => ({ label: t.name, value: String(t.id) })),
+        ];
+      },
+      error: () => {
+        // keep defaults
+      },
+    });
   }
 
   clearFilters(): void {
@@ -198,6 +217,7 @@ export class Planning {
 
     this.api
       .list({
+        // Keep sending params for forward-compat, but UI communicates that they are not applied yet.
         club: this.filters.club === 'Todos' ? undefined : this.filters.club,
         team: this.filters.team === 'Todos' ? undefined : this.filters.team,
         status: this.filters.status === 'all' ? undefined : this.filters.status,
@@ -208,12 +228,24 @@ export class Planning {
         pageSize: this.rows,
       })
       .subscribe({
-        next: (res) => {
+        next: (res: any) => {
           this.loading = false;
 
-          // If backend is not ready yet, keep local mock data (do not break UX).
-          if (res?.items && Array.isArray(res.items)) {
-            this.plannings = res.items;
+          // Temporary mapping: backend currently exposes training plans.
+          if (Array.isArray(res)) {
+            this.plannings = res.map((p: any) => ({
+              id: String(p.id),
+              date: (p?.createdAt ? String(p.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10)),
+              team: p?.targetType === 'group' ? 'Equipo' : 'Individual',
+              objective: p?.name ? String(p.name) : 'Plan',
+              status: (['draft', 'generated', 'published', 'archived'].includes(String(p?.status))
+                ? String(p.status)
+                : 'draft') as any,
+              version: p?.activeVersionId != null ? `v${p.activeVersionId}` : 'v1',
+              author: p?.createdById != null ? `user:${p.createdById}` : '-',
+            }));
+
+            this.bootstrappedFromBackend = true;
           }
         },
         error: (e: unknown) => {
@@ -227,7 +259,7 @@ export class Planning {
 
   // Derived UI view
   get filteredPlannings(): PlanningListItem[] {
-    // Keep a client-side filter fallback so the screen works even without backend filtering.
+    // Keep a client-side filter fallback so the screen works even when backend filtering is limited.
     const search = this.filters.search.trim().toLowerCase();
 
     return this.plannings.filter((p) => {
@@ -336,40 +368,15 @@ export class Planning {
   }
 
   canSendEmail(): boolean {
-    return (
-      !!this.sendPlanningId &&
-      this.emailModel.recipients.length > 0 &&
-      this.emailModel.subject.trim().length > 0
-    );
+    // Email export isn't implemented server-side yet.
+    return false;
   }
 
   sendEmail(): void {
-    if (!this.sendPlanningId) return;
-    if (!this.canSendEmail()) {
-      this.toast.add({ severity: 'warn', summary: 'Revisa el formulario', detail: 'Añade destinatarios y asunto.' });
-      return;
-    }
-
-    this.sendingEmail = true;
-    const payload: PlanningExportEmailPayload = {
-      recipients: this.emailModel.recipients,
-      subject: this.emailModel.subject,
-      message: this.emailModel.message || undefined,
-      format: this.emailModel.format,
-      version: this.emailModel.version || undefined,
-    };
-
-    this.api.sendExportEmail(this.sendPlanningId, payload).subscribe({
-      next: () => {
-        this.sendingEmail = false;
-        this.sendDialogOpen = false;
-        this.toast.add({ severity: 'success', summary: 'Enviado', detail: 'Exportación enviada por correo (stub).' });
-      },
-      error: (e: unknown) => {
-        this.sendingEmail = false;
-        const msg = e instanceof Error ? e.message : 'No se pudo enviar el correo.';
-        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-      },
+    this.toast.add({
+      severity: 'info',
+      summary: 'No disponible',
+      detail: 'El envío por correo aún no está implementado en el backend. Usa la exportación a PDF/CSV.',
     });
   }
 
@@ -383,8 +390,15 @@ export class Planning {
     this.toast.add({ severity: 'info', summary: 'Exportación', detail: `Descargando ${format.toUpperCase()}…` });
 
     const version = this.plannings.find((p) => p.id === id)?.version;
+    if (!version) {
+      this.downloadingForId = null;
+      this.downloadingFormat = null;
+      this.toast.add({ severity: 'warn', summary: 'Sin versión', detail: 'No hay versión disponible para exportar este planning.' });
+      return;
+    }
+
     const req$ = format === 'pdf' ? this.api.exportPdf(id, version) : this.api.exportCsv(id, version);
-    const filename = `planning-${id}-${version ?? 'latest'}.${format}`;
+    const filename = `planning-${id}-${version}.${format}`;
 
     req$.subscribe({
       next: (blob) => {
@@ -418,13 +432,28 @@ export class Planning {
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Eliminar',
       rejectLabel: 'Cancelar',
-      accept: () => this.deleteLocal(item),
+      accept: () => this.delete(item),
     });
   }
 
-  private deleteLocal(item: PlanningListItem): void {
-    // Stub: only remove locally for now.
-    this.plannings = this.plannings.filter((p) => p.id !== item.id);
-    this.toast.add({ severity: 'success', summary: 'Eliminada', detail: 'Planificación eliminada (stub).' });
+  private async delete(item: PlanningListItem): Promise<void> {
+    // If list is still using local seed data, keep local delete.
+    if (!this.bootstrappedFromBackend) {
+      this.plannings = this.plannings.filter((p) => p.id !== item.id);
+      this.toast.add({ severity: 'success', summary: 'Eliminada', detail: 'Planificación eliminada.' });
+      return;
+    }
+
+    try {
+      await firstValueFrom(this.api.remove(String(item.id)));
+      this.toast.add({ severity: 'success', summary: 'Eliminada', detail: 'Planificación eliminada.' });
+      this.load();
+    } catch (e: any) {
+      this.toast.add({
+        severity: 'error',
+        summary: 'Error al eliminar',
+        detail: e?.error?.message ?? e?.message ?? 'No se pudo eliminar la planificación.',
+      });
+    }
   }
 }

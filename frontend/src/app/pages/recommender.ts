@@ -51,9 +51,6 @@ export class RecommenderPage {
   private readonly toast = inject(MessageService);
   private readonly confirmation = inject(ConfirmationService);
 
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
-
   // Estado
   statusLoading = false;
   statusError: string | null = null;

@@ -46,9 +46,6 @@ type Option = { label: string; value: string };
   providers: [MessageService],
 })
 export class AuditPage {
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
-
   loading = false;
   loadError: string | null = null;
 
@@ -123,13 +120,7 @@ export class AuditPage {
       .subscribe({
         next: (res) => {
           this.loading = false;
-          if (res?.items && Array.isArray(res.items) && res.items.length) {
-            this.items = res.items;
-            return;
-          }
-
-          // Stub-safe fallback
-          this.items = this.mockItems();
+          this.items = (res?.items && Array.isArray(res.items) ? res.items : []).slice();
         },
         error: (e: unknown) => {
           this.loading = false;
@@ -173,16 +164,11 @@ export class AuditPage {
     this.detailDialogOpen = true;
     this.detailLoading = true;
     this.detailError = null;
-    this.selected = null;
 
     this.api.get(row.id).subscribe({
       next: (res) => {
         this.detailLoading = false;
-        if (res?.item) {
-          this.selected = res.item;
-          return;
-        }
-        this.selected = this.mockDetail(row);
+        if (res?.item) this.selected = res.item;
       },
       error: (e: unknown) => {
         this.detailLoading = false;
@@ -190,63 +176,6 @@ export class AuditPage {
         this.toast.add({ severity: 'error', summary: 'Error', detail: this.detailError });
       },
     });
-  }
-
-  private mockItems(): AuditLogListItem[] {
-    const base = new Date();
-    const iso = (d: Date) => d.toISOString();
-
-    return [
-      {
-        id: 'a-1',
-        createdAt: iso(new Date(base.getTime() - 2 * 3600_000)),
-        action: 'UPDATE',
-        entity: 'plannings',
-        entityId: 'pl-12',
-        summary: 'Se creó una nueva versión (v3) y se publicó.',
-        actor: { id: 'u-1', name: 'Admin', email: 'admin@club.com' },
-        metadata: { version: 'v3', team: 'Senior Masculino' },
-      },
-      {
-        id: 'a-2',
-        createdAt: iso(new Date(base.getTime() - 6 * 3600_000)),
-        action: 'EXPORT',
-        entity: 'plannings',
-        entityId: 'pl-12',
-        summary: 'Exportación PDF solicitada.',
-        actor: { id: 'u-2', name: 'Staff', email: 'staff@club.com' },
-        metadata: { format: 'pdf' },
-      },
-      {
-        id: 'a-3',
-        createdAt: iso(new Date(base.getTime() - 26 * 3600_000)),
-        action: 'LOGIN',
-        entity: 'auth',
-        entityId: 'u-1',
-        summary: 'Inicio de sesión.',
-        actor: { id: 'u-1', name: 'Admin', email: 'admin@club.com' },
-        metadata: { ip: '127.0.0.1' },
-      },
-      {
-        id: 'a-4',
-        createdAt: iso(new Date(base.getTime() - 2 * 86400_000)),
-        action: 'CREATE',
-        entity: 'users',
-        entityId: 'u-9',
-        summary: 'Creación de usuario.',
-        actor: { id: 'u-1', name: 'Admin', email: 'admin@club.com' },
-        metadata: { role: 'COACH' },
-      },
-    ];
-  }
-
-  private mockDetail(row: AuditLogListItem): AuditLogDetail {
-    return {
-      ...row,
-      request: { example: true, entity: row.entity, entityId: row.entityId },
-      response: { ok: true },
-      diff: row.action === 'UPDATE' ? { before: { status: 'draft' }, after: { status: 'published' } } : undefined,
-    };
   }
 
   prettyJson(v: unknown): string {

@@ -18,6 +18,7 @@ import { PageHeader } from '../components/page-header/page-header';
 
 import { PlanningApiService } from '../services/planning.api';
 import { FeedbackApiService } from '../services/feedback.api';
+import { UserContextService } from '../core/auth/user-context.service';
 import { FeedbackSurveyAnswers, FeedbackSurveyListItem } from '../models/feedback-survey';
 import {
   PlanningBlock,
@@ -52,9 +53,6 @@ type Option = { label: string; value: string };
   providers: [MessageService],
 })
 export class PlanningDetail {
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
-
   loading = false;
   loadError: string | null = null;
   emptyState = false;
@@ -110,10 +108,110 @@ export class PlanningDetail {
   constructor(
     private readonly api: PlanningApiService,
     private readonly feedbackApi: FeedbackApiService,
+    private readonly userContext: UserContextService,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly toast: MessageService,
   ) {}
+
+  private formatIsoDate(value: unknown): string {
+    if (!value) return new Date().toISOString().slice(0, 10);
+    const d = new Date(value as any);
+    if (Number.isNaN(d.getTime())) return new Date().toISOString().slice(0, 10);
+    return d.toISOString().slice(0, 10);
+  }
+
+  private buildUiBlocksFromItems(items: any): PlanningBlock[] {
+    const sessions = Array.isArray(items?.sessions) ? items.sessions : [];
+    const blocks: PlanningBlock[] = [];
+
+    for (const s of sessions) {
+      const sBlocks = Array.isArray(s?.blocks) ? s.blocks : [];
+      if (sBlocks.length) {
+        for (const b of sBlocks) {
+          blocks.push({
+            id: String(b?.id ?? `b-${Math.random().toString(16).slice(2)}`),
+            name: String(b?.name ?? 'Bloque'),
+            durationMin: Number(b?.durationMin ?? 0) || 0,
+            focus: (b?.focus != null ? String(b.focus) : undefined) as any,
+            notes: (b?.notes != null ? String(b.notes) : undefined) as any,
+            exercises: Array.isArray(b?.exercises)
+              ? b.exercises.map((e: any) => ({
+                  id: String(e?.id ?? `e-${Math.random().toString(16).slice(2)}`),
+                  name: String(e?.name ?? 'Ejercicio'),
+                  durationMin: e?.durationMin != null ? Number(e.durationMin) : undefined,
+                  notes: e?.notes != null ? String(e.notes) : undefined,
+                }))
+              : undefined,
+          });
+        }
+        continue;
+      }
+
+      // Fallback: if session has exercises directly.
+      const exs = Array.isArray(s?.exercises) ? s.exercises : [];
+      blocks.push({
+        id: String(s?.id ?? `s-${Math.random().toString(16).slice(2)}`),
+        name: String(s?.title ?? s?.name ?? 'Sesión'),
+        durationMin: Number(s?.durationMin ?? 0) || 0,
+        focus: (s?.focus != null ? String(s.focus) : undefined) as any,
+        notes: (s?.notes != null ? String(s.notes) : undefined) as any,
+        exercises: exs.length
+          ? exs.map((e: any) => ({
+              id: String(e?.id ?? `e-${Math.random().toString(16).slice(2)}`),
+              name: String(e?.name ?? 'Ejercicio'),
+              durationMin: e?.durationMin != null ? Number(e.durationMin) : undefined,
+              notes: e?.notes != null ? String(e.notes) : undefined,
+            }))
+          : undefined,
+      });
+    }
+
+    return blocks;
+  }
+
+  private computeMetrics(blocks: PlanningBlock[]) {
+    const totalDurationMin = blocks.reduce((acc, b) => acc + (Number(b.durationMin) || 0), 0);
+    return {
+      totalDurationMin,
+      estimatedLoad: undefined,
+    };
+  }
+
+  private mapTrainingPlanToDetail(plan: any, versionRow: any, versionLabel: string): PlanningDetailResponse {
+    const items = versionRow?.items ?? plan?.activeVersion?.items ?? null;
+    const blocks = this.buildUiBlocksFromItems(items);
+    const metrics = this.computeMetrics(blocks);
+
+    const versions: PlanningVersionInfo[] = (Array.isArray(plan?.versions) ? plan.versions : [])
+      .slice()
+      .sort((a: any, b: any) => Number(b?.versionNumber ?? 0) - Number(a?.versionNumber ?? 0))
+      .map((v: any) => ({
+        label: `v${v?.versionNumber ?? v?.id}`,
+        value: String(v?.id),
+        createdAt: this.formatIsoDate(v?.createdAt ?? v?.date),
+        author: v?.createdById != null ? `user:${v.createdById}` : '- ',
+      }));
+
+    return {
+      id: String(plan?.id),
+      title: plan?.name ? String(plan.name) : `Planificación ${plan?.id}`,
+      date: this.formatIsoDate(versionRow?.date ?? plan?.activeVersion?.date ?? plan?.createdAt),
+      team: plan?.targetType === 'group' ? 'Equipo' : 'Individual',
+      objective: plan?.name ? String(plan.name) : '',
+      status: (['draft', 'generated', 'published', 'archived'].includes(String(plan?.status))
+        ? String(plan.status)
+        : 'draft') as any,
+      version: versionLabel,
+      author: plan?.createdById != null ? `user:${plan.createdById}` : '-',
+      versions,
+      metrics: {
+        totalDurationMin: metrics.totalDurationMin,
+        estimatedLoad: metrics.estimatedLoad,
+      } as any,
+      blocks,
+    };
+  }
 
   openFeedback(): void {
     this.feedbackDialogOpen = true;
@@ -127,6 +225,16 @@ export class PlanningDetail {
     if (this.savingFeedback) return;
     if (!this.planningId) return;
 
+    const currentUser = this.userContext.getUserSnapshot();
+    if (!currentUser?.id) {
+      this.toast.add({
+        severity: 'warn',
+        summary: 'Sesión requerida',
+        detail: 'Inicia sesión para enviar el feedback.',
+      });
+      return;
+    }
+
     const a = this.draftSurvey;
     const isMissing =
       a.rpe == null || a.fatigue == null || a.pain == null || a.sleep == null || a.stress == null || a.mood == null;
@@ -138,7 +246,7 @@ export class PlanningDetail {
     this.savingFeedback = true;
     this.feedbackApi
       .createSurvey({
-        playerId: 'p1',
+        playerId: String(currentUser.id),
         targetType: 'planning',
         targetId: this.planningId,
         answers: this.draftSurvey,
@@ -148,14 +256,14 @@ export class PlanningDetail {
           this.savingFeedback = false;
           this.feedbackDialogOpen = false;
           this.latestSurvey = {
-            id: res?.id ?? `fp-${Math.random().toString(16).slice(2)}`,
-            playerId: 'p1',
+            id: (res?.id != null ? String(res.id) : `fp-${Math.random().toString(16).slice(2)}`),
+            playerId: String(currentUser.id),
             targetType: 'planning',
             targetId: this.planningId!,
             createdAt: new Date().toISOString(),
             answers: { ...this.draftSurvey },
           };
-          this.toast.add({ severity: 'success', summary: 'Guardado', detail: 'Encuesta registrada (stub).' });
+          this.toast.add({ severity: 'success', summary: 'Guardado', detail: 'Encuesta registrada.' });
         },
         error: (e: unknown) => {
           this.savingFeedback = false;
@@ -174,57 +282,6 @@ export class PlanningDetail {
     });
   }
 
-  private mockDetail(id: string, version: string): PlanningDetailResponse {
-    const versions: PlanningVersionInfo[] = [
-      { label: 'v1', value: 'v1', createdAt: '2025-12-20', author: 'P. Valle' },
-      { label: 'v2', value: 'v2', createdAt: '2025-12-22', author: 'P. Valle' },
-      { label: 'v3', value: 'v3', createdAt: '2025-12-29', author: 'Staff' },
-    ];
-
-    return {
-      id,
-      title: `Planificación ${id}`,
-      date: '2025-12-29',
-      team: 'Senior Masculino',
-      objective: 'Mejorar transiciones ofensivas y rebote defensivo.',
-      status: version === 'v1' ? 'draft' : version === 'v2' ? 'generated' : 'published',
-      version,
-      author: version === 'v3' ? 'Staff' : 'P. Valle',
-      versions,
-      metrics: {
-        totalDurationMin: 90,
-        estimatedLoad: 'RPE 6 · 540 u.a.',
-      },
-      blocks: [
-        {
-          id: 'b1',
-          name: 'Calentamiento',
-          durationMin: 15,
-          focus: 'Movilidad + activación',
-          notes: 'RPE objetivo 4/10',
-        },
-        {
-          id: 'b2',
-          name: 'Parte principal',
-          durationMin: 60,
-          focus: 'Transición 3v2 + 4v3, rebote y 5v5',
-          notes: 'Controlar carga y pausas',
-          exercises: [
-            { id: 'e1', name: '3v2 continuo', durationMin: 12, notes: '3 series · 90s' },
-            { id: 'e2', name: '4v3 + rebote', durationMin: 18, notes: 'Foco: cierre defensivo' },
-          ],
-        },
-        {
-          id: 'b3',
-          name: 'Vuelta a la calma',
-          durationMin: 15,
-          focus: 'Estiramientos + respiración',
-          notes: 'Recuperación activa',
-        },
-      ],
-    };
-  }
-
   load(): void {
     this.loadError = null;
     this.emptyState = false;
@@ -238,22 +295,43 @@ export class PlanningDetail {
 
     this.loading = true;
 
-    const version = this.selectedVersion ?? undefined;
-    this.api.get(this.planningId, version).subscribe({
-      next: (res) => {
-        this.loading = false;
+    this.api.get(this.planningId).subscribe({
+      next: (plan) => {
+        const selectedVersionId = this.selectedVersion;
 
-        // Backend not ready -> fallback to mock so UI is complete.
-        const resolved = res?.id ? res : this.mockDetail(this.planningId!, this.selectedVersion ?? 'v3');
-        this.detail = resolved;
-        this.blocks = resolved.blocks ?? [];
+        const versions = Array.isArray(plan?.versions) ? plan.versions : [];
+        const activeVersionId = plan?.activeVersionId != null ? String(plan.activeVersionId) : null;
+        const resolvedVersionId = selectedVersionId ?? activeVersionId ?? (versions[0]?.id != null ? String(versions[0].id) : null);
 
-        this.versionOptions = (resolved.versions ?? []).map((v) => ({ label: v.label, value: v.value }));
-        if (!this.selectedVersion) this.selectedVersion = resolved.version;
-        if (this.selectedVersion && this.versionOptions.length > 0) {
-          const valid = this.versionOptions.some((o) => o.value === this.selectedVersion);
-          if (!valid) this.selectedVersion = resolved.version;
+        if (!resolvedVersionId) {
+          this.loading = false;
+          this.emptyState = true;
+          this.detail = null;
+          this.blocks = [];
+          return;
         }
+
+        this.api.getVersion(this.planningId!, resolvedVersionId).subscribe({
+          next: (versionRow) => {
+            this.loading = false;
+
+            const versionLabel = `v${versionRow?.versionNumber ?? resolvedVersionId}`;
+            const resolved = this.mapTrainingPlanToDetail(plan, versionRow, versionLabel);
+
+            this.detail = resolved;
+            this.blocks = resolved.blocks ?? [];
+
+            // options show labels, values are real version IDs so export works
+            this.versionOptions = (resolved.versions ?? []).map((v: any) => ({ label: v.label, value: v.value }));
+            this.selectedVersion = resolvedVersionId;
+          },
+          error: (e: unknown) => {
+            this.loading = false;
+            const msg = e instanceof Error ? e.message : 'No se pudo cargar la versión.';
+            this.loadError = msg;
+            this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+          },
+        });
       },
       error: (e: unknown) => {
         this.loading = false;
@@ -337,49 +415,27 @@ export class PlanningDetail {
   }
 
   canSendEmail(): boolean {
-    return (
-      !!this.planningId &&
-      this.emailModel.recipients.length > 0 &&
-      this.emailModel.subject.trim().length > 0 &&
-      (this.emailModel.format === 'pdf' || this.emailModel.format === 'csv')
-    );
+    // Email export isn't implemented server-side yet.
+    return false;
   }
 
   sendEmail(): void {
-    if (!this.planningId) return;
-    if (!this.canSendEmail()) {
-      this.toast.add({ severity: 'warn', summary: 'Revisa el formulario', detail: 'Añade destinatarios y asunto.' });
-      return;
-    }
-
-    this.sendingEmail = true;
-    const payload: PlanningExportEmailPayload = {
-      recipients: this.emailModel.recipients,
-      subject: this.emailModel.subject,
-      message: this.emailModel.message || undefined,
-      format: this.emailModel.format as PlanningExportFormat,
-      version: this.emailModel.version || undefined,
-    };
-
-    this.api.sendExportEmail(this.planningId, payload).subscribe({
-      next: () => {
-        this.sendingEmail = false;
-        this.sendDialogOpen = false;
-        this.toast.add({ severity: 'success', summary: 'Enviado', detail: 'Exportación enviada por correo (stub).' });
-      },
-      error: (e: unknown) => {
-        this.sendingEmail = false;
-        const msg = e instanceof Error ? e.message : 'No se pudo enviar el correo.';
-        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-      },
+    this.toast.add({
+      severity: 'info',
+      summary: 'No disponible',
+      detail: 'El envío por correo aún no está implementado en el backend. Usa la exportación a PDF/CSV.',
     });
   }
 
   exportPdf(): void {
     if (!this.planningId) return;
+    if (!this.selectedVersion) {
+      this.toast.add({ severity: 'warn', summary: 'Selecciona una versión', detail: 'No hay versión seleccionada para exportar.' });
+      return;
+    }
     this.downloading = 'pdf';
     this.toast.add({ severity: 'info', summary: 'Exportación', detail: 'Descargando PDF…' });
-    this.api.exportPdf(this.planningId, this.selectedVersion ?? undefined).subscribe({
+    this.api.exportPdf(this.planningId, this.selectedVersion).subscribe({
       next: (blob) => {
         this.downloading = null;
         this.downloadBlob(blob, `planning-${this.planningId}-${this.selectedVersion ?? 'latest'}.pdf`);
@@ -394,9 +450,13 @@ export class PlanningDetail {
 
   exportCsv(): void {
     if (!this.planningId) return;
+    if (!this.selectedVersion) {
+      this.toast.add({ severity: 'warn', summary: 'Selecciona una versión', detail: 'No hay versión seleccionada para exportar.' });
+      return;
+    }
     this.downloading = 'csv';
     this.toast.add({ severity: 'info', summary: 'Exportación', detail: 'Descargando CSV…' });
-    this.api.exportCsv(this.planningId, this.selectedVersion ?? undefined).subscribe({
+    this.api.exportCsv(this.planningId, this.selectedVersion).subscribe({
       next: (blob) => {
         this.downloading = null;
         this.downloadBlob(blob, `planning-${this.planningId}-${this.selectedVersion ?? 'latest'}.csv`);

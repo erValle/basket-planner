@@ -8,6 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 
 import { AppShell } from '../layout/app-shell/app-shell';
@@ -30,6 +31,7 @@ type Option = { label: string; value: string };
     SelectModule,
     ToastModule,
     ProgressSpinnerModule,
+    DialogModule,
     PageHeader,
     AppShell,
   ],
@@ -38,9 +40,6 @@ type Option = { label: string; value: string };
   providers: [MessageService],
 })
 export class AdminUserForm {
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
-
   userId: string | null = null;
   isEdit = false;
 
@@ -49,6 +48,7 @@ export class AdminUserForm {
   saving = false;
 
   roleOptions: Option[] = [
+    { label: 'Sin rol', value: '' },
     { label: 'Admin', value: 'admin' },
     { label: 'Entrenador', value: 'coach' },
     { label: 'Staff', value: 'staff' },
@@ -64,11 +64,16 @@ export class AdminUserForm {
   form: AdminUserUpsertPayload = {
     name: '',
     email: '',
-    role: 'coach',
+    role: null,
     status: 'active',
   };
 
   touched = new Set<string>();
+
+  // Admin password reset (backend supports PUT /api/users/:id with password)
+  passwordResetOpen = false;
+  resettingPassword = false;
+  newPassword = this.generatePassword();
 
   constructor(
     private readonly api: UsersApiService,
@@ -76,6 +81,15 @@ export class AdminUserForm {
     private readonly router: Router,
     private readonly toast: MessageService,
   ) {}
+
+  private generatePassword(length = 12): string {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*?';
+    let out = '';
+    for (let i = 0; i < length; i++) {
+      out += alphabet[Math.floor(Math.random() * alphabet.length)];
+    }
+    return out;
+  }
 
   ngOnInit(): void {
     this.userId = this.route.snapshot.paramMap.get('id');
@@ -100,7 +114,8 @@ export class AdminUserForm {
   }
 
   get canSave(): boolean {
-    return this.nameValid && this.emailValid && !!this.form.role && !!this.form.status;
+    // Role is optional: admin can create user without role and later assign it.
+    return this.nameValid && this.emailValid && !!this.form.status;
   }
 
   load(): void {
@@ -114,7 +129,7 @@ export class AdminUserForm {
           this.form = {
             name: u.name,
             email: u.email,
-            role: u.role as AdminUserRole,
+            role: (u.role as AdminUserRole | null) ?? null,
             status: u.status as AdminUserStatus,
           };
         }
@@ -132,6 +147,51 @@ export class AdminUserForm {
     this.router.navigate(['/admin/users']);
   }
 
+  openPasswordReset(): void {
+    if (!this.userId) return;
+    this.newPassword = this.generatePassword();
+    this.passwordResetOpen = true;
+  }
+
+  regeneratePassword(): void {
+    if (this.resettingPassword) return;
+    this.newPassword = this.generatePassword();
+  }
+
+  copyPassword(): void {
+    if (!this.newPassword) return;
+    navigator.clipboard
+      ?.writeText(this.newPassword)
+      .then(() => this.toast.add({ severity: 'success', summary: 'Copiado', detail: 'Contraseña copiada al portapapeles.' }))
+      .catch(() => this.toast.add({ severity: 'warn', summary: 'No se pudo copiar', detail: 'Copia manualmente la contraseña.' }));
+  }
+
+  confirmPasswordReset(): void {
+    if (!this.userId || this.resettingPassword) return;
+    if ((this.newPassword ?? '').trim().length < 6) {
+      this.toast.add({ severity: 'warn', summary: 'Contraseña inválida', detail: 'Debe tener al menos 6 caracteres.' });
+      return;
+    }
+
+    this.resettingPassword = true;
+    this.api.setPassword(this.userId, this.newPassword).subscribe({
+      next: () => {
+        this.resettingPassword = false;
+        this.passwordResetOpen = false;
+        this.toast.add({
+          severity: 'success',
+          summary: 'Contraseña actualizada',
+          detail: 'Copia esta contraseña y compártela con el usuario de forma segura.',
+        });
+      },
+      error: (e: unknown) => {
+        this.resettingPassword = false;
+        const msg = e instanceof Error ? e.message : 'No se pudo actualizar la contraseña.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
+  }
+
   save(): void {
     if (!this.canSave || this.saving) {
       this.toast.add({ severity: 'warn', summary: 'Revisa el formulario', detail: 'Hay campos obligatorios inválidos.' });
@@ -140,13 +200,18 @@ export class AdminUserForm {
 
     this.saving = true;
 
+    const payload: AdminUserUpsertPayload = {
+      ...this.form,
+      role: this.form.role ? this.form.role : null,
+    };
+
     const req$: Observable<unknown> =
-      this.isEdit && this.userId ? this.api.update(this.userId, this.form) : this.api.create(this.form);
+      this.isEdit && this.userId ? this.api.update(this.userId, payload) : this.api.create(payload);
 
     req$.subscribe({
       next: (res) => {
         this.saving = false;
-        this.toast.add({ severity: 'success', summary: 'Guardado', detail: 'Usuario guardado (stub).' });
+        this.toast.add({ severity: 'success', summary: 'Guardado', detail: 'Usuario guardado.' });
 
         const id = this.userId ?? (res as { id?: string } | null | undefined)?.id;
         this.router.navigate(['/admin/users', id ?? '']);

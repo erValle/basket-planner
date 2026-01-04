@@ -19,49 +19,28 @@ import { FeedbackSurveyListItem, FeedbackSurveyWeeklyAggregate } from '../models
   styleUrl: './player-dashboard.css',
 })
 export class PlayerDashboard {
-	teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-	selectedTeam = this.teamsTop[0];
-
-  player = {
-    id: 'p8',
-    name: 'Jugador #8',
-    position: 'Escolta',
-    status: 'activo' as const,
-  };
-
-  metrics = [
-    { id: 'm1', label: 'Carga semanal', value: 78, hint: 'Objetivo 60–75', severity: 'warn' as const },
-    { id: 'm2', label: 'Sueño', value: 6.2, hint: 'Horas promedio', severity: 'info' as const },
-    { id: 'm3', label: 'Dolor', value: 2, hint: '0–10', severity: 'success' as const },
-  ];
+  // Honest UI: aún no existe endpoint para cargar el perfil del jugador autenticado y sus métricas.
+  // Mantenemos el dashboard centrado en encuestas reales (FeedbackApiService) cuando estén disponibles.
+  readonly playerName = 'Jugador';
+  readonly playerSubtitle = 'Resumen';
 
   feedbackLoading = false;
-  feedbackError: string | null = null;
+  feedbackError: string | null = 'Aún no disponible: falta endpoint para resolver el jugador actual.';
   recentSurveys: FeedbackSurveyListItem[] = [];
   weeklyAggregates: FeedbackSurveyWeeklyAggregate[] = [];
 
   constructor(private readonly feedbackApi: FeedbackApiService) {}
 
   ngOnInit(): void {
-    this.loadFeedback();
+    // Por ahora no llamamos a feedbackApi porque esta pantalla no tiene forma de resolver el playerId real.
+    // Cuando exista un endpoint tipo `/api/me` o `/api/players/me`, podremos obtener el id real.
   }
 
   loadFeedback(): void {
-    this.feedbackLoading = true;
-    this.feedbackError = null;
-    this.feedbackApi.listRecentForPlayer(this.player.id, 12).subscribe({
-      next: (res) => {
-        this.feedbackLoading = false;
-        const items = res?.items && Array.isArray(res.items) ? res.items : this.buildMockSurveys();
-        // Newest first
-        this.recentSurveys = [...items].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)).slice(0, 6);
-        this.weeklyAggregates = this.computeWeeklyAggregates(items).slice(0, 4);
-      },
-      error: (e: unknown) => {
-        this.feedbackLoading = false;
-        this.feedbackError = e instanceof Error ? e.message : 'No se pudo cargar el feedback.';
-      },
-    });
+    this.feedbackLoading = false;
+    this.recentSurveys = [];
+    this.weeklyAggregates = [];
+    this.feedbackError = 'Aún no disponible: falta endpoint para resolver el jugador actual.';
   }
 
   private weekKey(d: Date): string {
@@ -98,34 +77,4 @@ export class PlayerDashboard {
     return out.sort((a, b) => (a.week < b.week ? 1 : -1));
   }
 
-  private buildMockSurveys(): FeedbackSurveyListItem[] {
-    const now = new Date();
-    const iso = (d: Date) => d.toISOString();
-    return [
-      {
-        id: 'fs-1',
-        playerId: this.player.id,
-        targetType: 'session',
-        targetId: 's1',
-        createdAt: iso(new Date(now.getTime() - 2 * 86400000)),
-        answers: { rpe: 7, fatigue: 7, pain: 2, sleep: 3, stress: 2, mood: 4, notes: 'Piernas cargadas.' },
-      },
-      {
-        id: 'fs-2',
-        playerId: this.player.id,
-        targetType: 'session',
-        targetId: 's0',
-        createdAt: iso(new Date(now.getTime() - 1 * 86400000)),
-        answers: { rpe: 6, fatigue: 5, pain: 1, sleep: 4, stress: 2, mood: 5, notes: '' },
-      },
-      {
-        id: 'fs-3',
-        playerId: this.player.id,
-        targetType: 'planning',
-        targetId: 'pl-1',
-        createdAt: iso(now),
-        answers: { rpe: 8, fatigue: 8, pain: 3, sleep: 2, stress: 4, mood: 3, notes: 'Semana exigente.' },
-      },
-    ];
-  }
 }

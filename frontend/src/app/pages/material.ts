@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -9,9 +9,12 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 import { PageHeader } from '../components/page-header/page-header';
 import { AppShell } from '../layout/app-shell/app-shell';
+import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
 
 @Component({
   selector: 'app-material',
@@ -25,15 +28,17 @@ import { AppShell } from '../layout/app-shell/app-shell';
     SelectModule,
     TagModule,
     InputNumberModule,
+    ToastModule,
     PageHeader,
 		AppShell,
   ],
+  providers: [MessageService],
   templateUrl: './material.html',
   styleUrl: './material.css',
 })
 export class Material {
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
+  private readonly api = inject(EquipmentApi);
+  private readonly toast = inject(MessageService);
 
   categoryOptions = [
     { label: 'Todas', value: 'all' },
@@ -58,23 +63,65 @@ export class Material {
     status: 'all',
   };
 
-  items = [
-    { id: 'm1', name: 'Balón talla 7', category: 'Balones', total: 12, available: 10 },
-    { id: 'm2', name: 'Conos entrenamiento', category: 'Conos', total: 30, available: 6 },
-    { id: 'm3', name: 'Petos (varios colores)', category: 'Petos', total: 20, available: 0 },
-    { id: 'm4', name: 'Escalera coordinación', category: 'Otros', total: 3, available: 3 },
-  ];
+  loading = false;
+  items: Array<{ id: number; name: string; category: string; total: number; available: number }> = [];
 
   materialDialogVisible = false;
   dialogMode: 'create' | 'edit' = 'create';
 
   draft = {
-    id: '',
+    id: 0,
     name: '',
     category: 'Balones',
     total: 0,
     available: 0,
   };
+
+  constructor() {
+    this.load();
+  }
+
+  private toUiItem(e: EquipmentDto): { id: number; name: string; category: string; total: number; available: number } {
+    // Nota: el backend equipa `quantity` + `status`, y no tiene categoría ni disponibles.
+    // Para mantener la UI: total = quantity. available depende de status.
+    const total = Math.max(0, Number(e.quantity) || 0);
+    const available = e.status === 'unavailable' || e.status === 'maintenance' ? 0 : total;
+
+    return {
+      id: Number(e.id),
+      name: e.name,
+      category: (e.characteristics as any)?.category ? String((e.characteristics as any).category) : 'Otros',
+      total,
+      available,
+    };
+  }
+
+  private toPayload(draft: typeof this.draft): Partial<EquipmentDto> {
+    const total = Math.max(0, Number(draft.total) || 0);
+    const available = Math.min(total, Math.max(0, Number(draft.available) || 0));
+    const status: 'available' | 'unavailable' = available <= 0 ? 'unavailable' : 'available';
+    return {
+      name: draft.name.trim(),
+      quantity: total,
+      status,
+      characteristics: { category: draft.category },
+    } as any;
+  }
+
+  load(): void {
+    this.loading = true;
+    this.api.list({ search: this.filters.search || undefined }).subscribe({
+      next: (items) => {
+        this.loading = false;
+        this.items = (items ?? []).map((e) => this.toUiItem(e));
+      },
+      error: (e: unknown) => {
+        this.loading = false;
+        const msg = e instanceof Error ? e.message : 'No se pudo cargar el material.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
+  }
 
   get filteredItems() {
     const q = this.filters.search.trim().toLowerCase();
@@ -108,7 +155,7 @@ export class Material {
 
   openCreate(): void {
     this.dialogMode = 'create';
-    this.draft = { id: '', name: '', category: 'Balones', total: 0, available: 0 };
+    this.draft = { id: 0, name: '', category: 'Balones', total: 0, available: 0 };
     this.materialDialogVisible = true;
   }
 
@@ -129,12 +176,33 @@ export class Material {
     const total = Math.max(0, Number(this.draft.total) || 0);
     const available = Math.min(total, Math.max(0, Number(this.draft.available) || 0));
 
+    const payload = this.toPayload({ ...this.draft, name, total, available });
+
     if (this.dialogMode === 'create') {
-      this.items = [{ ...this.draft, id: `m${Date.now()}`, name, total, available }, ...this.items];
-    } else {
-      this.items = this.items.map((i) => (i.id === this.draft.id ? { ...this.draft, name, total, available } : i));
+      this.api.create(payload).subscribe({
+        next: () => {
+          this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Material creado.' });
+          this.closeDialog();
+          this.load();
+        },
+        error: (e: unknown) => {
+          const msg = e instanceof Error ? e.message : 'No se pudo crear el material.';
+          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        },
+      });
+      return;
     }
 
-    this.closeDialog();
+    this.api.update(this.draft.id, payload).subscribe({
+      next: () => {
+        this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Material actualizado.' });
+        this.closeDialog();
+        this.load();
+      },
+      error: (e: unknown) => {
+        const msg = e instanceof Error ? e.message : 'No se pudo actualizar el material.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
   }
 }

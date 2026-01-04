@@ -6,27 +6,11 @@
 		</div>
 
 		<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-			<app-page-header [title]="player.name" [subtitle]="player.position"></app-page-header>
-			<div class="mt-3 flex flex-wrap items-center gap-2">
-				<p-tag [value]="player.status" severity="success"></p-tag>
-				<div class="text-[13px] text-[#9ca3af]">Resumen de métricas y feedback reciente</div>
+			<app-page-header [title]="playerName" [subtitle]="playerSubtitle"></app-page-header>
+			<div class="mt-3 text-[13px] text-[#9ca3af]">
+				Aún no disponible: falta endpoint para cargar el perfil del jugador actual y sus métricas.
 			</div>
 		</div>
-
-		<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-				@for (m of metrics; track m.id) {
-					<div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-						<div class="flex items-start justify-between gap-3">
-							<div>
-								<div class="text-[12px] text-[#9ca3af]">{{ m.label }}</div>
-								<div class="mt-1 text-[24px] font-semibold text-[#f9fafb]">{{ m.value }}</div>
-								<div class="mt-1 text-[12px] text-[#6b7280]">{{ m.hint }}</div>
-							</div>
-							<p-tag [value]="m.severity" [severity]="m.severity"></p-tag>
-						</div>
-					</div>
-				}
-			</div>
 
 		<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
 			<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
@@ -35,7 +19,7 @@
 						<div class="text-[14px] font-semibold text-[#f9fafb]">Últimas encuestas</div>
 						<div class="mt-1 text-[12px] text-[#9ca3af]">RPE, fatiga, dolor y bienestar.</div>
 					</div>
-					<button pButton type="button" label="Recargar" icon="pi pi-refresh" (click)="loadFeedback()" class="bp-btn bp-btn-secondary"></button>
+					<button pButton type="button" label="Recargar" icon="pi pi-refresh" (click)="loadFeedback()" class="bp-btn bp-btn-secondary" [disabled]="true"></button>
 				</div>
 
 				@if (feedbackLoading) {
@@ -44,7 +28,7 @@
 						Cargando…
 					</div>
 				} @else if (feedbackError) {
-					<div class="mt-4 text-[13px] text-red-200 bg-red-950/30 border border-red-900/50 rounded-lg p-3">{{ feedbackError }}</div>
+					<div class="mt-4 text-[13px] text-[#9ca3af] border border-[#1f2937] bg-[#111827] rounded-lg p-3">{{ feedbackError }}</div>
 				} @else if (!recentSurveys?.length) {
 					<div class="mt-4 text-[13px] text-[#9ca3af]">No hay encuestas registradas.</div>
 				} @else {

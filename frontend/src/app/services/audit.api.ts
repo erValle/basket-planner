@@ -8,10 +8,14 @@ export class AuditApiService {
   constructor(private readonly api: ApiClient) {}
 
   list(params: AuditListParams = {}) {
-    return this.api.post<AuditListResponse>(`/api/audit/search`, params);
+    // Backend: GET /api/audit-logs
+    // We use GET + query params.
+    return this.api.get<AuditListResponse>(`/api/audit-logs`, { params });
   }
 
   get(id: string) {
-    return this.api.get<AuditGetResponse>(`/api/audit/${encodeURIComponent(id)}`);
+    // Backend currently exposes list-only for audit logs.
+    // Keep method for future.
+    return this.api.get<AuditGetResponse>(`/api/audit-logs/${encodeURIComponent(id)}`);
   }
 }

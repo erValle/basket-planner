@@ -1,4 +1,5 @@
 <app-shell title="Nuevo material" subtitle="Añade un nuevo elemento al inventario.">
+	<p-toast></p-toast>
 	<div class="max-w-7xl mx-auto">
 		<app-page-header
 			[title]="'Nuevo material'"
@@ -68,7 +69,8 @@
 						<p-button
 							label="Guardar"
 							(click)="save()"
-							[disabled]="!form.name.trim()"
+							[disabled]="!form.name.trim() || saving"
+							[loading]="saving"
 							styleClass="bp-btn bp-btn-primary"
 						></p-button>
 					</div>

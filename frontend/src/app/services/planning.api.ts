@@ -18,58 +18,96 @@ export class PlanningApiService {
   ) {}
 
   /**
-   * List plannings (stub endpoint).
-   * Backend contract TBD.
+   * List plannings for listing screen.
+   * Backend: GET /api/training-plans
    */
   list(params: PlanningListParams) {
-    return this.api.get<PlanningListResponse>('/api/plannings', { params });
+    const query: any = {};
+    // Current backend supports basic filters. Keep forward compatible params.
+    if ((params as any)?.status) query.status = String((params as any).status);
+    if ((params as any)?.page != null) query.page = String((params as any).page);
+    if ((params as any)?.pageSize != null) query.pageSize = String((params as any).pageSize);
+
+    // club/team/search/dateRange are not implemented by backend yet.
+    return this.api.get<any>(`/api/training-plans`, { params: query });
   }
 
   /**
-   * Get planning detail (stub endpoint).
+   * Get training plan detail.
+   * Backend: GET /api/training-plans/:id
    */
   get(id: string, version?: string) {
-    return this.api.get<PlanningDetailResponse>(`/api/plannings/${encodeURIComponent(id)}`, {
-      params: version ? { version } : {},
+    // NOTE: backend returns TrainingPlan shape; PlanningDetail maps it client-side.
+    return this.api.get<any>(`/api/training-plans/${encodeURIComponent(id)}`, {
+      params: {},
     });
   }
 
   /**
-   * Export planning as PDF (stub endpoint).
+   * Get one version.
+   * Backend: GET /api/training-plans/:trainingPlanId/versions/:id
    */
-  exportPdf(id: string, version?: string) {
-    // Use HttpClient directly for blob downloads.
-    return this.http.get(`/api/plannings/${encodeURIComponent(id)}/export/pdf`, {
-      params: version ? { version } : {},
+  getVersion(trainingPlanId: string, versionId: string) {
+    return this.api.get<any>(
+      `/api/training-plans/${encodeURIComponent(trainingPlanId)}/versions/${encodeURIComponent(versionId)}`,
+      { params: {} },
+    );
+  }
+
+  /**
+   * Export a planning version.
+   * Backend: GET /api/planning/:id/versions/:versionId/export?format=pdf
+   */
+  exportPdf(id: string, versionId: string) {
+    return this.http.get(`/api/planning/${encodeURIComponent(id)}/versions/${encodeURIComponent(versionId)}/export`, {
+      params: { format: 'pdf' },
       responseType: 'blob',
     });
   }
 
   /**
-   * Export planning as CSV (stub endpoint).
+   * Backend: GET /api/planning/:id/versions/:versionId/export?format=csv
    */
-  exportCsv(id: string, version?: string) {
-    return this.http.get(`/api/plannings/${encodeURIComponent(id)}/export/csv`, {
-      params: version ? { version } : {},
+  exportCsv(id: string, versionId: string) {
+    return this.http.get(`/api/planning/${encodeURIComponent(id)}/versions/${encodeURIComponent(versionId)}/export`, {
+      params: { format: 'csv' },
       responseType: 'blob',
     });
   }
 
   /**
-   * Create a NEW version for a planning (stub endpoint).
-   * Intention: backend clones + stores a new version.
+   * Create a new version for a training plan.
+   * Backend: POST /api/training-plans/:trainingPlanId/versions
    */
   createVersion(id: string, payload: unknown) {
-    return this.api.post<{ version: string }>(`/api/plannings/${encodeURIComponent(id)}/versions`, payload);
+    return this.api.post<any>(`/api/training-plans/${encodeURIComponent(id)}/versions`, payload);
   }
 
   /**
-   * Send an export by email (frontend-only contract).
-   * Placeholder endpoint.
+   * Create a new version with auto versionNumber.
+   * Backend: POST /api/training-plans/:trainingPlanId/versions/new
+   */
+  createNewVersion(trainingPlanId: string, payload: unknown) {
+    return this.api.post<any>(
+      `/api/training-plans/${encodeURIComponent(trainingPlanId)}/versions/new`,
+      payload,
+    );
+  }
+
+  /**
+   * Delete a training plan.
+   * Backend: DELETE /api/training-plans/:id
+   */
+  remove(id: string) {
+    return this.api.delete<void>(`/api/training-plans/${encodeURIComponent(id)}`);
+  }
+
+  /**
+   * Email export is not implemented in backend yet.
    */
   sendExportEmail(id: string, payload: PlanningExportEmailPayload) {
     return this.api.post<PlanningExportEmailResponse>(
-      `/api/plannings/${encodeURIComponent(id)}/export/email`,
+      `/api/planning/${encodeURIComponent(id)}/export/email`,
       payload,
     );
   }

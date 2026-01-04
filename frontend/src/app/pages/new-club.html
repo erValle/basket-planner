@@ -1,4 +1,5 @@
 <app-shell title="Nuevo club" subtitle="Crea el club y configura sus datos básicos.">
+	<p-toast></p-toast>
 	<div class="max-w-4xl mx-auto">
 		<app-page-header
 			[title]="'Nuevo club'"
@@ -49,13 +50,14 @@
 					label="Cancelar"
 					severity="secondary"
 					[outlined]="true"
+					[disabled]="saving"
 					(click)="cancel()"
 					styleClass="bp-btn bp-btn-secondary"
 				></p-button>
 				<p-button
 					label="Guardar"
 					(click)="save()"
-					[disabled]="!form.name.trim()"
+					[disabled]="saving || !form.name.trim()"
 					styleClass="bp-btn bp-btn-primary"
 				></p-button>
 			</div>

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,19 +8,35 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 import { PageHeader } from '../components/page-header/page-header';
 import { AppShell } from '../layout/app-shell/app-shell';
+import { ClubsApi, ClubDto } from '../services/clubs.api';
 
 @Component({
   selector: 'app-clubs',
-  imports: [CommonModule, FormsModule, RouterLink, ButtonModule, DialogModule, InputTextModule, SelectModule, TagModule, PageHeader, AppShell],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    ButtonModule,
+    DialogModule,
+    InputTextModule,
+    SelectModule,
+    TagModule,
+    ToastModule,
+    PageHeader,
+    AppShell,
+  ],
+  providers: [MessageService],
   templateUrl: './clubs.html',
   styleUrl: './clubs.css',
 })
 export class Clubs {
-  teams = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teams[0];
+  private readonly api = inject(ClubsApi);
+  private readonly toast = inject(MessageService);
 
   filters = {
     search: '',
@@ -33,22 +49,49 @@ export class Clubs {
     { label: 'Inactivos', value: 'inactive' },
   ];
 
-  clubs = [
-    { id: 'c1', name: 'Club Ficticio', city: 'Valencia', status: 'active' as const, teams: 6 },
-    { id: 'c2', name: 'Basket Norte', city: 'Castellón', status: 'active' as const, teams: 4 },
-    { id: 'c3', name: 'Academia Sur', city: 'Alicante', status: 'inactive' as const, teams: 2 },
-  ];
+  loading = false;
+
+  clubs: Array<{ id: number; name: string; city: string; status: 'active' | 'inactive'; teams: number }> = [];
 
   clubDialogVisible = false;
   dialogMode: 'create' | 'edit' = 'create';
 
   draft = {
-    id: '',
+    id: 0,
     name: '',
     city: '',
     status: 'active' as 'active' | 'inactive',
     teams: 0,
   };
+
+  constructor() {
+    this.load();
+  }
+
+  private toUiClub(c: ClubDto): { id: number; name: string; city: string; status: 'active' | 'inactive'; teams: number } {
+    return {
+      id: Number(c.id),
+      name: c.name,
+      city: (c.city ?? '').toString(),
+      status: 'active',
+      teams: typeof c.teamsCount === 'number' ? c.teamsCount : 0,
+    };
+  }
+
+  load(): void {
+    this.loading = true;
+    this.api.list().subscribe({
+      next: (items) => {
+        this.loading = false;
+        this.clubs = (items ?? []).map((c) => this.toUiClub(c));
+      },
+      error: (e: unknown) => {
+        this.loading = false;
+        const msg = e instanceof Error ? e.message : 'No se pudieron cargar los clubes.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
+  }
 
   get filteredClubs() {
     const q = this.filters.search.trim().toLowerCase();
@@ -66,7 +109,7 @@ export class Clubs {
 
   openCreate(): void {
     this.dialogMode = 'create';
-    this.draft = { id: '', name: '', city: '', status: 'active', teams: 0 };
+    this.draft = { id: 0, name: '', city: '', status: 'active', teams: 0 };
     this.clubDialogVisible = true;
   }
 
@@ -84,15 +127,33 @@ export class Clubs {
     const name = this.draft.name.trim();
     if (!name) return;
 
+    const payload = { name, city: this.draft.city.trim() || null };
+
     if (this.dialogMode === 'create') {
-      this.clubs = [
-        { ...this.draft, id: `c${Date.now()}`, name, city: this.draft.city.trim(), teams: Number(this.draft.teams) || 0 },
-        ...this.clubs,
-      ];
-    } else {
-      this.clubs = this.clubs.map((c) => (c.id === this.draft.id ? { ...this.draft, name, city: this.draft.city.trim() } : c));
+      this.api.create(payload).subscribe({
+        next: () => {
+          this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Club creado.' });
+          this.closeDialog();
+          this.load();
+        },
+        error: (e: unknown) => {
+          const msg = e instanceof Error ? e.message : 'No se pudo crear el club.';
+          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        },
+      });
+      return;
     }
 
-    this.closeDialog();
+    this.api.update(this.draft.id, payload).subscribe({
+      next: () => {
+        this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Club actualizado.' });
+        this.closeDialog();
+        this.load();
+      },
+      error: (e: unknown) => {
+        const msg = e instanceof Error ? e.message : 'No se pudo actualizar el club.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
   }
 }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,25 +8,32 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
+import { MessageService } from 'primeng/api';
+import { ToastModule } from 'primeng/toast';
 
 import { PageHeader } from '../components/page-header/page-header';
 import { AppShell } from '../layout/app-shell/app-shell';
+import { ClubContextService } from '../core/context/club-context.service';
+import { ClubsApi, ClubDto } from '../services/clubs.api';
+import { TeamsApi, TeamDto } from '../services/teams.api';
 
 @Component({
   selector: 'app-teams',
-	imports: [CommonModule, FormsModule, RouterLink, ButtonModule, DialogModule, InputTextModule, SelectModule, TagModule, PageHeader, AppShell],
+	imports: [CommonModule, FormsModule, RouterLink, ButtonModule, DialogModule, InputTextModule, SelectModule, TagModule, ToastModule, PageHeader, AppShell],
+  providers: [MessageService],
   templateUrl: './teams.html',
   styleUrl: './teams.css',
 })
 export class Teams {
-  teamsTop = ['Club Ficticio – Senior Masculino', 'Club Ficticio – Juvenil'];
-  selectedTeam = this.teamsTop[0];
+  private readonly api = inject(TeamsApi);
+  private readonly clubsApi = inject(ClubsApi);
+  private readonly toast = inject(MessageService);
+  private readonly clubContext = inject(ClubContextService);
 
-  clubOptions = [
-    { label: 'Club Ficticio', value: 'Club Ficticio' },
-    { label: 'Basket Norte', value: 'Basket Norte' },
-    { label: 'Academia Sur', value: 'Academia Sur' },
-  ];
+  loading = false;
+
+  clubs: ClubDto[] = [];
+  clubOptions: Array<{ label: string; value: number }> = [];
 
   clubOptionsWithAll = [{ label: 'Todos', value: 'all' }, ...this.clubOptions];
 
@@ -45,31 +52,100 @@ export class Teams {
     search: '',
   };
 
-  teams = [
-    { id: 't1', name: 'Senior Masculino', club: 'Club Ficticio', category: 'Senior', status: 'active' as const, players: 14 },
-    { id: 't2', name: 'Senior Femenino', club: 'Club Ficticio', category: 'Senior', status: 'active' as const, players: 12 },
-    { id: 't3', name: 'Junior', club: 'Basket Norte', category: 'Junior', status: 'active' as const, players: 16 },
-    { id: 't4', name: 'Juvenil', club: 'Academia Sur', category: 'Juvenil', status: 'inactive' as const, players: 0 },
-  ];
+  teams: Array<{ id: number; name: string; clubId: number | null; clubName: string; category: string; status: 'active' | 'inactive'; players: number }> = [];
 
   teamDialogVisible = false;
   dialogMode: 'create' | 'edit' = 'create';
 
   draft = {
-    id: '',
+    id: 0,
     name: '',
-    club: 'Club Ficticio',
+    clubId: 0 as number,
+    club: '',
     category: 'Senior',
     status: 'active' as 'active' | 'inactive',
     players: 0,
   };
 
+  constructor() {
+    this.loadClubs();
+    this.loadTeams();
+
+    // Keep list aligned with the global club selector.
+    this.clubContext.selectedClubId$.subscribe((clubId) => {
+      if (clubId == null) return;
+      this.filters.club = String(clubId);
+      this.loadTeams();
+    });
+  }
+
+  private clubNameById(id: number | null | undefined): string {
+    if (!id) return '';
+    const c = this.clubs.find((x) => Number(x.id) === Number(id));
+    return c?.name ?? '';
+  }
+
+  private toUiTeam(t: TeamDto): { id: number; name: string; clubId: number | null; clubName: string; category: string; status: 'active' | 'inactive'; players: number } {
+    return {
+      id: Number(t.id),
+      name: t.name,
+      clubId: t.clubId ?? null,
+      clubName: this.clubNameById(t.clubId ?? null),
+      category: (t.category ?? '').toString(),
+      status: t.active === false ? 'inactive' : 'active',
+      players: typeof t.playersCount === 'number' ? t.playersCount : 0,
+    };
+  }
+
+  loadClubs(): void {
+    this.clubsApi.list().subscribe({
+      next: (items) => {
+        this.clubs = items ?? [];
+        this.clubOptions = (items ?? []).map((c) => ({ label: c.name, value: Number(c.id) }));
+        this.clubOptionsWithAll = [{ label: 'Todos', value: 'all' }, ...this.clubOptions.map((o) => ({ label: o.label, value: o.value }))];
+
+        // Default del draft: primer club disponible
+        if (!this.draft.clubId && this.clubOptions.length) {
+          this.draft.clubId = this.clubOptions[0].value;
+          this.draft.club = this.clubNameById(this.draft.clubId);
+        }
+
+        // Recalcular nombres de club en equipos ya cargados
+        this.teams = this.teams.map((t) => ({ ...t, clubName: this.clubNameById(t.clubId) }));
+      },
+      error: (e: unknown) => {
+        const msg = e instanceof Error ? e.message : 'No se pudieron cargar los clubes.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
+  }
+
+  loadTeams(): void {
+    this.loading = true;
+
+    const clubId = this.filters.club !== 'all' ? String(this.filters.club) : undefined;
+    const category = this.filters.category !== 'all' ? String(this.filters.category) : undefined;
+
+    this.api.list({ clubId, category }).subscribe({
+      next: (items) => {
+        this.loading = false;
+        this.teams = (items ?? []).map((t) => this.toUiTeam(t));
+      },
+      error: (e: unknown) => {
+        this.loading = false;
+        const msg = e instanceof Error ? e.message : 'No se pudieron cargar los equipos.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
+  }
+
   get filteredTeams() {
     const q = this.filters.search.trim().toLowerCase();
     return this.teams.filter((t) => {
       const matchesQuery = !q || t.name.toLowerCase().includes(q);
-      const matchesClub = this.filters.club === 'all' || t.club === this.filters.club;
-      const matchesCat = this.filters.category === 'all' || t.category === this.filters.category;
+      // Note: server-side club/category filtering is applied in loadTeams; keep client-side search only.
+      const matchesClub = true;
+      const matchesCat = true;
       return matchesQuery && matchesClub && matchesCat;
     });
   }
@@ -83,9 +159,10 @@ export class Teams {
   openCreate(): void {
     this.dialogMode = 'create';
     this.draft = {
-      id: '',
+      id: 0,
       name: '',
-      club: 'Club Ficticio',
+      clubId: this.clubOptions[0]?.value ?? 0,
+      club: this.clubNameById(this.clubOptions[0]?.value ?? null),
       category: 'Senior',
       status: 'active',
       players: 0,
@@ -95,7 +172,7 @@ export class Teams {
 
   openEdit(item: (typeof this.teams)[number]): void {
     this.dialogMode = 'edit';
-    this.draft = { ...item };
+    this.draft = { id: item.id, name: item.name, clubId: item.clubId ?? 0, club: item.clubName, category: item.category ?? 'Senior', status: item.status, players: item.players };
     this.teamDialogVisible = true;
   }
 
@@ -107,15 +184,34 @@ export class Teams {
     const name = this.draft.name.trim();
     if (!name) return;
 
+    const clubId = this.draft.clubId ? Number(this.draft.clubId) : null;
+    const payload = { name, clubId, category: this.draft.category || null, active: this.draft.status === 'active' };
+
     if (this.dialogMode === 'create') {
-      this.teams = [
-        { ...this.draft, id: `t${Date.now()}`, name, players: Number(this.draft.players) || 0 },
-        ...this.teams,
-      ];
-    } else {
-      this.teams = this.teams.map((t) => (t.id === this.draft.id ? { ...this.draft, name } : t));
+      this.api.create(payload).subscribe({
+        next: () => {
+          this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Equipo creado.' });
+          this.closeDialog();
+          this.loadTeams();
+        },
+        error: (e: unknown) => {
+          const msg = e instanceof Error ? e.message : 'No se pudo crear el equipo.';
+          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        },
+      });
+      return;
     }
 
-    this.closeDialog();
+    this.api.update(this.draft.id, payload).subscribe({
+      next: () => {
+        this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Equipo actualizado.' });
+        this.closeDialog();
+        this.loadTeams();
+      },
+      error: (e: unknown) => {
+        const msg = e instanceof Error ? e.message : 'No se pudo actualizar el equipo.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
   }
 }
