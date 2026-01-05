@@ -116,7 +116,20 @@
           <input
             placeholder="Nombre, email o id…"
             class="w-full"
+            pInputText
+            [(ngModel)]="filters.user"
+            name="user"
           />
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Entidad ID</label>
+          <input pInputText [(ngModel)]="filters.entityId" name="entityId" placeholder="entityId…" class="w-full" />
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Request ID</label>
+          <input pInputText [(ngModel)]="filters.requestId" name="requestId" placeholder="requestId…" class="w-full" />
         </div>
 
         <div>

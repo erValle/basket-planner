@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -104,6 +104,8 @@ export class PlanningDetail {
     mood: 3,
     notes: '',
   };
+
+  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor(
     private readonly api: PlanningApiService,
@@ -290,10 +292,12 @@ export class PlanningDetail {
       this.emptyState = true;
       this.detail = null;
       this.blocks = [];
+      this.cdr.markForCheck();
       return;
     }
 
     this.loading = true;
+    this.cdr.markForCheck();
 
     this.api.get(this.planningId).subscribe({
       next: (plan) => {
@@ -308,6 +312,7 @@ export class PlanningDetail {
           this.emptyState = true;
           this.detail = null;
           this.blocks = [];
+          this.cdr.markForCheck();
           return;
         }
 
@@ -324,12 +329,14 @@ export class PlanningDetail {
             // options show labels, values are real version IDs so export works
             this.versionOptions = (resolved.versions ?? []).map((v: any) => ({ label: v.label, value: v.value }));
             this.selectedVersion = resolvedVersionId;
+            this.cdr.markForCheck();
           },
           error: (e: unknown) => {
             this.loading = false;
             const msg = e instanceof Error ? e.message : 'No se pudo cargar la versión.';
             this.loadError = msg;
             this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+            this.cdr.markForCheck();
           },
         });
       },
@@ -338,6 +345,7 @@ export class PlanningDetail {
         const msg = e instanceof Error ? e.message : 'No se pudo cargar la planificación.';
         this.loadError = msg;
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        this.cdr.markForCheck();
       },
     });
   }

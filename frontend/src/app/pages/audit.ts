@@ -56,6 +56,8 @@ export class AuditPage {
     entity: '',
     action: '' as AuditAction | '',
     user: '',
+    entityId: '',
+    requestId: '',
     from: null as Date | null,
     to: null as Date | null,
   };
@@ -112,7 +114,9 @@ export class AuditPage {
       .list({
         entity: this.filters.entity || undefined,
         action: this.filters.action || undefined,
-        user: this.filters.user || undefined,
+        userId: this.filters.user ? Number(this.filters.user) : undefined,
+        entityId: this.filters.entityId || undefined,
+        requestId: this.filters.requestId || undefined,
         from: this.toIsoDate(this.filters.from),
         to: this.toIsoDate(this.filters.to),
         limit: 200,
@@ -131,7 +135,7 @@ export class AuditPage {
   }
 
   clearFilters(): void {
-    this.filters = { entity: '', action: '', user: '', from: null, to: null };
+    this.filters = { entity: '', action: '', user: '', entityId: '', requestId: '', from: null, to: null };
     this.first = 0;
     this.load();
   }

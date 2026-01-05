@@ -25,6 +25,8 @@ import { PlanificationDraft } from '../models/planification';
 import { PlayersApi, PlayerDto } from '../services/players.api';
 import { TeamsApi, TeamDto } from '../services/teams.api';
 import { ClubContextService } from '../core/context/club-context.service';
+import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
+import { ClubResourcesStore } from '../core/stores/club-resources.store';
 
 type Step = { number: number; label: string };
 type Option = { label: string; value: string };
@@ -158,6 +160,9 @@ export class NewPlanification {
   playersLoading = false;
   playersError: string | null = null;
 
+  // Option A: render immediately and fill sections progressively.
+  pageLoading = true;
+
   private toUiPlayer(
     p: PlayerDto,
   ): { id: string; name: string; position?: string; category?: string; team?: string; teamId?: string } {
@@ -180,7 +185,7 @@ export class NewPlanification {
 
   private loadTeams(): void {
     const clubId = this.clubContext.getSelectedClubIdSnapshot();
-    this.teamsApi.list({ clubId: clubId != null ? String(clubId) : undefined }).subscribe({
+    this.clubResources.teams$(clubId).subscribe({
       next: (teams: TeamDto[]) => {
         this.teamOptions = (teams ?? []).map((t) => ({ label: t.name, value: String(t.id) }));
       },
@@ -242,14 +247,12 @@ export class NewPlanification {
     private readonly playersApi: PlayersApi,
     private readonly teamsApi: TeamsApi,
     private readonly clubContext: ClubContextService,
+    private readonly equipmentApi: EquipmentApi,
+    private readonly clubResources: ClubResourcesStore,
   ) {
-    // initialize material map
-    for (const m of this.materialOptions) {
-      this.materialSelectedMap[m.id] = false;
-    }
-
 	this.loadTeams();
 	this.loadPlayers();
+	this.loadMaterials();
 
     // Restore & keep wizard state in sync with query params.
     // This avoids a "needs one extra click" situation when landing directly on
@@ -284,6 +287,12 @@ export class NewPlanification {
           this.filterTeam = null;
         }
       });
+
+    // Reload club-scoped data when the selected club changes.
+    this.clubContext.selectedClubId$.subscribe(() => {
+      this.loadTeams();
+      this.loadMaterials();
+    });
   }
 
   syncWizardQueryParams(): void {
@@ -314,14 +323,10 @@ export class NewPlanification {
   }
 
   // Step 3 - Restricciones
-  materialOptions = [
-    { id: 'ball', label: 'Balón' },
-    { id: 'cones', label: 'Conos' },
-    { id: 'ladder', label: 'Escalera de coordinación' },
-    { id: 'bands', label: 'Bandas elásticas' },
-    { id: 'hurdles', label: 'Vallas' },
-    { id: 'shooting-machine', label: 'Máquina de tiro' },
-  ];
+  materialOptions: Array<{ id: string; label: string }> = [];
+
+  materialLoading = false;
+  materialError: string | null = null;
 
   selectedMaterials = new Set<string>();
   // Use a map for two-way binding with PrimeNG checkboxes
@@ -374,6 +379,48 @@ export class NewPlanification {
     this.materialSelectedMap[id] = checked;
     if (checked) this.selectedMaterials.add(id);
     else this.selectedMaterials.delete(id);
+  }
+
+  private toMaterialOption(e: EquipmentDto): { id: string; label: string } {
+    return { id: String(e.id), label: String(e.name ?? `Material ${e.id}`) };
+  }
+
+  private syncMaterialSelectedMap(nextOptions: Array<{ id: string; label: string }>): void {
+    const nextMap: Record<string, boolean> = {};
+    for (const opt of nextOptions) {
+      nextMap[opt.id] = this.materialSelectedMap[opt.id] === true;
+    }
+    this.materialSelectedMap = nextMap;
+
+    // Drop selected ids that are no longer present (e.g. club changes).
+    this.selectedMaterials = new Set(Array.from(this.selectedMaterials).filter((id) => nextMap[id] === true));
+  }
+
+  private loadMaterials(): void {
+    const clubId = this.clubContext.getSelectedClubIdSnapshot();
+
+    this.pageLoading = true;
+
+    this.materialLoading = true;
+    this.materialError = null;
+
+    this.clubResources.equipment$(clubId).subscribe({
+      next: (items) => {
+        this.materialLoading = false;
+        const options = (items ?? []).map((e) => this.toMaterialOption(e));
+        this.materialOptions = options;
+        this.syncMaterialSelectedMap(options);
+        this.pageLoading = false;
+      },
+      error: (e: unknown) => {
+        this.materialLoading = false;
+        this.materialOptions = [];
+        this.materialSelectedMap = {};
+        this.selectedMaterials = new Set();
+        this.materialError = e instanceof Error ? e.message : 'No se pudo cargar el material del club.';
+        this.pageLoading = false;
+      },
+    });
   }
 
   get selectedMaterialLabels(): string[] {

@@ -15,6 +15,8 @@ import { ExerciseEquipmentApi } from '../services/exercise-equipment.api';
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 
+import { BehaviorSubject, combineLatest, map, shareReplay, startWith, switchMap } from 'rxjs';
+
 type Option = { label: string; value: string };
 
 interface Exercise {
@@ -69,10 +71,49 @@ export class Exercises implements OnInit {
     search: '',
   };
 
-  exercises: Exercise[] = [];
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+  readonly loading$ = new BehaviorSubject<boolean>(false);
+  readonly loadError$ = new BehaviorSubject<string | null>(null);
 
-  loading = false;
-  loadError: string | null = null;
+  private readonly exercises$ = this.refresh$.pipe(
+    switchMap(() => {
+      this.loading$.next(true);
+      this.loadError$.next(null);
+      return this.exercisesApi.list().pipe(
+        map((items) => (items ?? []).map((dto) => this.fromDto(dto))),
+        map((items) => {
+          this.loading$.next(false);
+          return items;
+        }),
+      );
+    }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+
+  readonly vm$ = combineLatest({
+    items: this.exercises$,
+    loading: this.loading$.pipe(startWith(false)),
+    error: this.loadError$.pipe(startWith(null)),
+    tick: this.refresh$.pipe(startWith(undefined)),
+  }).pipe(
+    map(({ items, loading, error }) => {
+      const filtered = items.filter((exercise) => {
+        const matchesTipo = this.filters.tipo === 'Todos' || exercise.tipo === this.filters.tipo;
+        const matchesDuracion =
+          this.filters.duracion === 'Cualquiera' ||
+          (this.filters.duracion === '10-15' && exercise.duracion >= 10 && exercise.duracion <= 15) ||
+          (this.filters.duracion === '15-20' && exercise.duracion >= 15 && exercise.duracion <= 20);
+        const matchesSearch =
+          this.filters.search === '' ||
+          exercise.nombre.toLowerCase().includes(this.filters.search.toLowerCase());
+
+        return matchesTipo && matchesDuracion && matchesSearch;
+      });
+
+      return { items, filtered, loading, error };
+    }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
 
   newExerciseVisible = false;
   dialogMode: 'create' | 'edit' | 'view' = 'create';
@@ -81,7 +122,7 @@ export class Exercises implements OnInit {
   private equipmentIndex = new Map<number, string>();
 
   ngOnInit() {
-    this.refreshExercises();
+    this.refresh();
 
     // Best-effort load of equipment names to label materialEquipo.
     this.equipmentApi.list({ limit: 500 } as any).subscribe({
@@ -97,19 +138,8 @@ export class Exercises implements OnInit {
     });
   }
 
-  get filteredExercises(): Exercise[] {
-    return this.exercises.filter((exercise) => {
-      const matchesTipo = this.filters.tipo === 'Todos' || exercise.tipo === this.filters.tipo;
-      const matchesDuracion =
-        this.filters.duracion === 'Cualquiera' ||
-        (this.filters.duracion === '10-15' && exercise.duracion >= 10 && exercise.duracion <= 15) ||
-        (this.filters.duracion === '15-20' && exercise.duracion >= 15 && exercise.duracion <= 20);
-      const matchesSearch =
-        this.filters.search === '' ||
-        exercise.nombre.toLowerCase().includes(this.filters.search.toLowerCase());
-
-      return matchesTipo && matchesDuracion && matchesSearch;
-    });
+  refresh(): void {
+    this.refresh$.next();
   }
 
   openNewExercise() {
@@ -194,16 +224,16 @@ export class Exercises implements OnInit {
           this.syncExerciseEquipment(id, value.materialEquipo ?? [])
             .then(() => {
               this.closeNewExercise();
-              this.refreshExercises();
+              this.refresh();
             })
             .catch((err: unknown) => {
               const msg = err instanceof Error ? err.message : 'Error inesperado.';
               // Exercise was saved, equipment sync failed.
-              this.loadError = `Ejercicio guardado, pero no se pudo guardar el material: ${msg}`;
+              this.loadError$.next(`Ejercicio guardado, pero no se pudo guardar el material: ${msg}`);
             });
         },
         error: (err: Error) => {
-          this.loadError = err.message;
+          this.loadError$.next(err.message);
         },
       });
       return;
@@ -214,37 +244,22 @@ export class Exercises implements OnInit {
         const id = Number(created?.id);
         if (!Number.isFinite(id)) {
           this.closeNewExercise();
-          this.refreshExercises();
+          this.refresh();
           return;
         }
 
         this.syncExerciseEquipment(id, value.materialEquipo ?? [])
           .then(() => {
             this.closeNewExercise();
-            this.refreshExercises();
+            this.refresh();
           })
           .catch((err: unknown) => {
             const msg = err instanceof Error ? err.message : 'Error inesperado.';
-            this.loadError = `Ejercicio creado, pero no se pudo guardar el material: ${msg}`;
+            this.loadError$.next(`Ejercicio creado, pero no se pudo guardar el material: ${msg}`);
           });
       },
       error: (err: Error) => {
-        this.loadError = err.message;
-      },
-    });
-  }
-
-  refreshExercises() {
-    this.loading = true;
-    this.loadError = null;
-    this.exercisesApi.list().subscribe({
-      next: (items) => {
-        this.exercises = items.map((dto) => this.fromDto(dto));
-        this.loading = false;
-      },
-      error: (err: Error) => {
-        this.loading = false;
-        this.loadError = err.message;
+        this.loadError$.next(err.message);
       },
     });
   }
@@ -322,7 +337,7 @@ export class Exercises implements OnInit {
       },
       error: (err: Error) => {
         // Honest UI: don't block opening; just show a message.
-        this.loadError = `No se pudo cargar el material del ejercicio: ${err.message}`;
+        this.loadError$.next(`No se pudo cargar el material del ejercicio: ${err.message}`);
       },
     });
   }

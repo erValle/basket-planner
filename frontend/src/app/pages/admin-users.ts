@@ -13,6 +13,8 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
+import { BehaviorSubject, of, map, shareReplay, startWith, switchMap, catchError } from 'rxjs';
+
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 
@@ -20,6 +22,14 @@ import { UsersApiService } from '../services/users.api';
 import { AdminUserListItem, AdminUserRole, AdminUserStatus } from '../models/user-admin';
 
 type Option<T extends string> = { label: string; value: T | 'all' };
+
+interface AdminUsersVm {
+  items: AdminUserListItem[];
+  pageItems: AdminUserListItem[];
+  loading: boolean;
+  error: string | null;
+  total: number;
+}
 
 @Component({
   selector: 'app-admin-users',
@@ -64,8 +74,7 @@ export class AdminUsers {
     status: 'all' as AdminUserStatus | 'all',
   };
 
-  loading = false;
-  loadError: string | null = null;
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
 
   rows = 10;
   first = 0;
@@ -74,7 +83,43 @@ export class AdminUsers {
   // Actions state
   mutatingId: string | null = null;
 
-  users: AdminUserListItem[] = [];
+  readonly vm$ = this.refresh$.pipe(
+    switchMap(() => {
+      return this.api
+        .list({
+          search: this.filters.search || undefined,
+          role: this.filters.role === 'all' ? undefined : this.filters.role,
+          status: this.filters.status === 'all' ? undefined : this.filters.status,
+          page: 1,
+          pageSize: 2000,
+        } as any)
+        .pipe(
+          map((res: any) => {
+            const rows = Array.isArray(res) ? res : Array.isArray(res?.items) ? res.items : [];
+            const items = rows.map((u: any) => ({
+              id: String(u.id),
+              name: (u.name ?? '').toString(),
+              email: (u.email ?? '').toString(),
+              role: (u.role ?? 'player') as AdminUserRole,
+              status: (u.status ?? 'pending') as AdminUserStatus,
+              createdAt: u.createdAt ? String(u.createdAt).slice(0, 19).replace('T', ' ') : '',
+            })) as AdminUserListItem[];
+
+            const total = items.length;
+            const pageItems = items.slice(this.first, this.first + this.rows);
+            this.totalRecords = total;
+
+            return { items, pageItems, loading: false, error: null, total } as AdminUsersVm;
+          }),
+          startWith({ items: [], pageItems: [], loading: true, error: null, total: 0 } as AdminUsersVm),
+          catchError((e: unknown) => {
+            const error = e instanceof Error ? e.message : 'No se pudieron cargar los usuarios.';
+            return of({ items: [], pageItems: [], loading: false, error, total: 0 } as AdminUsersVm);
+          }),
+        );
+    }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
 
   constructor(
     private readonly api: UsersApiService,
@@ -84,51 +129,23 @@ export class AdminUsers {
   ) {}
 
   ngOnInit(): void {
-    this.load();
+    this.refresh();
   }
 
-  load(): void {
-    this.loading = true;
-    this.loadError = null;
-
-    this.api
-      .list({
-        search: this.filters.search || undefined,
-        role: this.filters.role === 'all' ? undefined : this.filters.role,
-        status: this.filters.status === 'all' ? undefined : this.filters.status,
-        page: Math.floor(this.first / this.rows) + 1,
-        pageSize: this.rows,
-      })
-      .subscribe({
-        next: (res) => {
-          this.loading = false;
-          if (res?.items && Array.isArray(res.items)) this.users = res.items;
-          this.totalRecords = typeof (res as any)?.total === 'number' ? (res as any).total : (res as any)?.count ?? this.totalRecords;
-        },
-        error: (e: unknown) => {
-          this.loading = false;
-          const msg = e instanceof Error ? e.message : 'No se pudieron cargar los usuarios.';
-          this.loadError = msg;
-          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-        },
-      });
+  refresh(): void {
+    this.refresh$.next();
   }
 
   onPageChange(e: any): void {
     this.first = e?.first ?? 0;
     this.rows = e?.rows ?? this.rows;
-    this.load();
+    this.refresh();
   }
 
   clearFilters(): void {
     this.filters = { search: '', role: 'all', status: 'all' };
     this.first = 0;
-    this.load();
-  }
-
-  get filteredUsers(): AdminUserListItem[] {
-    // Backend already supports filtering; keep table aligned with server results.
-    return this.users;
+    this.refresh();
   }
 
   roleLabel(role: AdminUserRole): string {
@@ -191,7 +208,7 @@ export class AdminUsers {
         req$.subscribe({
           next: () => {
             this.mutatingId = null;
-            this.load();
+            this.refresh();
             this.toast.add({ severity: 'success', summary: 'Actualizado', detail: `Usuario ${actionLabel.toLowerCase()}ado.` });
           },
           error: (e: unknown) => {
@@ -221,7 +238,7 @@ export class AdminUsers {
     this.api.remove(user.id).subscribe({
       next: () => {
         this.mutatingId = null;
-        this.users = this.users.filter((u) => u.id !== user.id);
+        this.refresh();
         this.toast.add({ severity: 'success', summary: 'Eliminado', detail: 'Usuario eliminado.' });
       },
       error: (e: unknown) => {

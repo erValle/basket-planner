@@ -16,6 +16,7 @@
 					<p-select
 						[options]="clubOptionsWithAll"
 						[(ngModel)]="filters.club"
+						(ngModelChange)="refresh()"
 						name="club"
 						optionLabel="label"
 						optionValue="value"
@@ -28,6 +29,7 @@
 					<p-select
 						[options]="categoryOptions"
 							[(ngModel)]="filters.category"
+							(ngModelChange)="refresh()"
 							name="category"
 						optionLabel="label"
 						optionValue="value"
@@ -40,6 +42,7 @@
 					<input
 						pInputText
 						[(ngModel)]="filters.search"
+						(ngModelChange)="refresh()"
 						name="search"
 						placeholder="Nombre del equipo"
 						class="w-full"
@@ -51,8 +54,9 @@
 			</div>
 		</div>
 
+		@let vm = (vm$ | async);
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-			@for (team of filteredTeams; track team.id) {
+			@for (team of (vm?.filtered ?? []); track team.id) {
 				<div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
 					<div class="flex items-start justify-between gap-3">
 						<div>
@@ -69,8 +73,8 @@
 			}
 		</div>
 
-		@if (filteredTeams.length === 0) {
-			<div class="mt-10 text-center text-[13px] text-[#9ca3af]">No hay equipos con esos filtros.</div>
+		@if ((vm?.filtered?.length ?? 0) === 0) {
+			<div class="mt-10 text-center text-[13px] text-[#9ca3af]">Selecciona un club</div>
 		}
 	</div>
 

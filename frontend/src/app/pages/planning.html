@@ -1,6 +1,8 @@
 <app-shell title="Planificaciones" subtitle="Listado de planificaciones">
   <p-toast></p-toast>
-  <p-confirmDialog></p-confirmDialog>
+  <p-confirmDialog styleClass="bp-dialog"></p-confirmDialog>
+
+  @let vm = (vm$ | async);
 
   <p-dialog
     header="Enviar planificación"
@@ -9,6 +11,7 @@
     [draggable]="false"
     [closable]="!sendingEmail"
     [dismissableMask]="!sendingEmail"
+    styleClass="bp-dialog"
     [style]="{ width: '720px' }"
     [contentStyle]="{ background: '#020617', border: '1px solid #1f2937' }"
   >
@@ -161,7 +164,8 @@
             [showIcon]="true"
             dateFormat="dd/mm/yy"
             inputStyleClass="w-full"
-            styleClass="w-full"
+            styleClass="w-full bp-date"
+            (onSelect)="refresh()"
           ></p-datePicker>
         </div>
 
@@ -175,6 +179,7 @@
             optionValue="value"
             styleClass="bp-select"
             [panelStyleClass]="'bp-select-panel'"
+            (onChange)="refresh()"
           ></p-select>
         </div>
 
@@ -186,6 +191,7 @@
             name="search"
             placeholder="Equipo, objetivo, autor…"
             class="w-full"
+            (ngModelChange)="refresh()"
           />
         </div>
       </div>
@@ -195,7 +201,7 @@
           Usa filtros para acotar resultados. La paginación se aplicará desde API cuando esté disponible.
         </div>
         <div class="flex gap-2">
-          <button type="button" pButton label="Aplicar" class="p-button-sm" (click)="load()"></button>
+          <button type="button" pButton label="Aplicar" class="p-button-sm" (click)="refresh()"></button>
           <button type="button" pButton label="Limpiar filtros" class="p-button-text p-button-sm" (click)="clearFilters()"></button>
         </div>
       </div>
@@ -206,17 +212,17 @@
       class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
       style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
     >
-      @if (loading) {
+      @if (vm?.loading) {
         <div class="border-b border-[#1f2937] pb-4 mb-4 text-[13px] text-[#9ca3af]">Cargando planificaciones…</div>
       }
-      @if (loadError) {
+      @if (vm?.error) {
         <div class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200 mb-4">
-          {{ loadError }}
+          {{ vm?.error }}
         </div>
       }
 
       <p-table
-        [value]="filteredPlannings"
+        [value]="(vm?.filtered ?? [])"
         [paginator]="true"
         [rows]="rows"
         [first]="first"
@@ -284,7 +290,7 @@
         </ng-template>
       </p-table>
 
-      @if (!loading && filteredPlannings.length === 0) {
+      @if (!vm?.loading && (vm?.filtered?.length ?? 0) === 0) {
         <div class="mt-8 text-center text-[13px] text-[#9ca3af]">No hay planificaciones con esos filtros.</div>
       }
     </div>

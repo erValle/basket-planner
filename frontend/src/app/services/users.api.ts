@@ -13,7 +13,15 @@ export class UsersApiService {
   constructor(private readonly api: ApiClient) {}
 
   list(params: AdminUserListParams) {
-    return this.api.get<AdminUserListResponse>('/api/users', { params });
+    // Backend supports filtering by: email, role, status (no pagination at the moment).
+    // Frontend keeps pagination locally.
+    const mapped: any = {
+      email: params?.search || undefined,
+      role: params?.role || undefined,
+      status: params?.status || undefined,
+    };
+
+    return this.api.get<any>('/api/users', { params: mapped });
   }
 
   get(id: string) {

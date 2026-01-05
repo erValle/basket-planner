@@ -25,6 +25,8 @@ import {
 } from '../models/planning';
 import { ClubContextService } from '../core/context/club-context.service';
 import { TeamsApi, TeamDto } from '../services/teams.api';
+import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
+import { ClubResourcesStore } from '../core/stores/club-resources.store';
 
 type Option = { label: string; value: string };
 
@@ -53,10 +55,20 @@ type Option = { label: string; value: string };
 export class PlanningEdit {
   private readonly clubContext = inject(ClubContextService);
   private readonly teamsApi = inject(TeamsApi);
+  private readonly equipmentApi = inject(EquipmentApi);
+  private readonly clubResources = inject(ClubResourcesStore);
 
   teams: TeamDto[] = [];
   teamOptions: Option[] = [];
   selectedTeamId: string | null = null;
+
+  equipment: EquipmentDto[] = [];
+  equipmentOptions: Option[] = [];
+  selectedMaterialName: string | null = null;
+  equipmentLoading = false;
+  equipmentError: string | null = null;
+
+  pageLoading = true;
 
   planningId: string | null = null;
   fromVersion: string | null = null;
@@ -87,7 +99,7 @@ export class PlanningEdit {
   ngOnInit(): void {
     // Keep team options aligned with the global club selector.
     this.clubContext.selectedClubId$.subscribe(() => {
-      this.loadTeams();
+      this.bootstrapResources();
     });
 
     this.route.paramMap.subscribe((p) => {
@@ -96,20 +108,23 @@ export class PlanningEdit {
       this.bootstrapDraft();
     });
 
-    this.loadTeams();
+    this.bootstrapResources();
   }
 
-  private loadTeams(): void {
+  private bootstrapResources(): void {
     const clubId = this.clubContext.getSelectedClubIdSnapshot();
-    this.teamsApi.list({ clubId: clubId != null ? String(clubId) : undefined }).subscribe({
+    this.pageLoading = true;
+
+    // Teams
+    this.clubResources.teams$(clubId).subscribe({
       next: (items) => {
         this.teams = items ?? [];
         this.teamOptions = this.teams.map((t) => ({ label: t.name, value: String(t.id) }));
 
-        // Default to first team if none selected.
         if (!this.selectedTeamId && this.teamOptions.length) {
           this.selectedTeamId = this.teamOptions[0].value;
         }
+        // don't set pageLoading=false here: we wait for equipment too
       },
       error: () => {
         this.teams = [];
@@ -117,7 +132,32 @@ export class PlanningEdit {
         this.selectedTeamId = null;
       },
     });
+
+    // Equipment
+    this.equipmentLoading = true;
+    this.equipmentError = null;
+    this.clubResources.equipment$(clubId).subscribe({
+      next: (items) => {
+        this.equipmentLoading = false;
+        this.equipment = items ?? [];
+        this.equipmentOptions = this.equipment.map((e) => ({ label: e.name, value: String(e.name) }));
+        if (this.selectedMaterialName && !this.equipmentOptions.some((o) => o.value === this.selectedMaterialName)) {
+          this.selectedMaterialName = null;
+        }
+        this.pageLoading = false;
+      },
+      error: (e: unknown) => {
+        this.equipmentLoading = false;
+        this.equipment = [];
+        this.equipmentOptions = [];
+        this.selectedMaterialName = null;
+        this.equipmentError = e instanceof Error ? e.message : 'No se pudo cargar el material del club.';
+        this.pageLoading = false;
+      },
+    });
   }
+
+
 
   private uid(prefix: string): string {
     return `${prefix}-${Math.random().toString(16).slice(2)}-${Date.now().toString(16)}`;

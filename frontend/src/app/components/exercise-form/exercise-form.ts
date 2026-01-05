@@ -60,6 +60,10 @@ export class ExerciseForm implements OnChanges {
   @Output() cancel = new EventEmitter<void>();
   @Output() save = new EventEmitter<ExerciseFormValue>();
 
+  get isViewMode(): boolean {
+    return this.mode === 'view';
+  }
+
   stepIndex = 0;
   materialModalVisible = false;
   equipmentLoading = false;

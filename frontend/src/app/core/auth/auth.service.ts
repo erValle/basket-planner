@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, catchError, map, of, tap } from 'rxjs';
+import { BehaviorSubject, catchError, map, of, tap, timeout } from 'rxjs';
 
 import { ApiClient } from '../../services/api-client';
 import { Role } from './roles';
@@ -31,6 +31,16 @@ export class AuthService {
    */
   login(email: string, password: string) {
     return this.api.post<AuthSession>('/api/auth/login', { email, password }).pipe(
+      timeout({ first: 10000 }),
+      // Backend currently may not return user.name for seeded accounts.
+      // Keep the session shape stable to avoid downstream UI hangs.
+      map((session) => ({
+        ...session,
+        user: {
+          ...session.user,
+          name: session.user?.name ?? session.user?.email ?? 'Usuario',
+        },
+      })),
       tap((session) => this.setSession(session)),
     );
   }

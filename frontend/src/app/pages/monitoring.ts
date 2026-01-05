@@ -9,11 +9,19 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
+import { BehaviorSubject, switchMap, of, catchError, map, startWith, shareReplay } from 'rxjs';
+
 import { PageHeader } from '../components/page-header/page-header';
 import { AppShell } from '../layout/app-shell/app-shell';
 
 import { MonitoringApiService } from '../services/monitoring.api';
 import { MonitoringOverview, MonitoringRange } from '../models/monitoring';
+
+interface MonitoringVm {
+  loading: boolean;
+  error: string | null;
+  overview: MonitoringOverview | null;
+}
 
 @Component({
   selector: 'app-monitoring',
@@ -31,35 +39,35 @@ export class Monitoring {
     to: new Date(),
   };
 
-  loading = false;
-  error: string | null = null;
-  overview: MonitoringOverview | null = null;
-
   hasRange = computed(() => Boolean(this.range.from && this.range.to));
+
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+
+  readonly vm$ = this.refresh$.pipe(
+    switchMap(() =>
+      this.api.getOverview(this.range).pipe(
+        map((overview) => ({ loading: false, error: null, overview }) as MonitoringVm),
+        startWith({ loading: true, error: null, overview: null } as MonitoringVm),
+        catchError((e: unknown) => {
+          const error = e instanceof Error ? e.message : 'No se ha podido cargar monitoring.';
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Monitoring',
+            detail: error,
+          });
+          return of({ loading: false, error, overview: null } as MonitoringVm);
+        }),
+      ),
+    ),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
 
   ngOnInit(): void {
     this.refresh();
   }
 
   refresh(): void {
-    this.loading = true;
-    this.error = null;
-
-    this.api.getOverview(this.range).subscribe({
-      next: (res) => {
-        this.overview = res;
-        this.loading = false;
-      },
-      error: (e: unknown) => {
-        this.loading = false;
-        this.error = e instanceof Error ? e.message : 'No se ha podido cargar monitoring.';
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Monitoring',
-          detail: this.error,
-        });
-      },
-    });
+    this.refresh$.next();
   }
 
   clearRange(): void {

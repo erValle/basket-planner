@@ -8,6 +8,8 @@
 			[action]="openNewExercise.bind(this)"
 		></app-page-header>
 
+		@let vm = (vm$ | async);
+
 		<div
 			class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mt-6"
 			style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
@@ -22,6 +24,7 @@
 						[(ngModel)]="filters.tipo"
 						styleClass="bp-select"
 						[panelStyleClass]="'bp-select-panel'"
+						(onChange)="refresh()"
 					></p-select>
 				</div>
 
@@ -34,6 +37,7 @@
 						[(ngModel)]="filters.duracion"
 						styleClass="bp-select"
 						[panelStyleClass]="'bp-select-panel'"
+						(onChange)="refresh()"
 					></p-select>
 				</div>
 
@@ -45,6 +49,7 @@
 						type="text"
 						placeholder="Buscar por nombre"
 						[(ngModel)]="filters.search"
+						(ngModelChange)="refresh()"
 					/>
 				</div>
 			</div>
@@ -54,23 +59,23 @@
 			class="bg-[#020617] rounded-lg border border-[#1f2937] mt-6"
 			style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
 		>
-			@if (loading) {
+			@if (vm?.loading) {
 				<div class="border-b border-[#1f2937] px-4 py-3 text-[13px] text-[#9ca3af]">Cargando ejercicios…</div>
 			}
-			@if (loadError) {
-				<div class="border-b border-red-900/60 bg-red-950/40 px-4 py-3 text-[13px] text-red-200">{{ loadError }}</div>
+			@if (vm?.error) {
+				<div class="border-b border-red-900/60 bg-red-950/40 px-4 py-3 text-[13px] text-red-200">{{ vm?.error }}</div>
 			}
 
 			<div class="border-b border-[#1f2937] px-4 py-3">
-				<div class="text-[13px] text-[#e5e7eb]">{{ filteredExercises.length }} ejercicio(s)</div>
+				<div class="text-[13px] text-[#e5e7eb]">{{ (vm?.filtered?.length ?? 0) }} ejercicio(s)</div>
 			</div>
 
 			<div class="p-4">
-				@if (filteredExercises.length === 0) {
+				@if ((vm?.filtered?.length ?? 0) === 0) {
 					<div class="py-10 text-center text-[13px] text-[#9ca3af]">No hay ejercicios con esos filtros.</div>
 				} @else {
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-						@for (exercise of filteredExercises; track exercise.id) {
+						@for (exercise of (vm?.filtered ?? []); track exercise.id) {
 							<div class="bg-[#111827] rounded-lg p-5 border border-[#1f2937]">
 								<div class="flex items-start justify-between gap-3">
 									<div>

@@ -4,7 +4,6 @@ const { Op } = require('sequelize');
 
 const { UserClub, User, Club, sequelize } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
-const auditLogService = require('./auditLogService');
 
 const listUserClubs = async ({ userId, clubId } = {}) => {
   const where = {};
@@ -40,7 +39,6 @@ module.exports = {
   createUserClub,
   updateUserClub,
   deleteUserClub,
-  enrollExistingUserAsPlayer,
   transferPlayerToClub,
 };
 
@@ -134,97 +132,6 @@ async function transferPlayerToClub(userId, { clubId, startDate, closePreviousAt
     return {
       closedMembership: closed ? toMembershipDto(byId.get(String(closed.id)) || closed) : null,
       newMembership: toMembershipDto(byId.get(String(created.id)) || created),
-    };
-  });
-}
-
-/**
- * Enroll an existing user (role is null) as a player and create a primary membership.
- * If clubId is not provided, use the actor's active primary club.
- */
-async function enrollExistingUserAsPlayer({ userId, clubId, startDate } = {}, auditCtx = {}) {
-  if (!sequelize) {
-    throw new Error('Database not initialized');
-  }
-
-  return sequelize.transaction(async (t) => {
-    const user = await User.findByPk(userId, { attributes: ['id', 'role', 'status'], transaction: t, lock: t.LOCK.UPDATE });
-    if (!user) {
-      throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
-    }
-
-    if (user.role) {
-      throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'USER_ALREADY_HAS_ROLE', 'User already has a role');
-    }
-
-    // Determine default club
-    let effectiveClubId = clubId ? Number(clubId) : null;
-    if (!effectiveClubId) {
-      const actorId = auditCtx?.actor?.id;
-      if (!actorId) {
-        throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'ACTOR_REQUIRED', 'Actor required to derive default club');
-      }
-
-      const actorPrimary = await UserClub.findOne({
-        where: { userId: actorId, isPrimary: true, endDate: { [Op.is]: null } },
-        transaction: t,
-      });
-
-      if (!actorPrimary) {
-        throw errorUtils.httpError(
-          StatusCodes.BAD_REQUEST,
-          'ACTOR_HAS_NO_PRIMARY_CLUB',
-          'Actor has no active primary club'
-        );
-      }
-      effectiveClubId = actorPrimary.clubId;
-    }
-
-    // Ensure the club exists (FK might already enforce, but be explicit)
-    const club = await Club.findByPk(effectiveClubId, { attributes: ['id', 'name'], transaction: t });
-    if (!club) {
-      throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'CLUB_NOT_FOUND', 'Club not found');
-    }
-
-    // Promote user to player
-    await user.update({ role: 'player', status: user.status === 'pending' ? 'active' : user.status }, { transaction: t });
-
-    const effectiveStart = startDate ? new Date(startDate) : new Date();
-
-    // Create membership as primary (and ensure no other active primary exists)
-    await UserClub.update(
-      { isPrimary: false },
-      { where: { userId: user.id, isPrimary: true, endDate: { [Op.is]: null } }, transaction: t }
-    );
-
-    const membership = await UserClub.create(
-      {
-        userId: user.id,
-        clubId: club.id,
-        isPrimary: true,
-        startDate: effectiveStart,
-        endDate: null,
-      },
-      { transaction: t }
-    );
-
-    Promise.resolve(
-      auditLogService.createAuditLog({
-        user: auditCtx.actor,
-        requestId: auditCtx.requestId,
-        action: 'player.enrolled',
-        entity: 'User',
-        entityId: user.id,
-        metadata: { clubId: club.id, clubName: club.name, membershipId: membership.id },
-      })
-    ).catch(() => {});
-
-    return {
-      user: { id: user.id, role: user.role, status: user.status },
-      membership: toMembershipDto({
-        ...membership.toJSON(),
-        club: { id: club.id, name: club.name },
-      }),
     };
   });
 }

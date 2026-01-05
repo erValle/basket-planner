@@ -23,16 +23,39 @@ export class ClubContextService {
 
 	/**
 	 * Loads clubs associated to the current user via /api/user-clubs.
-	 * If that association can't be loaded, we fall back to listing all clubs.
+	 * For coaches/admins without memberships, falls back to showing all clubs.
 	 */
 	refresh(): void {
-		const userId = this.userContext.getUserSnapshot()?.id;
+		const user = this.userContext.getUserSnapshot();
+		const userId = user?.id;
+		const role = user?.role;
+
 		if (!userId) {
 			this.clubsSubject.next([]);
 			this.selectedClubIdSubject.next(null);
 			return;
 		}
 
+		// For admin/coach/technical_director: show all clubs (they manage multiple)
+		// For players: show only their assigned clubs via user_clubs
+		const isStaff = role === 'admin' || role === 'coach' || role === 'staff';
+
+		if (isStaff) {
+			// Staff users can see all clubs
+			this.clubsApi.list().subscribe({
+				next: (items) => {
+					this.clubsSubject.next(items ?? []);
+					this.ensureSelectedClub(items ?? []);
+				},
+				error: () => {
+					this.clubsSubject.next([]);
+					this.selectedClubIdSubject.next(null);
+				},
+			});
+			return;
+		}
+
+		// Players: load their club memberships
 		this.playerClubsApi.listMemberships(String(userId)).subscribe({
 			next: (res) => {
 				const memberships = (res as any)?.items ?? (res as any)?.memberships ?? res ?? [];
@@ -63,17 +86,9 @@ export class ClubContextService {
 				});
 			},
 			error: () => {
-				// Fallback: if membership endpoint isn't usable for coaches yet, show all clubs.
-				this.clubsApi.list().subscribe({
-					next: (items) => {
-						this.clubsSubject.next(items ?? []);
-						this.ensureSelectedClub(items ?? []);
-					},
-					error: () => {
-						this.clubsSubject.next([]);
-						this.selectedClubIdSubject.next(null);
-					},
-				});
+				// Fallback: if membership endpoint fails, show empty for players.
+				this.clubsSubject.next([]);
+				this.selectedClubIdSubject.next(null);
 			},
 		});
 	}

@@ -11,6 +11,8 @@ import { ClubContextService } from '../core/context/club-context.service';
 import { PlanningApiService } from '../services/planning.api';
 import { PlanningListItem, PlanningStatus } from '../models/planning';
 import { Router } from '@angular/router';
+import { BehaviorSubject, combineLatest, of } from 'rxjs';
+import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-dashboard',
@@ -37,9 +39,25 @@ export class Dashboard {
 
   selectedPlanningMode: 'individual' | 'group' = 'individual';
 
-  loadingPlannings = false;
-  planningsError: string | null = null;
-  latestPlannings: PlanningListItem[] = [];
+  private readonly refreshPlannings$ = new BehaviorSubject<void>(undefined);
+
+  readonly planningsVm$ = this.refreshPlannings$.pipe(
+    startWith(undefined),
+    switchMap(() =>
+      this.planningApi.list({ status: undefined, page: 1, pageSize: 5 }).pipe(
+        map((res: any) => {
+          const items = Array.isArray(res) ? res.map((p: any) => this.toUiPlanning(p)) : [];
+          return { loading: false as const, error: null as string | null, latest: items };
+        }),
+        startWith({ loading: true as const, error: null as string | null, latest: [] as PlanningListItem[] }),
+        catchError((e: unknown) => {
+          const msg = e instanceof Error ? e.message : 'No se pudieron cargar las planificaciones.';
+          return of({ loading: false as const, error: msg, latest: [] as PlanningListItem[] });
+        }),
+      ),
+    ),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
 
   ngOnInit(): void {
     this.loadLatestPlannings();
@@ -60,24 +78,7 @@ export class Dashboard {
   }
 
   loadLatestPlannings(): void {
-    this.loadingPlannings = true;
-    this.planningsError = null;
-
-    // Honest UI: backend list doesn't support upcoming-by-date yet, so we show the latest N.
-    this.planningApi
-      .list({ status: undefined, page: 1, pageSize: 5 })
-      .subscribe({
-        next: (res: any) => {
-          this.loadingPlannings = false;
-          if (Array.isArray(res)) this.latestPlannings = res.map((p: any) => this.toUiPlanning(p));
-          else this.latestPlannings = [];
-        },
-        error: (e: unknown) => {
-          this.loadingPlannings = false;
-          this.planningsError = e instanceof Error ? e.message : 'No se pudieron cargar las planificaciones.';
-          this.latestPlannings = [];
-        },
-      });
+    this.refreshPlannings$.next();
   }
 
   viewPlanning(p: PlanningListItem): void {

@@ -64,14 +64,15 @@
 				<span class="text-[#6b7280]"> (la API aún no soporta “próximas por fecha”)</span>
 			</div>
 
-			@if (loadingPlannings) {
+			@let vm = (planningsVm$ | async);
+			@if (vm?.loading) {
 				<div class="text-[13px] text-[#9ca3af]">Cargando planificaciones…</div>
-			} @else if (planningsError) {
-				<div class="text-[13px] text-red-300">{{ planningsError }}</div>
+			} @else if (vm?.error) {
+				<div class="text-[13px] text-red-300">{{ vm?.error }}</div>
 				<div class="mt-3">
 					<button pButton type="button" label="Reintentar" icon="pi pi-refresh" class="p-button-text p-button-sm" (click)="loadLatestPlannings()"></button>
 				</div>
-			} @else if (!latestPlannings.length) {
+			} @else if (!(vm?.latest?.length ?? 0)) {
 				<div class="text-[13px] text-[#9ca3af]">Aún no hay planificaciones.</div>
 			} @else {
 				<div class="overflow-x-auto">
@@ -86,7 +87,7 @@
 							</tr>
 						</thead>
 						<tbody>
-							@for (p of latestPlannings; track p.id) {
+							@for (p of (vm?.latest ?? []); track p.id) {
 								<tr class="border-b border-[#1f2937]">
 									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ p.date }}</td>
 									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ p.team }}</td>
@@ -114,6 +115,3 @@
 		</div>
 	</div>
 </app-shell>
-
-							styleClass="bp-select"
-							[panelStyleClass]="'bp-select-panel'"

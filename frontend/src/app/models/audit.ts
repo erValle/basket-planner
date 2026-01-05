@@ -36,7 +36,13 @@ export interface AuditLogDetail extends AuditLogListItem {
 export interface AuditListParams {
   entity?: string;
   action?: AuditAction | '';
+  /** @deprecated Use userId (numeric). */
   user?: string;
+  userId?: number;
+  entityId?: string;
+  requestId?: string;
+  page?: number;
+  pageSize?: number;
   from?: string; // ISO yyyy-mm-dd
   to?: string; // ISO yyyy-mm-dd
   limit?: number;

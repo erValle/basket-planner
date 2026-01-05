@@ -262,7 +262,24 @@
                               </div>
                             }
                             <div class="mt-2 flex gap-2">
-                              <button type="button" pButton label="Añadir" class="p-button-text p-button-sm" (click)="addMaterial(e, 'Balón')"></button>
+                              <p-select
+                                [options]="equipmentOptions"
+                                [(ngModel)]="selectedMaterialName"
+                                [name]="'ex-mat-select-' + e.id"
+                                optionLabel="label"
+                                optionValue="value"
+                                placeholder="Selecciona material"
+                                styleClass="bp-select"
+                                [panelStyleClass]="'bp-select-panel'"
+                              ></p-select>
+                              <button
+                                type="button"
+                                pButton
+                                label="Añadir"
+                                class="p-button-text p-button-sm"
+                                [disabled]="!selectedMaterialName"
+                                (click)="selectedMaterialName && addMaterial(e, selectedMaterialName)"
+                              ></button>
                               <button type="button" pButton label="Limpiar" class="p-button-text p-button-sm" (click)="clearMaterial(e)"></button>
                             </div>
                           </div>

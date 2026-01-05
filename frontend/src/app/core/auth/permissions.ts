@@ -11,7 +11,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
 	{ key: 'dashboard', label: 'Dashboard', route: '/dashboard', roles: ['admin', 'coach', 'staff'], icon: 'pi pi-home', group: 'general' },
-	{ key: 'player', label: 'Mi panel', route: '/player', roles: ['admin', 'coach', 'staff', 'player'], icon: 'pi pi-id-card', group: 'general' },
+	{ key: 'player', label: 'Mi panel', route: '/player', roles: ['player'], icon: 'pi pi-id-card', group: 'general' },
 	{ key: 'player-planning', label: 'Mis planificaciones', route: '/player/planning', roles: ['player'], icon: 'pi pi-calendar', group: 'general' },
 	{ key: 'planning', label: 'Planificaciones', route: '/planning', roles: ['admin', 'coach', 'staff'], icon: 'pi pi-calendar', group: 'general' },
 	{ key: 'planning-new', label: 'Nueva planificación', route: '/planning/new', roles: ['admin', 'coach'], icon: 'pi pi-plus', group: 'general' },
@@ -34,9 +34,9 @@ export const NAV_ITEMS: NavItem[] = [
  */
 export const ROUTE_PERMISSIONS: Record<string, Role[]> = {
 	'/dashboard': ['admin', 'coach', 'staff'],
-	'/player': ['admin', 'coach', 'staff', 'player'],
-	'/player/planning': ['admin', 'coach', 'staff', 'player'],
-	'/player/no-plannings': ['admin', 'coach', 'staff', 'player'],
+	'/player': ['player'],
+	'/player/planning': ['player'],
+	'/player/no-plannings': ['player'],
 
 	'/planning': ['admin', 'coach', 'staff'],
 	'/planning/new': ['admin', 'coach'],

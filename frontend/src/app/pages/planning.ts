@@ -27,6 +27,8 @@ import { ClubsApi, ClubDto } from '../services/clubs.api';
 import { TeamsApi, TeamDto } from '../services/teams.api';
 import { PlanningExportEmailPayload, PlanningExportFormat, PlanningListItem, PlanningStatus } from '../models/planning';
 
+import { BehaviorSubject, combineLatest, map, shareReplay, startWith, switchMap } from 'rxjs';
+
 type Option = { label: string; value: string };
 
 @Component({
@@ -82,13 +84,94 @@ export class Planning {
   // Backend list endpoint currently ignores club/team filters.
   filtersNotSupportedYet = true;
 
-  loading = false;
-  loadError: string | null = null;
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+  readonly loading$ = new BehaviorSubject<boolean>(false);
+  readonly loadError$ = new BehaviorSubject<string | null>(null);
 
   rows = 10;
   first = 0;
 
-  plannings: PlanningListItem[] = [];
+  private readonly plannings$ = this.refresh$.pipe(
+    switchMap(() => {
+      this.loading$.next(true);
+      this.loadError$.next(null);
+
+      const from = this.filters.dateRange?.[0] ? this.toIsoDate(this.filters.dateRange[0]) : undefined;
+      const to = this.filters.dateRange?.[1] ? this.toIsoDate(this.filters.dateRange[1]) : undefined;
+
+      return this.api
+        .list({
+          // Keep sending params for forward-compat, but UI communicates that they are not applied yet.
+          club: this.filters.club === 'Todos' ? undefined : this.filters.club,
+          team: this.filters.team === 'Todos' ? undefined : this.filters.team,
+          status: this.filters.status === 'all' ? undefined : this.filters.status,
+          search: this.filters.search || undefined,
+          from,
+          to,
+          page: Math.floor(this.first / this.rows) + 1,
+          pageSize: this.rows,
+        })
+        .pipe(
+          map((res: any) => {
+            this.loading$.next(false);
+
+            // Temporary mapping: backend currently exposes training plans.
+            if (Array.isArray(res)) {
+              this.bootstrappedFromBackend = true;
+              return res.map((p: any) => ({
+                id: String(p.id),
+                date: (p?.createdAt ? String(p.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10)),
+                team: p?.targetType === 'group' ? 'Equipo' : 'Individual',
+                objective: p?.name ? String(p.name) : 'Plan',
+                status: (['draft', 'generated', 'published', 'archived'].includes(String(p?.status))
+                  ? String(p.status)
+                  : 'draft') as any,
+                version: p?.activeVersionId != null ? `v${p.activeVersionId}` : 'v1',
+                author: p?.createdById != null ? `user:${p.createdById}` : '-',
+              })) as PlanningListItem[];
+            }
+
+            return [] as PlanningListItem[];
+          }),
+        );
+    }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+
+  readonly vm$ = combineLatest({
+    items: this.plannings$,
+    loading: this.loading$.pipe(startWith(false)),
+    error: this.loadError$.pipe(startWith(null)),
+    tick: this.refresh$.pipe(startWith(undefined)),
+  }).pipe(
+    map(({ items, loading, error }) => {
+      // Keep a client-side filter fallback so the screen works even when backend filtering is limited.
+      const search = this.filters.search.trim().toLowerCase();
+      const filtered = items.filter((p) => {
+        if (this.filters.team !== 'Todos' && p.team !== this.filters.team) return false;
+        if (this.filters.status !== 'all' && p.status !== this.filters.status) return false;
+
+        if (this.filters.dateRange?.[0]) {
+          const from = this.toIsoDate(this.filters.dateRange[0]);
+          if (p.date < from) return false;
+        }
+        if (this.filters.dateRange?.[1]) {
+          const to = this.toIsoDate(this.filters.dateRange[1]);
+          if (p.date > to) return false;
+        }
+
+        if (search) {
+          const haystack = `${p.team} ${p.objective} ${p.author} ${p.version} ${p.status}`.toLowerCase();
+          if (!haystack.includes(search)) return false;
+        }
+
+        return true;
+      });
+
+      return { items, filtered, loading, error };
+    }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
 
   private bootstrappedFromBackend = true;
 
@@ -161,7 +244,7 @@ export class Planning {
     });
 
     this.loadFilters();
-    this.load();
+    this.refresh();
   }
 
   private loadFilters(): void {
@@ -197,7 +280,7 @@ export class Planning {
   clearFilters(): void {
     this.filters = { club: 'Todos', team: 'Todos', status: 'all', search: '', dateRange: null };
     this.first = 0;
-    this.load();
+    this.refresh();
   }
 
   private toIsoDate(d: Date): string {
@@ -208,86 +291,14 @@ export class Planning {
     return `${y}-${m}-${day}`;
   }
 
-  load(): void {
-    this.loading = true;
-    this.loadError = null;
-
-    const from = this.filters.dateRange?.[0] ? this.toIsoDate(this.filters.dateRange[0]) : undefined;
-    const to = this.filters.dateRange?.[1] ? this.toIsoDate(this.filters.dateRange[1]) : undefined;
-
-    this.api
-      .list({
-        // Keep sending params for forward-compat, but UI communicates that they are not applied yet.
-        club: this.filters.club === 'Todos' ? undefined : this.filters.club,
-        team: this.filters.team === 'Todos' ? undefined : this.filters.team,
-        status: this.filters.status === 'all' ? undefined : this.filters.status,
-        search: this.filters.search || undefined,
-        from,
-        to,
-        page: Math.floor(this.first / this.rows) + 1,
-        pageSize: this.rows,
-      })
-      .subscribe({
-        next: (res: any) => {
-          this.loading = false;
-
-          // Temporary mapping: backend currently exposes training plans.
-          if (Array.isArray(res)) {
-            this.plannings = res.map((p: any) => ({
-              id: String(p.id),
-              date: (p?.createdAt ? String(p.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10)),
-              team: p?.targetType === 'group' ? 'Equipo' : 'Individual',
-              objective: p?.name ? String(p.name) : 'Plan',
-              status: (['draft', 'generated', 'published', 'archived'].includes(String(p?.status))
-                ? String(p.status)
-                : 'draft') as any,
-              version: p?.activeVersionId != null ? `v${p.activeVersionId}` : 'v1',
-              author: p?.createdById != null ? `user:${p.createdById}` : '-',
-            }));
-
-            this.bootstrappedFromBackend = true;
-          }
-        },
-        error: (e: unknown) => {
-          this.loading = false;
-          const msg = e instanceof Error ? e.message : 'No se pudieron cargar las planificaciones.';
-          this.loadError = msg;
-          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-        },
-      });
-  }
-
-  // Derived UI view
-  get filteredPlannings(): PlanningListItem[] {
-    // Keep a client-side filter fallback so the screen works even when backend filtering is limited.
-    const search = this.filters.search.trim().toLowerCase();
-
-    return this.plannings.filter((p) => {
-      if (this.filters.team !== 'Todos' && p.team !== this.filters.team) return false;
-      if (this.filters.status !== 'all' && p.status !== this.filters.status) return false;
-
-      if (this.filters.dateRange?.[0]) {
-        const from = this.toIsoDate(this.filters.dateRange[0]);
-        if (p.date < from) return false;
-      }
-      if (this.filters.dateRange?.[1]) {
-        const to = this.toIsoDate(this.filters.dateRange[1]);
-        if (p.date > to) return false;
-      }
-
-      if (search) {
-        const haystack = `${p.team} ${p.objective} ${p.author} ${p.version} ${p.status}`.toLowerCase();
-        if (!haystack.includes(search)) return false;
-      }
-
-      return true;
-    });
+  refresh(): void {
+    this.refresh$.next();
   }
 
   onPageChange(e: any): void {
     this.first = e?.first ?? 0;
     this.rows = e?.rows ?? this.rows;
-    this.load();
+    this.refresh();
   }
 
   statusLabel(s: PlanningStatus): string {
@@ -330,6 +341,7 @@ export class Planning {
 
   openExportMenuFor(item: PlanningListItem): void {
     this.exportMenuVisibleForId = item.id;
+    this.sendPlanningVersion = item.version;
   }
 
   openSendDialogForCurrent(): void {
@@ -337,7 +349,8 @@ export class Planning {
     const id = this.exportMenuVisibleForId;
     this.exportMenuVisibleForId = null;
 
-    const version = this.plannings.find((p) => p.id === id)?.version;
+    // We don't need the server list here; best-effort version fallback.
+    const version = this.sendPlanningVersion;
     this.sendPlanningId = id;
     this.sendPlanningVersion = version;
     this.recipientDraft = '';
@@ -389,7 +402,7 @@ export class Planning {
     this.downloadingFormat = format;
     this.toast.add({ severity: 'info', summary: 'Exportación', detail: `Descargando ${format.toUpperCase()}…` });
 
-    const version = this.plannings.find((p) => p.id === id)?.version;
+    const version = this.sendPlanningVersion;
     if (!version) {
       this.downloadingForId = null;
       this.downloadingFormat = null;
@@ -437,17 +450,10 @@ export class Planning {
   }
 
   private async delete(item: PlanningListItem): Promise<void> {
-    // If list is still using local seed data, keep local delete.
-    if (!this.bootstrappedFromBackend) {
-      this.plannings = this.plannings.filter((p) => p.id !== item.id);
-      this.toast.add({ severity: 'success', summary: 'Eliminada', detail: 'Planificación eliminada.' });
-      return;
-    }
-
     try {
       await firstValueFrom(this.api.remove(String(item.id)));
       this.toast.add({ severity: 'success', summary: 'Eliminada', detail: 'Planificación eliminada.' });
-      this.load();
+      this.refresh();
     } catch (e: any) {
       this.toast.add({
         severity: 'error',

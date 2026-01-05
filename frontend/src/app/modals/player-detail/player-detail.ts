@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -111,6 +111,8 @@ export class PlayerDetail {
 
   savingMembership = false;
 
+  private readonly cdr = inject(ChangeDetectorRef);
+
   constructor(
     private readonly api: PlayerClubsApiService,
     private readonly clubsApi: ClubsApi,
@@ -147,6 +149,7 @@ export class PlayerDetail {
     if (!this.player?.id) return;
     this.membershipsLoading = true;
     this.membershipsError = null;
+    this.cdr.markForCheck();
 
     const mapToUi = (items: any[]) =>
       (items ?? []).map((it: any) => {
@@ -172,6 +175,7 @@ export class PlayerDetail {
       next: (rows) => {
         this.membershipsLoading = false;
         this.memberships = mapToUi(Array.isArray(rows) ? rows : []);
+        this.cdr.markForCheck();
       },
       error: () => {
         // Honest UI: try fallback, but surface error if that also fails.
@@ -184,12 +188,14 @@ export class PlayerDetail {
                 ? (res as any)
                 : [];
             this.memberships = mapToUi(items);
+            this.cdr.markForCheck();
           },
           error: (e2: unknown) => {
             this.membershipsLoading = false;
             const msg = e2 instanceof Error ? e2.message : 'No se pudieron cargar las pertenencias.';
             this.membershipsError = msg;
             this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+            this.cdr.markForCheck();
           },
         });
       },

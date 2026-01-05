@@ -39,7 +39,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:4000')
+// Default to both backend and Angular dev server origins.
+// Override via CORS_ORIGIN="http://localhost:4200,http://your-domain".
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:4000,http://localhost:4200')
     .split(',')
     .map(origin => origin.trim());
 

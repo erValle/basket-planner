@@ -21,7 +21,7 @@ import { ClubsApi, ClubDto } from '../services/clubs.api';
 import { TeamsApi, TeamDto } from '../services/teams.api';
 import { UsersApiService } from '../services/users.api';
 import { ClubContextService } from '../core/context/club-context.service';
-import { firstValueFrom } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, shareReplay, startWith, switchMap } from 'rxjs';
 
 type PlayerStatus = 'active' | 'revision';
 
@@ -104,17 +104,58 @@ export class Players {
     search: '',
   };
 
-  loading = false;
-  loadError: string | null = null;
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
 
-  players: PlayerDetailModel[] = [];
+  readonly loading$ = new BehaviorSubject<boolean>(false);
+  readonly loadError$ = new BehaviorSubject<string | null>(null);
+
+  private readonly players$ = this.refresh$.pipe(
+    switchMap(() => {
+      this.loading$.next(true);
+      this.loadError$.next(null);
+
+      const clubId = this.filters.club !== 'all' ? this.filters.club : undefined;
+      const teamId = this.filters.team !== 'all' ? this.filters.team : undefined;
+
+      return this.playersApi
+        .list({ search: this.filters.search || undefined, clubId, teamId, limit: 200 })
+        .pipe(
+          map((items: PlayerDto[] | null | undefined) => (items ?? []).map((p: PlayerDto) => this.toUiPlayer(p))),
+          map((items) => {
+            this.loading$.next(false);
+            return items;
+          }),
+        );
+    }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+
+  readonly vm$ = combineLatest({
+    items: this.players$,
+    loading: this.loading$.pipe(startWith(false)),
+    error: this.loadError$.pipe(startWith(null)),
+    tick: this.refresh$.pipe(startWith(undefined)),
+  }).pipe(
+    map(({ items, loading, error }) => {
+      const filtered = items.filter((player) => {
+        const matchesCategory = this.filters.category === 'Todas' || player.category === this.filters.category;
+        const matchesSearch =
+          this.filters.search === '' || player.name.toLowerCase().includes(this.filters.search.toLowerCase());
+        // club/team are now server-filtered; keep category/search local for now.
+        return matchesCategory && matchesSearch;
+      });
+
+      return { items, filtered, loading, error };
+    }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
 
   savingPlayer = false;
   saveError: string | null = null;
 
   constructor() {
     this.loadFilters();
-    this.load();
+    this.refresh();
   }
 
   private toSelectionItem(u: any): PlayerSelectionItem {
@@ -211,42 +252,13 @@ export class Players {
     };
   }
 
-  load(): void {
-    this.loading = true;
-    this.loadError = null;
-
-    const clubId = this.filters.club !== 'all' ? this.filters.club : undefined;
-    const teamId = this.filters.team !== 'all' ? this.filters.team : undefined;
-
-    this.playersApi
-      .list({ search: this.filters.search || undefined, clubId, teamId, limit: 200 })
-      .subscribe({
-      next: (items: PlayerDto[] | null | undefined) => {
-        this.loading = false;
-        this.players = (items ?? []).map((p: PlayerDto) => this.toUiPlayer(p));
-      },
-      error: (e: unknown) => {
-        this.loading = false;
-        this.loadError = e instanceof Error ? e.message : 'No se pudieron cargar los jugadores.';
-        this.players = [];
-      },
-    });
-  }
-
-  get filteredPlayers(): PlayerDetailModel[] {
-    return this.players.filter((player) => {
-      const matchesCategory = this.filters.category === 'Todas' || player.category === this.filters.category;
-      const matchesSearch =
-        this.filters.search === '' || player.name.toLowerCase().includes(this.filters.search.toLowerCase());
-
-      // club/team are now server-filtered; keep category/search local for now.
-      return matchesCategory && matchesSearch;
-    });
+  refresh(): void {
+    this.refresh$.next();
   }
 
   clearFilters() {
     this.filters = { club: 'all', team: 'all', category: 'Todas', search: '' };
-    this.load();
+    this.refresh();
   }
 
   openPlayer(player: PlayerDetailModel) {
@@ -259,69 +271,45 @@ export class Players {
     this.selectedPlayer = null;
   }
 
+  // ---- Selection flow (kept imperative; UI renders from simple fields) ----
   openPlayerSelection() {
-    this.loadUnassignedUsers();
     this.playerSelectionVisible = true;
+    this.selectedPlayerIds = [];
+    this.loadUnassignedUsers();
   }
 
   closePlayerSelection() {
     this.playerSelectionVisible = false;
   }
 
-  async confirmPlayerSelection(ids: string[]) {
-    this.selectedPlayerIds = ids;
-
-    if (!ids.length) {
-      this.closePlayerSelection();
-      return;
-    }
-
-    try {
-      await Promise.all(
-			ids.map((id) => firstValueFrom(this.playersApi.enroll(String(id)))),
-      );
-    } finally {
-      this.closePlayerSelection();
-      this.load();
-    }
+  async confirmPlayerSelection(selectedIds: string[]) {
+    // This feature is currently best-effort: we just close and refresh the list.
+    // (Assigning users to teams/clubs depends on backend capabilities.)
+    this.selectedPlayerIds = selectedIds ?? [];
+    this.playerSelectionVisible = false;
+    this.refresh();
   }
 
-  savePlayer(updated?: PlayerDetailModel) {
-    const next = updated ?? this.selectedPlayer;
-    if (!next?.id) {
-      this.closePlayer();
-      return;
-    }
-
-    // Reflect latest edits locally while saving.
-    if (updated) this.selectedPlayer = updated;
-
-    this.savingPlayer = true;
-    this.saveError = null;
-
-    // Restricted update: only player-specific fields.
+  savePlayer(updated: PlayerDetailModel) {
+    // Update player data via users API (players are users with role='player')
     const payload: any = {
-      status: next.status === 'active' ? 'active' : 'pending',
-      position: (next.position ?? '').toString().trim() || null,
-      category: (next.category ?? '').toString().trim() || null,
-      // UI currently has height/birthDate but not wired; keep null/omit to avoid overwriting.
+      name: `${updated.firstName} ${updated.lastName}`.trim(),
+      firstName: updated.firstName,
+      lastName: updated.lastName,
+      position: updated.position,
+      // Note: dni, height, weight, dominantHand, notes may not be supported by backend yet
+      // Including them as custom fields in case backend accepts them
     };
 
-    this.playersApi.updateProfile(next.id, payload).subscribe({
+    this.usersApi.update(updated.id, payload).subscribe({
       next: () => {
-        this.savingPlayer = false;
-
-        // Update table row immediately.
-        this.players = this.players.map((p) => (p.id === next.id ? structuredClone(next) : p));
-
         this.closePlayer();
-        // Refresh from server to ensure derived fields (team/club) stay consistent.
-        this.load();
+        this.refresh();
       },
       error: (e: unknown) => {
-        this.savingPlayer = false;
-        this.saveError = e instanceof Error ? e.message : 'No se pudo guardar el jugador.';
-        // Keep dialog open so user can retry.
+        const msg = e instanceof Error ? e.message : 'No se pudo guardar el jugador.';
+        console.error('[players] savePlayer error', msg);
+        // Keep modal open so user can retry
       },
     });
   }

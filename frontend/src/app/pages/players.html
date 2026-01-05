@@ -8,6 +8,8 @@
 			[action]="openPlayerSelection.bind(this)"
 		></app-page-header>
 
+		@let vm = (vm$ | async);
+
 				<!-- Filters -->
 				<div
 					class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6"
@@ -24,7 +26,7 @@
 								optionValue="value"
 								styleClass="bp-select"
 								[panelStyleClass]="'bp-select-panel'"
-								(onChange)="load()"
+								(onChange)="refresh()"
 							></p-select>
 						</div>
 						<div>
@@ -37,7 +39,7 @@
 								optionValue="value"
 								styleClass="bp-select"
 								[panelStyleClass]="'bp-select-panel'"
-								(onChange)="load()"
+								(onChange)="refresh()"
 							></p-select>
 						</div>
 						<div>
@@ -50,6 +52,7 @@
 								optionValue="value"
 								styleClass="bp-select"
 								[panelStyleClass]="'bp-select-panel'"
+								(onChange)="refresh()"
 							></p-select>
 						</div>
 						<div>
@@ -60,7 +63,7 @@
 								name="search"
 								placeholder="Nombre o apellidos"
 								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
-								(ngModelChange)="load()"
+								(ngModelChange)="refresh()"
 							/>
 						</div>
 					</div>
@@ -80,8 +83,15 @@
 					class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
 					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
 				>
+					@if (vm?.loading) {
+						<div class="border-b border-[#1f2937] px-2 pb-4 text-[13px] text-[#9ca3af]">Cargando jugadores…</div>
+					}
+					@if (vm?.error) {
+						<div class="border-b border-red-900/60 bg-red-950/40 px-3 py-2 text-[13px] text-red-200">{{ vm?.error }}</div>
+					}
+
 					<p-table
-						[value]="filteredPlayers"
+						[value]="(vm?.filtered ?? [])"
 						[tableStyle]="{ width: '100%' }"
 						styleClass="bp-table p-datatable-sm"
 					>
@@ -119,6 +129,10 @@
 							</tr>
 						</ng-template>
 					</p-table>
+
+					@if (!vm?.loading && (vm?.filtered?.length ?? 0) === 0) {
+						<div class="py-10 text-center text-[13px] text-[#9ca3af]">No hay jugadores con esos filtros.</div>
+					}
 				</div>
 			</div>
 

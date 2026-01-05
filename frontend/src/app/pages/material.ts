@@ -15,6 +15,8 @@ import { ToastModule } from 'primeng/toast';
 import { PageHeader } from '../components/page-header/page-header';
 import { AppShell } from '../layout/app-shell/app-shell';
 import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
+import { BehaviorSubject, combineLatest, of } from 'rxjs';
+import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-material',
@@ -40,6 +42,9 @@ export class Material {
   private readonly api = inject(EquipmentApi);
   private readonly toast = inject(MessageService);
 
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
+  private readonly loading$ = new BehaviorSubject<boolean>(true);
+
   categoryOptions = [
     { label: 'Todas', value: 'all' },
     { label: 'Balones', value: 'Balones' },
@@ -63,8 +68,36 @@ export class Material {
     status: 'all',
   };
 
-  loading = false;
-  items: Array<{ id: number; name: string; category: string; total: number; available: number }> = [];
+  items$ = this.refresh$.pipe(
+    switchMap(() => {
+      this.loading$.next(true);
+      return this.api.list({ search: this.filters.search || undefined }).pipe(
+        map((items) => (items ?? []).map((e) => this.toUiItem(e))),
+        catchError((e: unknown) => {
+          const msg = e instanceof Error ? e.message : 'No se pudo cargar el material.';
+          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+          return of([] as Array<{ id: number; name: string; category: string; total: number; available: number }>);
+        }),
+      );
+    }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
+
+  vm$ = combineLatest([this.items$, this.loading$.pipe(startWith(true))]).pipe(
+    map(([items, loading]) => {
+      const q = this.filters.search.trim().toLowerCase();
+      const filtered = items.filter((i) => {
+        const matchesQuery = !q || i.name.toLowerCase().includes(q);
+        const matchesCat = this.filters.category === 'all' || i.category === this.filters.category;
+        const status = this.stockStatus(i);
+        const matchesStatus = this.filters.status === 'all' || status === this.filters.status;
+        return matchesQuery && matchesCat && matchesStatus;
+      });
+      return { items, filtered, loading: Boolean(loading) };
+    }),
+    startWith({ items: [], filtered: [], loading: true as const }),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
 
   materialDialogVisible = false;
   dialogMode: 'create' | 'edit' = 'create';
@@ -78,7 +111,7 @@ export class Material {
   };
 
   constructor() {
-    this.load();
+    this.refresh();
   }
 
   private toUiItem(e: EquipmentDto): { id: number; name: string; category: string; total: number; available: number } {
@@ -108,39 +141,17 @@ export class Material {
     } as any;
   }
 
-  load(): void {
-    this.loading = true;
-    this.api.list({ search: this.filters.search || undefined }).subscribe({
-      next: (items) => {
-        this.loading = false;
-        this.items = (items ?? []).map((e) => this.toUiItem(e));
-      },
-      error: (e: unknown) => {
-        this.loading = false;
-        const msg = e instanceof Error ? e.message : 'No se pudo cargar el material.';
-        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-      },
-    });
+  refresh(): void {
+    this.refresh$.next();
   }
 
-  get filteredItems() {
-    const q = this.filters.search.trim().toLowerCase();
-    return this.items.filter((i) => {
-      const matchesQuery = !q || i.name.toLowerCase().includes(q);
-      const matchesCat = this.filters.category === 'all' || i.category === this.filters.category;
-      const status = this.stockStatus(i);
-      const matchesStatus = this.filters.status === 'all' || status === this.filters.status;
-      return matchesQuery && matchesCat && matchesStatus;
-    });
-  }
-
-  stockStatus(item: (typeof this.items)[number]): 'available' | 'low' | 'out' {
+  stockStatus(item: { id: number; name: string; category: string; total: number; available: number }): 'available' | 'low' | 'out' {
     if (item.available <= 0) return 'out';
     if (item.available <= Math.max(1, Math.round(item.total * 0.25))) return 'low';
     return 'available';
   }
 
-  stockTag(item: (typeof this.items)[number]) {
+  stockTag(item: { id: number; name: string; category: string; total: number; available: number }) {
     const status = this.stockStatus(item);
     if (status === 'available') return { label: 'Disponible', severity: 'success' as const };
     if (status === 'low') return { label: 'Bajo stock', severity: 'warn' as const };
@@ -151,6 +162,7 @@ export class Material {
     this.filters.search = '';
     this.filters.category = 'all';
     this.filters.status = 'all';
+    this.refresh();
   }
 
   openCreate(): void {
@@ -159,7 +171,7 @@ export class Material {
     this.materialDialogVisible = true;
   }
 
-  openEdit(item: (typeof this.items)[number]): void {
+  openEdit(item: { id: number; name: string; category: string; total: number; available: number }): void {
     this.dialogMode = 'edit';
     this.draft = { ...item };
     this.materialDialogVisible = true;
@@ -183,7 +195,7 @@ export class Material {
         next: () => {
           this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Material creado.' });
           this.closeDialog();
-          this.load();
+          this.refresh();
         },
         error: (e: unknown) => {
           const msg = e instanceof Error ? e.message : 'No se pudo crear el material.';
@@ -197,7 +209,7 @@ export class Material {
       next: () => {
         this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Material actualizado.' });
         this.closeDialog();
-        this.load();
+        this.refresh();
       },
       error: (e: unknown) => {
         const msg = e instanceof Error ? e.message : 'No se pudo actualizar el material.';

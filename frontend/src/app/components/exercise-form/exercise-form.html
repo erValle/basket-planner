@@ -4,14 +4,29 @@
     <div class="flex items-start justify-between gap-4">
       <div>
         <div class="text-lg font-semibold text-zinc-100">
-          {{ mode === 'edit' ? 'Editar ejercicio' : 'Crear nuevo ejercicio' }}
+          @if (mode === 'view') {
+            Ver ejercicio
+          } @else if (mode === 'edit') {
+            Editar ejercicio
+          } @else {
+            Crear nuevo ejercicio
+          }
         </div>
-        <div class="mt-1 text-sm text-zinc-400">Define las características y parámetros del ejercicio.</div>
+        <div class="mt-1 text-sm text-zinc-400">
+          @if (mode === 'view') {
+            Consulta las características y parámetros del ejercicio.
+          } @else {
+            Define las características y parámetros del ejercicio.
+          }
+        </div>
       </div>
       <p-tag [value]="steps[stepIndex].title" severity="info" />
     </div>
 
-    <div class="mt-4 grid grid-cols-1 gap-2 md:grid-cols-5">
+    <!-- Step indicators separated -->
+    <div class="mt-5 pt-4 border-t border-zinc-800/60">
+      <div class="text-xs text-zinc-500 mb-2">Navegación por pasos</div>
+      <div class="grid grid-cols-1 gap-2 md:grid-cols-5">
       @for (step of steps; track step.id; let idx = $index) {
         <button
           type="button"
@@ -95,6 +110,7 @@
                 <button
                   type="button"
                   pButton
+                  [disabled]="isViewMode"
                   (click)="toggleInArrayControl('subtipo', s)"
                   styleClass="w-full rounded-lg border px-3 py-2 text-left text-xs transition-colors"
                   [class.border-sky-400]="form.controls.subtipo.value.includes(s)"
@@ -103,6 +119,7 @@
                   [class.border-zinc-800]="!form.controls.subtipo.value.includes(s)"
                   [class.bg-zinc-950/20]="!form.controls.subtipo.value.includes(s)"
                   [class.text-zinc-200]="!form.controls.subtipo.value.includes(s)"
+                  [class.opacity-60]="isViewMode"
                 >
                   {{ s }}
                 </button>
@@ -177,6 +194,7 @@
             <button
               type="button"
               pButton
+              [disabled]="isViewMode"
               (click)="toggleInArrayControl('categoriaRecomendada', cat)"
               styleClass="rounded-lg border px-4 py-2 text-sm transition-colors"
               [class.border-sky-400]="form.controls.categoriaRecomendada.value.includes(cat)"
@@ -185,6 +203,7 @@
               [class.border-zinc-800]="!form.controls.categoriaRecomendada.value.includes(cat)"
               [class.bg-zinc-950/20]="!form.controls.categoriaRecomendada.value.includes(cat)"
               [class.text-zinc-200]="!form.controls.categoriaRecomendada.value.includes(cat)"
+              [class.opacity-60]="isViewMode"
             >
               {{ cat }}
             </button>
@@ -227,6 +246,7 @@
                     pButton
                     icon="pi pi-times"
                     class="p-button-text p-button-sm"
+                    [disabled]="isViewMode"
                     (click)="removeMaterial(m)"
                   ></button>
                 </span>
@@ -234,7 +254,9 @@
             </div>
           }
 
-          <p-button label="Añadir material" icon="pi pi-plus" severity="secondary" [text]="true" styleClass="bp-btn" (click)="openMaterialModal()"></p-button>
+          @if (!isViewMode) {
+            <p-button label="Añadir material" icon="pi pi-plus" severity="secondary" [text]="true" styleClass="bp-btn" (click)="openMaterialModal()"></p-button>
+          }
         </div>
 
         <app-material-selection

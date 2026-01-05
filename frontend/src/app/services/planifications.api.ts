@@ -12,12 +12,53 @@ export class PlanificationsApi {
    * This method maps the existing frontend draft to the backend contract.
    */
   generatePlanification(draft: PlanificationDraft) {
-    const mode = (draft as any)?.mode;
+    const mode = draft.mode;
+
+    const constraints = {
+      // The backend contract expects equipment as an array of strings.
+      // We currently send equipment IDs from /api/equipment, so stringify them.
+      equipment: (draft.materialIds ?? []).map((x) => String(x)),
+    };
+
+    const goals = (draft.tags ?? []).map((t) => String(t));
+
     if (mode === 'group') {
-      return this.api.post<PlanificationGenerated>('/api/planning/generate/group', draft as any);
+      const athleteIds = (draft.playerIds ?? [])
+        .map((id) => Number(id))
+        .filter((n) => Number.isFinite(n) && n > 0);
+
+      return this.api.post<PlanificationGenerated>('/api/planning/generate/group', {
+        group: {
+          groupId: draft.groupId ? Number(draft.groupId) : undefined,
+          name: draft.name,
+          sessionDurationMinutes: Number(draft.duration) || undefined,
+          // Normalize free text into backend enum.
+          intensity: String(draft.intensity).toLowerCase() === 'alta'
+            ? 'high'
+            : String(draft.intensity).toLowerCase() === 'baja'
+              ? 'low'
+              : 'medium',
+        },
+        profiles: athleteIds.map((athleteId) => ({ athleteId })),
+        goals,
+        constraints,
+      } as any);
     }
 
-    // Default to individual generation.
-    return this.api.post<PlanificationGenerated>('/api/planning/generate/individual', draft as any);
+    // Individual
+    const athleteId = draft.playerId ? Number(draft.playerId) : NaN;
+    return this.api.post<PlanificationGenerated>('/api/planning/generate/individual', {
+      profile: {
+        athleteId,
+        sessionDurationMinutes: Number(draft.duration) || undefined,
+        intensity: String(draft.intensity).toLowerCase() === 'alta'
+          ? 'high'
+          : String(draft.intensity).toLowerCase() === 'baja'
+            ? 'low'
+            : 'medium',
+      },
+      goals,
+      constraints,
+    } as any);
   }
 }
