@@ -1,0 +1,278 @@
+<app-shell title="Recomendador" subtitle="Entrenamiento y versiones">
+  <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
+
+  <div class="max-w-7xl mx-auto space-y-6">
+    <app-page-header
+      [title]="'Recomendador'"
+      [subtitle]="'Estado, entrenamiento y gestión de versiones'"
+      [actionLabel]="'Actualizar'"
+      [actionIcon]="'pi pi-refresh'"
+      [actionSeverity]="'secondary'"
+      [action]="refreshAll.bind(this)"
+    ></app-page-header>
+
+    <!-- Estado -->
+    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <div class="text-sm font-semibold">Estado</div>
+          <div class="text-[13px] text-[#9ca3af]">Versión activa, entrenamiento y métricas</div>
+        </div>
+        <button pButton type="button" label="Recargar" icon="pi pi-refresh" class="p-button-text p-button-sm" (click)="loadStatus()"></button>
+      </div>
+
+      @if (statusLoading) {
+        <div class="mt-4 text-[13px] text-[#9ca3af] flex items-center gap-2">
+          <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+          Cargando estado…
+        </div>
+      }
+
+      @if (statusError) {
+        <div class="mt-4 border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200">
+          {{ statusError }}
+        </div>
+      }
+
+      @if (!statusLoading && status) {
+        <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-4">
+          <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+            <div class="text-xs text-zinc-400">Versión activa</div>
+            <div class="mt-1 flex items-center justify-between gap-2">
+              <div class="text-lg font-semibold">{{ status.activeVersion }}</div>
+              <p-tag value="ACTIVE" severity="success"></p-tag>
+            </div>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+            <div class="text-xs text-zinc-400">Fecha entrenamiento</div>
+            <div class="mt-1 text-sm font-medium">{{ formatIso(status.trainedAt) }}</div>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+            <div class="text-xs text-zinc-400">Métricas</div>
+            <div class="mt-2 space-y-1 text-sm">
+              <div class="flex justify-between"><span class="text-zinc-400">Accuracy</span><span class="font-medium">{{ pct(status.metrics.accuracy) }}</span></div>
+              <div class="flex justify-between"><span class="text-zinc-400">Coverage</span><span class="font-medium">{{ pct(status.metrics.coverage) }}</span></div>
+              <div class="flex justify-between"><span class="text-zinc-400">Latencia</span><span class="font-medium">{{ status.metrics.latencyMs }} ms</span></div>
+            </div>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+            <div class="text-xs text-zinc-400">Coste técnico</div>
+            <div class="mt-1 flex items-center gap-2">
+              <p-tag [value]="status.techCost" [severity]="techCostSeverity(status.techCost)"></p-tag>
+              <div class="text-xs text-zinc-500">(estimación)</div>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (!statusLoading && !status && !statusError) {
+        <div class="mt-4 text-[13px] text-[#9ca3af]">No hay datos de estado.</div>
+      }
+    </div>
+
+    <!-- Entrenar -->
+    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <div class="text-sm font-semibold">Entrenar</div>
+          <div class="text-[13px] text-[#9ca3af]">Lanza un job de entrenamiento y sigue su estado</div>
+        </div>
+        <button pButton type="button" label="Lanzar entrenamiento" icon="pi pi-play" class="p-button-sm" [disabled]="training" (click)="confirmTrain()"></button>
+      </div>
+
+      <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-12">
+        <div class="md:col-span-4">
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Dataset</label>
+          <p-select
+            [options]="datasetOptions"
+            [(ngModel)]="trainForm.dataset"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+
+        <div class="md:col-span-4">
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Algoritmo</label>
+          <p-select
+            [options]="algorithmOptions"
+            [(ngModel)]="trainForm.algorithm"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Max iterations</label>
+          <input
+            pInputText
+            type="number"
+            [(ngModel)]="trainForm.maxIterations"
+            class="w-full"
+          />
+        </div>
+
+        <div class="md:col-span-2">
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Learning rate</label>
+          <input
+            pInputText
+            type="number"
+            step="0.01"
+            [(ngModel)]="trainForm.learningRate"
+            class="w-full"
+          />
+        </div>
+
+        <div class="md:col-span-12">
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Notas (opcional)</label>
+          <input
+            pInputText
+            [(ngModel)]="trainForm.notes"
+            placeholder="Ej: ajustar dataset por lesiones, probar hiperparámetros…"
+            class="w-full"
+          />
+        </div>
+      </div>
+
+      <div class="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="text-sm font-semibold">Job</div>
+          @if (currentJobId) {
+            <div class="text-xs text-zinc-500">ID: {{ currentJobId }}</div>
+          }
+        </div>
+
+        @if (jobLoading) {
+          <div class="mt-3 text-[13px] text-[#9ca3af] flex items-center gap-2">
+            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+            Cargando job…
+          </div>
+        }
+
+        @if (jobError) {
+          <div class="mt-3 border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200">
+            {{ jobError }}
+          </div>
+        }
+
+        @if (!jobLoading && job) {
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <p-tag [value]="job.status" [severity]="jobSeverity(job.status)"></p-tag>
+            <div class="text-xs text-zinc-500">Inicio: {{ formatIso(job.startedAt) }}</div>
+            <div class="text-xs text-zinc-500">Fin: {{ formatIso(job.finishedAt) }}</div>
+            @if (job.resultVersionId) {
+              <div class="text-xs text-zinc-500">Versión resultante: {{ job.resultVersionId }}</div>
+            }
+          </div>
+
+          @if (job.status === 'FAILED' && job.errorMessage) {
+            <div class="mt-3 text-[13px] text-red-200">{{ job.errorMessage }}</div>
+          }
+
+          <div class="mt-4">
+            <div class="text-xs text-zinc-400 mb-2">Logs</div>
+            <pre class="text-[12px] leading-5 text-zinc-200 bg-zinc-950/40 border border-white/10 rounded-xl p-3 overflow-auto max-h-72">{{ job.logs }}</pre>
+          </div>
+        }
+
+        @if (!jobLoading && !job && !jobError) {
+          <div class="mt-3 text-[13px] text-[#9ca3af]">Todavía no hay ningún job. Lanza un entrenamiento para empezar.</div>
+        }
+      </div>
+    </div>
+
+    <!-- Versiones -->
+    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      <div class="flex items-center justify-between gap-3">
+        <div>
+          <div class="text-sm font-semibold">Versiones</div>
+          <div class="text-[13px] text-[#9ca3af]">Histórico y activación de modelos</div>
+        </div>
+        <button pButton type="button" label="Recargar" icon="pi pi-refresh" class="p-button-text p-button-sm" (click)="loadVersions()"></button>
+      </div>
+
+      @if (versionsLoading) {
+        <div class="mt-4 text-[13px] text-[#9ca3af] flex items-center gap-2">
+          <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+          Cargando versiones…
+        </div>
+      }
+
+      @if (versionsError) {
+        <div class="mt-4 border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200">
+          {{ versionsError }}
+        </div>
+      }
+
+      <p-table
+        [value]="versions"
+        [paginator]="true"
+        [rows]="10"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        [tableStyle]="{ width: '100%' }"
+        styleClass="p-datatable-sm"
+      >
+        <ng-template pTemplate="header">
+          <tr class="border-b border-[#1f2937]">
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Versión</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Algoritmo</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Entrenado</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Accuracy</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Coverage</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Latencia</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Coste</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-v>
+          <tr class="border-b border-[#1f2937]">
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">
+              <div class="flex items-center gap-2">
+                <span class="font-medium">{{ v.id }}</span>
+                @if (v.isActive) {
+                  <p-tag value="Activa" severity="success"></p-tag>
+                }
+              </div>
+              <div class="text-[12px] text-zinc-500">Creada: {{ v.createdAt }}</div>
+            </td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ v.algorithm }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ formatIso(v.trainedAt) }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ pct(v.metrics.accuracy) }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ pct(v.metrics.coverage) }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ v.metrics.latencyMs }} ms</td>
+            <td class="py-4 pr-4"><p-tag [value]="v.techCost" [severity]="techCostSeverity(v.techCost)"></p-tag></td>
+            <td class="py-4">
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  pButton
+                  label="Activar"
+                  icon="pi pi-bolt"
+                  class="p-button-text p-button-sm"
+                  [disabled]="v.isActive || activatingId === v.id"
+                  (click)="confirmActivate(v)"
+                ></button>
+
+                @if (activatingId === v.id) {
+                  <div class="flex items-center gap-2 text-[12px] text-[#9ca3af]">
+                    <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+                    Activando…
+                  </div>
+                }
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      @if (!versionsLoading && versions.length === 0) {
+        <div class="mt-6 text-center text-[13px] text-[#9ca3af]">No hay versiones aún.</div>
+      }
+    </div>
+  </div>
+</app-shell>

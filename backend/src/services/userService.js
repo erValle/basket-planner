@@ -11,7 +11,8 @@ const listUsers = async ({ email, role, status }) => {
   const where = {};
 
   if (email) where.email = { [Op.iLike]: `%${email}%` };
-  if (role) where.role = role;
+  if (role === 'none') where.role = { [Op.is]: null };
+  else if (role) where.role = role;
   if (status) where.status = status;
 
   return User.findAll({ where });

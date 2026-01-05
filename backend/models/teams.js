@@ -13,6 +13,18 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'coachId',
         as: 'coach',
       });
+
+      this.belongsToMany(models.User, {
+        through: models.TeamPlayer,
+        foreignKey: 'teamId',
+        otherKey: 'userId',
+        as: 'players',
+      });
+
+      this.hasMany(models.TeamPlayer, {
+        foreignKey: 'teamId',
+        as: 'teamPlayers',
+      });
     }
   }
 
@@ -33,7 +45,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       category: { 
         type: DataTypes.STRING(50), 
-        allowNull: false 
+        allowNull: true 
       },
       coachId: { 
         type: DataTypes.INTEGER, 

@@ -1,0 +1,33 @@
+<app-shell title="Nuevo ejercicio" subtitle="Acceso rápido a la creación de ejercicios.">
+	<div class="max-w-4xl mx-auto">
+		<app-page-header
+			[title]="'Nuevo ejercicio'"
+			[subtitle]="'La creación/edición se gestiona desde la pantalla de Ejercicios.'"
+		></app-page-header>
+
+		<div
+			class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mt-6"
+			style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+		>
+			<p class="text-[#cbd5e1] text-sm leading-6">
+				Para mantener una experiencia consistente, la creación de ejercicios está integrada en la pantalla
+				<strong class="text-[#e5e7eb]">Ejercicios</strong>.
+			</p>
+
+			<div class="mt-5 flex flex-wrap gap-2">
+				<p-button
+					label="Ir a Ejercicios"
+					(click)="goToExercises()"
+					styleClass="bp-btn bp-btn-primary"
+				></p-button>
+				<p-button
+					label="Volver"
+					severity="secondary"
+					[outlined]="true"
+					(click)="cancel()"
+					styleClass="bp-btn bp-btn-secondary"
+				></p-button>
+			</div>
+		</div>
+	</div>
+</app-shell>

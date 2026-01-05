@@ -54,6 +54,9 @@ const listAuditLogsPaged = async ({
     return { items: [], page, pageSize, total: 0, totalPages: 0 };
   }
 
+  // Need User model for including user info
+  const { User } = require('../../models');
+
   const where = {};
 
   if (action) where.action = action;
@@ -76,11 +79,47 @@ const listAuditLogsPaged = async ({
     order: [['createdAt', 'DESC']],
     limit,
     offset,
+    include: User
+      ? [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['id', 'email', 'name', 'firstName', 'lastName'],
+          },
+        ]
+      : [],
+  });
+
+  // Transform to match frontend expected format
+  const items = rows.map((row) => {
+    const json = row.toJSON ? row.toJSON() : row;
+    const user = json.user;
+    const actorName =
+      user?.name ||
+      [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
+      user?.email ||
+      `User ${json.userId ?? 'unknown'}`;
+
+    return {
+      id: String(json.id),
+      createdAt: json.createdAt,
+      action: json.action,
+      entity: json.entity,
+      entityId: json.entityId ?? '',
+      requestId: json.requestId ?? '',
+      metadata: json.metadata,
+      summary: `${json.action} ${json.entity}${json.entityId ? ` #${json.entityId}` : ''}`,
+      actor: {
+        id: String(json.userId ?? ''),
+        name: actorName,
+        email: user?.email ?? '',
+      },
+    };
   });
 
   const totalPages = Math.ceil(count / limit);
   return {
-    items: rows,
+    items,
     page: Math.max(parseInt(page, 10) || 1, 1),
     pageSize: limit,
     total: count,

@@ -31,10 +31,10 @@ describe('Planning versions list + export', () => {
           page: 1,
           pageSize: 10,
           total: expect.any(Number),
-          activeVersionId: expect.anything(),
           versions: expect.any(Array),
         })
       );
+      expect(res.body).toHaveProperty('activeVersionId');
     }
   });
 

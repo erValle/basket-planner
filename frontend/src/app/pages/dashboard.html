@@ -1,0 +1,117 @@
+<app-shell title="Dashboard" subtitle="Resumen del equipo">
+	<div class="max-w-7xl mx-auto">
+		<div class="text-[11px] text-[#6b7280] mb-4">
+			Sobre las últimas 20 sesiones.
+			@if (selectedClubName()) {
+				<span class="text-[#9ca3af]"> · Club: </span>
+				<span class="text-[#e5e7eb]">{{ selectedClubName() }}</span>
+			}
+		</div>
+
+		<div
+			class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mb-6"
+			style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+		>
+			<div class="text-[16px] text-[#f9fafb] mb-1">Acciones rápidas</div>
+			<div class="text-[13px] text-[#9ca3af] mb-4">Tareas habituales del entrenador.</div>
+
+			<div class="grid grid-cols-3 gap-3">
+				<div class="bg-[#111827] border border-[#1f2937] rounded-lg p-4 text-left">
+					<div class="flex items-start justify-between gap-4">
+						<div>
+							<div class="text-[14px] text-[#f9fafb] mb-1">Nueva planificación</div>
+							<div class="text-[12px] text-[#9ca3af]">Elige el tipo y genera una sesión con IA en pocos pasos.</div>
+						</div>
+						<a
+							[routerLink]="'/planning/new'"
+							[queryParams]="{ step: 1, mode: selectedPlanningMode }"
+							class="shrink-0 inline-flex items-center justify-center px-3 py-2 rounded-lg bg-gradient-to-r from-[#0ea5e9] to-[#22c55e] text-[#0f172a] text-[13px] hover:opacity-90 transition-opacity"
+						>
+							Empezar
+						</a>
+					</div>
+					<div class="mt-4 flex items-center gap-3">
+						<span class="text-[12px] text-[#94a3b8]">Tipo</span>
+						<p-select
+							[options]="planningModeOptions"
+							[(ngModel)]="selectedPlanningMode"
+							name="selectedPlanningMode"
+							optionLabel="label"
+							optionValue="value"
+							styleClass="bp-select"
+							[panelStyleClass]="'bp-select-panel'"
+							[showClear]="false"
+						></p-select>
+					</div>
+				</div>
+				<a
+					routerLink="/exercises/new"
+					class="bg-[#111827] hover:bg-[#1a2332] border border-[#1f2937] rounded-lg p-4 text-left transition-colors"
+				>
+					<div class="text-[14px] text-[#f9fafb] mb-1">Registrar ejercicio</div>
+					<div class="text-[12px] text-[#9ca3af]">Añadir nuevo ejercicio al catálogo del club.</div>
+				</a>
+			</div>
+		</div>
+
+		<div
+			class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+			style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+		>
+			<div class="text-[16px] text-[#f9fafb] mb-1">Planificaciones recientes</div>
+			<div class="text-[13px] text-[#9ca3af] mb-4">
+				Últimas planificaciones creadas.
+				<span class="text-[#6b7280]"> (la API aún no soporta “próximas por fecha”)</span>
+			</div>
+
+			@let vm = (planningsVm$ | async);
+			@if (vm?.loading) {
+				<div class="text-[13px] text-[#9ca3af]">Cargando planificaciones…</div>
+			} @else if (vm?.error) {
+				<div class="text-[13px] text-red-300">{{ vm?.error }}</div>
+				<div class="mt-3">
+					<button pButton type="button" label="Reintentar" icon="pi pi-refresh" class="p-button-text p-button-sm" (click)="loadLatestPlannings()"></button>
+				</div>
+			} @else if (!(vm?.latest?.length ?? 0)) {
+				<div class="text-[13px] text-[#9ca3af]">Aún no hay planificaciones.</div>
+			} @else {
+				<div class="overflow-x-auto">
+					<table class="w-full">
+						<thead>
+							<tr class="border-b border-[#1f2937]">
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Fecha</th>
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Tipo</th>
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Objetivo</th>
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Estado</th>
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3"></th>
+							</tr>
+						</thead>
+						<tbody>
+							@for (p of (vm?.latest ?? []); track p.id) {
+								<tr class="border-b border-[#1f2937]">
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ p.date }}</td>
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ p.team }}</td>
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ p.objective }}</td>
+									<td class="py-4 pr-4">
+										<span class="inline-block text-[11px] px-2 py-1 rounded bg-[#111827] text-[#e5e7eb]">
+											{{ statusLabel(p.status) }}
+										</span>
+									</td>
+									<td class="py-4 text-right">
+										<button
+											type="button"
+											pButton
+											label="Ver"
+											class="p-button-text p-button-sm"
+											(click)="viewPlanning(p)"
+										></button>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			}
+		</div>
+	</div>
+</app-shell>

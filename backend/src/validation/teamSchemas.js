@@ -2,7 +2,7 @@ const Joi = require('joi');
 
 const createTeamSchema = Joi.object({
   name: Joi.string().min(2).max(120).required(),
-  category: Joi.string().max(60).optional(),
+  category: Joi.string().max(60).allow(null).optional(),
   clubId: Joi.number().integer().positive().required(),
   coachId: Joi.number().integer().positive().optional(),
   active: Joi.boolean().optional()

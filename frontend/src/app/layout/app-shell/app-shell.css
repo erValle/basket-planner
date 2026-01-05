@@ -1,0 +1,4 @@
+/* Layout component: styling mostly lives in Tailwind/inline styles in template. */
+:host {
+	display: block;
+}
