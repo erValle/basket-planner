@@ -1,0 +1,220 @@
+<app-shell title="Administración" subtitle="Audit log">
+  <p-toast></p-toast>
+
+  <p-dialog
+    header="Detalle de auditoría"
+    [(visible)]="detailDialogOpen"
+    [modal]="true"
+    [draggable]="false"
+    [dismissableMask]="!detailLoading"
+    [closable]="!detailLoading"
+    [style]="{ width: '900px' }"
+    [contentStyle]="{ background: '#020617', border: '1px solid #1f2937' }"
+  >
+    @if (detailLoading) {
+      <div class="flex items-center gap-2 text-[13px] text-[#9ca3af]">
+        <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+        Cargando detalle…
+      </div>
+    } @else if (detailError) {
+      <div class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200">
+        {{ detailError }}
+      </div>
+    } @else if (selected) {
+      <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-4 py-3">
+            <div class="text-[11px] text-[#9ca3af]">Fecha</div>
+            <div class="text-[13px] text-[#e5e7eb]">{{ selected.createdAt }}</div>
+          </div>
+          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-4 py-3">
+            <div class="text-[11px] text-[#9ca3af]">Usuario</div>
+            <div class="text-[13px] text-[#e5e7eb]">{{ selected.actor.name }} <span class="text-[#6b7280]">({{ selected.actor.email || selected.actor.id }})</span></div>
+          </div>
+          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-4 py-3">
+            <div class="text-[11px] text-[#9ca3af]">Acción</div>
+            <div class="text-[13px] text-[#e5e7eb]">{{ selected.action }}</div>
+          </div>
+          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-4 py-3">
+            <div class="text-[11px] text-[#9ca3af]">Entidad</div>
+            <div class="text-[13px] text-[#e5e7eb]">{{ selected.entity }} · {{ selected.entityId }}</div>
+          </div>
+        </div>
+
+        <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-4 py-3">
+          <div class="text-[11px] text-[#9ca3af]">Resumen</div>
+          <div class="text-[13px] text-[#e5e7eb]">{{ selected.summary }}</div>
+        </div>
+
+        <div>
+          <div class="text-[12px] text-[#9ca3af] mb-2">Metadata (JSON)</div>
+          <pre class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[320px]">{{ prettyJson(selected.metadata) }}</pre>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <div class="text-[12px] text-[#9ca3af] mb-2">Request (JSON)</div>
+            <pre class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[260px]">{{ prettyJson(selected.request) }}</pre>
+          </div>
+          <div>
+            <div class="text-[12px] text-[#9ca3af] mb-2">Response (JSON)</div>
+            <pre class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[260px]">{{ prettyJson(selected.response) }}</pre>
+          </div>
+        </div>
+
+        @if (selected.diff) {
+          <div>
+            <div class="text-[12px] text-[#9ca3af] mb-2">Diff (JSON)</div>
+            <pre class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[260px]">{{ prettyJson(selected.diff) }}</pre>
+          </div>
+        }
+
+        <div class="flex justify-end">
+          <button pButton type="button" label="Cerrar" class="p-button-sm p-button-secondary" (click)="detailDialogOpen = false"></button>
+        </div>
+      </div>
+    }
+  </p-dialog>
+
+  <div class="max-w-7xl mx-auto">
+    <app-page-header
+      [title]="'Audit log'"
+      [subtitle]="'Actividades relevantes del sistema (solo ADMIN).'
+      "
+    ></app-page-header>
+
+    <!-- Filters -->
+    <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      <div class="grid grid-cols-6 gap-4">
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Entidad</label>
+          <p-select
+            [options]="entityOptions"
+            [(ngModel)]="filters.entity"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Acción</label>
+          <p-select
+            [options]="actionOptions"
+            [(ngModel)]="filters.action"
+            name="action"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+
+        <div class="col-span-2">
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Usuario</label>
+          <input
+            placeholder="Nombre, email o id…"
+            class="w-full"
+            pInputText
+            [(ngModel)]="filters.user"
+            name="user"
+          />
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Entidad ID</label>
+          <input pInputText [(ngModel)]="filters.entityId" name="entityId" placeholder="entityId…" class="w-full" />
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Request ID</label>
+          <input pInputText [(ngModel)]="filters.requestId" name="requestId" placeholder="requestId…" class="w-full" />
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Desde</label>
+          <p-datePicker [(ngModel)]="filters.from" class="w-full"></p-datePicker>
+        </div>
+
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Hasta</label>
+          <p-datePicker [(ngModel)]="filters.to" class="w-full"></p-datePicker>
+        </div>
+
+        <div class="col-span-6 flex items-end justify-end gap-2">
+          <button type="button" pButton label="Aplicar" class="p-button-sm" (click)="first = 0; load()"></button>
+          <button type="button" pButton label="Limpiar" class="p-button-text p-button-sm" (click)="clearFilters()"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      @if (loading) {
+        <div class="border-b border-[#1f2937] pb-4 mb-4 text-[13px] text-[#9ca3af] flex items-center gap-2">
+          <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+          Cargando audit log…
+        </div>
+      }
+
+      @if (loadError) {
+        <div class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200 mb-4">
+          {{ loadError }}
+        </div>
+      }
+
+      @if (!loading && !loadError && items.length === 0) {
+        <div class="text-[13px] text-[#9ca3af]">No hay eventos para los filtros seleccionados.</div>
+      }
+
+      <p-table
+        [value]="items"
+        [paginator]="true"
+        [rows]="rows"
+        [first]="first"
+        [rowsPerPageOptions]="[10, 20, 50]"
+        (onPage)="onPageChange($event)"
+        [tableStyle]="{ width: '100%' }"
+        styleClass="p-datatable-sm"
+      >
+        <ng-template pTemplate="header">
+          <tr class="border-b border-[#1f2937]">
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Fecha</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Usuario</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Acción</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Entidad</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">EntityId</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Resumen</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3">Acciones</th>
+          </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-r>
+          <tr class="border-b border-[#1f2937]">
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ r.createdAt.slice(0, 19).replace('T', ' ') }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ r.actor.name }}</td>
+            <td class="py-4 pr-4">
+              <p-tag [value]="r.action" [severity]="actionSeverity(r.action)"></p-tag>
+            </td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ r.entity }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ r.entityId }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ r.summary }}</td>
+            <td class="py-4">
+              <div class="flex items-center gap-1">
+                <button
+                  type="button"
+                  pButton
+                  icon="pi pi-eye"
+                  class="p-button-text p-button-sm"
+                  aria-label="Ver detalle"
+                  (click)="openDetail(r)"
+                ></button>
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+  </div>
+</app-shell>

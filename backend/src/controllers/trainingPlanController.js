@@ -24,7 +24,7 @@ const getTrainingPlan = async (req, res, next) => {
 
 const createTrainingPlan = async (req, res, next) => {
   try {
-    const created = await trainingPlanService.createTrainingPlan(req.body);
+    const created = await trainingPlanService.createTrainingPlan(req.body, { user: req.user, requestId: req.requestId });
     return res.status(StatusCodes.CREATED).json(created);
   } catch (error) {
     logger.error('Error creating training plan:', error);
@@ -34,7 +34,7 @@ const createTrainingPlan = async (req, res, next) => {
 
 const updateTrainingPlan = async (req, res, next) => {
   try {
-    const row = await trainingPlanService.updateTrainingPlan(req.params.id, req.body);
+    const row = await trainingPlanService.updateTrainingPlan(req.params.id, req.body, { user: req.user, requestId: req.requestId });
     return res.status(StatusCodes.OK).json(row);
   } catch (error) {
     logger.error('Error updating training plan:', error);

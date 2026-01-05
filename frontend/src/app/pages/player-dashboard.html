@@ -1,0 +1,130 @@
+<app-shell title="Jugador" subtitle="Resumen y métricas">
+	<div class="max-w-6xl mx-auto space-y-4">
+		<div class="flex justify-end gap-2">
+			<a pButton routerLink="/players" label="Volver" icon="pi pi-arrow-left" class="bp-btn bp-btn-secondary"></a>
+			<a pButton routerLink="/monitoring" label="Monitoring" icon="pi pi-chart-line" class="bp-btn bp-btn-secondary"></a>
+		</div>
+
+		<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+			<app-page-header [title]="playerName" [subtitle]="playerSubtitle"></app-page-header>
+			<div class="mt-3 text-[13px] text-[#9ca3af]">
+				Aún no disponible: falta endpoint para cargar el perfil del jugador actual y sus métricas.
+			</div>
+		</div>
+
+		<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+			<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+				<div class="flex items-start justify-between gap-3">
+					<div>
+						<div class="text-[14px] font-semibold text-[#f9fafb]">Últimas encuestas</div>
+						<div class="mt-1 text-[12px] text-[#9ca3af]">RPE, fatiga, dolor y bienestar.</div>
+					</div>
+					<button pButton type="button" label="Recargar" icon="pi pi-refresh" (click)="loadFeedback()" class="bp-btn bp-btn-secondary" [disabled]="true"></button>
+				</div>
+
+				@if (feedbackLoading) {
+					<div class="mt-4 flex items-center gap-2 text-[13px] text-[#e5e7eb]">
+						<p-progressSpinner styleClass="w-4 h-4" strokeWidth="6"></p-progressSpinner>
+						Cargando…
+					</div>
+				} @else if (feedbackError) {
+					<div class="mt-4 text-[13px] text-[#9ca3af] border border-[#1f2937] bg-[#111827] rounded-lg p-3">{{ feedbackError }}</div>
+				} @else if (!recentSurveys?.length) {
+					<div class="mt-4 text-[13px] text-[#9ca3af]">No hay encuestas registradas.</div>
+				} @else {
+					<div class="mt-4 space-y-3">
+						@for (s of recentSurveys; track s.id) {
+							<div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4">
+								<div class="flex flex-wrap items-center justify-between gap-2">
+									<div class="text-[13px] font-semibold text-[#f9fafb]">
+										{{ s.createdAt.slice(0, 10) }} · {{ s.targetType === 'session' ? 'Sesión' : 'Planificación' }}
+									</div>
+									<div class="flex items-center gap-2">
+										<p-tag severity="info" value="RPE {{ s.answers.rpe }}/10"></p-tag>
+										<p-tag severity="warn" value="Fat {{ s.answers.fatigue }}/10"></p-tag>
+										<p-tag severity="secondary" value="Dol {{ s.answers.pain }}/10"></p-tag>
+									</div>
+								</div>
+
+								<div class="mt-2 grid grid-cols-3 gap-2">
+									<div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-3 py-2">
+										<div class="text-[11px] text-[#9ca3af]">Sueño</div>
+										<div class="text-[13px] text-[#f9fafb]">{{ s.answers.sleep }}/5</div>
+									</div>
+									<div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-3 py-2">
+										<div class="text-[11px] text-[#9ca3af]">Estrés</div>
+										<div class="text-[13px] text-[#f9fafb]">{{ s.answers.stress }}/5</div>
+									</div>
+									<div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-3 py-2">
+										<div class="text-[11px] text-[#9ca3af]">Ánimo</div>
+										<div class="text-[13px] text-[#f9fafb]">{{ s.answers.mood }}/5</div>
+									</div>
+								</div>
+
+								@if (s.answers.notes) {
+									<div class="mt-2 text-[13px] text-[#e5e7eb]">
+										<span class="text-[#9ca3af]">Notas:</span> {{ s.answers.notes }}
+									</div>
+								}
+							</div>
+						}
+					</div>
+				}
+			</div>
+
+			<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+				<div class="text-[14px] font-semibold text-[#f9fafb]">Agregados semanales</div>
+				<div class="mt-1 text-[12px] text-[#9ca3af]">Promedios por semana (últimas 4).</div>
+
+				@if (feedbackLoading) {
+					<div class="mt-4 flex items-center gap-2 text-[13px] text-[#e5e7eb]">
+						<p-progressSpinner styleClass="w-4 h-4" strokeWidth="6"></p-progressSpinner>
+						Calculando…
+					</div>
+				} @else if (!weeklyAggregates?.length) {
+					<div class="mt-4 text-[13px] text-[#9ca3af]">Sin suficientes datos.</div>
+				} @else {
+					<div class="mt-4 grid grid-cols-1 gap-3">
+						@for (w of weeklyAggregates; track w.week) {
+							<div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4">
+								<div class="flex items-center justify-between">
+									<div class="text-[13px] font-semibold text-[#f9fafb]">{{ w.week }}</div>
+									<div class="text-[12px] text-[#9ca3af]">{{ w.count }} encuestas</div>
+								</div>
+								<div class="mt-3 grid grid-cols-3 gap-2">
+									<div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-3 py-2">
+										<div class="text-[11px] text-[#9ca3af]">RPE</div>
+										<div class="text-[13px] text-[#f9fafb]">{{ w.avgRpe ? (w.avgRpe | number:'1.0-1') : '—' }}</div>
+									</div>
+									<div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-3 py-2">
+										<div class="text-[11px] text-[#9ca3af]">Fatiga</div>
+										<div class="text-[13px] text-[#f9fafb]">{{ w.avgFatigue ? (w.avgFatigue | number:'1.0-1') : '—' }}</div>
+									</div>
+									<div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-3 py-2">
+										<div class="text-[11px] text-[#9ca3af]">Dolor</div>
+										<div class="text-[13px] text-[#f9fafb]">{{ w.avgPain ? (w.avgPain | number:'1.0-1') : '—' }}</div>
+									</div>
+								</div>
+
+								<div class="mt-2 grid grid-cols-3 gap-2">
+									<div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-3 py-2">
+										<div class="text-[11px] text-[#9ca3af]">Sueño</div>
+										<div class="text-[13px] text-[#f9fafb]">{{ w.avgSleep ? (w.avgSleep | number:'1.0-1') : '—' }}</div>
+									</div>
+									<div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-3 py-2">
+										<div class="text-[11px] text-[#9ca3af]">Estrés</div>
+										<div class="text-[13px] text-[#f9fafb]">{{ w.avgStress ? (w.avgStress | number:'1.0-1') : '—' }}</div>
+									</div>
+									<div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-3 py-2">
+										<div class="text-[11px] text-[#9ca3af]">Ánimo</div>
+										<div class="text-[13px] text-[#f9fafb]">{{ w.avgMood ? (w.avgMood | number:'1.0-1') : '—' }}</div>
+									</div>
+								</div>
+							</div>
+						}
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+</app-shell>

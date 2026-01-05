@@ -7,7 +7,26 @@ const errorUtils = require('../libs/errorHelper');
 const listExercises = async ({ type, difficulty, tags } = {}) => {
   const where = {};
   if (type) where.type = type;
-  if (difficulty) where.difficulty = difficulty;
+  if (difficulty) {
+    // difficulty is JSONB; allow filtering by providing either:
+    // - an object (will match rows that contain that object)
+    // - a JSON string (we'll parse it)
+    // - a plain string (fallback exact match, but mainly for backward compat)
+    let parsedDifficulty = difficulty;
+    if (typeof difficulty === 'string') {
+      try {
+        parsedDifficulty = JSON.parse(difficulty);
+      } catch (_) {
+        parsedDifficulty = difficulty;
+      }
+    }
+
+    if (parsedDifficulty && typeof parsedDifficulty === 'object' && !Array.isArray(parsedDifficulty)) {
+      where.difficulty = { [Op.contains]: parsedDifficulty };
+    } else {
+      where.difficulty = parsedDifficulty;
+    }
+  }
   if (tags) {
     const parsed = Array.isArray(tags)
       ? tags

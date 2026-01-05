@@ -1,0 +1,181 @@
+<app-shell title="Jugadores" subtitle="Gestión de jugadores">
+	<div class="max-w-7xl mx-auto">
+		<app-page-header
+			[title]="'Jugadores'"
+			[subtitle]="'Listado y detalle de jugadores del club.'"
+			[actionLabel]="'Añadir jugadores'"
+			[actionIcon]="'pi pi-plus'"
+			[action]="openPlayerSelection.bind(this)"
+		></app-page-header>
+
+		@let vm = (vm$ | async);
+
+				<!-- Filters -->
+				<div
+					class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6"
+					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+				>
+					<div class="grid grid-cols-4 gap-4">
+						<div>
+							<label class="block text-[#9ca3af] text-[12px] mb-2">Club</label>
+							<p-select
+								[options]="clubOptions"
+								[(ngModel)]="filters.club"
+								name="club"
+								optionLabel="label"
+								optionValue="value"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
+								(onChange)="refresh()"
+							></p-select>
+						</div>
+						<div>
+							<label class="block text-[#9ca3af] text-[12px] mb-2">Equipo</label>
+							<p-select
+								[options]="teamOptions"
+								[(ngModel)]="filters.team"
+								name="team"
+								optionLabel="label"
+								optionValue="value"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
+								(onChange)="refresh()"
+							></p-select>
+						</div>
+						<div>
+							<label class="block text-[#9ca3af] text-[12px] mb-2">Categoría</label>
+							<p-select
+								[options]="categoryOptions"
+								[(ngModel)]="filters.category"
+								name="category"
+								optionLabel="label"
+								optionValue="value"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
+								(onChange)="refresh()"
+							></p-select>
+						</div>
+						<div>
+							<label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
+							<input
+								pInputText
+								[(ngModel)]="filters.search"
+								name="search"
+								placeholder="Nombre o apellidos"
+								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
+								(ngModelChange)="refresh()"
+							/>
+						</div>
+					</div>
+					<div class="mt-4 flex justify-end">
+						<button
+							type="button"
+							pButton
+							label="Limpiar filtros"
+							class="bp-btn bp-btn-ghost bp-btn-sm"
+							(click)="clearFilters()"
+						></button>
+					</div>
+				</div>
+
+				<!-- Players Table -->
+				<div
+					class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
+				>
+					@if (vm?.loading) {
+						<div class="border-b border-[#1f2937] px-2 pb-4 text-[13px] text-[#9ca3af]">Cargando jugadores…</div>
+					}
+					@if (vm?.error) {
+						<div class="border-b border-red-900/60 bg-red-950/40 px-3 py-2 text-[13px] text-red-200">{{ vm?.error }}</div>
+					}
+
+					<p-table
+						[value]="(vm?.filtered ?? [])"
+						[tableStyle]="{ width: '100%' }"
+						styleClass="bp-table p-datatable-sm"
+					>
+						<ng-template pTemplate="header">
+							<tr class="border-b border-[#1f2937]">
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Nombre</th>
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Equipo</th>
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Categoría</th>
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Posición</th>
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Estado</th>
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3"></th>
+							</tr>
+						</ng-template>
+						<ng-template pTemplate="body" let-player>
+							<tr class="border-b border-[#1f2937]">
+								<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ player.name }}</td>
+								<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ player.team }}</td>
+								<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ player.category }}</td>
+								<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ player.position }}</td>
+								<td class="py-4 pr-4">
+									<p-tag
+										[value]="player.status === 'active' ? 'Activo' : 'En revisión'"
+										[severity]="player.status === 'active' ? 'success' : 'warn'"
+									></p-tag>
+								</td>
+								<td class="py-4">
+									<button
+										type="button"
+										pButton
+										label="Ver"
+										class="bp-btn bp-btn-ghost bp-btn-sm"
+										(click)="openPlayer(player)"
+									></button>
+								</td>
+							</tr>
+						</ng-template>
+					</p-table>
+
+					@if (!vm?.loading && (vm?.filtered?.length ?? 0) === 0) {
+						<div class="py-10 text-center text-[13px] text-[#9ca3af]">No hay jugadores con esos filtros.</div>
+					}
+				</div>
+			</div>
+
+	<!-- Player Detail (Dialog) -->
+	<p-dialog
+		styleClass="bp-dialog bp-dialog-strong"
+		[header]="'Detalle de jugador'"
+		[(visible)]="playerDetailVisible"
+		[modal]="true"
+		[dismissableMask]="true"
+		[draggable]="false"
+		[resizable]="false"
+		[style]="{ width: 'min(1100px, 95vw)' }"
+		(onHide)="closePlayer()"
+	>
+		@if (selectedPlayer) {
+			<app-player-detail
+				[player]="selectedPlayer"
+				(cancel)="closePlayer()"
+				(save)="savePlayer($event)"
+			></app-player-detail>
+		}
+	</p-dialog>
+
+	<!-- Player Selection (Dialog) -->
+	<p-dialog
+		styleClass="bp-dialog"
+		[header]="'Seleccionar jugadores'"
+		[(visible)]="playerSelectionVisible"
+		[modal]="true"
+		[dismissableMask]="true"
+		[draggable]="false"
+		[resizable]="false"
+		[style]="{ width: 'min(900px, 95vw)' }"
+		(onHide)="closePlayerSelection()"
+	>
+		<app-player-selection
+			[title]="'Seleccionar jugadores'"
+			[subtitle]="'Añade jugadores al equipo'"
+			[availablePlayers]="availablePlayersForSelection"
+			[selectedPlayers]="selectedPlayerIds"
+			(cancel)="closePlayerSelection()"
+			(confirm)="confirmPlayerSelection($event)"
+		></app-player-selection>
+	</p-dialog>
+</app-shell>

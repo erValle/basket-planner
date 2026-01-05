@@ -1,0 +1,418 @@
+<app-shell title="Planificación" subtitle="Detalle">
+  <p-toast></p-toast>
+
+  <p-dialog
+    header="Enviar planificación"
+    [(visible)]="sendDialogOpen"
+    [modal]="true"
+    [draggable]="false"
+    [closable]="!sendingEmail"
+    [dismissableMask]="!sendingEmail"
+    [style]="{ width: '720px' }"
+    [contentStyle]="{ background: '#020617', border: '1px solid #1f2937' }"
+  >
+    <div class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Formato</label>
+          <p-select
+            [options]="formatOptions"
+            [(ngModel)]="emailModel.format"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Versión</label>
+          <p-select
+            [options]="versionOptions"
+            [(ngModel)]="emailModel.version"
+            placeholder="Versión"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+            [showClear]="true"
+          ></p-select>
+          <div class="mt-2 text-[12px] text-[#6b7280]">Si no seleccionas versión, se enviará la última.</div>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[#9ca3af] text-[12px] mb-2">Destinatarios</label>
+        <div class="flex gap-2">
+          <input
+            pInputText
+            [(ngModel)]="recipientDraft"
+            (keydown.enter)="$event.preventDefault(); addRecipient()"
+            placeholder="email@club.com"
+            class="flex-1"
+          />
+          <button type="button" pButton label="Añadir" class="p-button-sm" (click)="addRecipient()"></button>
+        </div>
+
+        @if (emailModel.recipients.length === 0) {
+          <div class="mt-2 text-[12px] text-[#6b7280]">Añade al menos un destinatario.</div>
+        } @else {
+          <div class="mt-3 flex flex-wrap gap-2">
+            @for (r of emailModel.recipients; track r) {
+              <div class="flex items-center gap-2 rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2 text-[13px] text-[#e5e7eb]">
+                <span>{{ r }}</span>
+                <button
+                  type="button"
+                  pButton
+                  icon="pi pi-times"
+                  class="p-button-text p-button-sm"
+                  aria-label="Quitar"
+                  (click)="removeRecipient(r)"
+                ></button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <div>
+        <label class="block text-[#9ca3af] text-[12px] mb-2">Asunto</label>
+        <input
+          pInputText
+          [(ngModel)]="emailModel.subject"
+          placeholder="Asunto del correo"
+          class="w-full"
+        />
+      </div>
+
+      <div>
+        <label class="block text-[#9ca3af] text-[12px] mb-2">Mensaje (opcional)</label>
+        <textarea
+          pTextarea
+          [(ngModel)]="emailModel.message"
+          rows="4"
+          class="w-full resize-none"
+        ></textarea>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        @if (sendingEmail) {
+          <div class="flex items-center gap-2 text-[12px] text-[#9ca3af]">
+            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+            Enviando…
+          </div>
+        } @else {
+          <div class="text-[12px] text-[#6b7280]">El envío por correo aún no está disponible. Puedes exportar a PDF/CSV desde esta pantalla.</div>
+        }
+
+        <div class="flex gap-2">
+          <button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" [disabled]="sendingEmail" (click)="sendDialogOpen = false"></button>
+          <button type="button" pButton label="Enviar" icon="pi pi-send" class="p-button-sm" [disabled]="sendingEmail || !canSendEmail()" (click)="sendEmail()"></button>
+        </div>
+      </div>
+    </div>
+  </p-dialog>
+
+  <p-dialog
+    header="Feedback de planificación"
+    [(visible)]="feedbackDialogOpen"
+    [modal]="true"
+    [draggable]="false"
+    [closable]="!savingFeedback"
+    [dismissableMask]="!savingFeedback"
+    [style]="{ width: '720px' }"
+    [contentStyle]="{ background: '#020617', border: '1px solid #1f2937' }"
+    (onHide)="closeFeedback()"
+  >
+    <div class="space-y-4">
+      <div class="text-[13px] text-[#9ca3af]">Encuesta estructurada (RPE, fatiga, dolor y bienestar).</div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">RPE (1-10)</label>
+          <p-select
+            class="w-full"
+            [options]="scale1to10"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="draftSurvey.rpe"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Fatiga (1-10)</label>
+          <p-select
+            class="w-full"
+            [options]="scale1to10"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="draftSurvey.fatigue"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Dolor (0-10)</label>
+          <p-select
+            class="w-full"
+            [options]="scale0to10"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="draftSurvey.pain"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Sueño (1-5)</label>
+          <p-select
+            class="w-full"
+            [options]="scale1to5"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="draftSurvey.sleep"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Estrés (1-5)</label>
+          <p-select
+            class="w-full"
+            [options]="scale1to5"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="draftSurvey.stress"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Ánimo (1-5)</label>
+          <p-select
+            class="w-full"
+            [options]="scale1to5"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="draftSurvey.mood"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[#9ca3af] text-[12px] mb-2">Notas (opcional)</label>
+        <textarea
+          pTextarea
+          [(ngModel)]="draftSurvey.notes"
+          rows="4"
+          class="w-full resize-none"
+        ></textarea>
+      </div>
+
+      <div class="flex items-center justify-between pt-2">
+        @if (savingFeedback) {
+          <div class="flex items-center gap-2 text-[12px] text-[#9ca3af]">
+            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+            Guardando…
+          </div>
+        } @else {
+          <div class="text-[12px] text-[#6b7280]">Se guardará como encuesta estructurada.</div>
+        }
+
+        <div class="flex gap-2">
+          <button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" [disabled]="savingFeedback" (click)="feedbackDialogOpen = false"></button>
+          <button type="button" pButton label="Guardar" icon="pi pi-check" class="p-button-sm" [disabled]="savingFeedback" (click)="saveFeedback()"></button>
+        </div>
+      </div>
+    </div>
+  </p-dialog>
+
+  <div class="max-w-6xl mx-auto space-y-4">
+    <!-- Top actions bar (same vibe as session-detail) -->
+    <div class="flex flex-wrap justify-between items-center gap-2">
+      <a pButton routerLink="/planning" label="Volver" icon="pi pi-arrow-left" class="p-button-text p-button-sm"></a>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="min-w-[160px]">
+          <p-select
+            [options]="versionOptions"
+            [(ngModel)]="selectedVersion"
+            (ngModelChange)="onVersionChange($event)"
+            placeholder="Versión"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+            [showClear]="false"
+          ></p-select>
+        </div>
+
+        <button pButton type="button" label="Crear nueva versión" icon="pi pi-copy" class="p-button-sm" (click)="createNewVersion()"></button>
+
+        <button
+          pButton
+          type="button"
+          label="Exportar PDF"
+          icon="pi pi-file-pdf"
+          class="p-button-sm p-button-secondary"
+          [disabled]="downloading !== null"
+          (click)="exportPdf()"
+        ></button>
+        <button
+          pButton
+          type="button"
+          label="Exportar CSV"
+          icon="pi pi-file"
+          class="p-button-sm p-button-secondary"
+          [disabled]="downloading !== null"
+          (click)="exportCsv()"
+        ></button>
+
+  <button pButton type="button" label="Registrar feedback" icon="pi pi-clipboard" class="p-button-sm" [disabled]="downloading !== null" (click)="openFeedback()"></button>
+
+        <button pButton type="button" label="Enviar" icon="pi pi-envelope" class="p-button-sm p-button-secondary" [disabled]="downloading !== null" (click)="openSendDialog()"></button>
+
+        @if (downloading) {
+          <div class="flex items-center gap-2 text-[12px] text-[#9ca3af] pl-2">
+            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+            Descargando…
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (loading) {
+      <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] text-[13px] text-[#9ca3af]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">Cargando planificación…</div>
+    }
+
+    @if (loadError) {
+      <div class="bg-red-950/40 border border-red-900/60 rounded-lg px-4 py-3 text-[13px] text-red-200">{{ loadError }}</div>
+    }
+
+    @if (emptyState && !loading && !loadError) {
+      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] text-center text-[13px] text-[#9ca3af]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        No existe la planificación solicitada.
+      </div>
+    }
+
+    @if (detail && !loading) {
+      <!-- Header card -->
+      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        <app-page-header
+          [title]="detail.title + ' · ' + detail.date"
+          [subtitle]="detail.team + ' · ' + detail.objective"
+        ></app-page-header>
+
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <p-tag [value]="statusLabel(detail.status)" [severity]="statusSeverity(detail.status)"></p-tag>
+            <div class="text-[13px] text-[#9ca3af]">{{ detail.version }} · {{ detail.author }}</div>
+          </div>
+
+          <!-- Metrics summary (same card style) -->
+          <div class="flex flex-wrap gap-2">
+            <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+              <div class="text-[11px] text-[#9ca3af]">Duración total</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ detail.metrics.totalDurationMin }} min</div>
+            </div>
+            <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+              <div class="text-[11px] text-[#9ca3af]">Carga estimada</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ detail.metrics.estimatedLoad || '—' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (latestSurvey) {
+        <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="text-[14px] font-semibold text-[#f9fafb]">Feedback registrado</div>
+              <div class="mt-1 text-[12px] text-[#9ca3af]">{{ latestSurvey.createdAt.slice(0, 10) }} · Planificación</div>
+            </div>
+            <p-tag severity="success" value="OK"></p-tag>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+              <div class="text-[11px] text-[#9ca3af]">RPE</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.rpe }}/10</div>
+            </div>
+            <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+              <div class="text-[11px] text-[#9ca3af]">Fatiga</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.fatigue }}/10</div>
+            </div>
+            <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+              <div class="text-[11px] text-[#9ca3af]">Dolor</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.pain }}/10</div>
+            </div>
+            <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+              <div class="text-[11px] text-[#9ca3af]">Sueño</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.sleep }}/5</div>
+            </div>
+            <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+              <div class="text-[11px] text-[#9ca3af]">Estrés</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.stress }}/5</div>
+            </div>
+            <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+              <div class="text-[11px] text-[#9ca3af]">Ánimo</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.mood }}/5</div>
+            </div>
+          </div>
+
+          @if (latestSurvey.answers.notes) {
+            <div class="mt-3 text-[13px] text-[#e5e7eb]">
+              <span class="text-[#9ca3af]">Notas:</span> {{ latestSurvey.answers.notes }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Blocks (session-detail pattern) -->
+      <div class="space-y-3">
+        @for (b of blocks; track b.id) {
+          <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+            <div class="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div class="text-[14px] font-semibold text-[#f9fafb]">{{ b.name }}</div>
+                @if (b.focus) {
+                  <div class="mt-1 text-[13px] text-[#e5e7eb]">{{ b.focus }}</div>
+                }
+                @if (b.notes) {
+                  <div class="mt-1 text-[12px] text-[#9ca3af]">{{ b.notes }}</div>
+                }
+              </div>
+              <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2 text-[13px] text-[#e5e7eb]">
+                {{ b.durationMin }} min
+              </div>
+            </div>
+
+            @if (b.exercises && b.exercises.length > 0) {
+              <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                @for (ex of b.exercises; track ex.id) {
+                  <div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <div class="text-[13px] font-semibold text-[#f9fafb]">{{ ex.name }}</div>
+                        @if (ex.notes) {
+                          <div class="mt-1 text-[12px] text-[#9ca3af]">{{ ex.notes }}</div>
+                        }
+                      </div>
+                      @if (ex.durationMin) {
+                        <div class="text-[12px] text-[#e5e7eb]">{{ ex.durationMin }} min</div>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      @if (blocks.length === 0) {
+        <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] text-center text-[13px] text-[#9ca3af]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+          No hay bloques configurados en esta versión.
+        </div>
+      }
+    }
+  </div>
+</app-shell>

@@ -1,0 +1,635 @@
+/* PrimeNG overrides for a consistent dialog look & feel */
+
+/*
+  Usage:
+  - Add `styleClass="bp-dialog"` to any <p-dialog>
+  - Keep content padding consistent even when dialogs render custom headers/footers
+*/
+
+.bp-dialog .p-dialog {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid rgba(100, 116, 139, 0.6) !important;
+  box-shadow:
+    0 32px 90px rgba(0, 0, 0, 0.72),
+    0 0 0 1px rgba(100, 116, 139, 0.3),
+    0 0 30px rgba(0, 0, 0, 0.5) !important;
+}
+.bp-dialog .p-tablist::before,
+.bp-dialog .p-tablist::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* "Focus" ring for active dialogs (helps on dark backgrounds) */
+.bp-dialog .p-dialog:focus-within {
+  box-shadow:
+    0 28px 70px rgba(0,0,0,0.62),
+    0 0 0 3px rgba(56, 189, 248, 0.18);
+}
+
+/* Stronger dialog variant (use for long, dense modals like Player Detail) */
+.bp-dialog-strong .p-dialog-mask {
+  background: rgba(2, 6, 23, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Default dialog mask (helps modals pop over dark UI) */
+.bp-dialog .p-dialog-mask {
+  background: rgba(2, 6, 23, 0.80) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+.bp-dialog-strong .p-dialog {
+  border-width: 2px !important;
+  border-style: solid !important;
+  border-color: rgba(56, 189, 248, 0.7) !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 34px 90px rgba(0,0,0,0.72),
+    0 0 0 2px rgba(56, 189, 248, 0.35),
+    0 0 50px rgba(56, 189, 248, 0.2) !important;
+}
+
+/* Header */
+.bp-dialog .p-dialog-header {
+  background: rgba(9, 9, 11, 0.98); /* zinc-950-ish */
+  border-bottom: 1px solid rgba(39, 39, 42, 1); /* zinc-800 */
+  padding: 16px 20px;
+}
+
+.bp-dialog .p-dialog-title {
+  color: rgba(244, 244, 245, 1);
+  font-weight: 600;
+}
+
+/* Content */
+.bp-dialog .p-dialog-content {
+  background: rgba(3, 7, 22, 0.92); /* slightly lighter for readability */
+  padding: 20px;
+}
+
+/* ConfirmDialog specific styling */
+.bp-dialog .p-confirmdialog-message {
+  color: rgba(229, 231, 235, 1); /* gray-200 */
+  font-size: 14px;
+  line-height: 1.6;
+  margin-left: 12px;
+}
+
+.bp-dialog .p-confirmdialog-icon {
+  color: rgba(251, 191, 36, 1); /* amber-400 */
+  font-size: 24px;
+}
+
+.bp-dialog .p-confirm-dialog-accept {
+  background: rgba(56, 189, 248, 1) !important; /* sky-400 */
+  border-color: rgba(56, 189, 248, 1) !important;
+  color: rgba(2, 6, 23, 1) !important; /* dark text for contrast */
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.bp-dialog .p-confirm-dialog-accept:hover {
+  background: rgba(14, 165, 233, 1) !important; /* sky-500 */
+  border-color: rgba(14, 165, 233, 1) !important;
+}
+
+.bp-dialog .p-confirm-dialog-reject {
+  background: rgba(31, 41, 55, 0.8) !important; /* gray-800 with opacity */
+  border: 1px solid rgba(75, 85, 99, 1) !important; /* gray-600 */
+  color: rgba(229, 231, 235, 1) !important; /* gray-200 - light text */
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.bp-dialog .p-confirm-dialog-reject:hover {
+  background: rgba(55, 65, 81, 0.9) !important;
+  border-color: rgba(107, 114, 128, 1) !important;
+  color: rgba(249, 250, 251, 1) !important;
+}
+
+/* Additional confirm dialog button styling for PrimeNG 19+ */
+.bp-dialog .p-confirmdialog-accept-button {
+  background: rgba(56, 189, 248, 1) !important;
+  border-color: rgba(56, 189, 248, 1) !important;
+  color: rgba(2, 6, 23, 1) !important;
+  border-radius: 10px !important;
+  padding: 8px 16px !important;
+  font-weight: 600 !important;
+}
+
+.bp-dialog .p-confirmdialog-accept-button .p-button-label {
+  color: rgba(2, 6, 23, 1) !important;
+  font-weight: 600 !important;
+}
+
+.bp-dialog .p-confirmdialog-reject-button {
+  background: rgba(31, 41, 55, 0.8) !important;
+  border: 1px solid rgba(75, 85, 99, 1) !important;
+  color: rgba(229, 231, 235, 1) !important;
+  border-radius: 10px !important;
+  padding: 8px 16px !important;
+}
+
+.bp-dialog .p-confirmdialog-reject-button .p-button-label {
+  color: rgba(229, 231, 235, 1) !important;
+  font-weight: 500 !important;
+}
+
+/* Footer */
+.bp-dialog .p-dialog-footer {
+  background: rgba(9, 9, 11, 0.98);
+  border-top: 1px solid rgba(39, 39, 42, 1);
+  padding: 14px 20px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Form controls (Select / Dropdown)                                           */
+/* -------------------------------------------------------------------------- */
+
+/* Apply the class `bp-select` to <p-select> / <p-dropdown> via `styleClass`. */
+.bp-select.p-select,
+.bp-select.p-dropdown {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(31, 41, 55, 1); /* slate-800 */
+  background: rgba(17, 24, 39, 1); /* slate-900 */
+  /* Create a bit of breathing room so the trigger icon isn't glued to the far right */
+  padding-right: 6px;
+}
+
+.bp-select .p-select-label,
+.bp-select .p-dropdown-label {
+  color: rgba(229, 231, 235, 1);
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
+.bp-select .p-select-trigger,
+.bp-select .p-dropdown-trigger {
+  color: rgba(148, 163, 184, 1);
+  width: 2.25rem; /* smaller than default so the icon sits slightly more inward */
+}
+
+.bp-select.p-focus,
+.bp-select:focus-within {
+  border-color: rgba(56, 189, 248, 1); /* sky-400 */
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
+}
+
+/* Panel */
+.bp-select-panel.p-select-overlay,
+.bp-select-panel.p-dropdown-panel {
+  background: rgba(2, 6, 23, 0.98);
+  border: 1px solid rgba(31, 41, 55, 1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.bp-select-panel .p-select-list,
+.bp-select-panel .p-dropdown-items {
+  padding: 6px;
+}
+
+.bp-select-panel .p-select-option,
+.bp-select-panel .p-dropdown-item {
+  border-radius: 10px;
+  color: rgba(229, 231, 235, 1);
+  font-size: 13px;
+}
+
+.bp-select-panel .p-select-option:not(.p-disabled):hover,
+.bp-select-panel .p-dropdown-item:not(.p-disabled):hover {
+  background: rgba(17, 24, 39, 1);
+}
+
+.bp-select-panel .p-select-option.p-highlight,
+.bp-select-panel .p-dropdown-item.p-highlight {
+  background: rgba(14, 165, 233, 0.25);
+  color: rgba(229, 231, 235, 1);
+}
+
+/* -------------------------------------------------------------------------- */
+/* DataTable                                                                   */
+/* -------------------------------------------------------------------------- */
+
+/* Apply the class `bp-table` to <p-table> via `styleClass`. */
+.bp-table.p-datatable {
+  background: transparent;
+}
+
+.bp-table .p-datatable-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.bp-table .p-datatable-thead > tr > th {
+  background: rgba(2, 6, 23, 1);
+  color: rgba(156, 163, 175, 1);
+  font-size: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid rgba(31, 41, 55, 1);
+  padding: 12px 14px;
+}
+
+.bp-table .p-datatable-tbody > tr > td {
+  background: rgba(2, 6, 23, 0.6);
+  color: rgba(229, 231, 235, 1);
+  font-size: 13px;
+  border-bottom: 1px solid rgba(31, 41, 55, 1);
+  padding: 14px;
+}
+
+.bp-table .p-datatable-tbody > tr:hover > td {
+  background: rgba(17, 24, 39, 0.8);
+}
+
+/* Subtle zebra */
+.bp-table .p-datatable-tbody > tr:nth-child(2n) > td {
+  background: rgba(2, 6, 23, 0.75);
+}
+
+/* Paginator */
+.bp-table .p-paginator {
+  background: transparent;
+  border: 0;
+  padding-top: 14px;
+}
+
+.bp-table .p-paginator .p-paginator-page,
+.bp-table .p-paginator .p-paginator-next,
+.bp-table .p-paginator .p-paginator-prev,
+.bp-table .p-paginator .p-paginator-first,
+.bp-table .p-paginator .p-paginator-last {
+  color: rgba(229, 231, 235, 1);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Buttons (PrimeNG Button)                                                   */
+/* -------------------------------------------------------------------------- */
+
+/*
+  Usage:
+  - <p-button styleClass="bp-btn bp-btn-primary" ... />
+  - <button pButton class="bp-btn bp-btn-ghost" ...></button>
+*/
+
+.bp-btn.p-button,
+.bp-btn.p-button.p-component {
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  transition: background-color 120ms ease, border-color 120ms ease, box-shadow 120ms ease, color 120ms ease, transform 120ms ease;
+}
+
+.bp-btn.p-button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.bp-btn.p-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.18);
+}
+
+/* Primary */
+.bp-btn-primary.p-button {
+  background: rgba(56, 189, 248, 1); /* sky-400 */
+  border-color: rgba(56, 189, 248, 1);
+  color: rgba(2, 6, 23, 1);
+  box-shadow:
+    0 12px 28px rgba(56, 189, 248, 0.22),
+    0 2px 0 rgba(2, 6, 23, 0.35);
+}
+
+.bp-btn-primary.p-button:not(:disabled):hover {
+  background: rgba(14, 165, 233, 1); /* sky-500 */
+  border-color: rgba(14, 165, 233, 1);
+}
+
+/* Secondary (outlined-ish) */
+.bp-btn-secondary.p-button {
+  background: rgba(2, 6, 23, 0.15);
+  border-color: rgba(255, 255, 255, 0.10);
+  color: rgba(229, 231, 235, 1);
+}
+
+.bp-btn-secondary.p-button:not(:disabled):hover {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* Ghost / text */
+.bp-btn-ghost.p-button {
+  background: rgba(2, 6, 23, 0.35);
+  border-color: transparent;
+  color: rgba(229, 231, 235, 1);
+}
+
+.bp-btn-ghost.p-button:not(:disabled):hover {
+  background: rgba(17, 24, 39, 0.9);
+}
+
+/* Danger */
+.bp-btn-danger.p-button {
+  background: rgba(127, 29, 29, 0.35); /* red-900-ish */
+  border-color: rgba(127, 29, 29, 0.55);
+  color: rgba(254, 202, 202, 1);
+}
+
+.bp-btn-danger.p-button:not(:disabled):hover {
+  background: rgba(220, 38, 38, 0.25);
+  border-color: rgba(220, 38, 38, 0.55);
+}
+
+/* Small size helper */
+.bp-btn-sm.p-button {
+  padding: 8px 10px;
+  font-size: 12px;
+  border-radius: 10px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Text Buttons (p-button-text)                                               */
+/* -------------------------------------------------------------------------- */
+
+/*
+ * PrimeNG text buttons (.p-button-text) - add subtle border for visibility
+ */
+.p-button.p-button-text {
+  border: 1px solid rgba(56, 189, 248, 0.35); /* sky-400 subtle */
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.25);
+  color: rgba(56, 189, 248, 1); /* sky-400 */
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.p-button.p-button-text:not(:disabled):hover {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: rgba(56, 189, 248, 0.55);
+  color: rgba(125, 211, 252, 1); /* sky-300 */
+}
+
+.p-button.p-button-text:focus-visible {
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.18);
+  outline: none;
+}
+
+.p-button.p-button-text.p-button-sm {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Inputs (PrimeNG InputText / Textarea)                                      */
+/* -------------------------------------------------------------------------- */
+
+/* Match bp-select styling for consistency */
+.p-inputtext,
+.p-inputtextarea {
+  background: rgba(17, 24, 39, 1); /* slate-900 */
+  border: 1px solid rgba(31, 41, 55, 1); /* slate-800 */
+  border-radius: 12px;
+  color: rgba(249, 250, 251, 1);
+  font-size: 13px;
+  padding: 10px 12px;
+  box-shadow: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+}
+
+.p-inputtext::placeholder,
+.p-inputtextarea::placeholder {
+  color: rgba(107, 114, 128, 1); /* gray-500 - softer placeholder */
+}
+
+.p-inputtext:enabled:hover,
+.p-inputtextarea:enabled:hover {
+  background: rgba(17, 24, 39, 1);
+  border-color: rgba(55, 65, 81, 1); /* slate-700 */
+}
+
+.p-inputtext:enabled:focus,
+.p-inputtextarea:enabled:focus {
+  border-color: rgba(56, 189, 248, 1); /* sky-400 */
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
+  outline: none;
+}
+
+.p-inputtext:disabled,
+.p-inputtextarea:disabled {
+  opacity: 0.6;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Checkbox (PrimeNG Checkbox)                                                */
+/* -------------------------------------------------------------------------- */
+
+/* Ensure text next to checkboxes is visible immediately on dark UI. */
+.p-checkbox + label,
+.p-checkbox-label,
+.p-checkbox .p-checkbox-label {
+  color: rgba(229, 231, 235, 1);
+  opacity: 1;
+}
+
+.p-checkbox {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Tabs (PrimeNG Tabs)                                                        */
+/* -------------------------------------------------------------------------- */
+
+/* Limit to dialogs to avoid global style surprises */
+.bp-dialog .p-tabs {
+  margin-top: 10px;
+}
+
+.bp-dialog .p-tablist {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 100px;
+  outline: none;
+  background: rgba(2, 6, 23, 0.55);
+  border: 1px solid rgba(31, 41, 55, 0.9);
+  box-shadow: none;
+}
+
+.bp-dialog .p-tab {
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: rgba(148, 163, 184, 1);
+  font-size: 13px;
+  font-weight: 600;
+  border: 0;
+  outline: none;
+  box-shadow: none;
+  background: transparent;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+/* Avoid any default PrimeNG outlines/borders that can look like a white frame */
+.bp-dialog .p-tab:focus,
+.bp-dialog .p-tab:focus-visible {
+  outline: none;
+}
+
+.bp-dialog .p-tab:not(.p-disabled):hover {
+  background: rgba(17, 24, 39, 0.75);
+  color: rgb(255, 255, 255);
+}
+
+/* Active tab */
+.bp-dialog .p-tab.p-tab-active,
+.bp-dialog .p-tab[aria-selected="true"] {
+  background: rgba(15, 23, 42, 1);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  color: rgba(248, 250, 252, 1);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.10);
+}
+
+.bp-dialog .p-tab:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.26);
+}
+
+.bp-dialog .p-tabpanels {
+  margin-top: 12px;
+}
+/* PrimeNG 21: líneas suelen venir de wrappers internos del tablist */
+.bp-dialog .p-tablist,
+.bp-dialog .p-tablist-content,
+.bp-dialog .p-tablist-tab-list,
+.bp-dialog .p-tablist-nav,
+.bp-dialog .p-tablist-nav-content {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+/* Si PrimeNG pinta “líneas” con un indicador/barra, lo anulamos */
+.bp-dialog .p-tablist-active-bar,
+.bp-dialog .p-ink-bar,
+.bp-dialog .p-tablist .p-ink-bar {
+  display: none !important;
+}
+
+/* También puede venir de pseudo-elementos de wrappers (no solo p-tablist) */
+.bp-dialog .p-tablist-content::before,
+.bp-dialog .p-tablist-content::after,
+.bp-dialog .p-tablist-tab-list::before,
+.bp-dialog .p-tablist-tab-list::after,
+.bp-dialog .p-tablist-nav::before,
+.bp-dialog .p-tablist-nav::after {
+  content: none !important;
+  display: none !important;
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Toast (PrimeNG Toast)                                                      */
+/* -------------------------------------------------------------------------- */
+
+/* Remove the default bright borders and match our dark, glassy look */
+.p-toast .p-toast-message {
+  background: rgba(2, 6, 23, 0.92);
+  color: rgba(229, 231, 235, 1);
+  border: 1px solid rgba(31, 41, 55, 1);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+}
+
+.p-toast .p-toast-message .p-toast-summary {
+  color: rgba(248, 250, 252, 1);
+  font-weight: 700;
+}
+
+.p-toast .p-toast-message .p-toast-detail {
+  color: rgba(156, 163, 175, 1);
+}
+
+.p-toast .p-toast-message .p-toast-icon-close {
+  color: rgba(148, 163, 184, 1);
+}
+
+.p-toast .p-toast-message .p-toast-icon-close:hover {
+  color: rgba(226, 232, 240, 1);
+}
+
+/* Severity accent: subtle left border */
+.p-toast .p-toast-message.p-toast-message-error {
+  border-left: 3px solid rgba(248, 113, 113, 0.9);
+}
+
+.p-toast .p-toast-message.p-toast-message-warn {
+  border-left: 3px solid rgba(251, 191, 36, 0.9);
+}
+
+.p-toast .p-toast-message.p-toast-message-success {
+  border-left: 3px solid rgba(34, 197, 94, 0.9);
+}
+
+.p-toast .p-toast-message.p-toast-message-info {
+  border-left: 3px solid rgba(56, 189, 248, 0.9);
+}
+
+/* -------------------------------------------------------------------------- */
+/* DatePicker (PrimeNG DatePicker / Calendar)                                 */
+/* -------------------------------------------------------------------------- */
+
+/* DatePicker input styling to match bp-select */
+.p-datepicker .p-inputtext,
+p-datepicker .p-inputtext {
+  background: rgba(17, 24, 39, 1); /* slate-900 */
+  border: 1px solid rgba(31, 41, 55, 1); /* slate-800 */
+  border-radius: 12px;
+  color: rgba(249, 250, 251, 1);
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
+.p-datepicker-panel,
+.p-datepicker .p-datepicker-panel {
+  background: rgba(2, 6, 23, 0.98);
+  border: 1px solid rgba(31, 41, 55, 1);
+  border-radius: 12px;
+}
+
+.p-datepicker-header {
+  background: rgba(9, 9, 11, 0.98);
+  border-bottom: 1px solid rgba(39, 39, 42, 1);
+  color: rgba(244, 244, 245, 1);
+}
+
+.p-datepicker-calendar td > span {
+  color: rgba(229, 231, 235, 1);
+  border-radius: 8px;
+}
+
+.p-datepicker-calendar td > span:hover {
+  background: rgba(17, 24, 39, 1);
+}
+
+.p-datepicker-calendar td.p-datepicker-today > span {
+  background: rgba(56, 189, 248, 0.2);
+  color: rgba(56, 189, 248, 1);
+}
+
+.p-datepicker-calendar td > span.p-highlight {
+  background: rgba(56, 189, 248, 1);
+  color: rgba(2, 6, 23, 1);
+}
+

@@ -1,0 +1,10 @@
+
+/* Login page tweaks (keep global inputs consistent elsewhere) */
+.bp-login .p-inputtext {
+	color: rgba(249, 250, 251, 1) !important;
+}
+
+.bp-login .p-inputtext::placeholder {
+	color: rgba(156, 163, 175, 1) !important;
+	opacity: 1 !important;
+}

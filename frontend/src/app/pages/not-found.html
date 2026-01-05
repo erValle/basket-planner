@@ -1,0 +1,18 @@
+<app-shell title="404" subtitle="Página no encontrada">
+  <div class="max-w-4xl mx-auto">
+    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <div class="text-[16px] font-semibold text-[#f9fafb]">No encontramos esta página</div>
+          <div class="mt-2 text-[13px] text-[#9ca3af]">La ruta que has intentado abrir no existe o ya no está disponible.</div>
+        </div>
+        <i class="pi pi-compass text-[#9ca3af]" style="font-size: 22px"></i>
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-2">
+        <a routerLink="/dashboard" pButton label="Volver al dashboard" icon="pi pi-home" class="p-button-sm"></a>
+        <a routerLink="/planning" pButton label="Ir a planificaciones" icon="pi pi-calendar" class="p-button-text p-button-sm"></a>
+      </div>
+    </div>
+  </div>
+</app-shell>

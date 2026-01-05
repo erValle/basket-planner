@@ -18,7 +18,34 @@ const getFeedbackById = async (id) => {
   return row;
 };
 
-const createFeedback = async (payload) => Feedback.create(payload);
+const createFeedback = async (input, user) => {
+  if (!user || !user.id) {
+    throw errorUtils.httpError(StatusCodes.UNAUTHORIZED, 'UNAUTHORIZED', 'User is required');
+  }
+
+  if (!input || typeof input !== 'object') {
+    throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'INVALID_INPUT', 'Input must be an object');
+  }
+
+  if (!input.trainingPlanVersionId) {
+    throw errorUtils.httpError(
+      StatusCodes.BAD_REQUEST,
+      'INVALID_TRAINING_PLAN_VERSION',
+      'trainingPlanVersionId is required'
+    );
+  }
+
+    const rating = input.rating;
+
+  const payload = {
+    trainingPlanVersionId: input.trainingPlanVersionId,
+    userId: user.id,
+    rating,
+    comments: input.comments ?? null,
+  };
+
+  return Feedback.create(payload);
+};
 
 const updateFeedback = async (id, payload) => {
   const row = await getFeedbackById(id);

@@ -12,6 +12,13 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'coachId',
         as: 'teams',
       });
+
+      this.belongsToMany(models.Team, {
+        through: models.TeamPlayer,
+        foreignKey: 'userId',
+        otherKey: 'teamId',
+        as: 'playerTeams',
+      });
       this.hasMany(models.TrainingPlan, {
         foreignKey: 'createdById',
         as: 'trainingPlans',
@@ -34,32 +41,34 @@ module.exports = (sequelize, DataTypes) => {
   User.init(
     {
       id: {
-        type: Sequelize.INTEGER,
+        type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
         allowNull: false,
       },
       firstName: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       lastName: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       email: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
         unique: true,
       },
       passwordHash: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       role: {
         type: 'enum_users_role',
-        allowNull: false,
-        defaultValue: 'user',
+        // Business rule: an admin can register a user without assigning any role yet.
+        // Such users will appear in the "Añadir jugadores" flow to be enrolled later.
+        allowNull: true,
+        defaultValue: null,
       },
       status: {
         type: 'enum_users_status',
@@ -67,31 +76,31 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: 'pending',
       },
       dateOfBirth: {
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         allowNull: true,
       },
       maxCategory: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: true,
       },
       position: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: true,
       },
       category: {
-        type: Sequelize.STRING,
+        type: DataTypes.STRING,
         allowNull: true,
       },
       height: {
-        type: Sequelize.FLOAT,
+        type: DataTypes.FLOAT,
         allowNull: true,
       },
       createdAt: {
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         allowNull: false,
       },
       updatedAt: {
-        type: Sequelize.DATE,
+        type: DataTypes.DATE,
         allowNull: false,
       },
     },

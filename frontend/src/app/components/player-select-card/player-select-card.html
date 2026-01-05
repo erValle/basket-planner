@@ -1,0 +1,19 @@
+<div
+	class="w-full flex items-center justify-between gap-3 p-3 rounded-lg border bg-[#0b1220] text-left transition-colors hover:bg-[#111827]"
+	[ngClass]="{ 'border-[#22c55e]': selected, 'border-[#1f2937]': !selected }"
+>
+	<div>
+		<div class="text-[14px] text-[#e5e7eb]">{{ player.name }}</div>
+		@if (player.position || player.category) {
+			<div class="text-[12px] text-[#94a3b8]">
+				{{ player.position || '—' }} · {{ player.category || '—' }}
+			</div>
+		}
+	</div>
+
+	@if (selected) {
+		<span class="text-[12px] text-[#22c55e]">{{ selectedLabel }}</span>
+	} @else {
+		<span class="text-[12px] text-[#94a3b8]">{{ actionLabel }}</span>
+	}
+</div>
