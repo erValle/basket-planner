@@ -1,0 +1,71 @@
+/* Estilos personalizados para el paginador */
+::ng-deep .bp-paginator {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+::ng-deep .bp-paginator .p-paginator-pages .p-paginator-page {
+  background: #111827 !important;
+  border: 1px solid #1f2937 !important;
+  color: #e5e7eb !important;
+  min-width: 2.5rem !important;
+  height: 2.5rem !important;
+  margin: 0 0.125rem !important;
+  border-radius: 0.375rem !important;
+}
+
+::ng-deep .bp-paginator .p-paginator-pages .p-paginator-page:hover {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+::ng-deep .bp-paginator .p-paginator-pages .p-paginator-page.p-highlight {
+  background: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  color: #ffffff !important;
+}
+
+::ng-deep .bp-paginator .p-paginator-first,
+::ng-deep .bp-paginator .p-paginator-prev,
+::ng-deep .bp-paginator .p-paginator-next,
+::ng-deep .bp-paginator .p-paginator-last {
+  background: #111827 !important;
+  border: 1px solid #1f2937 !important;
+  color: #e5e7eb !important;
+  min-width: 2.5rem !important;
+  height: 2.5rem !important;
+  margin: 0 0.125rem !important;
+  border-radius: 0.375rem !important;
+}
+
+::ng-deep .bp-paginator .p-paginator-first:hover,
+::ng-deep .bp-paginator .p-paginator-prev:hover,
+::ng-deep .bp-paginator .p-paginator-next:hover,
+::ng-deep .bp-paginator .p-paginator-last:hover {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+::ng-deep .bp-paginator .p-dropdown {
+  background: #111827 !important;
+  border: 1px solid #1f2937 !important;
+  color: #e5e7eb !important;
+  height: 2.5rem !important;
+  border-radius: 0.375rem !important;
+}
+
+::ng-deep .bp-paginator .p-dropdown:hover {
+  background: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+::ng-deep .bp-paginator .p-dropdown-label {
+  color: #e5e7eb !important;
+  padding: 0.5rem !important;
+}
+
+::ng-deep .bp-paginator .p-paginator-current {
+  color: #9ca3af !important;
+  font-size: 0.8125rem !important;
+}

@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
+import { PaginatorModule } from 'primeng/paginator';
 
 import { ExerciseDraft, ExerciseForm, ExerciseFormValue } from '../components/exercise-form/exercise-form';
 import { ExercisesApi, ExerciseDto, ExerciseType } from '../services/exercises.api';
@@ -28,7 +29,15 @@ interface Exercise {
   materialEquipo?: Array<{ equipmentId: number; name: string; quantity: number }>;
 }
 
-type UiType = 'Técnico' | 'Táctico' | 'Físico';
+// Tipos específicos de basketball que ahora usa el formulario
+type UiType = 
+  | 'TECNICA_BOTE' | 'FINALIZACION_ARO' | 'TIRO' | 'PASE'
+  | 'TACTICA_ATAQUE' | 'TACTICA_ATAQUE_DEFENSA'
+  | 'DEFENSA_EQUIPO' | 'DEFENSA_INDIVIDUAL' | 'DEFENSA_FUNDAMENTOS'
+  | 'REBOTE' | 'TECNICA_POSTE' | 'ATAQUE_INDIVIDUAL' | 'TECNICA_PIES'
+  | 'CONDICIONAMIENTO_FISICO' | 'MOVILIDAD_RECUPERACION'
+  | 'TACTICA_TRANSICION' | 'ABP_SAQUES' | 'JUEGO_REDUCIDO';
+
 
 @Component({
   selector: 'app-exercises',
@@ -40,6 +49,7 @@ type UiType = 'Técnico' | 'Táctico' | 'Físico';
     SelectModule,
     DialogModule,
     TagModule,
+    PaginatorModule,
     ExerciseForm,
 		AppShell,
 		PageHeader,
@@ -51,6 +61,9 @@ export class Exercises implements OnInit {
   private readonly exercisesApi = inject(ExercisesApi);
   private readonly equipmentApi = inject(EquipmentApi);
   private readonly exerciseEquipmentApi = inject(ExerciseEquipmentApi);
+
+  // Make Math available in template
+  Math = Math;
 
   tipoOptions: Option[] = [
     { label: 'Todos', value: 'Todos' },
@@ -71,6 +84,11 @@ export class Exercises implements OnInit {
     search: '',
   };
 
+  // Pagination
+  currentPage = 0;
+  pageSize = 12; // Mostrar 12 ejercicios por página
+  totalRecords = 0;
+
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
   readonly loading$ = new BehaviorSubject<boolean>(false);
   readonly loadError$ = new BehaviorSubject<string | null>(null);
@@ -79,11 +97,28 @@ export class Exercises implements OnInit {
     switchMap(() => {
       this.loading$.next(true);
       this.loadError$.next(null);
-      return this.exercisesApi.list().pipe(
-        map((items) => (items ?? []).map((dto) => this.fromDto(dto))),
-        map((items) => {
+      
+      // Enviar parámetros de paginación al backend
+      const params = {
+        page: this.currentPage + 1, // PrimeNG usa 0-indexed, backend usa 1-indexed
+        pageSize: this.pageSize,
+        search: this.filters.search || undefined,
+      };
+      
+      return this.exercisesApi.list(params).pipe(
+        map((response) => {
           this.loading$.next(false);
-          return items;
+          
+          // Si backend devuelve { exercises, pagination }
+          if (response && typeof response === 'object' && 'exercises' in response && 'pagination' in response) {
+            this.totalRecords = response.pagination.total;
+            return (response.exercises ?? []).map((dto) => this.fromDto(dto));
+          }
+          
+          // Fallback: backend devolvió array directo (sin paginación)
+          const items = Array.isArray(response) ? response : [];
+          this.totalRecords = items.length;
+          return items.map((dto) => this.fromDto(dto));
         }),
       );
     }),
@@ -97,20 +132,29 @@ export class Exercises implements OnInit {
     tick: this.refresh$.pipe(startWith(undefined)),
   }).pipe(
     map(({ items, loading, error }) => {
+      // Aplicar filtros client-side (tipo y duración)
+      // La búsqueda ya se hace en backend
       const filtered = items.filter((exercise) => {
         const matchesTipo = this.filters.tipo === 'Todos' || exercise.tipo === this.filters.tipo;
         const matchesDuracion =
           this.filters.duracion === 'Cualquiera' ||
           (this.filters.duracion === '10-15' && exercise.duracion >= 10 && exercise.duracion <= 15) ||
           (this.filters.duracion === '15-20' && exercise.duracion >= 15 && exercise.duracion <= 20);
-        const matchesSearch =
-          this.filters.search === '' ||
-          exercise.nombre.toLowerCase().includes(this.filters.search.toLowerCase());
 
-        return matchesTipo && matchesDuracion && matchesSearch;
+        return matchesTipo && matchesDuracion;
       });
 
-      return { items, filtered, loading, error };
+      // Los items ya vienen paginados del backend, no necesitamos paginar client-side
+      return { 
+        items, 
+        filtered, 
+        paged: filtered, // Ya están paginados
+        loading, 
+        error,
+        totalRecords: this.totalRecords,
+        currentPage: this.currentPage,
+        pageSize: this.pageSize
+      };
     }),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
@@ -139,7 +183,14 @@ export class Exercises implements OnInit {
   }
 
   refresh(): void {
+    this.currentPage = 0; // Reset page when filtering
     this.refresh$.next();
+  }
+
+  onPageChange(event: any): void {
+    this.currentPage = event.page;
+    this.pageSize = event.rows;
+    this.refresh$.next(); // Recargar con nuevos parámetros de paginación
   }
 
   openNewExercise() {
@@ -194,17 +245,15 @@ export class Exercises implements OnInit {
     return {
       nombre: exercise.nombre,
       tipo: exercise.tipo,
-      duracionPredeterminada: exercise.duracion,
-      materialNecesario: exercise.material,
-      materialEquipo: exercise.materialEquipo ?? [],
+      duracionSegundos: (exercise.duracion || 15) * 60, // Convertir minutos a segundos
+      materialesNecesarios: exercise.material || [],
       estado: 'Activo',
       descripcion: '',
-      subtipo: [],
-      nivelDificultad: '',
-      intensidad: '',
-      objetivoPrincipal: '',
-      numeroJugadores: 10,
-      categoriaRecomendada: [],
+      dificultadTactica: 3,
+      dificultadTecnica: 3,
+      dificultadFisica: 3,
+      dificultadMental: 3,
+      etiquetas: exercise.material || [],
       observaciones: '',
     };
   }
@@ -221,16 +270,8 @@ export class Exercises implements OnInit {
       const id = Number(this.selectedExercise.id);
       this.exercisesApi.update(id, payload).subscribe({
         next: () => {
-          this.syncExerciseEquipment(id, value.materialEquipo ?? [])
-            .then(() => {
-              this.closeNewExercise();
-              this.refresh();
-            })
-            .catch((err: unknown) => {
-              const msg = err instanceof Error ? err.message : 'Error inesperado.';
-              // Exercise was saved, equipment sync failed.
-              this.loadError$.next(`Ejercicio guardado, pero no se pudo guardar el material: ${msg}`);
-            });
+          this.closeNewExercise();
+          this.refresh();
         },
         error: (err: Error) => {
           this.loadError$.next(err.message);
@@ -240,23 +281,9 @@ export class Exercises implements OnInit {
     }
 
     this.exercisesApi.create(payload).subscribe({
-      next: (created) => {
-        const id = Number(created?.id);
-        if (!Number.isFinite(id)) {
-          this.closeNewExercise();
-          this.refresh();
-          return;
-        }
-
-        this.syncExerciseEquipment(id, value.materialEquipo ?? [])
-          .then(() => {
-            this.closeNewExercise();
-            this.refresh();
-          })
-          .catch((err: unknown) => {
-            const msg = err instanceof Error ? err.message : 'Error inesperado.';
-            this.loadError$.next(`Ejercicio creado, pero no se pudo guardar el material: ${msg}`);
-          });
+      next: () => {
+        this.closeNewExercise();
+        this.refresh();
       },
       error: (err: Error) => {
         this.loadError$.next(err.message);
@@ -277,34 +304,35 @@ export class Exercises implements OnInit {
   }
 
   private toApiPayload(value: ExerciseFormValue) {
-    const type = this.mapUiToApiType((value.tipo || 'Técnico') as UiType);
+    const type = this.mapUiToApiType((value.tipo || 'TECNICA_BOTE') as UiType);
     return {
       name: value.nombre,
       type,
-      duration: value.duracionPredeterminada,
+      duration: Math.ceil(value.duracionSegundos / 60), // Convertir segundos a minutos
       description: value.descripcion,
-      // Keep difficulty flexible (backend expects JSON). We'll refine when the UI captures it.
+      // 4 dimensiones de dificultad
       difficulty: {
-        nivelDificultad: value.nivelDificultad,
-        intensidad: value.intensidad,
-        objetivoPrincipal: value.objetivoPrincipal,
+        tactica: value.dificultadTactica,
+        tecnica: value.dificultadTecnica,
+        fisica: value.dificultadFisica,
+        mental: value.dificultadMental,
       },
-      tags: [...(value.subtipo ?? []), ...(value.categoriaRecomendada ?? [])],
+      tags: value.etiquetas ?? [],
       active: value.estado !== 'Inactivo',
     };
   }
 
   private mapUiToApiType(ui: UiType): ExerciseType {
-    // Temporary mapping until the UI is updated to use the same taxonomy.
-    if (ui === 'Físico') return 'cardio';
-    if (ui === 'Táctico') return 'balance';
+    // Mapeo directo de tipos específicos de basketball a tipos de API
+    // Por ahora mapeamos todo a 'strength' ya que el API aún no tiene los tipos específicos
+    // TODO: Actualizar el API para soportar los nuevos tipos
     return 'strength';
   }
 
   private mapApiToUiType(type: ExerciseType): UiType {
-    if (type === 'cardio') return 'Físico';
-    if (type === 'balance') return 'Táctico';
-    return 'Técnico';
+    // Por defecto, retornar TECNICA_BOTE
+    // TODO: Implementar mapeo inverso cuando el API soporte los tipos específicos
+    return 'TECNICA_BOTE';
   }
 
   private loadExerciseEquipmentForDialog(exercise: Exercise): void {

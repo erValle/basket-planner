@@ -17,6 +17,18 @@ export interface ExerciseDto {
   updatedAt?: string;
 }
 
+export interface PaginatedExercisesResponse {
+  exercises: ExerciseDto[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}
+
 export interface CreateExerciseDto {
   name: string;
   type: ExerciseType;
@@ -41,8 +53,10 @@ export interface UpdateExerciseDto {
 export class ExercisesApi {
   private readonly api = inject(ApiClient);
 
-  list(params?: { search?: string; type?: string; active?: string }) {
-    return this.api.get<ExerciseDto[]>('/api/exercises', { params: params ?? {} });
+  list(params?: { search?: string; type?: string; active?: string; page?: number; pageSize?: number }) {
+    // Si se envían page/pageSize, el backend devuelve PaginatedExercisesResponse
+    // Sino, devuelve ExerciseDto[]
+    return this.api.get<ExerciseDto[] | PaginatedExercisesResponse>('/api/exercises', { params: params ?? {} });
   }
 
   getById(id: number) {

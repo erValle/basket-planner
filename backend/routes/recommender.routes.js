@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const { authenticateToken, authorizeRoles } = require('../src/middlewares/auth');
+const { getModelInfo, getModelConfig, listAvailableModels } = require('../src/recommender/modelManager');
 
 router.use(authenticateToken);
 router.use(authorizeRoles('admin', 'technical_director', 'coach'));
@@ -9,14 +10,14 @@ router.use(authorizeRoles('admin', 'technical_director', 'coach'));
 // Minimal in-memory recommender state to back the frontend screens.
 // Later: replace with real ML job runner + DB.
 const state = {
-  activeVersion: 'rec-0.0.0',
+  activeVersion: 'rec-0.1.0-baseline',
   versions: [
     {
-      id: 'rec-0.0.0',
+      id: 'rec-0.1.0-baseline',
       createdAt: new Date().toISOString().slice(0, 10),
       trainedAt: new Date().toISOString(),
-      algorithm: 'placeholder',
-      metrics: { accuracy: 0, coverage: 0, latencyMs: 0 },
+      algorithm: 'rule-based-heuristic',
+      metrics: { accuracy: 0, coverage: 1.0, latencyMs: 50 },
       techCost: 'low',
       isActive: true,
     },
@@ -25,13 +26,46 @@ const state = {
 };
 
 router.get('/status', (req, res) => {
+  const modelInfo = getModelInfo();
   const active = state.versions.find((v) => v.id === state.activeVersion);
+  
   res.json({
     activeVersion: state.activeVersion,
+    modelInfo,
     trainedAt: active?.trainedAt ?? null,
     metrics: active?.metrics ?? null,
     techCost: active?.techCost ?? 'low',
   });
+});
+
+// Nuevo endpoint: obtener configuración del modelo activo
+router.get('/config', (req, res) => {
+  try {
+    const config = getModelConfig();
+    res.json({
+      version: config.modelVersion,
+      description: config.description,
+      createdAt: config.createdAt,
+      weights: config.weights,
+      goalToTags: config.goalToTags,
+      goalToTypes: config.goalToTypes,
+      sessionTypeDistribution: config.sessionTypeDistribution,
+      levelToDifficulty: config.levelToDifficulty,
+      intensityMultiplier: config.intensityMultiplier
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener configuración del modelo', error: error.message });
+  }
+});
+
+// Nuevo endpoint: listar modelos disponibles
+router.get('/models', (req, res) => {
+  try {
+    const models = listAvailableModels();
+    res.json({ items: models });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al listar modelos', error: error.message });
+  }
 });
 
 router.post('/train', (req, res) => {
@@ -42,7 +76,7 @@ router.post('/train', (req, res) => {
     status: 'SUCCESS',
     startedAt: new Date().toISOString(),
     finishedAt: new Date().toISOString(),
-    logs: 'Placeholder training job (no-op).',
+    logs: 'Placeholder training job (no-op). El modelo baseline no es reentrenable.',
     resultVersionId: state.activeVersion,
   };
 

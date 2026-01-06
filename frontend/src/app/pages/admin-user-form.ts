@@ -18,7 +18,7 @@ import { UsersApiService } from '../services/users.api';
 import { AdminUserRole, AdminUserStatus, AdminUserUpsertPayload } from '../models/user-admin';
 import { Observable } from 'rxjs';
 
-type Option = { label: string; value: string };
+type Option = { label: string; value: string | null };
 
 @Component({
   selector: 'app-admin-user-form',
@@ -48,7 +48,7 @@ export class AdminUserForm {
   saving = false;
 
   roleOptions: Option[] = [
-    { label: 'Sin rol', value: '' },
+    { label: 'Sin rol', value: null },
     { label: 'Admin', value: 'admin' },
     { label: 'Entrenador', value: 'coach' },
     { label: 'Staff', value: 'staff' },

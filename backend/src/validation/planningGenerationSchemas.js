@@ -9,7 +9,8 @@ const individualGenerateSchema = Joi.object({
     position: Joi.string().valid('guard', 'forward', 'center').optional(),
     maxSessionsPerWeek: Joi.number().integer().min(1).max(14).default(4),
     sessionDurationMinutes: Joi.number().integer().min(15).max(240).default(75),
-    intensity: Joi.string().valid(...intensityValues).default('medium')
+    intensity: Joi.string().valid(...intensityValues).default('medium'),
+    maxDurationMinutes: Joi.number().integer().min(30).max(480).optional()
   }).required(),
   goals: Joi.array().items(Joi.string().min(2).max(64)).min(0).max(10).default([]),
   constraints: Joi.object({
@@ -29,7 +30,8 @@ const groupGenerateSchema = Joi.object({
     name: Joi.string().min(2).max(64).optional(),
     maxSessionsPerWeek: Joi.number().integer().min(1).max(14).default(4),
     sessionDurationMinutes: Joi.number().integer().min(15).max(240).default(90),
-    intensity: Joi.string().valid(...intensityValues).default('medium')
+    intensity: Joi.string().valid(...intensityValues).default('medium'),
+    maxDurationMinutes: Joi.number().integer().min(30).max(480).optional()
   }).required(),
   profiles: Joi.array()
     .items(

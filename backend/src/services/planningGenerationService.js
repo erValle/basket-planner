@@ -1,5 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const { httpError } = require('../libs/errorHelper');
+const { getActiveModel } = require('../recommender/modelManager');
+const { getAllExercisesForRecommender } = require('./exerciseService');
 
 const dayOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
@@ -150,6 +152,35 @@ const deriveFocusTags = (goals) => {
   return tags.length ? tags : ['fundamentals'];
 };
 
+/**
+ * Deriva el nivel promedio de un grupo de perfiles
+ * @param {Array<Object>} profiles - Perfiles de jugadores
+ * @returns {string} Nivel promedio
+ */
+const deriveAverageLevel = (profiles) => {
+  if (!profiles || profiles.length === 0) return 'intermediate';
+  
+  const levelValues = {
+    beginner: 1,
+    intermediate: 2,
+    advanced: 3
+  };
+  
+  const reverseMap = {
+    1: 'beginner',
+    2: 'intermediate',
+    3: 'advanced'
+  };
+  
+  const sum = profiles.reduce((acc, p) => {
+    const level = p.level || 'intermediate';
+    return acc + (levelValues[level] || 2);
+  }, 0);
+  
+  const avg = Math.round(sum / profiles.length);
+  return reverseMap[avg] || 'intermediate';
+};
+
 const generateIndividual = async (input) => {
   validateIndividualInput(input);
 
@@ -158,38 +189,53 @@ const generateIndividual = async (input) => {
   const maxSessionsPerWeek = profile.maxSessionsPerWeek || 4;
   const sessionDurationMinutes = profile.sessionDurationMinutes || 75;
   const days = normalizeDays(input.constraints && input.constraints.days);
-  const focusTags = deriveFocusTags(input.goals);
-
-  const sessionsToGenerate = Math.min(maxSessionsPerWeek, days.length);
-  const sessions = [];
-
-  for (let i = 0; i < sessionsToGenerate; i += 1) {
-    sessions.push(
-      buildSession({
-        sessionIndex: i + 1,
-        day: days[i],
-        durationMinutes: sessionDurationMinutes,
-        intensity,
-        focusTags
-      })
-    );
-  }
-
-  const metrics = computePlanMetrics(sessions);
-
+  
+  // Obtener ejercicios disponibles
+  const allExercises = await getAllExercisesForRecommender({ active: true });
+  
+  // Obtener el modelo de recomendación activo
+  const recommender = getActiveModel();
+  
+  // Preparar parámetros para el modelo
+  const planParams = {
+    goals: input.goals || [],
+    constraints: {
+      equipment: (input.constraints && input.constraints.equipment) || [],
+      injuries: (input.constraints && input.constraints.injuries) || []
+    },
+    profile: {
+      level: profile.level || 'intermediate',
+      intensity,
+      sessionDurationMinutes,
+      maxDurationMinutes: profile.maxDurationMinutes || null
+    },
+    numberOfSessions: Math.min(maxSessionsPerWeek, days.length),
+    days
+  };
+  
+  // Generar planificación usando el modelo de recomendación
+  const generatedPlan = recommender.generatePlan(allExercises, planParams);
+  
+  // Formatear respuesta para mantener compatibilidad con el formato esperado
   return {
     kind: 'individual',
-    generatedAt: new Date().toISOString(),
+    generatedAt: generatedPlan.generatedAt,
+    modelVersion: generatedPlan.modelVersion,
     inputSummary: {
       athleteId: profile.athleteId,
       goals: input.goals || [],
-      days,
+      days: generatedPlan.summary.days,
       intensity,
       sessionDurationMinutes,
-      sessionsPerWeek: sessionsToGenerate
+      sessionsPerWeek: generatedPlan.summary.totalSessions
     },
-    sessions,
-    metrics
+    sessions: generatedPlan.sessions,
+    metrics: {
+      durationTotalMinutes: generatedPlan.summary.totalDurationMinutes,
+      estimatedLoadTotal: 0, // Se puede calcular si es necesario
+      sessionsCount: generatedPlan.summary.totalSessions,
+      exercisesCount: generatedPlan.summary.totalExercises
+    }
   };
 };
 
@@ -202,21 +248,34 @@ const generateGroup = async (input) => {
   const sessionDurationMinutes = group.sessionDurationMinutes || 90;
   const days = normalizeDays(input.constraints && input.constraints.days);
 
-  const focusTags = deriveFocusTags(input.goals);
-  const sessionsToGenerate = Math.min(maxSessionsPerWeek, days.length);
-  const sessions = [];
-
-  for (let i = 0; i < sessionsToGenerate; i += 1) {
-    sessions.push(
-      buildSession({
-        sessionIndex: i + 1,
-        day: days[i],
-        durationMinutes: sessionDurationMinutes,
-        intensity,
-        focusTags
-      })
-    );
-  }
+  // Obtener ejercicios disponibles
+  const allExercises = await getAllExercisesForRecommender({ active: true });
+  
+  // Obtener el modelo de recomendación activo
+  const recommender = getActiveModel();
+  
+  // Para grupos, usar un nivel promedio basado en los perfiles
+  const avgLevel = deriveAverageLevel(input.profiles);
+  
+  // Preparar parámetros para el modelo
+  const planParams = {
+    goals: input.goals || [],
+    constraints: {
+      equipment: (input.constraints && input.constraints.equipment) || [],
+      injuries: [] // Para grupos no consideramos lesiones individuales en la planificación general
+    },
+    profile: {
+      level: avgLevel,
+      intensity,
+      sessionDurationMinutes,
+      maxDurationMinutes: group.maxDurationMinutes || null
+    },
+    numberOfSessions: Math.min(maxSessionsPerWeek, days.length),
+    days
+  };
+  
+  // Generar planificación usando el modelo de recomendación
+  const generatedPlan = recommender.generatePlan(allExercises, planParams);
 
   const perAthlete = input.profiles.map((p) => ({
     athleteId: p.athleteId,
@@ -224,24 +283,28 @@ const generateGroup = async (input) => {
     position: p.position
   }));
 
-  const metrics = computePlanMetrics(sessions);
-
   return {
     kind: 'group',
-    generatedAt: new Date().toISOString(),
+    generatedAt: generatedPlan.generatedAt,
+    modelVersion: generatedPlan.modelVersion,
     inputSummary: {
       groupId: group.groupId,
       groupName: group.name,
       athletesCount: input.profiles.length,
       goals: input.goals || [],
-      days,
+      days: generatedPlan.summary.days,
       intensity,
       sessionDurationMinutes,
-      sessionsPerWeek: sessionsToGenerate
+      sessionsPerWeek: generatedPlan.summary.totalSessions
     },
     athletes: perAthlete,
-    sessions,
-    metrics
+    sessions: generatedPlan.sessions,
+    metrics: {
+      durationTotalMinutes: generatedPlan.summary.totalDurationMinutes,
+      estimatedLoadTotal: 0,
+      sessionsCount: generatedPlan.summary.totalSessions,
+      exercisesCount: generatedPlan.summary.totalExercises
+    }
   };
 };
 
