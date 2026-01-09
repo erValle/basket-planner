@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -12,12 +12,15 @@ import { ChipModule } from 'primeng/chip';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 
 import { PlanningApiService } from '../services/planning.api';
+import { ExercisesApi, ExerciseDto } from '../services/exercises.api';
 import {
   PlanningBlockEditor,
   PlanningExerciseEditor,
@@ -27,6 +30,7 @@ import { ClubContextService } from '../core/context/club-context.service';
 import { TeamsApi, TeamDto } from '../services/teams.api';
 import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
 import { ClubResourcesStore } from '../core/stores/club-resources.store';
+
 
 type Option = { label: string; value: string };
 
@@ -45,6 +49,8 @@ type Option = { label: string; value: string };
     TagModule,
     ToastModule,
     ConfirmDialogModule,
+    DialogModule,
+    TooltipModule,
     PageHeader,
     AppShell,
   ],
@@ -55,26 +61,30 @@ type Option = { label: string; value: string };
 export class PlanningEdit {
   private readonly clubContext = inject(ClubContextService);
   private readonly teamsApi = inject(TeamsApi);
+  private readonly exercisesApi = inject(ExercisesApi);
   private readonly equipmentApi = inject(EquipmentApi);
   private readonly clubResources = inject(ClubResourcesStore);
 
-  teams: TeamDto[] = [];
-  teamOptions: Option[] = [];
-  selectedTeamId: string | null = null;
+  // Expose Math for template
+  Math = Math;
 
-  equipment: EquipmentDto[] = [];
-  equipmentOptions: Option[] = [];
-  selectedMaterialName: string | null = null;
-  equipmentLoading = false;
-  equipmentError: string | null = null;
+  teams = signal<TeamDto[]>([]);
+  teamOptions = computed(() => this.teams().map((t) => ({ label: t.name, value: String(t.id) })));
+  selectedTeamId = signal<string | null>(null);
 
-  pageLoading = true;
+  equipment = signal<EquipmentDto[]>([]);
+  equipmentOptions = computed(() => this.equipment().map((e) => ({ label: e.name, value: String(e.name) })));
+  selectedMaterialName = signal<string | null>(null);
+  equipmentLoading = signal(false);
+  equipmentError = signal<string | null>(null);
+
+  pageLoading = signal(true);
 
   planningId: string | null = null;
   fromVersion: string | null = null;
 
-  saving = false;
-  saveError: string | null = null;
+  saving = signal(false);
+  saveError = signal<string | null>(null);
 
   intensityOptions: Option[] = [
     { label: 'Baja', value: 'Baja' },
@@ -83,7 +93,28 @@ export class PlanningEdit {
   ];
 
   // Editor state
-  sessions: PlanningSessionEditor[] = [];
+  sessions = signal<PlanningSessionEditor[]>([]);
+  expandedSessionIds = new Set<string>(); // Track which sessions are expanded
+
+  // Exercise search dialog
+  exerciseSearchDialogOpen = signal(false);
+  exerciseSearchQuery = signal('');
+  availableExercises = signal<ExerciseDto[]>([]);
+  filteredExercises = computed(() => {
+    const query = this.exerciseSearchQuery().trim().toLowerCase();
+    const exercises = this.availableExercises();
+    if (!query) return exercises;
+    return exercises.filter((e) => 
+      e.name?.toLowerCase().includes(query) || 
+      e.description?.toLowerCase().includes(query)
+    );
+  });
+  loadingExercises = signal(false);
+  currentBlockForExercise = signal<PlanningBlockEditor | null>(null);
+
+  // Exercise preview modal
+  exercisePreviewDialogOpen = signal(false);
+  selectedExerciseForPreview = signal<ExerciseDto | null>(null);
 
   // Inline validation helper
   touched = new Set<string>();
@@ -113,46 +144,45 @@ export class PlanningEdit {
 
   private bootstrapResources(): void {
     const clubId = this.clubContext.getSelectedClubIdSnapshot();
-    this.pageLoading = true;
+    this.pageLoading.set(true);
 
     // Teams
     this.clubResources.teams$(clubId).subscribe({
       next: (items) => {
-        this.teams = items ?? [];
-        this.teamOptions = this.teams.map((t) => ({ label: t.name, value: String(t.id) }));
+        this.teams.set(items ?? []);
 
-        if (!this.selectedTeamId && this.teamOptions.length) {
-          this.selectedTeamId = this.teamOptions[0].value;
+        const options = this.teamOptions();
+        if (!this.selectedTeamId() && options.length) {
+          this.selectedTeamId.set(options[0].value);
         }
-        // don't set pageLoading=false here: we wait for equipment too
       },
       error: () => {
-        this.teams = [];
-        this.teamOptions = [];
-        this.selectedTeamId = null;
+        this.teams.set([]);
+        this.selectedTeamId.set(null);
       },
     });
 
     // Equipment
-    this.equipmentLoading = true;
-    this.equipmentError = null;
+    this.equipmentLoading.set(true);
+    this.equipmentError.set(null);
     this.clubResources.equipment$(clubId).subscribe({
       next: (items) => {
-        this.equipmentLoading = false;
-        this.equipment = items ?? [];
-        this.equipmentOptions = this.equipment.map((e) => ({ label: e.name, value: String(e.name) }));
-        if (this.selectedMaterialName && !this.equipmentOptions.some((o) => o.value === this.selectedMaterialName)) {
-          this.selectedMaterialName = null;
+        this.equipmentLoading.set(false);
+        this.equipment.set(items ?? []);
+        
+        const options = this.equipmentOptions();
+        const currentMaterial = this.selectedMaterialName();
+        if (currentMaterial && !options.some((o) => o.value === currentMaterial)) {
+          this.selectedMaterialName.set(null);
         }
-        this.pageLoading = false;
+        this.pageLoading.set(false);
       },
       error: (e: unknown) => {
-        this.equipmentLoading = false;
-        this.equipment = [];
-        this.equipmentOptions = [];
-        this.selectedMaterialName = null;
-        this.equipmentError = e instanceof Error ? e.message : 'No se pudo cargar el material del club.';
-        this.pageLoading = false;
+        this.equipmentLoading.set(false);
+        this.equipment.set([]);
+        this.selectedMaterialName.set(null);
+        this.equipmentError.set(e instanceof Error ? e.message : 'No se pudo cargar el material del club.');
+        this.pageLoading.set(false);
       },
     });
   }
@@ -164,36 +194,86 @@ export class PlanningEdit {
   }
 
   private bootstrapDraft(): void {
-    // Frontend-only: we start with a simple template; later we can map from PlanningApiService.get(fromVersion)
-    // when the backend exposes version data.
-    this.sessions = [
-      {
+    if (!this.planningId) {
+      // Si no hay ID, crear sesión vacía
+      this.sessions.set([
+        {
+          id: this.uid('s'),
+          title: 'Sesión nueva',
+          date: new Date().toISOString().slice(0, 10),
+          blocks: [],
+        },
+      ]);
+      this.pageLoading.set(false);
+      return;
+    }
+
+    // Cargar planificación desde el backend
+    this.api.get(this.planningId, this.fromVersion || undefined).subscribe({
+      next: (plan: any) => {
+        console.log('🔍 Loaded plan for editing:', plan);
+        
+        // Obtener las sesiones desde la versión activa o la especificada
+        const version = this.fromVersion 
+          ? plan.versions?.find((v: any) => String(v.id) === this.fromVersion)
+          : plan.activeVersion;
+        
+        const sessionsData = version?.sessions || plan.activeVersion?.sessions || [];
+        console.log('🔍 Sessions data for editing:', sessionsData);
+        
+        // Mapear sesiones a la estructura del editor
+        this.sessions.set(this.mapSessionsToEditor(sessionsData));
+        this.pageLoading.set(false);
+      },
+      error: (e: unknown) => {
+        console.error('Error loading plan:', e);
+        this.toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: e instanceof Error ? e.message : 'No se pudo cargar la planificación.',
+        });
+        this.sessions.set([]);
+        this.pageLoading.set(false);
+      },
+    });
+  }
+
+  private mapSessionsToEditor(sessionsData: any[]): PlanningSessionEditor[] {
+    if (!Array.isArray(sessionsData)) return [];
+
+    return sessionsData.map((s, idx) => {
+      const exercises = Array.isArray(s?.exercises) ? s.exercises : [];
+      
+      return {
         id: this.uid('s'),
-        title: `Sesión nueva (${this.fromVersion ?? 'clon'})`,
+        title: `Sesión ${idx + 1} - ${s?.day || 'Sin día'}`,
         date: new Date().toISOString().slice(0, 10),
         blocks: [
           {
             id: this.uid('b'),
-            name: 'Bloque 1',
-            durationMin: 15,
-            notes: '',
-            exercises: [
-              {
-                id: this.uid('e'),
-                name: 'Ejercicio 1',
-                series: 3,
-                reps: 8,
-                durationMin: 10,
-                intensity: 'Media',
-                restSec: 60,
-                material: [],
-                notes: '',
-              },
-            ],
+            name: `Sesión ${s?.sessionId || idx + 1}`,
+            durationMin: s?.metrics?.durationMinutes || 0,
+            notes: s?.goals?.join(', ') || '',
+            exercises: exercises.map((e: any) => ({
+              id: this.uid('e'),
+              name: e?.name || 'Ejercicio sin nombre',
+              series: undefined,
+              reps: undefined,
+              durationMin: e?.durationMinutes || 0,
+              intensity: e?.intensity || 'Media',
+              restSec: undefined,
+              material: [],
+              notes: [
+                e?.type ? `Tipo: ${e.type}` : null,
+                e?.phase ? `Fase: ${e.phase}` : null,
+                e?.difficulty ? `Dificultad: ${e.difficulty}` : null,
+                e?.description ? e.description : null,
+              ].filter(Boolean).join(' • '),
+            })),
           },
         ],
-      },
-    ];
+      };
+    });
   }
 
   markTouched(key: string): void {
@@ -206,15 +286,15 @@ export class PlanningEdit {
 
   // --- Session actions ---
   addSession(): void {
-    this.sessions = [
-      ...this.sessions,
+    this.sessions.update(sessions => [
+      ...sessions,
       {
         id: this.uid('s'),
         title: 'Nueva sesión',
         date: new Date().toISOString().slice(0, 10),
         blocks: [],
       },
-    ];
+    ]);
   }
 
   removeSession(sessionId: string): void {
@@ -225,20 +305,33 @@ export class PlanningEdit {
       acceptLabel: 'Eliminar',
       rejectLabel: 'Cancelar',
       accept: () => {
-        this.sessions = this.sessions.filter((s) => s.id !== sessionId);
+        this.sessions.update(sessions => sessions.filter((s) => s.id !== sessionId));
         this.toast.add({ severity: 'success', summary: 'Eliminada', detail: 'Sesión eliminada.' });
       },
     });
   }
 
   moveSession(sessionId: string, dir: -1 | 1): void {
-    const idx = this.sessions.findIndex((s) => s.id === sessionId);
+    const sessions = this.sessions();
+    const idx = sessions.findIndex((s) => s.id === sessionId);
     const next = idx + dir;
-    if (idx < 0 || next < 0 || next >= this.sessions.length) return;
-    const copy = [...this.sessions];
+    if (idx < 0 || next < 0 || next >= sessions.length) return;
+    const copy = [...sessions];
     const [item] = copy.splice(idx, 1);
     copy.splice(next, 0, item);
-    this.sessions = copy;
+    this.sessions.set(copy);
+  }
+
+  toggleSessionExpanded(sessionId: string): void {
+    if (this.expandedSessionIds.has(sessionId)) {
+      this.expandedSessionIds.delete(sessionId);
+    } else {
+      this.expandedSessionIds.add(sessionId);
+    }
+  }
+
+  isSessionExpanded(sessionId: string): boolean {
+    return this.expandedSessionIds.has(sessionId);
   }
 
   // --- Block actions ---
@@ -297,6 +390,71 @@ export class PlanningEdit {
     ];
   }
 
+  openExerciseSearch(block: PlanningBlockEditor): void {
+    this.currentBlockForExercise.set(block);
+    this.exerciseSearchDialogOpen.set(true);
+    this.exerciseSearchQuery.set('');
+    
+    if (this.availableExercises().length === 0) {
+      this.loadExercises();
+    }
+  }
+
+  loadExercises(): void {
+    this.loadingExercises.set(true);
+    this.exercisesApi.list({}).subscribe({
+      next: (response) => {
+        // El API puede devolver un array directo o un objeto paginado
+        this.availableExercises.set(Array.isArray(response) ? response : (response as any).items || []);
+        this.loadingExercises.set(false);
+      },
+      error: (e) => {
+        console.error('Error loading exercises:', e);
+        this.toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudieron cargar los ejercicios.',
+        });
+        this.loadingExercises.set(false);
+      },
+    });
+  }
+
+  addExerciseFromDatabase(exercise: ExerciseDto): void {
+    const block = this.currentBlockForExercise();
+    if (!block) return;
+
+    const durationMin = exercise.duration ? Math.ceil(exercise.duration / 60) : 10;
+    const difficulty = String(exercise.difficulty || '');
+
+    block.exercises = [
+      ...block.exercises,
+      {
+        id: this.uid('e'),
+        name: exercise.name || 'Ejercicio',
+        series: 3,
+        reps: 8,
+        durationMin,
+        intensity: difficulty === 'advanced' ? 'Alta' : difficulty === 'beginner' ? 'Baja' : 'Media',
+        restSec: 60,
+        material: [],
+        notes: exercise.description || '',
+      },
+    ];
+
+    this.toast.add({
+      severity: 'success',
+      summary: 'Ejercicio añadido',
+      detail: `${exercise.name} se ha añadido al bloque.`,
+    });
+  }
+
+  closeExerciseSearch(): void {
+    this.exerciseSearchDialogOpen.set(false);
+    this.currentBlockForExercise.set(null);
+    this.exerciseSearchQuery.set('');
+  }
+
   addMaterial(ex: PlanningExerciseEditor, material: string): void {
     const m = material.trim();
     if (!m) return;
@@ -352,8 +510,9 @@ export class PlanningEdit {
 
   canSave(): boolean {
     if (!this.planningId) return false;
-    if (this.sessions.length === 0) return false;
-    for (const s of this.sessions) {
+    const sessions = this.sessions();
+    if (sessions.length === 0) return false;
+    for (const s of sessions) {
       if (!this.isSessionValid(s)) return false;
       for (const b of s.blocks) {
         if (!this.isBlockValid(b)) return false;
@@ -382,8 +541,8 @@ export class PlanningEdit {
       return;
     }
 
-    this.saveError = null;
-    this.saving = true;
+    this.saveError.set(null);
+    this.saving.set(true);
 
     const payload: any = {
       source: 'manual',
@@ -391,13 +550,13 @@ export class PlanningEdit {
       comments: this.fromVersion ? `created-from:${this.fromVersion}` : undefined,
       createdFrom: this.fromVersion ? { fromVersionId: this.fromVersion } : undefined,
       items: {
-        sessions: this.sessions,
+        sessions: this.sessions(),
       },
     };
 
     this.api.createNewVersion(this.planningId, payload).subscribe({
       next: (res) => {
-        this.saving = false;
+        this.saving.set(false);
         const newVersionId = res?.id != null ? String(res.id) : undefined;
         this.toast.add({ severity: 'success', summary: 'Guardado', detail: 'Nueva versión creada.' });
 
@@ -406,11 +565,100 @@ export class PlanningEdit {
         });
       },
       error: (e: unknown) => {
-        this.saving = false;
+        this.saving.set(false);
         const msg = e instanceof Error ? e.message : 'No se pudo guardar la nueva versión.';
-        this.saveError = msg;
+        this.saveError.set(msg);
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
       },
     });
+  }
+
+  // Exercise preview methods
+  openExercisePreviewFromSearch(exercise: ExerciseDto): void {
+    this.selectedExerciseForPreview.set(exercise);
+    this.exercisePreviewDialogOpen.set(true);
+  }
+
+  openExercisePreviewFromBlock(exercise: PlanningExerciseEditor): void {
+    // Intentar convertir el ID a número si es posible
+    const numericId = parseInt(exercise.id);
+    
+    // Buscar el ejercicio completo en availableExercises si está disponible
+    if (!isNaN(numericId)) {
+      const fullExercise = this.availableExercises().find(e => e.id === numericId);
+      if (fullExercise) {
+        this.selectedExerciseForPreview.set(fullExercise);
+        this.exercisePreviewDialogOpen.set(true);
+        return;
+      }
+    }
+    
+    // Si no se encuentra o no tiene ID numérico, crear un objeto temporal con los datos que tenemos
+    this.selectedExerciseForPreview.set({
+      id: numericId || 0,
+      name: exercise.name,
+      description: exercise.notes || '',
+      type: 'cardio' as any, // Tipo por defecto
+      difficulty: {},
+      duration: exercise.durationMin * 60, // Convertir minutos a segundos
+      tags: {},
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as ExerciseDto);
+    
+    this.exercisePreviewDialogOpen.set(true);
+  }
+
+  closeExercisePreview(): void {
+    this.exercisePreviewDialogOpen.set(false);
+    this.selectedExerciseForPreview.set(null);
+  }
+
+  getDifficultyLabel(key: string): string {
+    const labels: Record<string, string> = {
+      tactica: 'Táctica',
+      tecnica: 'Técnica',
+      fisica: 'Física',
+      mental: 'Mental'
+    };
+    return labels[key] || key;
+  }
+
+  getDifficultyValue(key: string): number {
+    const preview = this.selectedExerciseForPreview();
+    if (!preview?.difficulty || typeof preview.difficulty !== 'object') {
+      return 0;
+    }
+    const difficulty = preview.difficulty as any;
+    return difficulty[key] || 0;
+  }
+
+  getDifficultyKeys(): string[] {
+    const preview = this.selectedExerciseForPreview();
+    if (!preview?.difficulty || typeof preview.difficulty !== 'object') {
+      return [];
+    }
+    return Object.keys(preview.difficulty);
+  }
+
+  calculateAverageDifficulty(difficulty: any): number {
+    if (!difficulty || typeof difficulty !== 'object') return 0;
+    
+    const values = [
+      difficulty.tactica,
+      difficulty.tecnica,
+      difficulty.fisica,
+      difficulty.mental
+    ].filter(v => typeof v === 'number');
+    
+    if (values.length === 0) return 0;
+    const sum = values.reduce((acc, val) => acc + val, 0);
+    return Math.round((sum / values.length) * 10) / 10;
+  }
+
+  formatDifficultyShort(difficulty: any): string {
+    const avg = this.calculateAverageDifficulty(difficulty);
+    return avg > 0 ? avg.toFixed(1) : 'N/A';
   }
 }

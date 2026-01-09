@@ -15,9 +15,9 @@ export class PlanificationsApi {
     const mode = draft.mode;
 
     const constraints = {
-      // The backend contract expects equipment as an array of strings.
-      // We currently send equipment IDs from /api/equipment, so stringify them.
-      equipment: (draft.materialIds ?? []).map((x) => String(x)),
+      // The backend expects equipment names (e.g., "Balones", "Conos"), not IDs
+      // Use materialNames if available, otherwise fall back to empty array
+      equipment: draft.materialNames ?? [],
     };
 
     const goals = (draft.tags ?? []).map((t) => String(t));
@@ -31,6 +31,7 @@ export class PlanificationsApi {
         group: {
           groupId: draft.groupId ? Number(draft.groupId) : undefined,
           name: draft.name,
+          numberOfSessions: Number(draft.sessionsCount) || undefined,
           sessionDurationMinutes: Number(draft.duration) || undefined,
           // Normalize free text into backend enum.
           intensity: String(draft.intensity).toLowerCase() === 'alta'
@@ -50,6 +51,7 @@ export class PlanificationsApi {
     return this.api.post<PlanificationGenerated>('/api/planning/generate/individual', {
       profile: {
         athleteId,
+        numberOfSessions: Number(draft.sessionsCount) || undefined,
         sessionDurationMinutes: Number(draft.duration) || undefined,
         intensity: String(draft.intensity).toLowerCase() === 'alta'
           ? 'high'

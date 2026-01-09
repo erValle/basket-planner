@@ -38,6 +38,7 @@ import { FeedbackSurveyAnswers, FeedbackSurveyListItem } from '../models/feedbac
   providers: [MessageService],
 })
 export class SessionDetail {
+  // Mock data - in production, this would come from route params + API
   session = {
     id: 's1',
     title: 'Sesión · Senior Masculino',
@@ -45,6 +46,9 @@ export class SessionDetail {
     durationMin: 90,
     status: 'completada' as const,
     objective: 'Mejorar transiciones ofensivas y rebote defensivo.',
+    // Add these for feedback functionality
+    trainingPlanVersionId: 1, // Would come from route/API
+    sessionId: 'MON-2026-01-06', // Would come from route/API
   };
 
   blocks = [
@@ -75,6 +79,8 @@ export class SessionDetail {
 
   savingFeedback = false;
   latestSurvey: FeedbackSurveyListItem | null = null;
+  canFeedback = false;
+  feedbackCheckLoading = false;
 
   scale1to10 = Array.from({ length: 10 }, (_, i) => ({ label: String(i + 1), value: i + 1 }));
   scale0to10 = Array.from({ length: 11 }, (_, i) => ({ label: String(i), value: i }));
@@ -92,10 +98,32 @@ export class SessionDetail {
 
   constructor(private readonly feedbackApi: FeedbackApiService, private readonly toast: MessageService) {}
 
-  // Backend feedback is currently linked to training plan versions (trainingPlanVersionId).
-  // There is no first-class “session feedback” endpoint yet.
+  ngOnInit(): void {
+    // Check if user can provide feedback for this session
+    this.checkFeedbackPermission();
+  }
+
+  checkFeedbackPermission(): void {
+    if (!this.session.trainingPlanVersionId) {
+      return;
+    }
+
+    this.feedbackCheckLoading = true;
+    this.feedbackApi.canProvideFeedback(this.session.trainingPlanVersionId).subscribe({
+      next: (result) => {
+        this.canFeedback = result.canFeedback;
+        this.feedbackCheckLoading = false;
+      },
+      error: (err) => {
+        console.error('Error checking feedback permission:', err);
+        this.canFeedback = false;
+        this.feedbackCheckLoading = false;
+      }
+    });
+  }
+
   get canRegisterFeedback(): boolean {
-    return false;
+    return this.canFeedback && this.session.status === 'completada';
   }
 
   openFeedback(): void {
@@ -103,7 +131,7 @@ export class SessionDetail {
       this.toast.add({
         severity: 'info',
         summary: 'No disponible',
-        detail: 'El feedback de sesión todavía no está conectado al backend.',
+        detail: 'No tienes permisos para dar feedback a esta sesión o no está completada.',
       });
       return;
     }
@@ -117,15 +145,6 @@ export class SessionDetail {
   saveFeedback(): void {
     if (this.savingFeedback) return;
 
-    if (!this.canRegisterFeedback) {
-      this.toast.add({
-        severity: 'info',
-        summary: 'No disponible',
-        detail: 'El feedback de sesión todavía no está conectado al backend.',
-      });
-      return;
-    }
-
     // Basic validation
     const a = this.draftSurvey;
     const isMissing =
@@ -135,7 +154,46 @@ export class SessionDetail {
       return;
     }
 
-    // Note: intentionally disabled. When backend supports session feedback,
-    // we should wire this to the authenticated user (playerId) like planning-detail.
+    this.savingFeedback = true;
+
+    // Create payload for session feedback
+    const payload: any = {
+      targetId: String(this.session.trainingPlanVersionId),
+      targetType: 'session',
+      sessionId: this.session.sessionId,
+      answers: this.draftSurvey,
+    };
+
+    this.feedbackApi.createSurvey(payload).subscribe({
+      next: (result) => {
+        this.toast.add({
+          severity: 'success',
+          summary: 'Guardado',
+          detail: 'Tu feedback ha sido registrado correctamente.',
+        });
+        this.savingFeedback = false;
+        this.feedbackDialogVisible = false;
+        
+        // Reset form
+        this.draftSurvey = {
+          rpe: 5,
+          fatigue: 5,
+          pain: 0,
+          sleep: 3,
+          stress: 3,
+          mood: 3,
+          notes: '',
+        };
+      },
+      error: (err) => {
+        console.error('Error saving feedback:', err);
+        this.toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: err.error?.message || 'No se pudo guardar el feedback. Inténtalo de nuevo.',
+        });
+        this.savingFeedback = false;
+      },
+    });
   }
 }

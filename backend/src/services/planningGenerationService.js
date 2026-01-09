@@ -2,6 +2,8 @@ const { StatusCodes } = require('http-status-codes');
 const { httpError } = require('../libs/errorHelper');
 const { getActiveModel } = require('../recommender/modelManager');
 const { getAllExercisesForRecommender } = require('./exerciseService');
+const { TrainingPlan, TrainingPlanVersion, Equipment } = require('../../models');
+const auditLogService = require('./auditLogService');
 
 const dayOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
@@ -142,6 +144,100 @@ const normalizeDays = (days) => {
   return unique.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
 };
 
+/**
+ * Obtiene el equipamiento disponible en el sistema
+ * @param {number} clubId - ID del club (opcional)
+ * @returns {Promise<Set<string>>} Set con los alias de equipamiento disponible
+ */
+const getAvailableEquipmentAliases = async (clubId = null) => {
+  try {
+    const where = { status: 'available' };
+    if (clubId) where.clubId = clubId;
+    
+    const equipment = await Equipment.findAll({ where });
+    const aliases = new Set();
+    
+    equipment.forEach(item => {
+      // Agregar el alias principal basado en el nombre normalizado
+      const normalizedName = item.name.toLowerCase()
+        .replace(/[áàäâ]/g, 'a')
+        .replace(/[éèëê]/g, 'e')
+        .replace(/[íìïî]/g, 'i')
+        .replace(/[óòöô]/g, 'o')
+        .replace(/[úùüû]/g, 'u')
+        .replace(/ñ/g, 'n');
+      
+      // Mapeo de nombres a alias
+      if (normalizedName.includes('balon') || normalizedName.includes('pelota')) {
+        aliases.add('balon');
+        aliases.add('2_balones');
+      }
+      if (normalizedName.includes('cono')) aliases.add('conos');
+      if (normalizedName.includes('canasta') || normalizedName.includes('aro')) aliases.add('canasta');
+      if (normalizedName.includes('peto')) aliases.add('petos');
+      if (normalizedName.includes('foam') && normalizedName.includes('pad')) aliases.add('foam_pad');
+      if (normalizedName.includes('pizarra')) aliases.add('pizarra_tactica');
+      if (normalizedName.includes('cronometro') || normalizedName.includes('temporizador')) aliases.add('cronometro_o_app');
+      if (normalizedName.includes('colchoneta') || normalizedName.includes('mat')) aliases.add('colchoneta');
+      if (normalizedName.includes('banda') && normalizedName.includes('elastica')) aliases.add('banda_elastica');
+      if (normalizedName.includes('foam') && normalizedName.includes('roller')) aliases.add('foam_roller');
+      if (normalizedName.includes('cajon') && normalizedName.includes('plio')) aliases.add('cajon_pliometria');
+      if (normalizedName.includes('tarjeta')) aliases.add('tarjetas_colores');
+      if (normalizedName.includes('silbato')) aliases.add('silbato_o_app_senal');
+      
+      // También agregar los alias del JSON si existen en characteristics
+      if (item.characteristics && typeof item.characteristics === 'object') {
+        const chars = typeof item.characteristics === 'string' 
+          ? JSON.parse(item.characteristics) 
+          : item.characteristics;
+        
+        if (chars.aliases && Array.isArray(chars.aliases)) {
+          chars.aliases.forEach(alias => aliases.add(alias));
+        }
+      }
+    });
+    
+    return aliases;
+  } catch (error) {
+    console.error('Error obteniendo equipamiento disponible:', error);
+    // En caso de error, retornar set vacío (no filtrar ejercicios)
+    return new Set();
+  }
+};
+
+/**
+ * Filtra ejercicios según el equipamiento disponible
+ * @param {Array<Object>} exercises - Lista de ejercicios
+ * @param {Set<string>} availableEquipment - Set de equipamiento disponible
+ * @returns {Array<Object>} Ejercicios filtrados
+ */
+const filterExercisesByEquipment = (exercises, availableEquipment) => {
+  // Si no hay restricción de equipamiento, devolver todos
+  if (!availableEquipment || availableEquipment.size === 0) {
+    return exercises;
+  }
+  
+  return exercises.filter(exercise => {
+    // Obtener materiales necesarios del ejercicio
+    let materials = [];
+    
+    if (exercise.materiales_necesarios && Array.isArray(exercise.materiales_necesarios)) {
+      materials = exercise.materiales_necesarios;
+    } else if (exercise.tags && typeof exercise.tags === 'object') {
+      const tags = typeof exercise.tags === 'string' ? JSON.parse(exercise.tags) : exercise.tags;
+      materials = tags.materiales || [];
+    }
+    
+    // Si el ejercicio no requiere materiales, incluirlo
+    if (!materials || materials.length === 0) {
+      return true;
+    }
+    
+    // Verificar si todos los materiales necesarios están disponibles
+    return materials.every(material => availableEquipment.has(material));
+  });
+};
+
 const deriveFocusTags = (goals) => {
   const g = (goals || []).map(x => String(x).toLowerCase());
   const tags = [];
@@ -181,17 +277,31 @@ const deriveAverageLevel = (profiles) => {
   return reverseMap[avg] || 'intermediate';
 };
 
-const generateIndividual = async (input) => {
+const generateIndividual = async (input, auditCtx = {}) => {
   validateIndividualInput(input);
 
   const profile = input.profile;
   const intensity = profile.intensity || 'medium';
-  const maxSessionsPerWeek = profile.maxSessionsPerWeek || 4;
   const sessionDurationMinutes = profile.sessionDurationMinutes || 75;
+  
+  // Calcular número de sesiones
+  const numberOfSessions = profile.numberOfSessions 
+    || profile.maxSessionsPerWeek // fallback a campo legacy
+    || 4;
+  
   const days = normalizeDays(input.constraints && input.constraints.days);
   
+  // Obtener equipamiento disponible en el sistema
+  const clubId = profile.clubId || (input.constraints && input.constraints.clubId) || null;
+  const availableEquipment = await getAvailableEquipmentAliases(clubId);
+  
   // Obtener ejercicios disponibles
-  const allExercises = await getAllExercisesForRecommender({ active: true });
+  let allExercises = await getAllExercisesForRecommender({ active: true });
+  
+  // Filtrar ejercicios según equipamiento disponible
+  allExercises = filterExercisesByEquipment(allExercises, availableEquipment);
+  
+  console.log(`ℹ️  Ejercicios disponibles después de filtrar por equipamiento: ${allExercises.length}`);
   
   // Obtener el modelo de recomendación activo
   const recommender = getActiveModel();
@@ -207,17 +317,77 @@ const generateIndividual = async (input) => {
       level: profile.level || 'intermediate',
       intensity,
       sessionDurationMinutes,
-      maxDurationMinutes: profile.maxDurationMinutes || null
+      maxDurationMinutes: sessionDurationMinutes // Ahora es por sesión, no total
     },
-    numberOfSessions: Math.min(maxSessionsPerWeek, days.length),
+    numberOfSessions: Math.min(numberOfSessions, days.length),
     days
   };
   
   // Generar planificación usando el modelo de recomendación
   const generatedPlan = recommender.generatePlan(allExercises, planParams);
   
+  // Guardar en la base de datos
+  const trainingPlan = await TrainingPlan.create({
+    createdById: auditCtx.user?.id || null,
+    targetType: 'individual',
+    name: input.goals && input.goals.length > 0 
+      ? `Plan: ${input.goals[0]}` 
+      : 'Plan de entrenamiento individual',
+    description: input.goals ? input.goals.join(', ') : null,
+    goal: input.goals ? input.goals.join(', ') : null,
+    type: 'generated',
+    intensity,
+    duration: generatedPlan.summary.totalDurationMinutes,
+    sessionsCount: generatedPlan.summary.totalSessions,
+    sessionDurationMinutes: sessionDurationMinutes,
+    status: 'draft'
+  });
+
+  // Crear versión inicial
+  const version = await TrainingPlanVersion.create({
+    trainingPlanId: trainingPlan.id,
+    versionNumber: 1,
+    date: new Date(),
+    status: 'draft',
+    comments: `Versión generada automáticamente - Modelo ${generatedPlan.modelVersion}`,
+    sessions: generatedPlan.sessions,
+    createdFrom: {
+      modelVersion: generatedPlan.modelVersion,
+      generatedAt: generatedPlan.generatedAt,
+      inputSummary: {
+        athleteId: profile.athleteId,
+        goals: input.goals || [],
+        days: generatedPlan.summary.days,
+        intensity,
+        sessionDurationMinutes,
+        sessionsPerWeek: generatedPlan.summary.totalSessions
+      }
+    }
+  });
+
+  // Establecer como versión activa
+  await trainingPlan.update({ activeVersionId: version.id });
+
+  // Audit log
+  if (auditCtx.user) {
+    await auditLogService.createAuditLog({
+      user: auditCtx.user,
+      requestId: auditCtx.requestId,
+      action: 'training_plan.generated',
+      entity: 'TrainingPlan',
+      entityId: trainingPlan.id,
+      metadata: { 
+        targetType: 'individual',
+        athleteId: profile.athleteId,
+        modelVersion: generatedPlan.modelVersion
+      }
+    });
+  }
+  
   // Formatear respuesta para mantener compatibilidad con el formato esperado
   return {
+    id: trainingPlan.id,
+    versionId: version.id,
     kind: 'individual',
     generatedAt: generatedPlan.generatedAt,
     modelVersion: generatedPlan.modelVersion,
@@ -239,17 +409,31 @@ const generateIndividual = async (input) => {
   };
 };
 
-const generateGroup = async (input) => {
+const generateGroup = async (input, auditCtx = {}) => {
   validateGroupInput(input);
 
   const group = input.group;
   const intensity = group.intensity || 'medium';
-  const maxSessionsPerWeek = group.maxSessionsPerWeek || 4;
   const sessionDurationMinutes = group.sessionDurationMinutes || 90;
+  
+  // Calcular número de sesiones
+  const numberOfSessions = group.numberOfSessions 
+    || group.maxSessionsPerWeek // fallback a campo legacy
+    || 4;
+  
   const days = normalizeDays(input.constraints && input.constraints.days);
 
+  // Obtener equipamiento disponible en el sistema
+  const clubId = group.clubId || (input.constraints && input.constraints.clubId) || null;
+  const availableEquipment = await getAvailableEquipmentAliases(clubId);
+  
   // Obtener ejercicios disponibles
-  const allExercises = await getAllExercisesForRecommender({ active: true });
+  let allExercises = await getAllExercisesForRecommender({ active: true });
+  
+  // Filtrar ejercicios según equipamiento disponible
+  allExercises = filterExercisesByEquipment(allExercises, availableEquipment);
+  
+  console.log(`ℹ️  Ejercicios disponibles después de filtrar por equipamiento: ${allExercises.length}`);
   
   // Obtener el modelo de recomendación activo
   const recommender = getActiveModel();
@@ -268,9 +452,9 @@ const generateGroup = async (input) => {
       level: avgLevel,
       intensity,
       sessionDurationMinutes,
-      maxDurationMinutes: group.maxDurationMinutes || null
+      maxDurationMinutes: sessionDurationMinutes // Ahora es por sesión, no total
     },
-    numberOfSessions: Math.min(maxSessionsPerWeek, days.length),
+    numberOfSessions: Math.min(numberOfSessions, days.length),
     days
   };
   
@@ -283,7 +467,71 @@ const generateGroup = async (input) => {
     position: p.position
   }));
 
+  // Guardar en la base de datos
+  const trainingPlan = await TrainingPlan.create({
+    createdById: auditCtx.user?.id || null,
+    targetType: 'group',
+    name: group.name || (input.goals && input.goals.length > 0 
+      ? `Plan grupal: ${input.goals[0]}` 
+      : 'Plan de entrenamiento grupal'),
+    description: input.goals ? input.goals.join(', ') : null,
+    goal: input.goals ? input.goals.join(', ') : null,
+    type: 'generated',
+    intensity,
+    duration: generatedPlan.summary.totalDurationMinutes,
+    sessionsCount: generatedPlan.summary.totalSessions,
+    sessionDurationMinutes: sessionDurationMinutes,
+    status: 'draft'
+  });
+
+  // Crear versión inicial
+  const version = await TrainingPlanVersion.create({
+    trainingPlanId: trainingPlan.id,
+    versionNumber: 1,
+    date: new Date(),
+    status: 'draft',
+    comments: `Versión generada automáticamente - Modelo ${generatedPlan.modelVersion}`,
+    sessions: generatedPlan.sessions,
+    createdFrom: {
+      modelVersion: generatedPlan.modelVersion,
+      generatedAt: generatedPlan.generatedAt,
+      athletes: perAthlete,
+      inputSummary: {
+        groupId: group.groupId,
+        groupName: group.name,
+        athletesCount: input.profiles.length,
+        goals: input.goals || [],
+        days: generatedPlan.summary.days,
+        intensity,
+        sessionDurationMinutes,
+        sessionsPerWeek: generatedPlan.summary.totalSessions
+      }
+    }
+  });
+
+  // Establecer como versión activa
+  await trainingPlan.update({ activeVersionId: version.id });
+
+  // Audit log
+  if (auditCtx.user) {
+    await auditLogService.createAuditLog({
+      user: auditCtx.user,
+      requestId: auditCtx.requestId,
+      action: 'training_plan.generated',
+      entity: 'TrainingPlan',
+      entityId: trainingPlan.id,
+      metadata: { 
+        targetType: 'group',
+        groupId: group.groupId,
+        athletesCount: input.profiles.length,
+        modelVersion: generatedPlan.modelVersion
+      }
+    });
+  }
+
   return {
+    id: trainingPlan.id,
+    versionId: version.id,
     kind: 'group',
     generatedAt: generatedPlan.generatedAt,
     modelVersion: generatedPlan.modelVersion,

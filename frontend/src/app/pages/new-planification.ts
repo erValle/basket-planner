@@ -66,11 +66,51 @@ export class NewPlanification {
     { number: 4, label: 'Revisión' },
   ];
 
-  objectiveOptions: Option[] = [
+  objectiveOptions: any[] = [
+    // Separador - Ataque
+    { label: '─── ATAQUE ───', value: '', disabled: true },
     { label: 'Mejora del tiro exterior', value: 'Mejora del tiro exterior' },
-    { label: 'Defensa individual', value: 'Defensa individual' },
+    { label: 'Tiro en suspensión', value: 'Tiro en suspensión' },
+    { label: 'Tiros libres', value: 'Tiros libres' },
     { label: 'Manejo de balón', value: 'Manejo de balón' },
-    { label: 'Condición física', value: 'Condición física' },
+    { label: 'Pases y asistencias', value: 'Pases y asistencias' },
+    { label: 'Juego de pies ofensivo', value: 'Juego de pies ofensivo' },
+    { label: 'Penetraciones y finalizaciones', value: 'Penetraciones y finalizaciones' },
+    { label: 'Juego en el poste bajo', value: 'Juego en el poste bajo' },
+    { label: 'Ataque individual (1v1)', value: 'Ataque individual (1v1)' },
+    
+    // Separador - Defensa
+    { label: '─── DEFENSA ───', value: '', disabled: true },
+    { label: 'Defensa individual', value: 'Defensa individual' },
+    { label: 'Defensa de perímetro', value: 'Defensa de perímetro' },
+    { label: 'Sistemas defensivos en equipo', value: 'Sistemas defensivos en equipo' },
+    { label: 'Fundamentos defensivos', value: 'Fundamentos defensivos' },
+    
+    // Separador - Rebote
+    { label: '─── REBOTE ───', value: '', disabled: true },
+    { label: 'Rebote defensivo', value: 'Rebote defensivo' },
+    { label: 'Rebote ofensivo', value: 'Rebote ofensivo' },
+    
+    // Separador - Física
+    { label: '─── FÍSICA ───', value: '', disabled: true },
+    { label: 'Condición física general', value: 'Condición física general' },
+    { label: 'Velocidad y agilidad', value: 'Velocidad y agilidad' },
+    { label: 'Movilidad y recuperación', value: 'Movilidad y recuperación' },
+    
+    // Separador - Táctica
+    { label: '─── TÁCTICA ───', value: '', disabled: true },
+    { label: 'Transiciones ofensivas', value: 'Transiciones ofensivas' },
+    { label: 'Transiciones defensivas', value: 'Transiciones defensivas' },
+    { label: 'Juego colectivo ofensivo', value: 'Juego colectivo ofensivo' },
+    { label: 'Bloqueos directos (Pick & Roll)', value: 'Bloqueos directos (Pick & Roll)' },
+    { label: 'Espacios y movimiento sin balón', value: 'Espacios y movimiento sin balón' },
+    { label: 'ABP y saques', value: 'ABP y saques' },
+    { label: 'Situaciones de juego reducido', value: 'Situaciones de juego reducido' },
+    
+    // Separador - Mental
+    { label: '─── MENTAL ───', value: '', disabled: true },
+    { label: 'Concentración y toma de decisiones', value: 'Concentración y toma de decisiones' },
+    { label: 'Lectura del juego', value: 'Lectura del juego' },
   ];
 
   intensityOptions: Option[] = [
@@ -81,7 +121,8 @@ export class NewPlanification {
 
   formData = {
     name: '',
-    duration: 90,
+    duration: 90, // Duración por sesión
+    sessionsCount: 4, // Número de sesiones
     summary: '',
     objective: 'Mejora del tiro exterior',
     intensity: 'Media',
@@ -448,7 +489,7 @@ export class NewPlanification {
   }
 
   cancel() {
-    // TODO: navigate back when we have a dedicated listing page
+    this.router.navigate(['/planning']);
   }
 
   back() {
@@ -493,9 +534,15 @@ export class NewPlanification {
       .filter(([, selected]) => !!selected)
       .map(([id]) => id);
 
+    // Get the equipment names for the selected IDs
+    const materialNames = this.materialOptions
+      .filter((m) => this.materialSelectedMap[m.id])
+      .map((m) => m.label);
+
     return {
       name: this.formData.name,
       duration: this.formData.duration,
+      sessionsCount: this.formData.sessionsCount,
       summary: this.formData.summary,
       objective: this.formData.objective,
       intensity: this.formData.intensity,
@@ -504,6 +551,7 @@ export class NewPlanification {
       playerIds: this.planningMode === 'group' ? this.selectedPlayerIds : [],
       groupId: this.planningMode === 'group' ? this.selectedGroupId : null,
       materialIds,
+      materialNames,
       tags: this.restrictionTags,
     };
   }
@@ -531,5 +579,10 @@ export class NewPlanification {
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
       },
     });
+  }
+
+  goToPlanifications() {
+    this.completedDialogVisible = false;
+    this.router.navigate(['/planning']);
   }
 }

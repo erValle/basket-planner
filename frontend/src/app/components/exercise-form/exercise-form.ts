@@ -66,6 +66,9 @@ export class ExerciseForm implements OnChanges {
   @Output() cancel = new EventEmitter<void>();
   @Output() save = new EventEmitter<ExerciseFormValue>();
 
+  // Make Math available in template
+  Math = Math;
+
   get isViewMode(): boolean {
     return this.mode === 'view';
   }
@@ -307,6 +310,18 @@ export class ExerciseForm implements OnChanges {
       .map((x) => (x?.name ?? '').toString().trim())
       .filter((x) => x.length > 0);
     this.form.controls.materialesNecesarios.setValue(Array.from(new Set(names)));
+  }
+
+  // Helper para obtener el label del tipo seleccionado
+  getTipoLabel(value: string): string {
+    const option = this.tipoOptions.find(opt => opt.value === value);
+    return option?.label || value;
+  }
+
+  // Helper para obtener el label del estado seleccionado
+  getEstadoLabel(value: string): string {
+    const option = this.estadoOptions.find(opt => opt.value === value);
+    return option?.label || value;
   }
 
   onCancel(): void {

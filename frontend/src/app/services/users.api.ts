@@ -15,11 +15,17 @@ export class UsersApiService {
   list(params: AdminUserListParams) {
     // Backend supports filtering by: email, role, status (no pagination at the moment).
     // Frontend keeps pagination locally.
-    const mapped: any = {
-      email: params?.search || undefined,
-      role: params?.role || undefined,
-      status: params?.status || undefined,
-    };
+    const mapped: any = {};
+    
+    if (params?.search) {
+      mapped.email = params.search;
+    }
+    if (params?.role) {
+      mapped.role = params.role;
+    }
+    if (params?.status) {
+      mapped.status = params.status;
+    }
 
     return this.api.get<any>('/api/users', { params: mapped });
   }

@@ -52,4 +52,49 @@ const deleteFeedback = async (req, res, next) => {
   }
 };
 
-module.exports = { listFeedbacks, getFeedback, createFeedback, updateFeedback, deleteFeedback };
+const checkCanProvideFeedback = async (req, res, next) => {
+  try {
+    const result = await feedbackService.canUserProvideFeedback(
+      req.user.id,
+      req.params.versionId
+    );
+    return res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    logger.error(`Error checking feedback permission: ${error?.message || error}`);
+    return next(error);
+  }
+};
+
+const getVersionStats = async (req, res, next) => {
+  try {
+    const stats = await feedbackService.getVersionStats(req.params.versionId);
+    return res.status(StatusCodes.OK).json(stats);
+  } catch (error) {
+    logger.error(`Error getting version stats: ${error?.message || error}`);
+    return next(error);
+  }
+};
+
+const getSessionStats = async (req, res, next) => {
+  try {
+    const stats = await feedbackService.getSessionStats(
+      req.params.versionId,
+      req.params.sessionId
+    );
+    return res.status(StatusCodes.OK).json(stats);
+  } catch (error) {
+    logger.error(`Error getting session stats: ${error?.message || error}`);
+    return next(error);
+  }
+};
+
+module.exports = { 
+  listFeedbacks, 
+  getFeedback, 
+  createFeedback, 
+  updateFeedback, 
+  deleteFeedback,
+  checkCanProvideFeedback,
+  getVersionStats,
+  getSessionStats,
+};

@@ -247,6 +247,10 @@
 
         <button pButton type="button" label="Crear nueva versión" icon="pi pi-copy" class="p-button-sm" (click)="createNewVersion()"></button>
 
+        @if (canAcceptPlanning()) {
+          <button pButton type="button" label="Activar planificación" icon="pi pi-check" class="p-button-sm p-button-success" (click)="acceptPlanning()"></button>
+        }
+
         <button
           pButton
           type="button"
@@ -390,15 +394,26 @@
                 @for (ex of b.exercises; track ex.id) {
                   <div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4">
                     <div class="flex items-start justify-between gap-3">
-                      <div>
+                      <div class="flex-1">
                         <div class="text-[13px] font-semibold text-[#f9fafb]">{{ ex.name }}</div>
                         @if (ex.notes) {
                           <div class="mt-1 text-[12px] text-[#9ca3af]">{{ ex.notes }}</div>
                         }
                       </div>
-                      @if (ex.durationMin) {
-                        <div class="text-[12px] text-[#e5e7eb]">{{ ex.durationMin }} min</div>
-                      }
+                      <div class="flex items-center gap-2">
+                        @if (ex.durationMin) {
+                          <div class="text-[12px] text-[#e5e7eb]">{{ ex.durationMin }} min</div>
+                        }
+                        <button 
+                          type="button" 
+                          pButton 
+                          icon="pi pi-eye" 
+                          class="p-button-text p-button-sm p-button-rounded" 
+                          (click)="openExercisePreview(ex)"
+                          pTooltip="Ver detalles"
+                          tooltipPosition="top"
+                        ></button>
+                      </div>
                     </div>
                   </div>
                 }
@@ -415,4 +430,104 @@
       }
     }
   </div>
+
+  <!-- Modal de previsualización de ejercicio -->
+  <p-dialog
+    [header]="selectedExercise?.name || 'Detalles del ejercicio'"
+    [(visible)]="exercisePreviewDialogOpen"
+    [modal]="true"
+    [draggable]="false"
+    [closable]="true"
+    [dismissableMask]="true"
+    [style]="{ width: '600px', maxWidth: '90vw' }"
+    styleClass="bp-dialog"
+    (onHide)="closeExercisePreview()"
+  >
+    @if (selectedExercise) {
+      <div class="space-y-4">
+        <!-- Descripción -->
+        @if (selectedExercise.description) {
+          <div>
+            <label class="block text-[#9ca3af] text-[12px] font-semibold mb-2">Descripción</label>
+            <p class="text-[13px] text-[#e5e7eb]">{{ selectedExercise.description }}</p>
+          </div>
+        }
+
+        <!-- Información básica -->
+        <div class="grid grid-cols-2 gap-4">
+          @if (selectedExercise.type) {
+            <div>
+              <label class="block text-[#9ca3af] text-[12px] font-semibold mb-2">Tipo</label>
+              <p-tag [value]="selectedExercise.type" severity="info" styleClass="text-[11px]"></p-tag>
+            </div>
+          }
+          @if (selectedExercise.phase) {
+            <div>
+              <label class="block text-[#9ca3af] text-[12px] font-semibold mb-2">Fase</label>
+              <p-tag [value]="selectedExercise.phase" severity="secondary" styleClass="text-[11px]"></p-tag>
+            </div>
+          }
+          @if (selectedExercise.durationMin) {
+            <div>
+              <label class="block text-[#9ca3af] text-[12px] font-semibold mb-2">Duración</label>
+              <p class="text-[13px] text-[#e5e7eb]">{{ selectedExercise.durationMin }} minutos</p>
+            </div>
+          }
+        </div>
+
+        <!-- Dificultades 4D -->
+        @if (selectedExercise.difficulty && getDifficultyKeys().length > 0) {
+          <div>
+            <label class="block text-[#9ca3af] text-[12px] font-semibold mb-3">Dificultad (1-5)</label>
+            <div class="grid grid-cols-2 gap-3">
+              @for (key of getDifficultyKeys(); track key) {
+                <div class="flex items-center justify-between p-3 rounded-lg bg-[#111827] border border-[#1f2937]">
+                  <span class="text-[12px] text-[#9ca3af]">{{ getDifficultyLabel(key) }}</span>
+                  <div class="flex gap-1">
+                    @for (i of [1,2,3,4,5]; track i) {
+                      <div 
+                        class="w-6 h-6 rounded flex items-center justify-center text-[11px] font-semibold"
+                        [class.bg-blue-600]="i <= getDifficultyValue(key)"
+                        [class.bg-[#1f2937]]="i > getDifficultyValue(key)"
+                        [class.text-white]="i <= getDifficultyValue(key)"
+                        [class.text-[#6b7280]]="i > getDifficultyValue(key)"
+                      >
+                        {{ i }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="mt-2 text-[12px] text-[#9ca3af] text-center">
+              Media: {{ formatDifficultyShort(selectedExercise.difficulty) }} / 5.0
+            </div>
+          </div>
+        }
+
+        <!-- Materiales necesarios -->
+        @if (selectedExercise.equipment && selectedExercise.equipment.length > 0) {
+          <div>
+            <label class="block text-[#9ca3af] text-[12px] font-semibold mb-2">Materiales necesarios</label>
+            <div class="flex flex-wrap gap-2">
+              @for (item of selectedExercise.equipment; track item) {
+                <p-tag [value]="item" severity="contrast" styleClass="text-[11px]"></p-tag>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Botón cerrar -->
+        <div class="flex justify-end pt-2">
+          <button 
+            type="button" 
+            pButton 
+            label="Cerrar" 
+            class="p-button-text p-button-sm" 
+            (click)="closeExercisePreview()"
+          ></button>
+        </div>
+      </div>
+    }
+  </p-dialog>
 </app-shell>

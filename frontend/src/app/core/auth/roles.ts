@@ -1,7 +1,8 @@
-export type Role = 'admin' | 'coach' | 'staff' | 'player';
+export type Role = 'admin' | 'technical_director' | 'coach' | 'staff' | 'player';
 
 export const ROLE_LABELS: Record<Role, string> = {
 	admin: 'Admin',
+	technical_director: 'Director Técnico',
 	coach: 'Coach',
 	staff: 'Staff',
 	player: 'Jugador',

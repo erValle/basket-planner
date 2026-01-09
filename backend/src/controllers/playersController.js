@@ -25,10 +25,19 @@ const getPlayerHistory = async (req, res, next) => {
 
 const transferPlayer = async (req, res, next) => {
   try {
+    console.log('📦 Transfer request body:', req.body);
     const result = await userClubService.transferPlayerToClub(Number(req.params.id), req.body);
+    console.log('✅ Transfer successful');
     return res.status(StatusCodes.OK).json(result);
   } catch (error) {
     logger.error(`Error transferring player: ${error?.message || error}`);
+    logger.error('Request body was:', req.body);
+    logger.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      errors: error.errors,
+      original: error.original
+    });
     return next(error);
   }
 };

@@ -2,24 +2,24 @@
 	<p-toast></p-toast>
 	<div class="max-w-6xl mx-auto">
 		<app-page-header
-			[title]="team?.name || 'Equipo'"
+			[title]="team()?.name || 'Equipo'"
 			[subtitle]="'Gestiona el roster y el estado del equipo.'"
 		></app-page-header>
 
-		@if (loading) {
+		@if (loading()) {
 			<div class="mt-6 text-[13px] text-[#9ca3af]">Cargando…</div>
 		} @else {
-			@if (!team) {
+			@if (!team()) {
 				<div class="mt-6 text-[13px] text-[#9ca3af]">No se encontró el equipo.</div>
 			} @else {
 				<div class="mt-6 bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
 					<div class="flex items-start justify-between gap-3">
 						<div>
-							<div class="text-[16px] text-[#f9fafb] font-semibold">{{ team.name }}</div>
-							<div class="text-[12px] text-[#9ca3af] mt-1">Categoría: {{ team.category || '—' }} · ClubId: {{ team.clubId ?? '—' }}</div>
-							<div class="text-[12px] text-[#9ca3af] mt-1">Jugadores: {{ players.length }}</div>
+							<div class="text-[16px] text-[#f9fafb] font-semibold">{{ team()!.name }}</div>
+							<div class="text-[12px] text-[#9ca3af] mt-1">Categoría: {{ team()!.category || '—' }} · ClubId: {{ team()!.clubId ?? '—' }}</div>
+							<div class="text-[12px] text-[#9ca3af] mt-1">Jugadores: {{ players().length }}</div>
 						</div>
-						<p-tag [value]="statusLabel" [severity]="statusSeverity"></p-tag>
+						<p-tag [value]="statusLabel()" [severity]="statusSeverity()"></p-tag>
 					</div>
 
 					<div class="mt-4 flex justify-end gap-2">
@@ -27,28 +27,32 @@
 						<button
 							type="button"
 							pButton
-							[label]="team.active === false ? 'Activar' : 'Desactivar'"
+							[label]="team()!.active === false ? 'Activar' : 'Desactivar'"
 							class="p-button-sm"
-							[disabled]="saving"
+							[disabled]="saving()"
 							(click)="toggleActive()"
 						></button>
-						<button type="button" pButton label="Añadir jugador" icon="pi pi-plus" class="p-button-sm" [disabled]="saving" (click)="openAddDialog()"></button>
+						@if (canManagePlayers()) {
+							<button type="button" pButton label="Añadir jugador" icon="pi pi-plus" class="p-button-sm" [disabled]="saving()" (click)="openAddDialog()"></button>
+						}
 					</div>
 				</div>
 
 				<div class="mt-6 bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
 					<div class="text-[14px] text-[#e5e7eb] font-semibold">Plantilla</div>
 					<div class="mt-3 grid grid-cols-1 gap-2">
-						@if (players.length === 0) {
+						@if (players().length === 0) {
 							<div class="text-[13px] text-[#9ca3af]">Este equipo aún no tiene jugadores.</div>
 						} @else {
-							@for (p of players; track p.id) {
+							@for (p of players(); track p.id) {
 								<div class="flex items-center justify-between gap-3 p-3 rounded-lg border border-[#1f2937] bg-[#0b1220]">
 									<div>
 										<div class="text-[13px] text-[#e5e7eb]">{{ p.lastName }} {{ p.firstName }}</div>
 										<div class="text-[12px] text-[#94a3b8]">{{ p.email }} · {{ p.position || '—' }} · {{ p.category || '—' }}</div>
 									</div>
-									<button type="button" pButton label="Quitar" class="p-button-text p-button-sm" [disabled]="saving" (click)="removePlayer(p.id)"></button>
+									@if (canManagePlayers()) {
+										<button type="button" pButton label="Quitar" class="p-button-text p-button-sm" [disabled]="saving()" (click)="removePlayer(p.id)"></button>
+									}
 								</div>
 							}
 						}
@@ -60,68 +64,106 @@
 
 	<p-dialog
 		styleClass="bp-dialog"
-		header="Añadir jugador"
+		header="Añadir jugadores al equipo"
 		[(visible)]="addDialogOpen"
 		[modal]="true"
 		[dismissableMask]="true"
 		[draggable]="false"
 		[resizable]="false"
-		[style]="{ width: 'min(760px, 95vw)' }"
+		[style]="{ width: 'min(900px, 95vw)' }"
 		(onHide)="closeAddDialog()"
 	>
-		<div class="grid grid-cols-1 gap-3">
+		<div class="grid grid-cols-1 gap-4">
 			<div>
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Buscar jugador</label>
-				<div class="flex gap-2">
-					<input pInputText [(ngModel)]="playerSearch" name="playerSearch" placeholder="Nombre o email" class="w-full" />
-					<button type="button" pButton label="Buscar" class="p-button-sm" [disabled]="searchLoading || !playerSearch.trim()" (click)="searchPlayers()"></button>
+				<label class="block text-[#e5e7eb] text-[13px] mb-2">Buscar en jugadores disponibles</label>
+				<input 
+					pInputText 
+					[(ngModel)]="playerSearch" 
+					name="playerSearch" 
+					placeholder="Nombre o email" 
+					class="w-full" 
+					(ngModelChange)="searchInAvailable()"
+				/>
+				<div class="mt-2 text-[12px] text-[#94a3b8]">
+					Mostrando jugadores del club sin equipo asignado
 				</div>
-				<div class="mt-2 text-[12px] text-[#94a3b8]">Solo aparecen usuarios con rol <b>player</b> (backend).</div>
 			</div>
 
-			<div class="flex items-center justify-between gap-3">
-				<div class="text-[12px] text-[#94a3b8]">
-					Seleccionados: <b class="text-[#e5e7eb]">{{ selectedSearchPlayerIds.length }}</b>
+			<div class="flex items-center justify-between gap-3 py-2 border-y border-[#1f2937]">
+				<div class="text-[13px] text-[#e5e7eb]">
+					Seleccionados: <b>{{ selectedPlayerIds().length }}</b> de {{ filteredAvailablePlayers().length }}
 				</div>
 				<button
 					type="button"
 					pButton
 					label="Añadir seleccionados"
+					icon="pi pi-plus"
 					class="p-button-sm"
-					[disabled]="saving || selectedSearchPlayerIds.length === 0"
+					[disabled]="saving() || selectedPlayerIds().length === 0"
 					(click)="addSelectedPlayers()"
 				></button>
 			</div>
 
-			@if (searchLoading) {
-				<div class="text-[13px] text-[#9ca3af]">Buscando…</div>
+			@if (searchLoading()) {
+				<div class="text-[13px] text-[#9ca3af]">Cargando jugadores…</div>
+			} @else if (filteredAvailablePlayers().length === 0) {
+				<div class="text-center py-8">
+					<div class="text-[13px] text-[#9ca3af]">No hay jugadores disponibles en este club</div>
+					<div class="text-[12px] text-[#6b7280] mt-1">Todos los jugadores ya tienen equipo asignado</div>
+				</div>
 			} @else {
-				<div class="grid grid-cols-1 gap-2">
-					@for (r of searchResults; track r.id) {
-						<div class="flex items-center justify-between gap-3 p-3 rounded-lg border border-[#1f2937] bg-[#0b1220]">
-							<div>
-								<div class="text-[13px] text-[#e5e7eb]">{{ r.name }}</div>
-								<div class="text-[12px] text-[#94a3b8]">{{ r.email || '—' }} · {{ r.position || '—' }} · {{ r.category || '—' }}</div>
-							</div>
-							@if (hasPlayer(r.id)) {
-								<span class="text-[12px] text-[#22c55e]">Ya está en el equipo</span>
-							} @else {
-								<div class="flex items-center gap-2">
-									<button
-										type="button"
-										pButton
-										[label]="selectedSearchPlayerIds.includes(r.id) ? 'Quitar' : 'Seleccionar'"
-										class="p-button-text p-button-sm"
-										[disabled]="saving"
-										(click)="toggleSearchSelection(r.id)"
-									></button>
-									<button type="button" pButton label="Añadir" class="p-button-sm" [disabled]="saving" (click)="addPlayer(r.id)"></button>
+				<div class="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto">
+					@for (player of filteredAvailablePlayers(); track player.id) {
+						<div 
+							class="flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer"
+							[class.border-[#3b82f6]]="isSelected(player.id)"
+							[class.bg-[#1e293b]]="isSelected(player.id)"
+							[class.border-[#1f2937]]="!isSelected(player.id)"
+							[class.bg-[#0b1220]]="!isSelected(player.id)"
+							[class.hover:border-[#374151]]="!isSelected(player.id)"
+							(click)="toggleSelection(player.id)"
+						>
+							<input 
+								type="checkbox" 
+								[checked]="isSelected(player.id)"
+								class="w-4 h-4"
+								(click)="$event.stopPropagation()"
+								(change)="toggleSelection(player.id)"
+							/>
+							<div class="flex-1">
+								<div class="text-[13px] text-[#e5e7eb] font-medium">
+									{{ player.firstName }} {{ player.lastName }}
 								</div>
-							}
+								<div class="text-[12px] text-[#94a3b8] mt-0.5">
+									{{ player.email || '—' }} · {{ player.position || 'Sin posición' }} · {{ player.category || 'Sin categoría' }}
+								</div>
+							</div>
+							<button
+								type="button"
+								pButton
+								[label]="isSelected(player.id) ? 'Quitar' : 'Seleccionar'"
+								class="p-button-text p-button-sm"
+								[disabled]="saving()"
+								(click)="$event.stopPropagation(); toggleSelection(player.id)"
+							></button>
 						</div>
 					}
 				</div>
 			}
 		</div>
+
+		<ng-template pTemplate="footer">
+			<div class="flex justify-between gap-2">
+				<button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" (click)="closeAddDialog()"></button>
+				<button
+					type="button"
+					pButton
+					[label]="'Añadir ' + selectedPlayerIds().length + ' jugador(es)'"
+					class="p-button-sm"
+					[disabled]="saving() || selectedPlayerIds().length === 0"
+					(click)="addSelectedPlayers()"
+				></button>
+			</div>
+		</ng-template>
 	</p-dialog>
 </app-shell>

@@ -75,17 +75,32 @@
               />
             </div>
 
-            <div>
-              <label class="block text-[#e5e7eb] text-[13px] mb-2">Duración total (min)</label>
-              <p-inputNumber
-                [(ngModel)]="formData.duration"
-                name="duration"
-                [inputStyleClass]="'w-full'"
-                [styleClass]="'w-full'"
-                [min]="10"
-                [max]="240"
-                [showButtons]="false"
-              ></p-inputNumber>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-[#e5e7eb] text-[13px] mb-2">Número de sesiones</label>
+                <p-inputNumber
+                  [(ngModel)]="formData.sessionsCount"
+                  name="sessionsCount"
+                  [inputStyleClass]="'w-full'"
+                  [styleClass]="'w-full'"
+                  [min]="1"
+                  [max]="20"
+                  [showButtons]="true"
+                ></p-inputNumber>
+              </div>
+
+              <div>
+                <label class="block text-[#e5e7eb] text-[13px] mb-2">Duración por sesión (min)</label>
+                <p-inputNumber
+                  [(ngModel)]="formData.duration"
+                  name="duration"
+                  [inputStyleClass]="'w-full'"
+                  [styleClass]="'w-full'"
+                  [min]="10"
+                  [max]="240"
+                  [showButtons]="false"
+                ></p-inputNumber>
+              </div>
             </div>
 
             <div>
@@ -96,6 +111,7 @@
                 name="objective"
                 optionLabel="label"
                 optionValue="value"
+                optionDisabled="disabled"
                 styleClass="bp-select"
                 [panelStyleClass]="'bp-select-panel'"
                 [showClear]="false"
@@ -401,8 +417,18 @@
               </div>
 
               <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
-                <div class="text-[12px] text-[#94a3b8]">Duración</div>
+                <div class="text-[12px] text-[#94a3b8]">Número de sesiones</div>
+                <div class="text-[14px] text-[#e5e7eb] mt-1">{{ formData.sessionsCount }}</div>
+              </div>
+
+              <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+                <div class="text-[12px] text-[#94a3b8]">Duración por sesión</div>
                 <div class="text-[14px] text-[#e5e7eb] mt-1">{{ formData.duration }} min</div>
+              </div>
+
+              <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
+                <div class="text-[12px] text-[#94a3b8]">Duración total estimada</div>
+                <div class="text-[14px] text-[#e5e7eb] mt-1">{{ (formData.sessionsCount || 0) * (formData.duration || 0) }} min</div>
               </div>
 
               <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
@@ -528,6 +554,14 @@
         type="button"
         (click)="completedDialogVisible = false"
         styleClass="bp-btn bp-btn-secondary"
+      ></p-button>
+      <p-button
+        label="Ver planificaciones"
+        icon="pi pi-list"
+        severity="primary"
+        type="button"
+        (click)="goToPlanifications()"
+        styleClass="bp-btn bp-btn-primary"
       ></p-button>
     </div>
   </p-dialog>

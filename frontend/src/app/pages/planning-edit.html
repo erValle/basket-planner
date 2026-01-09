@@ -32,17 +32,17 @@
             label="Guardar"
             icon="pi pi-check"
             (click)="save()"
-            [loading]="saving"
-            [disabled]="saving || !canSave()"
+            [loading]="saving()"
+            [disabled]="saving() || !canSave()"
             type="button"
             styleClass="bp-btn bp-btn-primary"
           ></p-button>
         </div>
       </div>
 
-      @if (saveError) {
+      @if (saveError()) {
         <div class="mt-4 rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-[13px] text-red-200">
-          {{ saveError }}
+          {{ saveError() }}
         </div>
       }
     </div>
@@ -51,48 +51,66 @@
     <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
       <div class="flex items-center justify-between">
         <div>
-          <div class="text-[15px] font-semibold text-[#f9fafb]">Editor manual</div>
-          <div class="mt-1 text-[12px] text-[#9ca3af]">Crea una nueva versión sin sobrescribir la actual.</div>
+          <div class="text-[15px] font-semibold text-[#f9fafb]">Sesiones de entrenamiento</div>
+          <div class="mt-1 text-[12px] text-[#9ca3af]">Clicka en cada sesión para editarla.</div>
         </div>
 
         <button type="button" pButton label="Añadir sesión" icon="pi pi-plus" class="p-button-sm" (click)="addSession()"></button>
       </div>
 
-      @if (sessions.length === 0) {
+      @if (sessions().length === 0) {
         <div class="mt-8 text-center text-[13px] text-[#9ca3af]">Añade al menos una sesión para guardar una nueva versión.</div>
       } @else {
-        <div class="mt-6 space-y-4">
-          @for (s of sessions; track s.id; let sIdx = $index) {
-            <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-5">
-              <div class="flex flex-wrap items-start justify-between gap-3">
-                <div class="flex-1 min-w-[240px]">
-                  <label class="block text-[#e5e7eb] text-[13px] mb-2">Título de sesión</label>
-                  <input
-                    pInputText
-                    [(ngModel)]="s.title"
-                    [name]="'session-title-' + s.id"
-                    (blur)="markTouched('s-title-' + s.id)"
-                    class="w-full"
-                  />
-                  @if (hasError('s-title-' + s.id, isSessionValid(s))) {
-                    <div class="mt-2 text-[12px] text-red-200">El título es obligatorio.</div>
-                  }
+        <div class="mt-6 space-y-3">
+          @for (s of sessions(); track s.id; let sIdx = $index) {
+            <!-- Session Card -->
+            <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] overflow-hidden">
+              <!-- Session Header (clickable) -->
+              <div 
+                class="p-4 cursor-pointer hover:bg-[#111827] transition-colors flex items-center justify-between"
+                (click)="toggleSessionExpanded(s.id)"
+              >
+                <div class="flex items-center gap-3 flex-1">
+                  <i [class]="isSessionExpanded(s.id) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-[#9ca3af] text-[12px]"></i>
+                  <div>
+                    <div class="text-[14px] font-medium text-[#f9fafb]">{{ s.title || 'Sesión sin título' }}</div>
+                    <div class="text-[12px] text-[#9ca3af] mt-1">{{ s.blocks.length }} bloque(s)</div>
+                  </div>
                 </div>
 
-                <div class="flex items-center gap-1">
+                <div class="flex items-center gap-1" (click)="$event.stopPropagation()">
                   <button type="button" pButton icon="pi pi-arrow-up" class="p-button-text p-button-sm" aria-label="Subir" (click)="moveSession(s.id, -1)"></button>
                   <button type="button" pButton icon="pi pi-arrow-down" class="p-button-text p-button-sm" aria-label="Bajar" (click)="moveSession(s.id, 1)"></button>
                   <button type="button" pButton icon="pi pi-trash" class="p-button-text p-button-sm" aria-label="Eliminar" (click)="removeSession(s.id)"></button>
                 </div>
               </div>
 
-              <div class="mt-4 flex justify-between items-center">
-                <div class="text-[12px] text-[#9ca3af]">{{ s.blocks.length }} bloque(s)</div>
-                <button type="button" pButton label="Añadir bloque" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="addBlock(s)"></button>
-              </div>
+              <!-- Session Content (expandable) -->
+              @if (isSessionExpanded(s.id)) {
+                <div class="border-t border-[#1f2937] p-5 bg-[#0b1220]">
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="flex-1 min-w-[240px]">
+                      <label class="block text-[#e5e7eb] text-[13px] mb-2">Título de sesión</label>
+                      <input
+                        pInputText
+                        [(ngModel)]="s.title"
+                        [name]="'session-title-' + s.id"
+                        (blur)="markTouched('s-title-' + s.id)"
+                        class="w-full"
+                      />
+                      @if (hasError('s-title-' + s.id, isSessionValid(s))) {
+                        <div class="mt-2 text-[12px] text-red-200">El título es obligatorio.</div>
+                      }
+                    </div>
+                  </div>
 
-              <div class="mt-4 space-y-3">
-                @for (b of s.blocks; track b.id; let bIdx = $index) {
+                  <div class="mt-4 flex justify-between items-center">
+                    <div class="text-[12px] text-[#9ca3af]">{{ s.blocks.length }} bloque(s)</div>
+                    <button type="button" pButton label="Añadir bloque" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="addBlock(s)"></button>
+                  </div>
+
+                  <div class="mt-4 space-y-3">
+                    @for (b of s.blocks; track b.id; let bIdx = $index) {
                   <div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                       <div class="grid grid-cols-1 gap-3 md:grid-cols-3 flex-1">
@@ -147,7 +165,10 @@
 
                     <div class="mt-4 flex justify-between items-center">
                       <div class="text-[12px] text-[#9ca3af]">{{ b.exercises.length }} ejercicio(s)</div>
-                      <button type="button" pButton label="Añadir ejercicio" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="addExercise(b)"></button>
+                      <div class="flex gap-2">
+                        <button type="button" pButton label="Buscar ejercicio" icon="pi pi-search" class="p-button-text p-button-sm" (click)="openExerciseSearch(b)"></button>
+                        <button type="button" pButton label="Nuevo ejercicio" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="addExercise(b)"></button>
+                      </div>
                     </div>
 
                     <div class="mt-3 space-y-3">
@@ -169,6 +190,16 @@
                             </div>
 
                             <div class="flex items-center gap-1">
+                              <button 
+                                type="button" 
+                                pButton 
+                                icon="pi pi-eye" 
+                                class="p-button-text p-button-sm" 
+                                aria-label="Ver detalles" 
+                                (click)="openExercisePreviewFromBlock(e)"
+                                pTooltip="Ver detalles"
+                                tooltipPosition="top"
+                              ></button>
                               <button type="button" pButton icon="pi pi-arrow-up" class="p-button-text p-button-sm" aria-label="Subir" (click)="moveExercise(b, e.id, -1)"></button>
                               <button type="button" pButton icon="pi pi-arrow-down" class="p-button-text p-button-sm" aria-label="Bajar" (click)="moveExercise(b, e.id, 1)"></button>
                               <button type="button" pButton icon="pi pi-trash" class="p-button-text p-button-sm" aria-label="Eliminar" (click)="removeExercise(b, e.id)"></button>
@@ -263,7 +294,7 @@
                             }
                             <div class="mt-2 flex gap-2">
                               <p-select
-                                [options]="equipmentOptions"
+                                [options]="equipmentOptions()"
                                 [(ngModel)]="selectedMaterialName"
                                 [name]="'ex-mat-select-' + e.id"
                                 optionLabel="label"
@@ -299,15 +330,187 @@
                     </div>
                   </div>
                 }
-
                 @if (s.blocks.length === 0) {
                   <div class="text-center text-[13px] text-[#9ca3af] py-6">Añade un bloque para empezar.</div>
                 }
+                  </div>
               </div>
+            }
             </div>
           }
         </div>
       }
     </div>
   </div>
+
+  <!-- Diálogo de búsqueda de ejercicios -->
+  <p-dialog
+    styleClass="bp-dialog"
+    header="Buscar ejercicio"
+    [(visible)]="exerciseSearchDialogOpen"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [style]="{ width: 'min(900px, 96vw)', 'max-height': '80vh' }"
+  >
+    <div class="space-y-4">
+      <div>
+        <label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
+        <input
+          pInputText
+          [(ngModel)]="exerciseSearchQuery"
+          (ngModelChange)="filterExercises()"
+          placeholder="Nombre, tipo o descripción..."
+          class="w-full"
+        />
+      </div>
+
+      @if (loadingExercises()) {
+        <div class="text-center py-8 text-[#9ca3af]">Cargando ejercicios...</div>
+      } @else if (filteredExercises().length === 0) {
+        <div class="text-center py-8 text-[#9ca3af]">
+          No se encontraron ejercicios.
+        </div>
+      } @else {
+        <div class="max-h-[400px] overflow-y-auto space-y-2">
+          @for (exercise of filteredExercises(); track exercise.id) {
+            <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 hover:border-[#3b82f6] transition-colors">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex-1">
+                  <div class="text-[14px] text-[#e5e7eb] font-medium mb-1">{{ exercise.name }}</div>
+                  <div class="text-[12px] text-[#9ca3af] mb-2">
+                    @if (exercise.type) {
+                      <span class="inline-block bg-[#1f2937] rounded px-2 py-0.5 mr-2">{{ exercise.type }}</span>
+                    }
+                    @if (exercise.difficulty) {
+                      <span class="inline-block bg-[#1f2937] rounded px-2 py-0.5 mr-2">Dif: {{ formatDifficultyShort(exercise.difficulty) }}</span>
+                    }
+                    @if (exercise.duration) {
+                      <span class="inline-block bg-[#1f2937] rounded px-2 py-0.5">{{ Math.ceil(exercise.duration / 60) }} min</span>
+                    }
+                  </div>
+                  @if (exercise.description) {
+                    <div class="text-[12px] text-[#6b7280] line-clamp-2">{{ exercise.description }}</div>
+                  }
+                </div>
+                <div class="flex gap-2">
+                  <button
+                    type="button"
+                    pButton
+                    icon="pi pi-eye"
+                    class="p-button-text p-button-sm"
+                    (click)="openExercisePreviewFromSearch(exercise)"
+                    pTooltip="Ver detalles"
+                    tooltipPosition="top"
+                  ></button>
+                  <button
+                    type="button"
+                    pButton
+                    label="Añadir"
+                    icon="pi pi-plus"
+                    class="p-button-sm"
+                    (click)="addExerciseFromDatabase(exercise)"
+                  ></button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="mt-4 flex justify-end">
+      <button
+        type="button"
+        pButton
+        label="Cerrar"
+        severity="secondary"
+        [outlined]="true"
+        (click)="closeExerciseSearch()"
+        styleClass="bp-btn bp-btn-secondary"
+      ></button>
+    </div>
+  </p-dialog>
+
+  <!-- Modal de previsualización de ejercicio -->
+  <p-dialog
+    [header]="selectedExerciseForPreview()?.name || 'Detalles del ejercicio'"
+    [(visible)]="exercisePreviewDialogOpen"
+    [modal]="true"
+    [draggable]="false"
+    [closable]="true"
+    [dismissableMask]="true"
+    [style]="{ width: '600px', maxWidth: '90vw' }"
+    styleClass="bp-dialog"
+    (onHide)="closeExercisePreview()"
+  >
+    @if (selectedExerciseForPreview()) {
+      <div class="space-y-4">
+        <!-- Descripción -->
+        @if (selectedExerciseForPreview()!.description) {
+          <div>
+            <label class="block text-[#9ca3af] text-[12px] font-semibold mb-2">Descripción</label>
+            <p class="text-[13px] text-[#e5e7eb]">{{ selectedExerciseForPreview()!.description }}</p>
+          </div>
+        }
+
+        <!-- Información básica -->
+        <div class="grid grid-cols-2 gap-4">
+          @if (selectedExerciseForPreview()!.type) {
+            <div>
+              <label class="block text-[#9ca3af] text-[12px] font-semibold mb-2">Tipo</label>
+              <p-tag [value]="selectedExerciseForPreview()!.type" severity="info" styleClass="text-[11px]"></p-tag>
+            </div>
+          }
+          @if (selectedExerciseForPreview()!.duration) {
+            <div>
+              <label class="block text-[#9ca3af] text-[12px] font-semibold mb-2">Duración</label>
+              <p class="text-[13px] text-[#e5e7eb]">{{ Math.ceil(selectedExerciseForPreview()!.duration / 60) }} minutos</p>
+            </div>
+          }
+        </div>
+
+        <!-- Dificultades 4D -->
+        @if (selectedExerciseForPreview()!.difficulty && getDifficultyKeys().length > 0) {
+          <div>
+            <label class="block text-[#9ca3af] text-[12px] font-semibold mb-3">Dificultad (1-5)</label>
+            <div class="grid grid-cols-2 gap-3">
+              @for (key of getDifficultyKeys(); track key) {
+                <div class="flex items-center justify-between p-3 rounded-lg bg-[#111827] border border-[#1f2937]">
+                  <span class="text-[12px] text-[#9ca3af]">{{ getDifficultyLabel(key) }}</span>
+                  <div class="flex gap-1">
+                    @for (i of [1,2,3,4,5]; track i) {
+                      <div 
+                        class="w-6 h-6 rounded flex items-center justify-center text-[11px] font-semibold"
+                        [class.bg-blue-600]="i <= getDifficultyValue(key)"
+                        [class.bg-[#1f2937]]="i > getDifficultyValue(key)"
+                        [class.text-white]="i <= getDifficultyValue(key)"
+                        [class.text-[#6b7280]]="i > getDifficultyValue(key)"
+                      >
+                        {{ i }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="mt-2 text-[12px] text-[#9ca3af] text-center">
+              Media: {{ formatDifficultyShort(selectedExerciseForPreview()!.difficulty) }} / 5.0
+            </div>
+          </div>
+        }
+
+        <!-- Botón cerrar -->
+        <div class="flex justify-end pt-2">
+          <button 
+            type="button" 
+            pButton 
+            label="Cerrar" 
+            class="p-button-text p-button-sm" 
+            (click)="closeExercisePreview()"
+          ></button>
+        </div>
+      </div>
+    }
+  </p-dialog>
 </app-shell>

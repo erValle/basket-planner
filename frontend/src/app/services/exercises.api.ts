@@ -11,10 +11,17 @@ export interface ExerciseDto {
   difficulty: Record<string, unknown>;
   duration: number;
   description?: string | null;
-  tags?: string[];
+  tags?: Record<string, unknown> | null;
   active?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  equipmentItems?: Array<{
+    id: number;
+    name: string;
+    ExerciseEquipment?: {
+      quantity?: number;
+    };
+  }>;
 }
 
 export interface PaginatedExercisesResponse {
@@ -54,9 +61,17 @@ export class ExercisesApi {
   private readonly api = inject(ApiClient);
 
   list(params?: { search?: string; type?: string; active?: string; page?: number; pageSize?: number }) {
+    // Filtrar parámetros undefined para evitar enviar "undefined" como string
+    const filteredParams: Record<string, string | number> = {};
+    if (params?.search !== undefined) filteredParams['search'] = params.search;
+    if (params?.type !== undefined) filteredParams['type'] = params.type;
+    if (params?.active !== undefined) filteredParams['active'] = params.active;
+    if (params?.page !== undefined) filteredParams['page'] = params.page;
+    if (params?.pageSize !== undefined) filteredParams['pageSize'] = params.pageSize;
+    
     // Si se envían page/pageSize, el backend devuelve PaginatedExercisesResponse
     // Sino, devuelve ExerciseDto[]
-    return this.api.get<ExerciseDto[] | PaginatedExercisesResponse>('/api/exercises', { params: params ?? {} });
+    return this.api.get<ExerciseDto[] | PaginatedExercisesResponse>('/api/exercises', { params: filteredParams });
   }
 
   getById(id: number) {

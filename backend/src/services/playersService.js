@@ -5,7 +5,7 @@ const { StatusCodes } = require('http-status-codes');
 const { User, UserClub, Club, Team } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
 
-const listPlayers = async ({ search, clubId, teamId, limit } = {}) => {
+const listPlayers = async ({ search, clubId, teamId, withoutTeam, limit } = {}) => {
   const where = { role: 'player' };
 
   if (search) {
@@ -39,7 +39,7 @@ const listPlayers = async ({ search, clubId, teamId, limit } = {}) => {
     {
       model: Team,
       as: 'playerTeams',
-      required: Boolean(teamId),
+      required: Boolean(teamId) && !withoutTeam,
       where: teamId ? { id: teamId } : undefined,
       through: { attributes: [] },
       attributes: ['id', 'name', 'category', 'clubId'],
@@ -58,8 +58,17 @@ const listPlayers = async ({ search, clubId, teamId, limit } = {}) => {
     ],
   });
 
+  // Filter out players with teams if withoutTeam is true
+  let filteredRows = rows;
+  if (withoutTeam) {
+    filteredRows = rows.filter((u) => {
+      const json = u.toJSON();
+      return !Array.isArray(json.playerTeams) || json.playerTeams.length === 0;
+    });
+  }
+
   // Denormalize (fast client rendering, minimal mapping)
-  return rows.map((u) => {
+  return filteredRows.map((u) => {
     const json = u.toJSON();
     const clubs = Array.isArray(json.userClubs)
       ? json.userClubs

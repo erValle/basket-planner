@@ -90,12 +90,12 @@ export class Dashboard {
     switch (s) {
       case 'draft':
         return 'Borrador';
-      case 'generated':
-        return 'Generada';
-      case 'published':
-        return 'Publicada';
+      case 'active':
+        return 'Activa';
       case 'archived':
         return 'Archivada';
+      default:
+        return 'Desconocido';
     }
   }
 }

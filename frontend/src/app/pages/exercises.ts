@@ -27,6 +27,12 @@ interface Exercise {
   tipo: string;
   material: string[];
   materialEquipo?: Array<{ equipmentId: number; name: string; quantity: number }>;
+  dificultad?: {
+    tactica?: number;
+    tecnica?: number;
+    fisica?: number;
+    mental?: number;
+  };
 }
 
 // Tipos específicos de basketball que ahora usa el formulario
@@ -242,6 +248,13 @@ export class Exercises implements OnInit {
   }
 
   private toDraft(exercise: Exercise): ExerciseDraft {
+    // Extraer valores de dificultad del objeto
+    const dif = exercise.dificultad || {};
+    const dificultadTactica = typeof dif === 'object' && 'tactica' in dif ? (dif as any).tactica : 3;
+    const dificultadTecnica = typeof dif === 'object' && 'tecnica' in dif ? (dif as any).tecnica : 3;
+    const dificultadFisica = typeof dif === 'object' && 'fisica' in dif ? (dif as any).fisica : 3;
+    const dificultadMental = typeof dif === 'object' && 'mental' in dif ? (dif as any).mental : 3;
+    
     return {
       nombre: exercise.nombre,
       tipo: exercise.tipo,
@@ -249,11 +262,11 @@ export class Exercises implements OnInit {
       materialesNecesarios: exercise.material || [],
       estado: 'Activo',
       descripcion: '',
-      dificultadTactica: 3,
-      dificultadTecnica: 3,
-      dificultadFisica: 3,
-      dificultadMental: 3,
-      etiquetas: exercise.material || [],
+      dificultadTactica,
+      dificultadTecnica,
+      dificultadFisica,
+      dificultadMental,
+      etiquetas: [], // Las etiquetas son diferentes de los materiales
       observaciones: '',
     };
   }
@@ -292,14 +305,22 @@ export class Exercises implements OnInit {
   }
 
   private fromDto(dto: ExerciseDto): Exercise {
+    // Mapear los materiales desde equipmentItems
+    const material = (dto.equipmentItems || []).map(item => item.name);
+    const materialEquipo = (dto.equipmentItems || []).map(item => ({
+      equipmentId: item.id,
+      name: item.name,
+      quantity: item.ExerciseEquipment?.quantity || 1
+    }));
+    
     return {
       id: String(dto.id),
       nombre: dto.name,
-      duracion: dto.duration,
+      duracion: Math.ceil(dto.duration / 60), // Convertir segundos a minutos si es necesario
       tipo: this.mapApiToUiType(dto.type),
-      // Equipment relation isn't modeled in the API schema yet; keep empty for now.
-      material: [],
-      materialEquipo: [],
+      material,
+      materialEquipo,
+      dificultad: dto.difficulty as any,
     };
   }
 

@@ -145,6 +145,26 @@ export class PlayerDetail {
     return `${y}-${m}-${day}`;
   }
 
+  private extractErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    
+    const err = error as any;
+    
+    // Check for API error response structure
+    if (err?.error?.message) {
+      return err.error.message;
+    }
+    
+    // Check for HTTP error response
+    if (err?.message) {
+      return err.message;
+    }
+    
+    return 'Ocurrió un error desconocido';
+  }
+
   loadMemberships(): void {
     if (!this.player?.id) return;
     this.membershipsLoading = true;
@@ -230,7 +250,7 @@ export class PlayerDetail {
         },
         error: (e: unknown) => {
           this.savingMembership = false;
-          const msg = e instanceof Error ? e.message : 'No se pudo añadir la pertenencia.';
+          const msg = this.extractErrorMessage(e);
           this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
         },
       });
@@ -331,7 +351,7 @@ export class PlayerDetail {
         },
         error: (e: unknown) => {
           this.savingMembership = false;
-          const msg = e instanceof Error ? e.message : 'No se pudo transferir el jugador.';
+          const msg = this.extractErrorMessage(e);
           this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
         },
       });

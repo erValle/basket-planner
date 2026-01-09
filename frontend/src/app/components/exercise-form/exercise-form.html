@@ -56,73 +56,110 @@
 
         <div class="space-y-4">
           <div>
-            <label class="mb-2 block text-sm text-zinc-200">Nombre del ejercicio *</label>
-            <input
-              pInputText
-              class="w-full"
-              type="text"
-              formControlName="nombre"
-              placeholder="Ej: Bote con cambio de mano, Tiro en movimiento, Pick & Roll 2c2"
-            />
-            @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
-              <div class="mt-2 text-xs text-red-400">El nombre es obligatorio.</div>
+            <label class="mb-2 block text-sm text-zinc-200">Nombre del ejercicio @if (!isViewMode) { * }</label>
+            @if (isViewMode) {
+              <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100">
+                {{ form.controls.nombre.value || 'Sin nombre' }}
+              </div>
+            } @else {
+              <input
+                pInputText
+                class="w-full"
+                type="text"
+                formControlName="nombre"
+                placeholder="Ej: Bote con cambio de mano, Tiro en movimiento, Pick & Roll 2c2"
+              />
+              @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+                <div class="mt-2 text-xs text-red-400">El nombre es obligatorio.</div>
+              }
             }
           </div>
 
           <div>
             <label class="mb-2 block text-sm text-zinc-200">Descripción</label>
-            <textarea
-              pTextarea
-              class="w-full"
-              rows="4"
-              formControlName="descripcion"
-              placeholder="Descripción detallada del ejercicio, su desarrollo y objetivos..."
-            ></textarea>
+            @if (isViewMode) {
+              <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100 min-h-[100px]">
+                {{ form.controls.descripcion.value || 'Sin descripción' }}
+              </div>
+            } @else {
+              <textarea
+                pTextarea
+                class="w-full"
+                rows="4"
+                formControlName="descripcion"
+                placeholder="Descripción detallada del ejercicio, su desarrollo y objetivos..."
+              ></textarea>
+            }
           </div>
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label class="mb-2 block text-sm text-zinc-200">Tipo de ejercicio *</label>
-              <p-select
-                [options]="tipoOptions"
-                optionLabel="label"
-                optionValue="value"
-                formControlName="tipo"
-                styleClass="w-full"
-                placeholder="Selecciona un tipo"
-              />
-              @if (form.controls.tipo.touched && form.controls.tipo.invalid) {
-                <div class="mt-2 text-xs text-red-400">El tipo es obligatorio.</div>
+              <label class="mb-2 block text-sm text-zinc-200">Tipo de ejercicio @if (!isViewMode) { * }</label>
+              @if (isViewMode) {
+                <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3">
+                  <p-tag 
+                    [value]="getTipoLabel(form.controls.tipo.value)" 
+                    severity="info" 
+                  />
+                </div>
+              } @else {
+                <p-select
+                  [options]="tipoOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  formControlName="tipo"
+                  styleClass="w-full"
+                  placeholder="Selecciona un tipo"
+                />
+                @if (form.controls.tipo.touched && form.controls.tipo.invalid) {
+                  <div class="mt-2 text-xs text-red-400">El tipo es obligatorio.</div>
+                }
               }
             </div>
 
             <div>
               <label class="mb-2 block text-sm text-zinc-200">Estado</label>
-              <p-select
-                [options]="estadoOptions"
-                optionLabel="label"
-                optionValue="value"
-                formControlName="estado"
-                styleClass="w-full"
-              />
+              @if (isViewMode) {
+                <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3">
+                  <p-tag 
+                    [value]="form.controls.estado.value" 
+                    [severity]="form.controls.estado.value === 'Activo' ? 'success' : 'secondary'" 
+                  />
+                </div>
+              } @else {
+                <p-select
+                  [options]="estadoOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  formControlName="estado"
+                  styleClass="w-full"
+                />
+              }
             </div>
           </div>
 
           <div>
-            <label class="mb-2 block text-sm text-zinc-200">
-              Duración (segundos) * 
-              <span class="text-xs text-zinc-400">≈ {{ duracionEnMinutos }} minutos</span>
-            </label>
-            <p-inputNumber
-              formControlName="duracionSegundos"
-              [min]="30"
-              [max]="3600"
-              [step]="30"
-              suffix=" seg"
-              styleClass="w-full"
-            />
-            @if (form.controls.duracionSegundos.touched && form.controls.duracionSegundos.invalid) {
-              <div class="mt-2 text-xs text-red-400">La duración debe ser al menos 30 segundos.</div>
+            <label class="mb-2 block text-sm text-zinc-200">Duración @if (!isViewMode) { * }</label>
+            @if (isViewMode) {
+              <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100">
+                {{ Math.ceil((form.controls.duracionSegundos.value || 0) / 60) }} minutos 
+                <span class="text-zinc-500 text-sm">({{ form.controls.duracionSegundos.value || 0 }} segundos)</span>
+              </div>
+            } @else {
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs text-zinc-400">≈ {{ duracionEnMinutos }} minutos</span>
+              </div>
+              <p-inputNumber
+                formControlName="duracionSegundos"
+                [min]="30"
+                [max]="3600"
+                [step]="30"
+                suffix=" seg"
+                styleClass="w-full"
+              />
+              @if (form.controls.duracionSegundos.touched && form.controls.duracionSegundos.invalid) {
+                <div class="mt-2 text-xs text-red-400">La duración debe ser al menos 30 segundos.</div>
+              }
             }
           </div>
         </div>
@@ -134,7 +171,11 @@
       <div class="rounded-xl border border-zinc-800 bg-zinc-950/40 p-6">
         <h2 class="text-base font-semibold text-zinc-100 mb-2">Niveles de dificultad</h2>
         <p class="text-sm text-zinc-400 mb-6">
-          Califica cada dimensión del ejercicio en una escala del 1 (muy fácil) al 5 (muy difícil).
+          @if (isViewMode) {
+            Calificación en cada dimensión del ejercicio (escala 1-5).
+          } @else {
+            Califica cada dimensión del ejercicio en una escala del 1 (muy fácil) al 5 (muy difícil).
+          }
         </p>
 
         <div class="space-y-6">
@@ -147,13 +188,30 @@
                 <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadTactica.value }}</span>
               </div>
             </div>
-            <p-slider 
-              formControlName="dificultadTactica" 
-              [min]="1" 
-              [max]="5" 
-              [step]="1"
-              styleClass="w-full"
-            />
+            @if (isViewMode) {
+              <!-- Vista de solo lectura con indicadores visuales -->
+              <div class="flex gap-2 mb-2">
+                @for (i of [1,2,3,4,5]; track i) {
+                  <div 
+                    class="flex-1 h-8 rounded flex items-center justify-center text-sm font-semibold transition-colors"
+                    [class.bg-sky-500]="i <= form.controls.dificultadTactica.value"
+                    [class.bg-zinc-800]="i > form.controls.dificultadTactica.value"
+                    [class.text-white]="i <= form.controls.dificultadTactica.value"
+                    [class.text-zinc-600]="i > form.controls.dificultadTactica.value"
+                  >
+                    {{ i }}
+                  </div>
+                }
+              </div>
+            } @else {
+              <p-slider 
+                formControlName="dificultadTactica" 
+                [min]="1" 
+                [max]="5" 
+                [step]="1"
+                styleClass="w-full"
+              />
+            }
             <div class="mt-2 text-xs text-zinc-500">
               Comprensión de conceptos tácticos, lecturas de juego, toma de decisiones
             </div>
@@ -168,13 +226,29 @@
                 <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadTecnica.value }}</span>
               </div>
             </div>
-            <p-slider 
-              formControlName="dificultadTecnica" 
-              [min]="1" 
-              [max]="5" 
-              [step]="1"
-              styleClass="w-full"
-            />
+            @if (isViewMode) {
+              <div class="flex gap-2 mb-2">
+                @for (i of [1,2,3,4,5]; track i) {
+                  <div 
+                    class="flex-1 h-8 rounded flex items-center justify-center text-sm font-semibold transition-colors"
+                    [class.bg-sky-500]="i <= form.controls.dificultadTecnica.value"
+                    [class.bg-zinc-800]="i > form.controls.dificultadTecnica.value"
+                    [class.text-white]="i <= form.controls.dificultadTecnica.value"
+                    [class.text-zinc-600]="i > form.controls.dificultadTecnica.value"
+                  >
+                    {{ i }}
+                  </div>
+                }
+              </div>
+            } @else {
+              <p-slider 
+                formControlName="dificultadTecnica" 
+                [min]="1" 
+                [max]="5" 
+                [step]="1"
+                styleClass="w-full"
+              />
+            }
             <div class="mt-2 text-xs text-zinc-500">
               Habilidad técnica requerida, mecánica, coordinación, precisión
             </div>
@@ -189,13 +263,29 @@
                 <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadFisica.value }}</span>
               </div>
             </div>
-            <p-slider 
-              formControlName="dificultadFisica" 
-              [min]="1" 
-              [max]="5" 
-              [step]="1"
-              styleClass="w-full"
-            />
+            @if (isViewMode) {
+              <div class="flex gap-2 mb-2">
+                @for (i of [1,2,3,4,5]; track i) {
+                  <div 
+                    class="flex-1 h-8 rounded flex items-center justify-center text-sm font-semibold transition-colors"
+                    [class.bg-sky-500]="i <= form.controls.dificultadFisica.value"
+                    [class.bg-zinc-800]="i > form.controls.dificultadFisica.value"
+                    [class.text-white]="i <= form.controls.dificultadFisica.value"
+                    [class.text-zinc-600]="i > form.controls.dificultadFisica.value"
+                  >
+                    {{ i }}
+                  </div>
+                }
+              </div>
+            } @else {
+              <p-slider 
+                formControlName="dificultadFisica" 
+                [min]="1" 
+                [max]="5" 
+                [step]="1"
+                styleClass="w-full"
+              />
+            }
             <div class="mt-2 text-xs text-zinc-500">
               Exigencia física, resistencia, fuerza, velocidad, intensidad
             </div>
@@ -210,17 +300,45 @@
                 <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadMental.value }}</span>
               </div>
             </div>
-            <p-slider 
-              formControlName="dificultadMental" 
-              [min]="1" 
-              [max]="5" 
-              [step]="1"
-              styleClass="w-full"
-            />
+            @if (isViewMode) {
+              <div class="flex gap-2 mb-2">
+                @for (i of [1,2,3,4,5]; track i) {
+                  <div 
+                    class="flex-1 h-8 rounded flex items-center justify-center text-sm font-semibold transition-colors"
+                    [class.bg-sky-500]="i <= form.controls.dificultadMental.value"
+                    [class.bg-zinc-800]="i > form.controls.dificultadMental.value"
+                    [class.text-white]="i <= form.controls.dificultadMental.value"
+                    [class.text-zinc-600]="i > form.controls.dificultadMental.value"
+                  >
+                    {{ i }}
+                  </div>
+                }
+              </div>
+            } @else {
+              <p-slider 
+                formControlName="dificultadMental" 
+                [min]="1" 
+                [max]="5" 
+                [step]="1"
+                styleClass="w-full"
+              />
+            }
             <div class="mt-2 text-xs text-zinc-500">
               Concentración, presión, gestión emocional, toma de decisiones bajo estrés
             </div>
           </div>
+
+          <!-- Promedio de dificultad -->
+          @if (isViewMode) {
+            <div class="mt-6 pt-6 border-t border-zinc-800">
+              <div class="flex items-center justify-between p-4 rounded-lg bg-zinc-900/50">
+                <span class="text-sm font-medium text-zinc-200">Dificultad Promedio</span>
+                <span class="text-2xl font-bold text-sky-400">
+                  {{ ((form.controls.dificultadTactica.value + form.controls.dificultadTecnica.value + form.controls.dificultadFisica.value + form.controls.dificultadMental.value) / 4).toFixed(1) }} / 5.0
+                </span>
+              </div>
+            </div>
+          }
         </div>
       </div>
     }
@@ -234,20 +352,22 @@
           <!-- Etiquetas -->
           <div>
             <label class="mb-2 block text-sm text-zinc-200">Etiquetas</label>
-            <p class="text-xs text-zinc-400 mb-3">
-              Las etiquetas ayudan al sistema de recomendación a encontrar ejercicios relevantes.
-            </p>
-            
-            <p-autoComplete
-              [(ngModel)]="selectedTag"
-              [ngModelOptions]="{standalone: true}"
-              [suggestions]="filteredTags"
-              (completeMethod)="searchTags($event)"
-              (onSelect)="addTag($event)"
-              placeholder="Escribe para buscar o añadir etiqueta..."
-              styleClass="w-full"
-              [dropdown]="true"
-            />
+            @if (!isViewMode) {
+              <p class="text-xs text-zinc-400 mb-3">
+                Las etiquetas ayudan al sistema de recomendación a encontrar ejercicios relevantes.
+              </p>
+              
+              <p-autoComplete
+                [(ngModel)]="selectedTag"
+                [ngModelOptions]="{standalone: true}"
+                [suggestions]="filteredTags"
+                (completeMethod)="searchTags($event)"
+                (onSelect)="addTag($event)"
+                placeholder="Escribe para buscar o añadir etiqueta..."
+                styleClass="w-full"
+                [dropdown]="true"
+              />
+            }
 
             @if (form.controls.etiquetas.value.length > 0) {
               <div class="mt-3 flex flex-wrap gap-2">
@@ -262,7 +382,11 @@
               </div>
             } @else {
               <div class="mt-3 text-xs text-zinc-500 italic">
-                No hay etiquetas. Usa el autocompletado para añadir.
+                @if (isViewMode) {
+                  No tiene etiquetas asignadas.
+                } @else {
+                  No hay etiquetas. Usa el autocompletado para añadir.
+                }
               </div>
             }
           </div>
@@ -270,20 +394,22 @@
           <!-- Materiales necesarios -->
           <div>
             <label class="mb-2 block text-sm text-zinc-200">Materiales necesarios</label>
-            <p class="text-xs text-zinc-400 mb-3">
-              Especifica qué material se necesita para realizar este ejercicio.
-            </p>
-            
-            <p-autoComplete
-              [(ngModel)]="selectedMaterial"
-              [ngModelOptions]="{standalone: true}"
-              [suggestions]="filteredMaterials"
-              (completeMethod)="searchMaterials($event)"
-              (onSelect)="addMaterial($event)"
-              placeholder="Escribe para buscar o añadir material..."
-              styleClass="w-full"
-              [dropdown]="true"
-            />
+            @if (!isViewMode) {
+              <p class="text-xs text-zinc-400 mb-3">
+                Especifica qué material se necesita para realizar este ejercicio.
+              </p>
+              
+              <p-autoComplete
+                [(ngModel)]="selectedMaterial"
+                [ngModelOptions]="{standalone: true}"
+                [suggestions]="filteredMaterials"
+                (completeMethod)="searchMaterials($event)"
+                (onSelect)="addMaterial($event)"
+                placeholder="Escribe para buscar o añadir material..."
+                styleClass="w-full"
+                [dropdown]="true"
+              />
+            }
 
             @if (form.controls.materialesNecesarios.value.length > 0) {
               <div class="mt-3 flex flex-wrap gap-2">
@@ -298,7 +424,11 @@
               </div>
             } @else {
               <div class="mt-3 text-xs text-zinc-500 italic">
-                No hay materiales especificados.
+                @if (isViewMode) {
+                  No requiere materiales específicos.
+                } @else {
+                  No hay materiales especificados.
+                }
               </div>
             }
           </div>
@@ -313,16 +443,22 @@
 
         <div>
           <label class="mb-2 block text-sm text-zinc-200">Observaciones adicionales</label>
-          <textarea
-            pTextarea
-            class="w-full"
-            rows="6"
-            formControlName="observaciones"
-            placeholder="Notas adicionales, variantes del ejercicio, recomendaciones especiales..."
-          ></textarea>
-          <div class="mt-2 text-xs text-zinc-400">
-            Información complementaria que pueda ser útil para los entrenadores.
-          </div>
+          @if (isViewMode) {
+            <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100 min-h-[150px]">
+              {{ form.controls.observaciones.value || 'Sin observaciones adicionales' }}
+            </div>
+          } @else {
+            <textarea
+              pTextarea
+              class="w-full"
+              rows="6"
+              formControlName="observaciones"
+              placeholder="Notas adicionales, variantes del ejercicio, recomendaciones especiales..."
+            ></textarea>
+            <div class="mt-2 text-xs text-zinc-400">
+              Información complementaria que pueda ser útil para los entrenadores.
+            </div>
+          }
         </div>
       </div>
     }
