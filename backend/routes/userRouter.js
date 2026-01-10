@@ -11,17 +11,21 @@ const {
 const validate = require('../src/middlewares/validate');
 const { userQuerySchema, createUserSchema, updateUserSchema } = require('../src/validation/userSchemas');
 const { idParamSchema } = require('../src/validation/commonSchemas');
-const { authorizeRoles, authorizeSelfOrRoles } = require('../src/middlewares/auth');
+const { requireAnyRole, requireSelfOrRoles } = require('../src/middlewares/rbac');
 
-// List users: admin or technical_director
-router.get('/', authorizeRoles('admin','technical_director'), validate({ query: userQuerySchema }), getAllUsers);
-// Get single user: admin/technical_director or self
-router.get('/:id', authorizeSelfOrRoles('id','admin','technical_director'), validate({ params: idParamSchema }), getUserById);
-// Create user: admin only
-router.post('/', authorizeRoles('admin'), validate({ body: createUserSchema }), createUser);
-// Update user: admin or self
-router.put('/:id', authorizeSelfOrRoles('id','admin'), validate({ params: idParamSchema, body: updateUserSchema }), updateUser);
-// Delete user: admin only (hard delete handled in controller)
-router.delete('/:id', authorizeRoles('admin'), validate({ params: idParamSchema }), deleteUser);
+// CU.002: Listado de usuarios - admin, technical_director
+router.get('/', requireAnyRole('admin', 'technical_director'), validate({ query: userQuerySchema }), getAllUsers);
+
+// CU.003: Ver usuario - admin/technical_director o propio
+router.get('/:id', requireSelfOrRoles('id', 'admin', 'technical_director'), validate({ params: idParamSchema }), getUserById);
+
+// CU.002: Registro de usuarios - solo admin
+router.post('/', requireAnyRole('admin'), validate({ body: createUserSchema }), createUser);
+
+// CU.003: Edición de usuarios - admin o propio
+router.put('/:id', requireSelfOrRoles('id', 'admin'), validate({ params: idParamSchema, body: updateUserSchema }), updateUser);
+
+// CU.004: Eliminación de usuarios - solo admin
+router.delete('/:id', requireAnyRole('admin'), validate({ params: idParamSchema }), deleteUser);
 
 module.exports = router;

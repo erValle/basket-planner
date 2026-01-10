@@ -12,6 +12,9 @@ export interface PlayerDto {
   status?: string;
   position?: string | null;
   category?: string | null;
+  maxCategory?: string | null;
+  height?: number | null;
+  dateOfBirth?: string | null;
   clubs?: Array<{ id: number; name: string }>;
   teams?: Array<{ id: number; name: string; category?: string | null; clubId?: number | null }>;
   createdAt?: string;
@@ -22,11 +25,12 @@ export interface PlayerDto {
 export class PlayersApi {
   private readonly api = inject(ApiClient);
 
-  list(params?: { search?: string; clubId?: number | string; teamId?: number | string; limit?: number | string }) {
+  list(params?: { search?: string; clubId?: number | string; teamId?: number | string; withoutTeam?: boolean; limit?: number | string }) {
     const p: Record<string, string> = {};
     if (params?.search) p['search'] = String(params.search);
     if (params?.clubId != null && params.clubId !== '') p['clubId'] = String(params.clubId);
     if (params?.teamId != null && params.teamId !== '') p['teamId'] = String(params.teamId);
+    if (params?.withoutTeam) p['withoutTeam'] = 'true';
     if (params?.limit != null && params.limit !== '') p['limit'] = String(params.limit);
 
     return this.api.get<PlayerDto[]>('/api/players', { params: p });

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, NavigationEnd } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -13,13 +13,13 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog';
 
 import { PlanningApiService } from '../services/planning.api';
 import { ClubContextService } from '../core/context/club-context.service';
@@ -27,7 +27,7 @@ import { ClubsApi, ClubDto } from '../services/clubs.api';
 import { TeamsApi, TeamDto } from '../services/teams.api';
 import { PlanningExportEmailPayload, PlanningExportFormat, PlanningListItem, PlanningStatus } from '../models/planning';
 
-import { BehaviorSubject, combineLatest, map, shareReplay, startWith, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, shareReplay, startWith, switchMap, filter } from 'rxjs';
 
 type Option = { label: string; value: string };
 
@@ -47,7 +47,7 @@ type Option = { label: string; value: string };
     ToastModule,
     ConfirmDialogModule,
     ProgressSpinnerModule,
-    DialogModule,
+    BpDialog,
     TextareaModule,
     PageHeader,
     AppShell,
@@ -68,8 +68,7 @@ export class Planning {
   statusOptions: Array<{ label: string; value: PlanningStatus | 'all' }> = [
     { label: 'Todos', value: 'all' },
     { label: 'Borrador', value: 'draft' },
-    { label: 'Generada', value: 'generated' },
-    { label: 'Publicada', value: 'published' },
+    { label: 'Activa', value: 'active' },
     { label: 'Archivada', value: 'archived' },
   ];
 
@@ -118,17 +117,21 @@ export class Planning {
             // Temporary mapping: backend currently exposes training plans.
             if (Array.isArray(res)) {
               this.bootstrappedFromBackend = true;
-              return res.map((p: any) => ({
+              const mapped = res.map((p: any) => ({
                 id: String(p.id),
                 date: (p?.createdAt ? String(p.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10)),
                 team: p?.targetType === 'group' ? 'Equipo' : 'Individual',
                 objective: p?.name ? String(p.name) : 'Plan',
-                status: (['draft', 'generated', 'published', 'archived'].includes(String(p?.status))
+                status: (['draft', 'active', 'archived'].includes(String(p?.status))
                   ? String(p.status)
                   : 'draft') as any,
-                version: p?.activeVersionId != null ? `v${p.activeVersionId}` : 'v1',
+                version: p?.activeVersion?.versionNumber != null 
+                  ? `v${p.activeVersion.versionNumber}` 
+                  : (p?.activeVersionId != null ? `v${p.activeVersionId}` : 'v1'),
                 author: p?.createdById != null ? `user:${p.createdById}` : '-',
               })) as PlanningListItem[];
+              
+              return mapped;
             }
 
             return [] as PlanningListItem[];
@@ -245,6 +248,16 @@ export class Planning {
 
     this.loadFilters();
     this.refresh();
+
+    // Refresh the list when navigating back to this page
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        filter((event) => event.url === '/planning' || event.url.startsWith('/planning?'))
+      )
+      .subscribe(() => {
+        this.refresh();
+      });
   }
 
   private loadFilters(): void {
@@ -305,12 +318,12 @@ export class Planning {
     switch (s) {
       case 'draft':
         return 'Borrador';
-      case 'generated':
-        return 'Generada';
-      case 'published':
-        return 'Publicada';
+      case 'active':
+        return 'Activa';
       case 'archived':
         return 'Archivada';
+      default:
+        return 'Desconocido';
     }
   }
 
@@ -318,12 +331,12 @@ export class Planning {
     switch (s) {
       case 'draft':
         return 'warn';
-      case 'generated':
-        return 'info';
-      case 'published':
+      case 'active':
         return 'success';
       case 'archived':
         return 'danger';
+      default:
+        return 'info';
     }
   }
 

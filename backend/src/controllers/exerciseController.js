@@ -4,6 +4,13 @@ const exerciseService = require('../services/exerciseService');
 
 const listExercises = async (req, res, next) => {
   try {
+    // Si se envían parámetros de paginación, usar versión paginada
+    if (req.query.page || req.query.pageSize) {
+      const result = await exerciseService.listExercisesPaginated(req.query);
+      return res.status(StatusCodes.OK).json(result);
+    }
+    
+    // Sino, devolver todos (mantener compatibilidad)
     const exercises = await exerciseService.listExercises(req.query);
     return res.status(StatusCodes.OK).json(exercises);
   } catch (error) {

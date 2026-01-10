@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
@@ -12,16 +11,18 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog/bp-dialog';
 import { AppShell } from '../layout/app-shell/app-shell';
 import { ClubContextService } from '../core/context/club-context.service';
 import { ClubsApi, ClubDto } from '../services/clubs.api';
 import { TeamsApi, TeamDto } from '../services/teams.api';
+import { UsersApiService } from '../services/users.api';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-teams',
-	imports: [CommonModule, FormsModule, RouterLink, ButtonModule, DialogModule, InputTextModule, SelectModule, TagModule, ToastModule, PageHeader, AppShell],
+	imports: [CommonModule, FormsModule, RouterLink, ButtonModule, BpDialog, InputTextModule, SelectModule, TagModule, ToastModule, PageHeader, AppShell],
   providers: [MessageService],
   templateUrl: './teams.html',
   styleUrl: './teams.css',
@@ -29,6 +30,7 @@ import { catchError, map, shareReplay, startWith, switchMap, tap } from 'rxjs/op
 export class Teams {
   private readonly api = inject(TeamsApi);
   private readonly clubsApi = inject(ClubsApi);
+  private readonly usersApi = inject(UsersApiService);
   private readonly toast = inject(MessageService);
   private readonly clubContext = inject(ClubContextService);
 
@@ -37,6 +39,7 @@ export class Teams {
 
   clubs: ClubDto[] = [];
   clubOptions: Array<{ label: string; value: number }> = [];
+  coachOptions: Array<{ label: string; value: number | null }> = [{ label: 'Sin entrenador', value: null }];
 
   // Note: initialized empty; set when clubs are loaded.
   clubOptionsWithAll: Array<{ label: string; value: 'all' | number }> = [{ label: 'Todos', value: 'all' }];
@@ -94,6 +97,7 @@ export class Teams {
     name: '',
     clubId: 0 as number,
     club: '',
+    coachId: null as number | null,
     category: 'Senior',
     status: 'active' as 'active' | 'inactive',
     players: 0,
@@ -101,6 +105,7 @@ export class Teams {
 
   constructor() {
     this.loadClubs();
+    this.loadCoaches();
     this.refresh();
 
     // Keep list aligned with the global club selector.
@@ -158,6 +163,21 @@ export class Teams {
     });
   }
 
+  loadCoaches(): void {
+    this.usersApi.list({ role: 'coach' }).subscribe({
+      next: (items: any[]) => {
+        const coaches = (items ?? []).map((u: any) => ({
+          label: `${u.firstName ?? ''} ${u.lastName ?? ''}`.trim() || u.email || `Usuario ${u.id}`,
+          value: Number(u.id),
+        }));
+        this.coachOptions = [{ label: 'Sin entrenador', value: null }, ...coaches];
+      },
+      error: () => {
+        // Silently fail, keep default option
+      },
+    });
+  }
+
   loadTeams(): void {
     // kept for backwards-compat; delegate to refresh()
     this.refresh();
@@ -186,6 +206,7 @@ export class Teams {
       name: '',
       clubId: this.clubOptions[0]?.value ?? 0,
       club: this.clubNameById(this.clubOptions[0]?.value ?? null),
+      coachId: null,
       category: 'Senior',
       status: 'active',
       players: 0,
@@ -193,9 +214,9 @@ export class Teams {
     this.teamDialogVisible = true;
   }
 
-  openEdit(item: { id: number; name: string; clubId: number | null; clubName: string; category: string; status: 'active' | 'inactive'; players: number }): void {
+  openEdit(item: { id: number; name: string; clubId: number | null; clubName: string; coachId?: number | null; category: string; status: 'active' | 'inactive'; players: number }): void {
     this.dialogMode = 'edit';
-    this.draft = { id: item.id, name: item.name, clubId: item.clubId ?? 0, club: item.clubName, category: item.category ?? 'Senior', status: item.status, players: item.players };
+    this.draft = { id: item.id, name: item.name, clubId: item.clubId ?? 0, club: item.clubName, coachId: item.coachId ?? null, category: item.category ?? 'Senior', status: item.status, players: item.players };
     this.teamDialogVisible = true;
   }
 
@@ -208,7 +229,8 @@ export class Teams {
     if (!name) return;
 
     const clubId = this.draft.clubId ? Number(this.draft.clubId) : null;
-    const payload = { name, clubId, category: this.draft.category || null, active: this.draft.status === 'active' };
+    const coachId = this.draft.coachId ? Number(this.draft.coachId) : null;
+    const payload = { name, clubId, coachId, category: this.draft.category || null, active: this.draft.status === 'active' };
 
     if (this.dialogMode === 'create') {
       this.api.create(payload).subscribe({

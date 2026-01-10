@@ -48,3 +48,26 @@ export type RecommenderVersionListItem = {
 export type RecommenderListVersionsResponse = {
   items: RecommenderVersionListItem[];
 };
+
+export type GoalSuggestion = {
+  goal: string;
+  label: string;
+  reason: string;
+  priority: 'high' | 'medium' | 'low';
+  relevantTags: string[];
+  estimatedDuration: number;
+};
+
+export type SuggestGoalsRequest = {
+  context?: {
+    playerLevel?: 'beginner' | 'intermediate' | 'advanced';
+    intensity?: 'low' | 'medium' | 'high';
+    sessionDuration?: number;
+  };
+};
+
+export type SuggestGoalsResponse = {
+  suggestions: GoalSuggestion[];
+  allAvailableGoals: string[];
+  modelVersion: string;
+};

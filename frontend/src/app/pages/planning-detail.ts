@@ -8,13 +8,14 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog';
 
 import { PlanningApiService } from '../services/planning.api';
 import { FeedbackApiService } from '../services/feedback.api';
@@ -42,9 +43,10 @@ type Option = { label: string; value: string };
     TagModule,
     ToastModule,
     ProgressSpinnerModule,
-    DialogModule,
+    BpDialog,
     InputTextModule,
     TextareaModule,
+    TooltipModule,
     PageHeader,
     AppShell,
   ],
@@ -86,6 +88,10 @@ export class PlanningDetail {
   detail: PlanningDetailResponse | null = null;
   blocks: PlanningBlock[] = [];
 
+  // Exercise preview modal
+  exercisePreviewDialogOpen = false;
+  selectedExercise: any = null;
+
   // Survey feedback
   feedbackDialogOpen = false;
   savingFeedback = false;
@@ -124,10 +130,12 @@ export class PlanningDetail {
   }
 
   private buildUiBlocksFromItems(items: any): PlanningBlock[] {
-    const sessions = Array.isArray(items?.sessions) ? items.sessions : [];
+    // items es directamente el array de sesiones guardado en el campo sessions
+    const sessions = Array.isArray(items) ? items : [];
     const blocks: PlanningBlock[] = [];
 
     for (const s of sessions) {
+      // Primero verificar si la sesión tiene bloques (estructura antigua)
       const sBlocks = Array.isArray(s?.blocks) ? s.blocks : [];
       if (sBlocks.length) {
         for (const b of sBlocks) {
@@ -150,20 +158,34 @@ export class PlanningDetail {
         continue;
       }
 
-      // Fallback: if session has exercises directly.
+      // Nueva estructura: sesiones directamente con exercises
       const exs = Array.isArray(s?.exercises) ? s.exercises : [];
+      const sessionDuration = s?.metrics?.durationMinutes || 
+                              exs.reduce((sum: number, e: any) => sum + (e?.durationMinutes || 0), 0);
+      
       blocks.push({
-        id: String(s?.id ?? `s-${Math.random().toString(16).slice(2)}`),
-        name: String(s?.title ?? s?.name ?? 'Sesión'),
-        durationMin: Number(s?.durationMin ?? 0) || 0,
-        focus: (s?.focus != null ? String(s.focus) : undefined) as any,
-        notes: (s?.notes != null ? String(s.notes) : undefined) as any,
+        id: String(s?.sessionId ?? s?.id ?? `s-${Math.random().toString(16).slice(2)}`),
+        name: `Sesión ${s?.sessionId || s?.day || ''}`.trim(),
+        durationMin: Number(sessionDuration) || 0,
+        focus: s?.goals?.join(', ') || undefined,
+        notes: s?.metadata ? `Día: ${s.day || 'N/A'}` : undefined,
         exercises: exs.length
           ? exs.map((e: any) => ({
-              id: String(e?.id ?? `e-${Math.random().toString(16).slice(2)}`),
+              id: String(e?.exerciseId ?? e?.id ?? `e-${Math.random().toString(16).slice(2)}`),
               name: String(e?.name ?? 'Ejercicio'),
-              durationMin: e?.durationMin != null ? Number(e.durationMin) : undefined,
-              notes: e?.notes != null ? String(e.notes) : undefined,
+              durationMin: e?.durationMinutes ?? e?.durationMin ?? undefined,
+              notes: [
+                e?.type ? `Tipo: ${e.type}` : null,
+                e?.phase ? `Fase: ${e.phase}` : null,
+                e?.difficulty ? `Dificultad: ${this.formatDifficultyShort(e.difficulty)}` : null,
+                e?.description ? e.description : null
+              ].filter(Boolean).join(' • '),
+              // Información completa para el modal de previsualización
+              type: e?.type,
+              phase: e?.phase,
+              difficulty: e?.difficulty,
+              description: e?.description,
+              equipment: e?.equipment || e?.materials || []
             }))
           : undefined,
       });
@@ -180,9 +202,33 @@ export class PlanningDetail {
     };
   }
 
+  // Calcula la media de las 4 dimensiones de dificultad
+  calculateAverageDifficulty(difficulty: any): number {
+    if (!difficulty || typeof difficulty !== 'object') return 0;
+    
+    const values = [
+      difficulty.tactica,
+      difficulty.tecnica,
+      difficulty.fisica,
+      difficulty.mental
+    ].filter(v => typeof v === 'number');
+    
+    if (values.length === 0) return 0;
+    const sum = values.reduce((acc, val) => acc + val, 0);
+    return Math.round((sum / values.length) * 10) / 10; // Redondear a 1 decimal
+  }
+
+  // Formatea la dificultad para mostrarla de forma abreviada
+  formatDifficultyShort(difficulty: any): string {
+    const avg = this.calculateAverageDifficulty(difficulty);
+    return avg > 0 ? avg.toFixed(1) : 'N/A';
+  }
+
   private mapTrainingPlanToDetail(plan: any, versionRow: any, versionLabel: string): PlanningDetailResponse {
-    const items = versionRow?.items ?? plan?.activeVersion?.items ?? null;
-    const blocks = this.buildUiBlocksFromItems(items);
+    // El campo correcto es sessions, no items
+    const sessionsData = versionRow?.sessions ?? plan?.activeVersion?.sessions ?? null;
+    
+    const blocks = this.buildUiBlocksFromItems(sessionsData);
     const metrics = this.computeMetrics(blocks);
 
     const versions: PlanningVersionInfo[] = (Array.isArray(plan?.versions) ? plan.versions : [])
@@ -201,7 +247,7 @@ export class PlanningDetail {
       date: this.formatIsoDate(versionRow?.date ?? plan?.activeVersion?.date ?? plan?.createdAt),
       team: plan?.targetType === 'group' ? 'Equipo' : 'Individual',
       objective: plan?.name ? String(plan.name) : '',
-      status: (['draft', 'generated', 'published', 'archived'].includes(String(plan?.status))
+      status: (['draft', 'active', 'archived'].includes(String(plan?.status))
         ? String(plan.status)
         : 'draft') as any,
       version: versionLabel,
@@ -366,12 +412,12 @@ export class PlanningDetail {
     switch (s) {
       case 'draft':
         return 'Borrador';
-      case 'generated':
-        return 'Generada';
-      case 'published':
-        return 'Publicada';
+      case 'active':
+        return 'Activa';
       case 'archived':
         return 'Archivada';
+      default:
+        return 'Desconocido';
     }
   }
 
@@ -379,12 +425,12 @@ export class PlanningDetail {
     switch (s) {
       case 'draft':
         return 'warn';
-      case 'generated':
-        return 'info';
-      case 'published':
+      case 'active':
         return 'success';
       case 'archived':
         return 'danger';
+      default:
+        return 'info';
     }
   }
 
@@ -393,6 +439,51 @@ export class PlanningDetail {
     this.router.navigate(['/planning', this.planningId, 'edit'], {
       queryParams: { fromVersion: this.selectedVersion ?? this.detail?.version },
     });
+  }
+
+  acceptPlanning(): void {
+    if (!this.planningId || !this.detail) return;
+    
+    this.api.updateStatus(this.planningId, 'active').subscribe({
+      next: () => {
+        this.toast.add({
+          severity: 'success',
+          summary: 'Planificación aceptada',
+          detail: 'La planificación ha sido activada correctamente.',
+        });
+        this.load(); // Reload to show updated status
+      },
+      error: (err) => {
+        this.toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo activar la planificación.',
+        });
+        console.error('Error accepting planning:', err);
+      },
+    });
+  }
+
+  canAcceptPlanning(): boolean {
+    // Solo coaches y admins pueden activar planificaciones
+    const role = this.userContext.getRoleSnapshot();
+    const canManage = role === 'admin' || role === 'technical_director' || role === 'coach';
+    return canManage && this.detail?.status === 'draft';
+  }
+
+  canManagePlanning(): boolean {
+    // Solo coaches y admins pueden crear versiones, editar, etc.
+    const role = this.userContext.getRoleSnapshot();
+    return role === 'admin' || role === 'technical_director' || role === 'coach';
+  }
+
+  isPlayerView(): boolean {
+    const role = this.userContext.getRoleSnapshot();
+    return role === 'player';
+  }
+
+  getBackRoute(): string {
+    return this.isPlayerView() ? '/player' : '/planning';
   }
 
   openSendDialog(): void {
@@ -486,5 +577,41 @@ export class PlanningDetail {
     a.click();
     URL.revokeObjectURL(url);
     this.toast.add({ severity: 'success', summary: 'Exportación', detail: `Descarga iniciada: ${filename}` });
+  }
+
+  // Exercise preview methods
+  openExercisePreview(exercise: any): void {
+    this.selectedExercise = exercise;
+    this.exercisePreviewDialogOpen = true;
+  }
+
+  closeExercisePreview(): void {
+    this.exercisePreviewDialogOpen = false;
+    this.selectedExercise = null;
+  }
+
+  getDifficultyLabel(key: string): string {
+    const labels: Record<string, string> = {
+      tactica: 'Táctica',
+      tecnica: 'Técnica',
+      fisica: 'Física',
+      mental: 'Mental'
+    };
+    return labels[key] || key;
+  }
+
+  getDifficultyValue(key: string): number {
+    if (!this.selectedExercise?.difficulty || typeof this.selectedExercise.difficulty !== 'object') {
+      return 0;
+    }
+    const difficulty = this.selectedExercise.difficulty as any;
+    return difficulty[key] || 0;
+  }
+
+  getDifficultyKeys(): string[] {
+    if (!this.selectedExercise?.difficulty || typeof this.selectedExercise.difficulty !== 'object') {
+      return [];
+    }
+    return Object.keys(this.selectedExercise.difficulty);
   }
 }

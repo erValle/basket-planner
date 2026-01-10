@@ -9,7 +9,7 @@ const trainingPlanVersionService = require('../services/trainingPlanVersionServi
  *
  * Body:
  * {
- *   items?: object,
+ *   sessions?: object,
  *   source?: 'manual'|'automatic'|string,
  *   date?: string|Date,
  *   comments?: string|null,
@@ -20,7 +20,7 @@ const createNewVersion = async (req, res, next) => {
   try {
     const created = await trainingPlanVersionService.createNewVersion(
       req.params.trainingPlanId,
-      req.body?.items ?? null,
+      req.body?.sessions ?? null,
       {
         source: req.body?.source,
         date: req.body?.date,

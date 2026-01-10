@@ -28,6 +28,13 @@ const createUserClub = async (req, res, next) => {
     return res.status(StatusCodes.CREATED).json(created);
   } catch (error) {
     logger.error('Error creating membership:', error);
+    logger.error('Request body:', req.body);
+    logger.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      errors: error.errors,
+      original: error.original
+    });
     return next(error);
   }
 };

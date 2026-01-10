@@ -5,10 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
-import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
+import { PaginatorModule } from 'primeng/paginator';
 
 import { ExerciseDraft, ExerciseForm, ExerciseFormValue } from '../components/exercise-form/exercise-form';
+import { BpDialog } from '../components/bp-dialog/bp-dialog';
 import { ExercisesApi, ExerciseDto, ExerciseType } from '../services/exercises.api';
 import { EquipmentApi } from '../services/equipment.api';
 import { ExerciseEquipmentApi } from '../services/exercise-equipment.api';
@@ -25,10 +26,24 @@ interface Exercise {
   duracion: number;
   tipo: string;
   material: string[];
-  materialEquipo?: Array<{ equipmentId: number; name: string; quantity: number }>;
+  materialEquipo?: Array<{ equipmentId: number; name: string }>;
+  dificultad?: {
+    tactica?: number;
+    tecnica?: number;
+    fisica?: number;
+    mental?: number;
+  };
 }
 
-type UiType = 'Técnico' | 'Táctico' | 'Físico';
+// Tipos específicos de basketball que ahora usa el formulario
+type UiType = 
+  | 'TECNICA_BOTE' | 'FINALIZACION_ARO' | 'TIRO' | 'PASE'
+  | 'TACTICA_ATAQUE' | 'TACTICA_ATAQUE_DEFENSA'
+  | 'DEFENSA_EQUIPO' | 'DEFENSA_INDIVIDUAL' | 'DEFENSA_FUNDAMENTOS'
+  | 'REBOTE' | 'TECNICA_POSTE' | 'ATAQUE_INDIVIDUAL' | 'TECNICA_PIES'
+  | 'CONDICIONAMIENTO_FISICO' | 'MOVILIDAD_RECUPERACION'
+  | 'TACTICA_TRANSICION' | 'ABP_SAQUES' | 'JUEGO_REDUCIDO';
+
 
 @Component({
   selector: 'app-exercises',
@@ -38,8 +53,9 @@ type UiType = 'Técnico' | 'Táctico' | 'Físico';
     ButtonModule,
     InputTextModule,
     SelectModule,
-    DialogModule,
+    BpDialog,
     TagModule,
+    PaginatorModule,
     ExerciseForm,
 		AppShell,
 		PageHeader,
@@ -51,6 +67,9 @@ export class Exercises implements OnInit {
   private readonly exercisesApi = inject(ExercisesApi);
   private readonly equipmentApi = inject(EquipmentApi);
   private readonly exerciseEquipmentApi = inject(ExerciseEquipmentApi);
+
+  // Make Math available in template
+  Math = Math;
 
   tipoOptions: Option[] = [
     { label: 'Todos', value: 'Todos' },
@@ -71,6 +90,11 @@ export class Exercises implements OnInit {
     search: '',
   };
 
+  // Pagination
+  currentPage = 0;
+  pageSize = 12; // Mostrar 12 ejercicios por página
+  totalRecords = 0;
+
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
   readonly loading$ = new BehaviorSubject<boolean>(false);
   readonly loadError$ = new BehaviorSubject<string | null>(null);
@@ -79,11 +103,28 @@ export class Exercises implements OnInit {
     switchMap(() => {
       this.loading$.next(true);
       this.loadError$.next(null);
-      return this.exercisesApi.list().pipe(
-        map((items) => (items ?? []).map((dto) => this.fromDto(dto))),
-        map((items) => {
+      
+      // Enviar parámetros de paginación al backend
+      const params = {
+        page: this.currentPage + 1, // PrimeNG usa 0-indexed, backend usa 1-indexed
+        pageSize: this.pageSize,
+        search: this.filters.search || undefined,
+      };
+      
+      return this.exercisesApi.list(params).pipe(
+        map((response) => {
           this.loading$.next(false);
-          return items;
+          
+          // Si backend devuelve { exercises, pagination }
+          if (response && typeof response === 'object' && 'exercises' in response && 'pagination' in response) {
+            this.totalRecords = response.pagination.total;
+            return (response.exercises ?? []).map((dto) => this.fromDto(dto));
+          }
+          
+          // Fallback: backend devolvió array directo (sin paginación)
+          const items = Array.isArray(response) ? response : [];
+          this.totalRecords = items.length;
+          return items.map((dto) => this.fromDto(dto));
         }),
       );
     }),
@@ -97,20 +138,29 @@ export class Exercises implements OnInit {
     tick: this.refresh$.pipe(startWith(undefined)),
   }).pipe(
     map(({ items, loading, error }) => {
+      // Aplicar filtros client-side (tipo y duración)
+      // La búsqueda ya se hace en backend
       const filtered = items.filter((exercise) => {
         const matchesTipo = this.filters.tipo === 'Todos' || exercise.tipo === this.filters.tipo;
         const matchesDuracion =
           this.filters.duracion === 'Cualquiera' ||
           (this.filters.duracion === '10-15' && exercise.duracion >= 10 && exercise.duracion <= 15) ||
           (this.filters.duracion === '15-20' && exercise.duracion >= 15 && exercise.duracion <= 20);
-        const matchesSearch =
-          this.filters.search === '' ||
-          exercise.nombre.toLowerCase().includes(this.filters.search.toLowerCase());
 
-        return matchesTipo && matchesDuracion && matchesSearch;
+        return matchesTipo && matchesDuracion;
       });
 
-      return { items, filtered, loading, error };
+      // Los items ya vienen paginados del backend, no necesitamos paginar client-side
+      return { 
+        items, 
+        filtered, 
+        paged: filtered, // Ya están paginados
+        loading, 
+        error,
+        totalRecords: this.totalRecords,
+        currentPage: this.currentPage,
+        pageSize: this.pageSize
+      };
     }),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
@@ -139,7 +189,14 @@ export class Exercises implements OnInit {
   }
 
   refresh(): void {
+    this.currentPage = 0; // Reset page when filtering
     this.refresh$.next();
+  }
+
+  onPageChange(event: any): void {
+    this.currentPage = event.page;
+    this.pageSize = event.rows;
+    this.refresh$.next(); // Recargar con nuevos parámetros de paginación
   }
 
   openNewExercise() {
@@ -191,20 +248,25 @@ export class Exercises implements OnInit {
   }
 
   private toDraft(exercise: Exercise): ExerciseDraft {
+    // Extraer valores de dificultad del objeto
+    const dif = exercise.dificultad || {};
+    const dificultadTactica = typeof dif === 'object' && 'tactica' in dif ? (dif as any).tactica : 3;
+    const dificultadTecnica = typeof dif === 'object' && 'tecnica' in dif ? (dif as any).tecnica : 3;
+    const dificultadFisica = typeof dif === 'object' && 'fisica' in dif ? (dif as any).fisica : 3;
+    const dificultadMental = typeof dif === 'object' && 'mental' in dif ? (dif as any).mental : 3;
+    
     return {
       nombre: exercise.nombre,
       tipo: exercise.tipo,
-      duracionPredeterminada: exercise.duracion,
-      materialNecesario: exercise.material,
-      materialEquipo: exercise.materialEquipo ?? [],
+      duracionSegundos: (exercise.duracion || 15) * 60, // Convertir minutos a segundos
+      materialesNecesarios: exercise.material || [],
       estado: 'Activo',
       descripcion: '',
-      subtipo: [],
-      nivelDificultad: '',
-      intensidad: '',
-      objetivoPrincipal: '',
-      numeroJugadores: 10,
-      categoriaRecomendada: [],
+      dificultadTactica,
+      dificultadTecnica,
+      dificultadFisica,
+      dificultadMental,
+      etiquetas: [], // Las etiquetas son diferentes de los materiales
       observaciones: '',
     };
   }
@@ -221,16 +283,8 @@ export class Exercises implements OnInit {
       const id = Number(this.selectedExercise.id);
       this.exercisesApi.update(id, payload).subscribe({
         next: () => {
-          this.syncExerciseEquipment(id, value.materialEquipo ?? [])
-            .then(() => {
-              this.closeNewExercise();
-              this.refresh();
-            })
-            .catch((err: unknown) => {
-              const msg = err instanceof Error ? err.message : 'Error inesperado.';
-              // Exercise was saved, equipment sync failed.
-              this.loadError$.next(`Ejercicio guardado, pero no se pudo guardar el material: ${msg}`);
-            });
+          this.closeNewExercise();
+          this.refresh();
         },
         error: (err: Error) => {
           this.loadError$.next(err.message);
@@ -240,23 +294,9 @@ export class Exercises implements OnInit {
     }
 
     this.exercisesApi.create(payload).subscribe({
-      next: (created) => {
-        const id = Number(created?.id);
-        if (!Number.isFinite(id)) {
-          this.closeNewExercise();
-          this.refresh();
-          return;
-        }
-
-        this.syncExerciseEquipment(id, value.materialEquipo ?? [])
-          .then(() => {
-            this.closeNewExercise();
-            this.refresh();
-          })
-          .catch((err: unknown) => {
-            const msg = err instanceof Error ? err.message : 'Error inesperado.';
-            this.loadError$.next(`Ejercicio creado, pero no se pudo guardar el material: ${msg}`);
-          });
+      next: () => {
+        this.closeNewExercise();
+        this.refresh();
       },
       error: (err: Error) => {
         this.loadError$.next(err.message);
@@ -265,46 +305,90 @@ export class Exercises implements OnInit {
   }
 
   private fromDto(dto: ExerciseDto): Exercise {
+    // Mapear los materiales desde equipmentItems
+    const material = (dto.equipmentItems || []).map(item => item.name);
+    const materialEquipo = (dto.equipmentItems || []).map(item => ({
+      equipmentId: item.id,
+      name: item.name,
+    }));
+    
+    // Obtener tipo original de tags (preferido) o usar mapeo inverso como fallback
+    const tags = dto.tags as { tipo_original?: string; tags?: string[]; materiales?: string[] } | null;
+    const tipoOriginal = tags?.tipo_original as UiType | undefined;
+    const tipo = tipoOriginal || this.mapApiToUiType(dto.type);
+    
     return {
       id: String(dto.id),
       nombre: dto.name,
-      duracion: dto.duration,
-      tipo: this.mapApiToUiType(dto.type),
-      // Equipment relation isn't modeled in the API schema yet; keep empty for now.
-      material: [],
-      materialEquipo: [],
+      duracion: Math.ceil(dto.duration / 60), // Convertir segundos a minutos si es necesario
+      tipo,
+      material,
+      materialEquipo,
+      dificultad: dto.difficulty as any,
     };
   }
 
   private toApiPayload(value: ExerciseFormValue) {
-    const type = this.mapUiToApiType((value.tipo || 'Técnico') as UiType);
+    const tipoOriginal = (value.tipo || 'TECNICA_BOTE') as UiType;
+    const type = this.mapUiToApiType(tipoOriginal);
     return {
       name: value.nombre,
       type,
-      duration: value.duracionPredeterminada,
+      duration: Math.ceil(value.duracionSegundos / 60), // Convertir segundos a minutos
       description: value.descripcion,
-      // Keep difficulty flexible (backend expects JSON). We'll refine when the UI captures it.
+      // 4 dimensiones de dificultad
       difficulty: {
-        nivelDificultad: value.nivelDificultad,
-        intensidad: value.intensidad,
-        objetivoPrincipal: value.objetivoPrincipal,
+        tactica: value.dificultadTactica,
+        tecnica: value.dificultadTecnica,
+        fisica: value.dificultadFisica,
+        mental: value.dificultadMental,
       },
-      tags: [...(value.subtipo ?? []), ...(value.categoriaRecomendada ?? [])],
+      // Guardar tipo original de basketball y etiquetas
+      tags: {
+        tipo_original: tipoOriginal,
+        tags: value.etiquetas ?? [],
+        materiales: value.materialesNecesarios ?? [],
+      },
       active: value.estado !== 'Inactivo',
     };
   }
 
   private mapUiToApiType(ui: UiType): ExerciseType {
-    // Temporary mapping until the UI is updated to use the same taxonomy.
-    if (ui === 'Físico') return 'cardio';
-    if (ui === 'Táctico') return 'balance';
-    return 'strength';
+    // Mapeo de tipos específicos de basketball a tipos de API
+    const mapping: Record<UiType, ExerciseType> = {
+      'TECNICA_BOTE': 'strength',
+      'FINALIZACION_ARO': 'strength',
+      'TIRO': 'strength',
+      'PASE': 'strength',
+      'TACTICA_ATAQUE': 'balance',
+      'TACTICA_ATAQUE_DEFENSA': 'balance',
+      'DEFENSA_EQUIPO': 'balance',
+      'DEFENSA_INDIVIDUAL': 'strength',
+      'DEFENSA_FUNDAMENTOS': 'strength',
+      'REBOTE': 'strength',
+      'TECNICA_POSTE': 'strength',
+      'ATAQUE_INDIVIDUAL': 'strength',
+      'TECNICA_PIES': 'balance',
+      'CONDICIONAMIENTO_FISICO': 'cardio',
+      'MOVILIDAD_RECUPERACION': 'flexibility',
+      'TACTICA_TRANSICION': 'cardio',
+      'ABP_SAQUES': 'balance',
+      'JUEGO_REDUCIDO': 'balance',
+    };
+    return mapping[ui] || 'balance';
   }
 
   private mapApiToUiType(type: ExerciseType): UiType {
-    if (type === 'cardio') return 'Físico';
-    if (type === 'balance') return 'Táctico';
-    return 'Técnico';
+    // Mapeo inverso: tipos de API a tipos específicos de basketball
+    // Como hay múltiples tipos UI que mapean al mismo API type,
+    // usamos un tipo por defecto para cada categoría
+    const mapping: Record<ExerciseType, UiType> = {
+      'strength': 'TECNICA_BOTE',
+      'balance': 'TACTICA_ATAQUE',
+      'cardio': 'CONDICIONAMIENTO_FISICO',
+      'flexibility': 'MOVILIDAD_RECUPERACION',
+    };
+    return mapping[type] || 'TECNICA_BOTE';
   }
 
   private loadExerciseEquipmentForDialog(exercise: Exercise): void {
@@ -322,7 +406,6 @@ export class Exercises implements OnInit {
               (typeof fromJoin === 'string' && fromJoin.trim().length > 0
                 ? fromJoin
                 : this.equipmentIndex.get(equipmentId)) ?? `Material #${equipmentId}`,
-            quantity: Number(row.quantity) || 1,
           };
         });
 
@@ -344,7 +427,7 @@ export class Exercises implements OnInit {
 
   private syncExerciseEquipment(
     exerciseId: number,
-    desired: Array<{ equipmentId: number; name: string; quantity: number }>,
+    desired: Array<{ equipmentId: number; name: string }>,
   ): Promise<void> {
     const listCurrent = () =>
       new Promise<import('../services/exercise-equipment.api').ExerciseEquipmentRowDto[]>((resolve, reject) => {
@@ -357,43 +440,31 @@ export class Exercises implements OnInit {
     const currentRowsPromise = listCurrent();
 
     return currentRowsPromise.then(async (currentRows) => {
-      const current = new Map<number, number>();
+      const current = new Set<number>();
       for (const row of currentRows ?? []) {
-        current.set(Number(row.equipmentId), Number(row.quantity) || 1);
+        current.add(Number(row.equipmentId));
       }
 
-      const wanted = new Map<number, number>();
+      const wanted = new Set<number>();
       for (const item of desired ?? []) {
         const equipmentId = Number(item.equipmentId);
         if (!Number.isFinite(equipmentId)) continue;
-        const qty = Math.max(1, Number(item.quantity) || 1);
-        wanted.set(equipmentId, qty);
+        wanted.add(equipmentId);
       }
 
-      const toCreate: Array<{ equipmentId: number; quantity: number }> = [];
-      const toUpdate: Array<{ equipmentId: number; quantity: number }> = [];
+      const toCreate: number[] = [];
       const toDelete: number[] = [];
 
-      for (const [equipmentId, quantity] of wanted.entries()) {
-        if (!current.has(equipmentId)) toCreate.push({ equipmentId, quantity });
-        else if (current.get(equipmentId) !== quantity) toUpdate.push({ equipmentId, quantity });
+      for (const equipmentId of wanted) {
+        if (!current.has(equipmentId)) toCreate.push(equipmentId);
       }
-      for (const equipmentId of current.keys()) {
+      for (const equipmentId of current) {
         if (!wanted.has(equipmentId)) toDelete.push(equipmentId);
       }
 
-      const createOne = (row: { equipmentId: number; quantity: number }) =>
+      const createOne = (equipmentId: number) =>
         new Promise<void>((resolve, reject) => {
-          this.exerciseEquipmentApi.createForExercise(exerciseId, row).subscribe({
-            next: () => resolve(),
-            error: (e: unknown) => reject(e),
-          });
-        });
-      const updateOne = (row: { equipmentId: number; quantity: number }) =>
-        new Promise<void>((resolve, reject) => {
-          this.exerciseEquipmentApi.updateForExercise(exerciseId, row.equipmentId, {
-            quantity: row.quantity,
-          }).subscribe({
+          this.exerciseEquipmentApi.createForExercise(exerciseId, { equipmentId }).subscribe({
             next: () => resolve(),
             error: (e: unknown) => reject(e),
           });
@@ -406,8 +477,7 @@ export class Exercises implements OnInit {
           });
         });
 
-      for (const row of toCreate) await createOne(row);
-      for (const row of toUpdate) await updateOne(row);
+      for (const equipmentId of toCreate) await createOne(equipmentId);
       for (const equipmentId of toDelete) await deleteOne(equipmentId);
     });
   }

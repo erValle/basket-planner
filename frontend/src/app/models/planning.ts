@@ -1,4 +1,4 @@
-export type PlanningStatus = 'draft' | 'generated' | 'published' | 'archived';
+export type PlanningStatus = 'draft' | 'active' | 'archived';
 
 export interface PlanningListItem {
   id: string;
@@ -51,6 +51,12 @@ export interface PlanningBlock {
     name: string;
     durationMin?: number;
     notes?: string;
+    // Datos completos del ejercicio para previsualización
+    type?: string;
+    phase?: string;
+    difficulty?: any;
+    description?: string;
+    equipment?: string[];
   }>;
 }
 

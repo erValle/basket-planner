@@ -86,7 +86,7 @@ const createNewVersion = async (trainingPlanId, content, metadata = {}) => {
     source: metadata.source || 'manual',
     date: metadata.date ? new Date(metadata.date) : new Date(),
     comments: metadata.comments ?? null,
-    items: content ? structuredClone(content) : null,
+    sessions: content ? structuredClone(content) : null,
     createdFrom: metadata.createdFrom ?? null,
   };
 
@@ -97,7 +97,7 @@ const createNewVersion = async (trainingPlanId, content, metadata = {}) => {
 
 const restoreVersion = async (trainingPlanId, versionId, metadata = {}) => {
   const sourceVersion = await getVersion(trainingPlanId, versionId);
-  const restoredContent = sourceVersion.items ? structuredClone(sourceVersion.items) : null;
+  const restoredContent = sourceVersion.sessions ? structuredClone(sourceVersion.sessions) : null;
 
   const comment = [metadata.comments, `restored-from:${sourceVersion.id}`]
     .filter(Boolean)

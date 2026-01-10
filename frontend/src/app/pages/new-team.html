@@ -17,19 +17,17 @@
 						[(ngModel)]="selectedClubId"
 						name="clubId"
 						class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
-					>
-						@for (c of clubs; track c.id) {
-							<option [value]="c.id">{{ c.name }}</option>
-						}
-					</select>
-					@if (!clubs?.length) {
-						<div class="mt-2 text-[12px] text-[#94a3b8]">
-							No se pudieron cargar los clubs. El equipo se creará sin asignación de club.
-						</div>
+				>
+					@for (c of clubs; track c.id) {
+						<option [value]="c.id">{{ c.name }}</option>
 					}
-				</div>
-
-				<div class="col-span-2">
+				</select>
+				@if (!clubs.length) {
+					<div class="mt-2 text-[12px] text-[#94a3b8]">
+						No se pudieron cargar los clubs. El equipo se creará sin asignación de club.
+					</div>
+				}
+			</div>				<div class="col-span-2">
 					<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre del equipo</label>
 					<input
 						pInputText

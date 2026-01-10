@@ -2,13 +2,13 @@ const express = require('express');
 const router = express.Router();
 
 const validate = require('../src/middlewares/validate');
-const { authenticateToken, authorizeRoles } = require('../src/middlewares/auth');
+const { requireAuth, requireAnyRole } = require('../src/middlewares/rbac');
 const { auditLogListQuerySchema } = require('../src/validation/auditLogSchemas');
 const { listAuditLogs } = require('../src/controllers/auditLogController');
 
-router.use(authenticateToken);
+router.use(requireAuth);
 
 // Admin-only audit log access
-router.get('/', authorizeRoles('admin'), validate({ query: auditLogListQuerySchema }), listAuditLogs);
+router.get('/', requireAnyRole('admin'), validate({ query: auditLogListQuerySchema }), listAuditLogs);
 
 module.exports = router;

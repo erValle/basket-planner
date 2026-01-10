@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const validate = require('../src/middlewares/validate');
-const { authenticateToken, authorizeRoles } = require('../src/middlewares/auth');
+const { requireAuth, requireAnyRole } = require('../src/middlewares/rbac');
 const { playerQuerySchema } = require('../src/validation/playerSchemas');
 const { enrollPlayerSchema } = require('../src/validation/playerEnrollSchemas');
 const { updatePlayerProfileSchema } = require('../src/validation/playerUpdateSchemas');
@@ -10,40 +10,39 @@ const { idParamSchema } = require('../src/validation/commonSchemas');
 const { transferPlayerSchema } = require('../src/validation/playerTransferSchemas');
 const playersController = require('../src/controllers/playersController');
 
-router.use(authenticateToken);
+router.use(requireAuth);
 
-// Players are users with role=player.
-// Allow coaches to list players too.
-router.get('/', authorizeRoles('admin', 'technical_director', 'coach'), validate({ query: playerQuerySchema }), playersController.listPlayers);
+// CU.011: Listado de jugadores - admin, technical_director, coach
+router.get('/', requireAnyRole('admin', 'technical_director', 'coach'), validate({ query: playerQuerySchema }), playersController.listPlayers);
 
-// Enroll: turn an existing role=null user into a player.
+// CU.011: Enroll player - admin, technical_director, coach
 router.post(
 	'/enroll',
-	authorizeRoles('admin', 'technical_director', 'coach'),
+	requireAnyRole('admin', 'technical_director', 'coach'),
 	validate({ body: enrollPlayerSchema }),
 	playersController.enrollPlayer
 );
 
-// Membership history for a player (CU015)
+// CU.015: Historial de jugador - admin, technical_director, coach, player (propio)
 router.get(
 	'/:id/history',
-	authorizeRoles('admin', 'technical_director', 'coach'),
+	requireAnyRole('admin', 'technical_director', 'coach', 'player'),
 	validate({ params: idParamSchema }),
 	playersController.getPlayerHistory
 );
 
-// Restricted player profile update (player-only fields)
+// CU.012: Edición de perfil jugador - admin, technical_director, coach
 router.put(
   '/:id',
-  authorizeRoles('admin', 'technical_director', 'coach'),
+  requireAnyRole('admin', 'technical_director', 'coach'),
   validate({ params: idParamSchema, body: updatePlayerProfileSchema }),
   playersController.updatePlayerProfile
 );
 
-// Transfer player to another club (CU014)
+// CU.014: Transferir jugador - admin, technical_director (su club), coach (su club)
 router.post(
 	'/:id/transfer',
-	authorizeRoles('admin', 'technical_director'),
+	requireAnyRole('admin', 'technical_director', 'coach'),
 	validate({ params: idParamSchema, body: transferPlayerSchema }),
 	playersController.transferPlayer
 );

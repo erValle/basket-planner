@@ -37,25 +37,21 @@ export class Login {
     }
 
     const { email, password } = this.form.getRawValue();
-    console.log('[login] submit', { email });
     this.loading = true;
     this.auth
       .login(email ?? '', password ?? '')
       .pipe(
         finalize(() => {
-          console.log('[login] finalize - stop loading');
           this.loading = false;
         })
       )
       .subscribe({
         next: () => {
-			console.log('[login] next - session saved, navigating');
 			// Players don't have access to /dashboard.
 			const role = this.auth.getRoleSnapshot();
 			void this.router.navigateByUrl(role === 'player' ? '/player' : '/dashboard');
         },
         error: (e: unknown) => {
-			console.log('[login] error', e);
           this.error = e instanceof Error ? e.message : 'No se pudo iniciar sesión.';
         },
       });

@@ -1,12 +1,12 @@
 const express = require('express');
 const path = require('path');
-const cors = require('cors');
 require('dotenv').config();
 const app = express();
 
 const logger = require('./src/middlewares/logger');
 const { requestIdMiddleware } = require('./src/middlewares/requestId');
 const { authenticateToken } = require('./src/middlewares/auth');
+const securityMiddleware = require('./src/middlewares/security');
 
 const usersRouter = require('./routes/userRouter');
 const authRouter = require('./routes/authRouter');
@@ -20,7 +20,6 @@ const trainingPlansRouter = require('./routes/trainingPlans.routes');
 const trainingPlanVersionsRouter = require('./routes/trainingPlanVersions.routes');
 const planAssignmentsRouter = require('./routes/planAssignments.routes');
 const feedbacksRouter = require('./routes/feedbacks.routes');
-const feedbackRouter = require('./routes/feedback.routes');
 const metricsRouter = require('./routes/metrics.routes');
 const planningRouter = require('./routes/planning.routes');
 const auditLogsRouter = require('./routes/auditLogs.routes');
@@ -31,33 +30,12 @@ const {sequelize} = require('./models');
 const { errorHandler } = require('./src/middlewares/errorHandler');
 const { auditRequestMiddleware } = require('./src/middlewares/auditRequest');
 
+// Apply security middleware first (helmet, CORS, rate limiting, payload limits)
+securityMiddleware(app);
+
 app.use(requestIdMiddleware);
 app.use(logger);
-
-app.use(express.json());
-
-app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Default to both backend and Angular dev server origins.
-// Override via CORS_ORIGIN="http://localhost:4200,http://your-domain".
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:4000,http://localhost:4200')
-    .split(',')
-    .map(origin => origin.trim());
-
-app.use(cors({
-    origin: function(origin, callback){
-        if(!origin || allowedOrigins.includes(origin)){
-            callback(null, true);
-        }
-        else {
-            callback(new Error(`CORS blocked for origin ${origin}`));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
 
 app.get('/api/health', (req, res) => { res.json({ status: 'OK' }); });
 
@@ -77,7 +55,6 @@ app.use('/api/training-plans', trainingPlansRouter);
 app.use('/api/training-plans/:trainingPlanId/versions', trainingPlanVersionsRouter);
 app.use('/api/plan-assignments', planAssignmentsRouter);
 app.use('/api/feedbacks', feedbacksRouter);
-app.use('/api/feedback', feedbackRouter);
 app.use('/api/metrics', metricsRouter);
 app.use('/api/planning', planningRouter);
 app.use('/api/exercises/:exerciseId/equipment', require('./routes/exerciseEquipment.routes'));

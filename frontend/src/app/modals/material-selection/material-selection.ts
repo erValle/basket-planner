@@ -3,13 +3,14 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
+
+import { BpDialog } from '../../components/bp-dialog';
 
 @Component({
   selector: 'app-material-selection',
   standalone: true,
-  imports: [CommonModule, FormsModule, DialogModule, ButtonModule, InputTextModule],
+  imports: [CommonModule, FormsModule, BpDialog, ButtonModule, InputTextModule],
   templateUrl: './material-selection.html',
   styleUrl: './material-selection.css',
 })
@@ -39,19 +40,18 @@ export class MaterialSelection {
   /** Incoming selection (source of truth) */
   @Input() selectedMaterials: string[] = [];
 
-  // New shape (option B): material + quantities.
-  // If provided, it takes precedence over selectedMaterials.
+  // Equipment mode: material IDs (without quantities)
   @Input() availableEquipment: Array<{ id: number; name: string }> = [];
-  @Input() selectedEquipment: Array<{ equipmentId: number; name: string; quantity: number }> = [];
+  @Input() selectedEquipment: Array<{ equipmentId: number; name: string }> = [];
 
   @Output() cancel = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<string[]>();
 
-  @Output() confirmEquipment = new EventEmitter<Array<{ equipmentId: number; name: string; quantity: number }>>();
+  @Output() confirmEquipment = new EventEmitter<Array<{ equipmentId: number; name: string }>>();
 
   query = '';
   private workingSelection = new Set<string>();
-  private workingEquipment = new Map<number, { equipmentId: number; name: string; quantity: number }>();
+  private workingEquipment = new Map<number, { equipmentId: number; name: string }>();
 
   ngOnChanges(): void {
     // Sync internal selection whenever inputs change.
@@ -61,7 +61,7 @@ export class MaterialSelection {
     this.workingEquipment = new Map(
       (this.selectedEquipment ?? [])
         .filter((row) => row && Number.isFinite(row.equipmentId))
-        .map((row) => [Number(row.equipmentId), { ...row, equipmentId: Number(row.equipmentId), quantity: Number(row.quantity) || 1 }]),
+        .map((row) => [Number(row.equipmentId), { equipmentId: Number(row.equipmentId), name: row.name }]),
     );
   }
 
@@ -75,7 +75,7 @@ export class MaterialSelection {
     return this.availableMaterials.filter((m) => m.toLowerCase().includes(q));
   }
 
-  get filteredEquipment(): Array<{ id: number; name: string } & { selected: boolean; quantity: number }>{
+  get filteredEquipment(): Array<{ id: number; name: string; selected: boolean }>{
     const q = this.query.trim().toLowerCase();
     const base = (this.availableEquipment ?? []).filter((e) => {
       if (!q) return true;
@@ -88,7 +88,6 @@ export class MaterialSelection {
         id: Number(e.id),
         name: String(e.name),
         selected: !!current,
-        quantity: current?.quantity ?? 1,
       };
     });
   }
@@ -109,27 +108,7 @@ export class MaterialSelection {
   toggleEquipment(equipmentId: number, name: string): void {
     const id = Number(equipmentId);
     if (this.workingEquipment.has(id)) this.workingEquipment.delete(id);
-    else this.workingEquipment.set(id, { equipmentId: id, name: String(name), quantity: 1 });
-  }
-
-  setEquipmentQuantity(equipmentId: number, qty: number): void {
-    const id = Number(equipmentId);
-    const current = this.workingEquipment.get(id);
-    if (!current) return;
-    const nextQty = Math.max(1, Math.floor(Number(qty) || 1));
-    this.workingEquipment.set(id, { ...current, quantity: nextQty });
-  }
-
-  incEquipment(equipmentId: number): void {
-    const row = this.workingEquipment.get(Number(equipmentId));
-    if (!row) return;
-    this.workingEquipment.set(Number(equipmentId), { ...row, quantity: (row.quantity ?? 1) + 1 });
-  }
-
-  decEquipment(equipmentId: number): void {
-    const row = this.workingEquipment.get(Number(equipmentId));
-    if (!row) return;
-    this.workingEquipment.set(Number(equipmentId), { ...row, quantity: Math.max(1, (row.quantity ?? 1) - 1) });
+    else this.workingEquipment.set(id, { equipmentId: id, name: String(name) });
   }
 
   onHide(): void {

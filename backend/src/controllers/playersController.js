@@ -29,6 +29,13 @@ const transferPlayer = async (req, res, next) => {
     return res.status(StatusCodes.OK).json(result);
   } catch (error) {
     logger.error(`Error transferring player: ${error?.message || error}`);
+    logger.error('Request body was:', req.body);
+    logger.error('Error details:', {
+      name: error.name,
+      message: error.message,
+      errors: error.errors,
+      original: error.original
+    });
     return next(error);
   }
 };

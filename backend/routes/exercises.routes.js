@@ -1,17 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const validate = require('../src/middlewares/validate');
-const { authenticateToken, authorizeRoles } = require('../src/middlewares/auth');
+const { requireAuth, requireAnyRole } = require('../src/middlewares/rbac');
 const { createExerciseSchema, updateExerciseSchema } = require('../src/validation/exerciseSchemas');
 const { idParamSchema } = require('../src/validation/commonSchemas');
 const { listExercises, getExercise, createExercise, updateExercise, deleteExercise } = require('../src/controllers/exerciseController');
 
-router.use(authenticateToken);
+router.use(requireAuth);
 
+// CU.016: Catálogo de ejercicios - todos pueden consultar (incluido player)
 router.get('/', listExercises);
 router.get('/:id', validate({ params: idParamSchema }), getExercise);
-router.post('/', authorizeRoles('admin','technical_director','coach'), validate({ body: createExerciseSchema }), createExercise);
-router.put('/:id', authorizeRoles('admin','technical_director','coach'), validate({ params: idParamSchema, body: updateExerciseSchema }), updateExercise);
-router.delete('/:id', authorizeRoles('admin','technical_director','coach'), validate({ params: idParamSchema }), deleteExercise);
+
+// CU.017: Registro de ejercicios - admin, technical_director, coach
+router.post('/', requireAnyRole('admin', 'technical_director', 'coach'), validate({ body: createExerciseSchema }), createExercise);
+
+// CU.018: Edición de ejercicios - admin, technical_director, coach
+router.put('/:id', requireAnyRole('admin', 'technical_director', 'coach'), validate({ params: idParamSchema, body: updateExerciseSchema }), updateExercise);
+
+// CU.019: Eliminación de ejercicios - solo admin (control y auditoría)
+router.delete('/:id', requireAnyRole('admin'), validate({ params: idParamSchema }), deleteExercise);
 
 module.exports = router;

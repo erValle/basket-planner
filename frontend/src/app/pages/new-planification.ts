@@ -11,7 +11,6 @@ import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
 import { ChipModule } from 'primeng/chip';
 import { CheckboxModule } from 'primeng/checkbox';
-import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -19,6 +18,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 import { PlayerSelectCard } from '../components/player-select-card/player-select-card';
+import { BpDialog } from '../components/bp-dialog';
 
 import { PlanificationsApi } from '../services/planifications.api';
 import { PlanificationDraft } from '../models/planification';
@@ -27,6 +27,8 @@ import { TeamsApi, TeamDto } from '../services/teams.api';
 import { ClubContextService } from '../core/context/club-context.service';
 import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
 import { ClubResourcesStore } from '../core/stores/club-resources.store';
+import { RecommenderApiService } from '../services/recommender.api';
+import { GoalSuggestion } from '../models/recommender';
 
 type Step = { number: number; label: string };
 type Option = { label: string; value: string };
@@ -45,7 +47,7 @@ type Option = { label: string; value: string };
     SelectModule,
 		ChipModule,
 		CheckboxModule,
-		DialogModule,
+		BpDialog,
 		ToastModule,
 		ConfirmDialogModule,
 		AppShell,
@@ -66,11 +68,51 @@ export class NewPlanification {
     { number: 4, label: 'Revisión' },
   ];
 
-  objectiveOptions: Option[] = [
+  objectiveOptions: any[] = [
+    // Separador - Ataque
+    { label: '─── ATAQUE ───', value: '', disabled: true },
     { label: 'Mejora del tiro exterior', value: 'Mejora del tiro exterior' },
-    { label: 'Defensa individual', value: 'Defensa individual' },
+    { label: 'Tiro en suspensión', value: 'Tiro en suspensión' },
+    { label: 'Tiros libres', value: 'Tiros libres' },
     { label: 'Manejo de balón', value: 'Manejo de balón' },
-    { label: 'Condición física', value: 'Condición física' },
+    { label: 'Pases y asistencias', value: 'Pases y asistencias' },
+    { label: 'Juego de pies ofensivo', value: 'Juego de pies ofensivo' },
+    { label: 'Penetraciones y finalizaciones', value: 'Penetraciones y finalizaciones' },
+    { label: 'Juego en el poste bajo', value: 'Juego en el poste bajo' },
+    { label: 'Ataque individual (1v1)', value: 'Ataque individual (1v1)' },
+    
+    // Separador - Defensa
+    { label: '─── DEFENSA ───', value: '', disabled: true },
+    { label: 'Defensa individual', value: 'Defensa individual' },
+    { label: 'Defensa de perímetro', value: 'Defensa de perímetro' },
+    { label: 'Sistemas defensivos en equipo', value: 'Sistemas defensivos en equipo' },
+    { label: 'Fundamentos defensivos', value: 'Fundamentos defensivos' },
+    
+    // Separador - Rebote
+    { label: '─── REBOTE ───', value: '', disabled: true },
+    { label: 'Rebote defensivo', value: 'Rebote defensivo' },
+    { label: 'Rebote ofensivo', value: 'Rebote ofensivo' },
+    
+    // Separador - Física
+    { label: '─── FÍSICA ───', value: '', disabled: true },
+    { label: 'Condición física general', value: 'Condición física general' },
+    { label: 'Velocidad y agilidad', value: 'Velocidad y agilidad' },
+    { label: 'Movilidad y recuperación', value: 'Movilidad y recuperación' },
+    
+    // Separador - Táctica
+    { label: '─── TÁCTICA ───', value: '', disabled: true },
+    { label: 'Transiciones ofensivas', value: 'Transiciones ofensivas' },
+    { label: 'Transiciones defensivas', value: 'Transiciones defensivas' },
+    { label: 'Juego colectivo ofensivo', value: 'Juego colectivo ofensivo' },
+    { label: 'Bloqueos directos (Pick & Roll)', value: 'Bloqueos directos (Pick & Roll)' },
+    { label: 'Espacios y movimiento sin balón', value: 'Espacios y movimiento sin balón' },
+    { label: 'ABP y saques', value: 'ABP y saques' },
+    { label: 'Situaciones de juego reducido', value: 'Situaciones de juego reducido' },
+    
+    // Separador - Mental
+    { label: '─── MENTAL ───', value: '', disabled: true },
+    { label: 'Concentración y toma de decisiones', value: 'Concentración y toma de decisiones' },
+    { label: 'Lectura del juego', value: 'Lectura del juego' },
   ];
 
   intensityOptions: Option[] = [
@@ -81,7 +123,8 @@ export class NewPlanification {
 
   formData = {
     name: '',
-    duration: 90,
+    duration: 90, // Duración por sesión
+    sessionsCount: 4, // Número de sesiones
     summary: '',
     objective: 'Mejora del tiro exterior',
     intensity: 'Media',
@@ -249,6 +292,7 @@ export class NewPlanification {
     private readonly clubContext: ClubContextService,
     private readonly equipmentApi: EquipmentApi,
     private readonly clubResources: ClubResourcesStore,
+    private readonly recommenderApi: RecommenderApiService,
   ) {
 	this.loadTeams();
 	this.loadPlayers();
@@ -448,7 +492,7 @@ export class NewPlanification {
   }
 
   cancel() {
-    // TODO: navigate back when we have a dedicated listing page
+    this.router.navigate(['/planning']);
   }
 
   back() {
@@ -485,6 +529,76 @@ export class NewPlanification {
   completedDialogVisible = false;
   generatedResultId: string | null = null;
 
+  // Goal suggestions
+  suggestionsDialogVisible = false;
+  loadingSuggestions = false;
+  suggestionsError: string | null = null;
+  goalSuggestions: GoalSuggestion[] = [];
+
+  openSuggestionsDialog(): void {
+    this.suggestionsDialogVisible = true;
+    this.loadGoalSuggestions();
+  }
+
+  loadGoalSuggestions(): void {
+    this.loadingSuggestions = true;
+    this.suggestionsError = null;
+    
+    this.recommenderApi.suggestGoals({
+      context: {
+        playerLevel: 'intermediate', // Podríamos inferir esto del jugador seleccionado
+        intensity: this.formData.intensity === 'Baja' ? 'low' : this.formData.intensity === 'Alta' ? 'high' : 'medium',
+        sessionDuration: this.formData.duration,
+      }
+    }).subscribe({
+      next: (response) => {
+        this.loadingSuggestions = false;
+        this.goalSuggestions = response.suggestions;
+      },
+      error: (e: unknown) => {
+        this.loadingSuggestions = false;
+        this.suggestionsError = e instanceof Error ? e.message : 'No se pudieron cargar las sugerencias';
+        this.goalSuggestions = [];
+      }
+    });
+  }
+
+  applySuggestion(suggestion: GoalSuggestion): void {
+    // Mapear el goal del backend al label del frontend
+    const matchingOption = this.objectiveOptions.find(opt => 
+      opt.label.toLowerCase().includes(suggestion.label.toLowerCase()) ||
+      suggestion.label.toLowerCase().includes(opt.label.toLowerCase())
+    );
+    
+    if (matchingOption && !matchingOption.disabled) {
+      this.formData.objective = matchingOption.value;
+      this.suggestionsDialogVisible = false;
+      this.toast.add({
+        severity: 'info',
+        summary: 'Objetivo aplicado',
+        detail: `Se ha seleccionado: ${matchingOption.label}`,
+      });
+    }
+  }
+
+  getPriorityColor(priority: string): string {
+    switch (priority) {
+      case 'high': return '#22c55e';
+      case 'medium': return '#f59e0b';
+      case 'low': return '#6b7280';
+      default: return '#6b7280';
+    }
+  }
+
+  getPriorityLabel(priority: string): string {
+    switch (priority) {
+      case 'high': return 'Alta';
+      case 'medium': return 'Media';
+      case 'low': return 'Baja';
+      default: return 'Media';
+    }
+  }
+
   private buildDraft(): PlanificationDraft {
     // make sure tags reflect the latest input before sending
     this.syncRestrictionTags();
@@ -493,9 +607,15 @@ export class NewPlanification {
       .filter(([, selected]) => !!selected)
       .map(([id]) => id);
 
+    // Get the equipment names for the selected IDs
+    const materialNames = this.materialOptions
+      .filter((m) => this.materialSelectedMap[m.id])
+      .map((m) => m.label);
+
     return {
       name: this.formData.name,
       duration: this.formData.duration,
+      sessionsCount: this.formData.sessionsCount,
       summary: this.formData.summary,
       objective: this.formData.objective,
       intensity: this.formData.intensity,
@@ -504,6 +624,7 @@ export class NewPlanification {
       playerIds: this.planningMode === 'group' ? this.selectedPlayerIds : [],
       groupId: this.planningMode === 'group' ? this.selectedGroupId : null,
       materialIds,
+      materialNames,
       tags: this.restrictionTags,
     };
   }
@@ -531,5 +652,10 @@ export class NewPlanification {
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
       },
     });
+  }
+
+  goToPlanifications() {
+    this.completedDialogVisible = false;
+    this.router.navigate(['/planning']);
   }
 }

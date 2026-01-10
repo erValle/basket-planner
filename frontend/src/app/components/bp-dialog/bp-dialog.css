@@ -1,0 +1,202 @@
+/* Estilos del componente bp-dialog */
+
+.bp-dialog-body {
+  /* El contenedor principal del diálogo */
+  display: block;
+}
+
+.bp-dialog-content-panel {
+  background-color: rgba(9, 9, 11, 0.95);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(39, 39, 42, 0.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+}
+
+.bp-dialog-subtitle {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}
+
+.bp-dialog-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.bp-dialog-footer-hint {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.bp-dialog-footer-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Variantes de panel interno */
+.bp-dialog-summary-panel {
+  background-color: rgba(2, 6, 23, 0.85);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(31, 41, 55, 0.9);
+  margin-top: 1rem;
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bp-dialog-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.bp-dialog-summary-row + .bp-dialog-summary-row {
+  margin-top: 0.5rem;
+}
+
+.bp-dialog-summary-label {
+  color: #9ca3af;
+}
+
+.bp-dialog-summary-value {
+  color: #f9fafb;
+  font-weight: 500;
+}
+
+/* Grid layouts comunes */
+.bp-dialog-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.bp-dialog-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+/* Sección de formulario con título */
+.bp-dialog-section {
+  background-color: rgba(2, 6, 23, 0.6);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid rgba(31, 41, 55, 0.7);
+  margin-bottom: 1rem;
+}
+
+.bp-dialog-section:last-child {
+  margin-bottom: 0;
+}
+
+.bp-dialog-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(31, 41, 55, 0.6);
+}
+
+/* Campos de formulario */
+.bp-dialog-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.bp-dialog-field.span-2 {
+  grid-column: span 2;
+}
+
+.bp-dialog-field.span-3 {
+  grid-column: span 3;
+}
+
+.bp-dialog-label {
+  display: block;
+  color: #d1d5db;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.bp-dialog-label-required::after {
+  content: ' *';
+  color: #f87171;
+}
+
+/* Inputs dentro de diálogos - estilo mejorado */
+.bp-dialog-input {
+  width: 100%;
+  background: rgba(17, 24, 39, 0.9);
+  color: #f9fafb;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(55, 65, 81, 0.8);
+  font-size: 13px;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.bp-dialog-input::placeholder {
+  color: rgba(107, 114, 128, 0.8);
+}
+
+.bp-dialog-input:hover {
+  border-color: rgba(75, 85, 99, 1);
+  background: rgba(17, 24, 39, 1);
+}
+
+.bp-dialog-input:focus {
+  outline: none;
+  border-color: rgba(56, 189, 248, 0.8);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+  background: rgba(17, 24, 39, 1);
+}
+
+/* Mensajes de ayuda */
+.bp-dialog-help {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 0.5rem;
+}
+
+/* Mensajes de error */
+.bp-dialog-error {
+  font-size: 12px;
+  color: #f87171;
+  margin-top: 0.5rem;
+}
+
+/* Estados de pasos (wizard) */
+.bp-dialog-step-indicator {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}
+
+/* Vista de solo lectura */
+.bp-dialog-readonly {
+  background: rgba(2, 6, 23, 0.5);
+  border: 1px solid rgba(31, 41, 55, 0.5);
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #e5e7eb;
+  font-size: 13px;
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 640px) {
+  .bp-dialog-grid-2,
+  .bp-dialog-grid-3 {
+    grid-template-columns: 1fr;
+  }
+  
+  .bp-dialog-field.span-2,
+  .bp-dialog-field.span-3 {
+    grid-column: span 1;
+  }
+}

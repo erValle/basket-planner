@@ -9,7 +9,13 @@ const listTrainingPlans = async ({ createdById, targetType, status } = {}) => {
   if (createdById) where.createdById = createdById;
   if (targetType) where.targetType = targetType;
   if (status) where.status = status;
-  return TrainingPlan.findAll({ where });
+  return TrainingPlan.findAll({ 
+    where,
+    include: [
+      { model: TrainingPlanVersion, as: 'activeVersion', required: false }
+    ],
+    order: [['id', 'DESC']]
+  });
 };
 
 const getTrainingPlanById = async (id) => {

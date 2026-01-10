@@ -1,4 +1,4 @@
-export type AdminUserRole = 'admin' | 'coach' | 'staff' | 'player';
+export type AdminUserRole = 'admin' | 'technical_director' | 'coach' | 'player' | 'user';
 export type AdminUserStatus = 'active' | 'blocked' | 'pending';
 
 export interface AdminUserListItem {

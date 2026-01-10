@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { authenticateToken, authorizeRoles } = require('../src/middlewares/auth');
+const { requireAuth, requireAnyRole } = require('../src/middlewares/rbac');
 
 const { Op } = require('sequelize');
 
@@ -9,10 +9,10 @@ const { AuditLog } = require('../models');
 
 const { createAuditLog } = require('../src/services/auditLogService');
 
-router.use(authenticateToken);
+router.use(requireAuth);
 
-// Keep monitoring endpoints restricted to staff roles.
-router.use(authorizeRoles('admin', 'technical_director', 'coach', 'staff'));
+// CU.030: Monitorización del sistema - solo admin
+router.use(requireAnyRole('admin'));
 
 const clamp = (n, min, max) => Math.min(Math.max(n, min), max);
 

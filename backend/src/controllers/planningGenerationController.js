@@ -4,7 +4,10 @@ const planningGenerationService = require('../services/planningGenerationService
 
 const generateIndividual = async (req, res, next) => {
   try {
-    const proposal = await planningGenerationService.generateIndividual(req.body);
+    const proposal = await planningGenerationService.generateIndividual(req.body, {
+      user: req.user,
+      requestId: req.requestId
+    });
     return res.status(StatusCodes.OK).json(proposal);
   } catch (error) {
     logger.error('Error generating individual planning:', error);
@@ -14,7 +17,10 @@ const generateIndividual = async (req, res, next) => {
 
 const generateGroup = async (req, res, next) => {
   try {
-    const proposal = await planningGenerationService.generateGroup(req.body);
+    const proposal = await planningGenerationService.generateGroup(req.body, {
+      user: req.user,
+      requestId: req.requestId
+    });
     return res.status(StatusCodes.OK).json(proposal);
   } catch (error) {
     logger.error('Error generating group planning:', error);

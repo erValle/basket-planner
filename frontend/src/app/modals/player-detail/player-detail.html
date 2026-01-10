@@ -172,22 +172,22 @@
 					</div>
 
 					@if (membershipsLoading) {
-						<div class="mt-4 flex items-center gap-2 text-[13px] text-[#e5e7eb]">
-							<p-progressSpinner styleClass="w-4 h-4" strokeWidth="6"></p-progressSpinner>
-							Cargando…
-						</div>
-					} @else if (membershipsError) {
-						<div class="mt-4 text-[13px] text-red-200 bg-red-950/30 border border-red-900/50 rounded-lg p-3">{{ membershipsError }}</div>
-					} @else if (!memberships?.length) {
-						<div class="mt-4 text-[13px] text-[#9ca3af]">No hay pertenencias registradas.</div>
-					} @else {
-						<div class="mt-4">
-							<p-table [value]="memberships" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,20]" styleClass="p-datatable-sm">
-								<ng-template pTemplate="header">
-									<tr>
-										<th>Club</th>
-										<th>Inicio</th>
-										<th>Fin</th>
+					<div class="mt-4 flex items-center gap-2 text-[13px] text-[#e5e7eb]">
+						<p-progressSpinner styleClass="w-4 h-4" strokeWidth="6"></p-progressSpinner>
+						Cargando…
+					</div>
+				} @else if (membershipsError) {
+					<div class="mt-4 text-[13px] text-red-200 bg-red-950/30 border border-red-900/50 rounded-lg p-3">{{ membershipsError }}</div>
+				} @else if (!memberships.length) {
+					<div class="mt-4 text-[13px] text-[#9ca3af]">No hay pertenencias registradas.</div>
+				} @else {
+					<div class="mt-4">
+						<p-table [value]="memberships" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,20]" styleClass="p-datatable-sm">
+							<ng-template pTemplate="header">
+								<tr>
+									<th>Club</th>
+									<th>Inicio</th>
+									<th>Fin</th>
 										<th>Principal</th>
 										<th>Estado</th>
 										<th class="w-[220px]"></th>
@@ -226,18 +226,18 @@
 				</div>
 			</p-tabpanel>
 
-			<p-tabpanel [value]="2">
-				<div class="mt-4 bg-[#111827] rounded-lg p-5 border border-[#1f2937]">
-					<h3 class="text-[16px] text-[#f9fafb] mb-1">Histórico</h3>
-					<p class="text-[12px] text-[#9ca3af]">Pertenencias por orden cronológico.</p>
+		<p-tabpanel [value]="2">
+			<div class="mt-4 bg-[#111827] rounded-lg p-5 border border-[#1f2937]">
+				<h3 class="text-[16px] text-[#f9fafb] mb-1">Histórico</h3>
+				<p class="text-[12px] text-[#9ca3af]">Pertenencias por orden cronológico.</p>
 
-					@if (!memberships?.length) {
-						<div class="mt-4 text-[13px] text-[#9ca3af]">No hay datos todavía.</div>
-					} @else {
-						<div class="mt-4">
-							<p-table [value]="memberships" [paginator]="true" [rows]="5" styleClass="p-datatable-sm">
-								<ng-template pTemplate="header">
-									<tr>
+				@if (!memberships.length) {
+					<div class="mt-4 text-[13px] text-[#9ca3af]">No hay datos todavía.</div>
+				} @else {
+					<div class="mt-4">
+						<p-table [value]="memberships" [paginator]="true" [rows]="5" styleClass="p-datatable-sm">
+							<ng-template pTemplate="header">
+								<tr>
 										<th>Inicio</th>
 										<th>Club</th>
 										<th>Fin</th>
@@ -270,85 +270,65 @@
 	</div>
 </div>
 
-<p-dialog [(visible)]="addDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Añadir pertenencia" styleClass="bp-dialog" [style]="{ width: '520px', maxWidth: 'calc(100vw - 3rem)' }">
-	<div class="bg-[#111827] rounded-lg p-4 border border-[#1f2937]">
-		<div class="grid grid-cols-1 gap-4">
-			<div>
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Club</label>
-				<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="addForm.clubId" placeholder="Selecciona club" styleClass="bp-select" [panelStyleClass]="'bp-select-panel'"></p-select>
-			</div>
-			<div>
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha inicio</label>
-				<p-datePicker [(ngModel)]="addForm.startDate" class="w-full"></p-datePicker>
-			</div>
-			<div class="flex items-center justify-between">
-				<span class="text-[13px] text-[#e5e7eb]">Marcar como principal</span>
-				<input type="checkbox" [(ngModel)]="addForm.isPrimary" />
-			</div>
+<bp-dialog [(visible)]="addDialogOpen" header="Añadir pertenencia" size="md" [loading]="savingMembership" confirmLabel="Añadir" cancelLabel="Cancelar" (confirm)="confirmAdd()" (cancel)="addDialogOpen = false">
+	<div class="bp-dialog-grid-2" style="grid-template-columns: 1fr;">
+		<div class="bp-dialog-field">
+			<label class="bp-dialog-label">Club</label>
+			<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="addForm.clubId" placeholder="Selecciona club" styleClass="bp-select" [panelStyleClass]="'bp-select-panel'"></p-select>
+		</div>
+		<div class="bp-dialog-field">
+			<label class="bp-dialog-label">Fecha inicio</label>
+			<p-datePicker [(ngModel)]="addForm.startDate" class="w-full"></p-datePicker>
+		</div>
+		<div class="flex items-center justify-between">
+			<span class="text-[13px] text-[#e5e7eb]">Marcar como principal</span>
+			<input type="checkbox" [(ngModel)]="addForm.isPrimary" />
 		</div>
 	</div>
+</bp-dialog>
 
-	<ng-template pTemplate="footer">
-		<div class="flex justify-end gap-2">
-			<p-button label="Cancelar" (click)="addDialogOpen = false" [disabled]="savingMembership" styleClass="bp-btn bp-btn-secondary"></p-button>
-			<p-button label="Añadir" (click)="confirmAdd()" [disabled]="savingMembership" styleClass="bp-btn bp-btn-primary"></p-button>
-		</div>
-	</ng-template>
-</p-dialog>
-
-<p-dialog [(visible)]="closeDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Cerrar pertenencia" styleClass="bp-dialog" [style]="{ width: '520px', maxWidth: 'calc(100vw - 3rem)' }">
-	<div class="bg-[#111827] rounded-lg p-4 border border-[#1f2937]">
+<bp-dialog [(visible)]="closeDialogOpen" header="Cerrar pertenencia" size="md" [loading]="savingMembership" confirmLabel="Cerrar" cancelLabel="Cancelar" (confirm)="confirmClose()" (cancel)="closeDialogOpen = false">
+	<div class="bp-dialog-grid-2" style="grid-template-columns: 1fr;">
 		<div class="text-[13px] text-[#e5e7eb]">Se cerrará: <span class="text-[#f9fafb]">{{ selectedMembership?.clubName || ('#' + selectedMembership?.clubId) }}</span></div>
-		<div class="mt-4">
-			<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha fin</label>
+		<div class="bp-dialog-field">
+			<label class="bp-dialog-label">Fecha fin</label>
 			<p-datePicker [(ngModel)]="closeForm.endDate" class="w-full"></p-datePicker>
 		</div>
 	</div>
+</bp-dialog>
 
-	<ng-template pTemplate="footer">
-		<div class="flex justify-end gap-2">
-			<p-button label="Cancelar" (click)="closeDialogOpen = false" [disabled]="savingMembership" styleClass="bp-btn bp-btn-secondary"></p-button>
-			<p-button label="Cerrar" (click)="confirmClose()" [disabled]="savingMembership" styleClass="bp-btn bp-btn-danger"></p-button>
+<bp-dialog [(visible)]="transferDialogOpen" header="Transferir jugador" [subtitle]="'Paso ' + (transferStep + 1) + '/2'" size="lg" [customFooter]="true">
+	@if (transferStep === 0) {
+		<div class="bp-dialog-grid-2">
+			<div class="bp-dialog-field">
+				<label class="bp-dialog-label">Nuevo club</label>
+				<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="transferForm.newClubId" placeholder="Selecciona club" styleClass="bp-select" [panelStyleClass]="'bp-select-panel'"></p-select>
+			</div>
+			<div class="bp-dialog-field">
+				<label class="bp-dialog-label">Fecha de transferencia</label>
+				<p-datePicker [(ngModel)]="transferForm.transferDate" class="w-full"></p-datePicker>
+			</div>
 		</div>
-	</ng-template>
-</p-dialog>
-
-<p-dialog [(visible)]="transferDialogOpen" [modal]="true" [dismissableMask]="true" [draggable]="false" header="Transferir jugador" styleClass="bp-dialog" [style]="{ width: '640px', maxWidth: 'calc(100vw - 3rem)' }">
-	<div class="bg-[#111827] rounded-lg p-4 border border-[#1f2937]">
-		@if (transferStep === 0) {
-			<p class="text-[12px] text-[#9ca3af]">Paso 1/2 · Datos de la transferencia</p>
-			<div class="grid grid-cols-2 gap-4 mt-4">
-				<div>
-					<label class="block text-[#e5e7eb] text-[13px] mb-2">Nuevo club</label>
-					<p-select [options]="clubOptions" optionLabel="label" optionValue="value" [(ngModel)]="transferForm.newClubId" placeholder="Selecciona club" styleClass="bp-select" [panelStyleClass]="'bp-select-panel'"></p-select>
-				</div>
-				<div>
-					<label class="block text-[#e5e7eb] text-[13px] mb-2">Fecha de transferencia</label>
-					<p-datePicker [(ngModel)]="transferForm.transferDate" class="w-full"></p-datePicker>
-				</div>
+	} @else {
+		<div class="bp-dialog-summary-panel">
+			<div class="flex justify-between text-[13px]">
+				<span class="text-[#9ca3af]">Jugador</span>
+				<span class="text-[#f9fafb]">{{ player.firstName }} {{ player.lastName }}</span>
 			</div>
-		} @else {
-			<p class="text-[12px] text-[#9ca3af]">Paso 2/2 · Resumen</p>
-			<div class="mt-4 bg-[#0b1220] rounded-lg p-4 border border-[#1f2937]">
-				<div class="flex justify-between text-[13px]">
-					<span class="text-[#9ca3af]">Jugador</span>
-					<span class="text-[#f9fafb]">{{ player.firstName }} {{ player.lastName }}</span>
-				</div>
-				<div class="flex justify-between text-[13px] mt-2">
-					<span class="text-[#9ca3af]">Nuevo club</span>
-					<span class="text-[#f9fafb]">{{ clubNameById(transferForm.newClubId) || ('#' + transferForm.newClubId) }}</span>
-				</div>
-				<div class="flex justify-between text-[13px] mt-2">
-					<span class="text-[#9ca3af]">Fecha</span>
-					<span class="text-[#f9fafb]">{{ transferForm.transferDate ? transferForm.transferDate.toISOString().slice(0,10) : '—' }}</span>
-				</div>
+			<div class="flex justify-between text-[13px] mt-2">
+				<span class="text-[#9ca3af]">Nuevo club</span>
+				<span class="text-[#f9fafb]">{{ clubNameById(transferForm.newClubId) || ('#' + transferForm.newClubId) }}</span>
 			</div>
-			<p class="mt-3 text-[12px] text-[#9ca3af]">Se cerrará la pertenencia principal activa (si existe) y se creará una nueva principal.</p>
-		}
-	</div>
+			<div class="flex justify-between text-[13px] mt-2">
+				<span class="text-[#9ca3af]">Fecha</span>
+				<span class="text-[#f9fafb]">{{ transferForm.transferDate ? transferForm.transferDate.toISOString().slice(0,10) : '—' }}</span>
+			</div>
+		</div>
+		<p class="mt-3 text-[12px] text-[#9ca3af]">Se cerrará la pertenencia principal activa (si existe) y se creará una nueva principal.</p>
+	}
 
-	<ng-template pTemplate="footer">
-		<div class="flex justify-between items-center">
+	<ng-template #dialogFooter>
+		<div class="flex justify-between items-center w-full">
 			<span class="text-[12px] text-[#9ca3af]">Se aplicarán cambios en el club del jugador.</span>
 			<div class="flex gap-2">
 				<p-button label="Atrás" (click)="prevTransfer()" [disabled]="savingMembership || transferStep === 0" styleClass="bp-btn bp-btn-secondary"></p-button>
@@ -360,4 +340,4 @@
 			</div>
 		</div>
 	</ng-template>
-</p-dialog>
+</bp-dialog>

@@ -30,24 +30,18 @@ const listTeams = async ({ clubId } = {}) => {
 };
 
 const getTeamById = async (id) => {
-  const team = await Team.findByPk(id, {
-    attributes: {
-      include: [[fn('COUNT', col('teamPlayers.userId')), 'playersCount']],
-    },
-    include: [
-      {
-        model: TeamPlayer,
-        as: 'teamPlayers',
-        attributes: [],
-        required: false,
-      },
-    ],
-    group: ['Team.id'],
-  });
+  const team = await Team.findByPk(id);
   if (!team) {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'TEAM_NOT_FOUND', 'Team not found');
   }
-  return team;
+  
+  // Get players count separately
+  const playersCount = await TeamPlayer.count({ where: { teamId: id } });
+  
+  return {
+    ...team.toJSON(),
+    playersCount,
+  };
 };
 
 const createTeam = async (payload) => Team.create(payload);
@@ -56,7 +50,8 @@ const updateTeam = async (id, payload) => {
   const team = await getTeamById(id);
 
   // Business rule: activating a team requires at least N players.
-  if (payload && Object.prototype.hasOwnProperty.call(payload, 'active') && payload.active === true) {
+  // Only validate when changing from inactive to active (not when already active)
+  if (payload && Object.prototype.hasOwnProperty.call(payload, 'active') && payload.active === true && team.active === false) {
     const playersCount = await TeamPlayer.count({ where: { teamId: team.id } });
     if (playersCount < MIN_ACTIVE_PLAYERS) {
       throw errorUtils.httpError(

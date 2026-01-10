@@ -8,7 +8,6 @@ export interface EquipmentDto {
   id: number;
   name: string;
   clubId?: number | null;
-  quantity: number;
   status?: EquipmentStatus;
   characteristics?: Record<string, unknown>;
   createdAt?: string;
@@ -20,7 +19,12 @@ export class EquipmentApi {
   private readonly api = inject(ApiClient);
 
   list(params?: { search?: string; clubId?: string }) {
-    return this.api.get<EquipmentDto[]>('/api/equipment', { params: params ?? {} });
+    // Filtrar parámetros undefined para evitar enviar "undefined" como string
+    const filteredParams: Record<string, string> = {};
+    if (params?.search !== undefined) filteredParams['search'] = params.search;
+    if (params?.clubId !== undefined) filteredParams['clubId'] = params.clubId;
+    
+    return this.api.get<EquipmentDto[]>('/api/equipment', { params: filteredParams });
   }
 
   create(payload: Partial<EquipmentDto>) {

@@ -42,16 +42,21 @@ export class NewMaterial {
 
   categoryOptions = [
     { label: 'Balones', value: 'Balones' },
-    { label: 'Conos', value: 'Conos' },
-    { label: 'Petos', value: 'Petos' },
+    { label: 'Conos y marcadores', value: 'Conos' },
+    { label: 'Petos y camisetas', value: 'Petos' },
+    { label: 'Aros y canastas', value: 'Aros' },
+    { label: 'Escaleras y vallas', value: 'Agilidad' },
+    { label: 'Bandas elásticas', value: 'Bandas' },
+    { label: 'Colchonetas', value: 'Colchonetas' },
+    { label: 'Pizarras tácticas', value: 'Pizarras' },
+    { label: 'Cronómetros', value: 'Cronometros' },
     { label: 'Otros', value: 'Otros' },
   ];
 
   form = {
     name: '',
     category: 'Balones',
-    total: 0,
-    available: 0,
+    status: 'available' as 'available' | 'unavailable' | 'maintenance',
   };
 
   saving = false;
@@ -67,14 +72,9 @@ export class NewMaterial {
     if (this.saving) return;
     this.saving = true;
 
-    const total = Math.max(0, Number(this.form.total) || 0);
-    const available = Math.min(total, Math.max(0, Number(this.form.available) || 0));
-    const status: 'available' | 'unavailable' = available <= 0 ? 'unavailable' : 'available';
-
     const payload: Partial<EquipmentDto> = {
       name,
-      quantity: total,
-      status,
+      status: this.form.status,
       characteristics: { category: this.form.category },
     };
 

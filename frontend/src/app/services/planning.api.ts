@@ -103,6 +103,14 @@ export class PlanningApiService {
   }
 
   /**
+   * Update training plan status.
+   * Backend: PUT /api/training-plans/:id
+   */
+  updateStatus(id: string, status: string) {
+    return this.api.put<any>(`/api/training-plans/${encodeURIComponent(id)}`, { status });
+  }
+
+  /**
    * Email export is not implemented in backend yet.
    */
   sendExportEmail(id: string, payload: PlanningExportEmailPayload) {

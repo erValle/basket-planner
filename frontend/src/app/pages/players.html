@@ -137,16 +137,11 @@
 			</div>
 
 	<!-- Player Detail (Dialog) -->
-	<p-dialog
-		styleClass="bp-dialog bp-dialog-strong"
-		[header]="'Detalle de jugador'"
+	<bp-dialog
+		header="Detalle de jugador"
 		[(visible)]="playerDetailVisible"
-		[modal]="true"
-		[dismissableMask]="true"
-		[draggable]="false"
-		[resizable]="false"
-		[style]="{ width: 'min(1100px, 95vw)' }"
-		(onHide)="closePlayer()"
+		size="full"
+		[customFooter]="true"
 	>
 		@if (selectedPlayer) {
 			<app-player-detail
@@ -155,19 +150,14 @@
 				(save)="savePlayer($event)"
 			></app-player-detail>
 		}
-	</p-dialog>
+	</bp-dialog>
 
 	<!-- Player Selection (Dialog) -->
-	<p-dialog
-		styleClass="bp-dialog"
-		[header]="'Seleccionar jugadores'"
+	<bp-dialog
+		header="Seleccionar jugadores"
 		[(visible)]="playerSelectionVisible"
-		[modal]="true"
-		[dismissableMask]="true"
-		[draggable]="false"
-		[resizable]="false"
-		[style]="{ width: 'min(900px, 95vw)' }"
-		(onHide)="closePlayerSelection()"
+		size="xl"
+		[customFooter]="true"
 	>
 		<app-player-selection
 			[title]="'Seleccionar jugadores'"
@@ -177,5 +167,5 @@
 			(cancel)="closePlayerSelection()"
 			(confirm)="confirmPlayerSelection($event)"
 		></app-player-selection>
-	</p-dialog>
+	</bp-dialog>
 </app-shell>

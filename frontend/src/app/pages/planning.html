@@ -4,21 +4,22 @@
 
   @let vm = (vm$ | async);
 
-  <p-dialog
+  <bp-dialog
     header="Enviar planificación"
     [(visible)]="sendDialogOpen"
-    [modal]="true"
-    [draggable]="false"
-    [closable]="!sendingEmail"
-    [dismissableMask]="!sendingEmail"
-    styleClass="bp-dialog"
-    [style]="{ width: '720px' }"
-    [contentStyle]="{ background: '#020617', border: '1px solid #1f2937' }"
+    size="lg"
+    [loading]="sendingEmail"
+    confirmLabel="Enviar"
+    cancelLabel="Cancelar"
+    [confirmDisabled]="!canSendEmail()"
+    footerHint="El envío por correo aún no está disponible. Puedes exportar a PDF/CSV desde el menú de descarga."
+    (confirm)="sendEmail()"
+    (cancel)="sendDialogOpen = false"
   >
     <div class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-[#9ca3af] text-[12px] mb-2">Formato</label>
+      <div class="bp-dialog-grid-2">
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Formato</label>
           <p-select
             [options]="formatOptions"
             [(ngModel)]="emailModel.format"
@@ -29,8 +30,8 @@
           ></p-select>
         </div>
 
-        <div>
-          <label class="block text-[#9ca3af] text-[12px] mb-2">Versión</label>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Versión</label>
           <input
             pInputText
             [(ngModel)]="emailModel.version"
@@ -41,8 +42,8 @@
         </div>
       </div>
 
-      <div>
-        <label class="block text-[#9ca3af] text-[12px] mb-2">Destinatarios</label>
+      <div class="bp-dialog-field">
+        <label class="bp-dialog-label">Destinatarios</label>
         <div class="flex gap-2">
           <input
             pInputText
@@ -68,8 +69,8 @@
         }
       </div>
 
-      <div>
-        <label class="block text-[#9ca3af] text-[12px] mb-2">Asunto</label>
+      <div class="bp-dialog-field">
+        <label class="bp-dialog-label">Asunto</label>
         <input
           pInputText
           [(ngModel)]="emailModel.subject"
@@ -78,8 +79,8 @@
         />
       </div>
 
-      <div>
-        <label class="block text-[#9ca3af] text-[12px] mb-2">Mensaje (opcional)</label>
+      <div class="bp-dialog-field">
+        <label class="bp-dialog-label">Mensaje (opcional)</label>
         <textarea
           pTextarea
           [(ngModel)]="emailModel.message"
@@ -87,24 +88,8 @@
           class="w-full resize-none"
         ></textarea>
       </div>
-
-      <div class="flex items-center justify-between pt-2">
-        @if (sendingEmail) {
-          <div class="flex items-center gap-2 text-[12px] text-[#9ca3af]">
-            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
-            Enviando…
-          </div>
-        } @else {
-          <div class="text-[12px] text-[#6b7280]">El envío por correo aún no está disponible. Puedes exportar a PDF/CSV desde el menú de descarga.</div>
-        }
-
-        <div class="flex gap-2">
-          <button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" [disabled]="sendingEmail" (click)="sendDialogOpen = false"></button>
-          <button type="button" pButton label="Enviar" icon="pi pi-send" class="p-button-sm" [disabled]="sendingEmail || !canSendEmail()" (click)="sendEmail()"></button>
-        </div>
-      </div>
     </div>
-  </p-dialog>
+  </bp-dialog>
 
   <div class="max-w-7xl mx-auto">
     <app-page-header

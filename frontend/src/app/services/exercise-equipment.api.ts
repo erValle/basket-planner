@@ -6,18 +6,12 @@ export interface ExerciseEquipmentRowDto {
   id: number;
   exerciseId: number;
   equipmentId: number;
-  quantity: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface CreateExerciseEquipmentPayload {
   equipmentId: number;
-  quantity: number;
-}
-
-export interface UpdateExerciseEquipmentPayload {
-  quantity: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -33,13 +27,6 @@ export class ExerciseEquipmentApi {
   createForExercise(exerciseId: number, payload: CreateExerciseEquipmentPayload) {
     return this.api.post<ExerciseEquipmentRowDto>(
       `/api/exercises/${encodeURIComponent(String(exerciseId))}/equipment`,
-      payload,
-    );
-  }
-
-  updateForExercise(exerciseId: number, equipmentId: number, payload: UpdateExerciseEquipmentPayload) {
-    return this.api.put<ExerciseEquipmentRowDto>(
-      `/api/exercises/${encodeURIComponent(String(exerciseId))}/equipment/${encodeURIComponent(String(equipmentId))}`,
       payload,
     );
   }

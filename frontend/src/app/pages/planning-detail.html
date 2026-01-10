@@ -1,20 +1,24 @@
 <app-shell title="Planificación" subtitle="Detalle">
   <p-toast></p-toast>
 
-  <p-dialog
+  <bp-dialog
     header="Enviar planificación"
     [(visible)]="sendDialogOpen"
-    [modal]="true"
-    [draggable]="false"
-    [closable]="!sendingEmail"
-    [dismissableMask]="!sendingEmail"
-    [style]="{ width: '720px' }"
-    [contentStyle]="{ background: '#020617', border: '1px solid #1f2937' }"
+    size="lg"
+    [loading]="sendingEmail"
+    [showConfirm]="true"
+    [showCancel]="true"
+    confirmLabel="Enviar"
+    cancelLabel="Cancelar"
+    [confirmDisabled]="!canSendEmail()"
+    footerHint="El envío por correo aún no está disponible. Puedes exportar a PDF/CSV desde esta pantalla."
+    (confirm)="sendEmail()"
+    (cancel)="sendDialogOpen = false"
   >
     <div class="space-y-4">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-[#9ca3af] text-[12px] mb-2">Formato</label>
+      <div class="bp-dialog-grid-2">
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Formato</label>
           <p-select
             [options]="formatOptions"
             [(ngModel)]="emailModel.format"
@@ -24,8 +28,8 @@
             [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
-        <div>
-          <label class="block text-[#9ca3af] text-[12px] mb-2">Versión</label>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Versión</label>
           <p-select
             [options]="versionOptions"
             [(ngModel)]="emailModel.version"
@@ -38,8 +42,8 @@
         </div>
       </div>
 
-      <div>
-        <label class="block text-[#9ca3af] text-[12px] mb-2">Destinatarios</label>
+      <div class="bp-dialog-field">
+        <label class="bp-dialog-label">Destinatarios</label>
         <div class="flex gap-2">
           <input
             pInputText
@@ -72,8 +76,8 @@
         }
       </div>
 
-      <div>
-        <label class="block text-[#9ca3af] text-[12px] mb-2">Asunto</label>
+      <div class="bp-dialog-field">
+        <label class="bp-dialog-label">Asunto</label>
         <input
           pInputText
           [(ngModel)]="emailModel.subject"
@@ -82,8 +86,8 @@
         />
       </div>
 
-      <div>
-        <label class="block text-[#9ca3af] text-[12px] mb-2">Mensaje (opcional)</label>
+      <div class="bp-dialog-field">
+        <label class="bp-dialog-label">Mensaje (opcional)</label>
         <textarea
           pTextarea
           [(ngModel)]="emailModel.message"
@@ -91,42 +95,28 @@
           class="w-full resize-none"
         ></textarea>
       </div>
-
-      <div class="flex items-center justify-between pt-2">
-        @if (sendingEmail) {
-          <div class="flex items-center gap-2 text-[12px] text-[#9ca3af]">
-            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
-            Enviando…
-          </div>
-        } @else {
-          <div class="text-[12px] text-[#6b7280]">El envío por correo aún no está disponible. Puedes exportar a PDF/CSV desde esta pantalla.</div>
-        }
-
-        <div class="flex gap-2">
-          <button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" [disabled]="sendingEmail" (click)="sendDialogOpen = false"></button>
-          <button type="button" pButton label="Enviar" icon="pi pi-send" class="p-button-sm" [disabled]="sendingEmail || !canSendEmail()" (click)="sendEmail()"></button>
-        </div>
-      </div>
     </div>
-  </p-dialog>
+  </bp-dialog>
 
-  <p-dialog
+  <bp-dialog
     header="Feedback de planificación"
     [(visible)]="feedbackDialogOpen"
-    [modal]="true"
-    [draggable]="false"
-    [closable]="!savingFeedback"
-    [dismissableMask]="!savingFeedback"
-    [style]="{ width: '720px' }"
-    [contentStyle]="{ background: '#020617', border: '1px solid #1f2937' }"
-    (onHide)="closeFeedback()"
+    size="lg"
+    [loading]="savingFeedback"
+    [showConfirm]="true"
+    [showCancel]="true"
+    confirmLabel="Guardar"
+    cancelLabel="Cancelar"
+    footerHint="Se guardará como encuesta estructurada."
+    (confirm)="saveFeedback()"
+    (cancel)="feedbackDialogOpen = false"
   >
     <div class="space-y-4">
       <div class="text-[13px] text-[#9ca3af]">Encuesta estructurada (RPE, fatiga, dolor y bienestar).</div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-[#9ca3af] text-[12px] mb-2">RPE (1-10)</label>
+      <div class="bp-dialog-grid-2">
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">RPE (1-10)</label>
           <p-select
             class="w-full"
             [options]="scale1to10"
@@ -137,8 +127,8 @@
             [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
-        <div>
-          <label class="block text-[#9ca3af] text-[12px] mb-2">Fatiga (1-10)</label>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Fatiga (1-10)</label>
           <p-select
             class="w-full"
             [options]="scale1to10"
@@ -149,8 +139,8 @@
             [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
-        <div>
-          <label class="block text-[#9ca3af] text-[12px] mb-2">Dolor (0-10)</label>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Dolor (0-10)</label>
           <p-select
             class="w-full"
             [options]="scale0to10"
@@ -161,8 +151,8 @@
             [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
-        <div>
-          <label class="block text-[#9ca3af] text-[12px] mb-2">Sueño (1-5)</label>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Sueño (1-5)</label>
           <p-select
             class="w-full"
             [options]="scale1to5"
@@ -173,8 +163,8 @@
             [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
-        <div>
-          <label class="block text-[#9ca3af] text-[12px] mb-2">Estrés (1-5)</label>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Estrés (1-5)</label>
           <p-select
             class="w-full"
             [options]="scale1to5"
@@ -185,8 +175,8 @@
             [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
-        <div>
-          <label class="block text-[#9ca3af] text-[12px] mb-2">Ánimo (1-5)</label>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Ánimo (1-5)</label>
           <p-select
             class="w-full"
             [options]="scale1to5"
@@ -199,8 +189,8 @@
         </div>
       </div>
 
-      <div>
-        <label class="block text-[#9ca3af] text-[12px] mb-2">Notas (opcional)</label>
+      <div class="bp-dialog-field">
+        <label class="bp-dialog-label">Notas (opcional)</label>
         <textarea
           pTextarea
           [(ngModel)]="draftSurvey.notes"
@@ -208,29 +198,13 @@
           class="w-full resize-none"
         ></textarea>
       </div>
-
-      <div class="flex items-center justify-between pt-2">
-        @if (savingFeedback) {
-          <div class="flex items-center gap-2 text-[12px] text-[#9ca3af]">
-            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
-            Guardando…
-          </div>
-        } @else {
-          <div class="text-[12px] text-[#6b7280]">Se guardará como encuesta estructurada.</div>
-        }
-
-        <div class="flex gap-2">
-          <button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" [disabled]="savingFeedback" (click)="feedbackDialogOpen = false"></button>
-          <button type="button" pButton label="Guardar" icon="pi pi-check" class="p-button-sm" [disabled]="savingFeedback" (click)="saveFeedback()"></button>
-        </div>
-      </div>
     </div>
-  </p-dialog>
+  </bp-dialog>
 
   <div class="max-w-6xl mx-auto space-y-4">
     <!-- Top actions bar (same vibe as session-detail) -->
     <div class="flex flex-wrap justify-between items-center gap-2">
-      <a pButton routerLink="/planning" label="Volver" icon="pi pi-arrow-left" class="p-button-text p-button-sm"></a>
+      <a pButton [routerLink]="getBackRoute()" label="Volver" icon="pi pi-arrow-left" class="p-button-text p-button-sm"></a>
 
       <div class="flex flex-wrap items-center gap-2">
         <div class="min-w-[160px]">
@@ -245,7 +219,13 @@
           ></p-select>
         </div>
 
-        <button pButton type="button" label="Crear nueva versión" icon="pi pi-copy" class="p-button-sm" (click)="createNewVersion()"></button>
+        @if (canManagePlanning()) {
+          <button pButton type="button" label="Crear nueva versión" icon="pi pi-copy" class="p-button-sm" (click)="createNewVersion()"></button>
+        }
+
+        @if (canAcceptPlanning()) {
+          <button pButton type="button" label="Activar planificación" icon="pi pi-check" class="p-button-sm p-button-success" (click)="acceptPlanning()"></button>
+        }
 
         <button
           pButton
@@ -266,9 +246,13 @@
           (click)="exportCsv()"
         ></button>
 
-  <button pButton type="button" label="Registrar feedback" icon="pi pi-clipboard" class="p-button-sm" [disabled]="downloading !== null" (click)="openFeedback()"></button>
+        @if (canManagePlanning()) {
+          <button pButton type="button" label="Enviar" icon="pi pi-envelope" class="p-button-sm p-button-secondary" [disabled]="downloading !== null" (click)="openSendDialog()"></button>
+        }
 
-        <button pButton type="button" label="Enviar" icon="pi pi-envelope" class="p-button-sm p-button-secondary" [disabled]="downloading !== null" (click)="openSendDialog()"></button>
+        @if (isPlayerView()) {
+          <button pButton type="button" label="Registrar feedback" icon="pi pi-clipboard" class="p-button-sm" [disabled]="downloading !== null" (click)="openFeedback()"></button>
+        }
 
         @if (downloading) {
           <div class="flex items-center gap-2 text-[12px] text-[#9ca3af] pl-2">
@@ -390,15 +374,26 @@
                 @for (ex of b.exercises; track ex.id) {
                   <div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4">
                     <div class="flex items-start justify-between gap-3">
-                      <div>
+                      <div class="flex-1">
                         <div class="text-[13px] font-semibold text-[#f9fafb]">{{ ex.name }}</div>
                         @if (ex.notes) {
                           <div class="mt-1 text-[12px] text-[#9ca3af]">{{ ex.notes }}</div>
                         }
                       </div>
-                      @if (ex.durationMin) {
-                        <div class="text-[12px] text-[#e5e7eb]">{{ ex.durationMin }} min</div>
-                      }
+                      <div class="flex items-center gap-2">
+                        @if (ex.durationMin) {
+                          <div class="text-[12px] text-[#e5e7eb]">{{ ex.durationMin }} min</div>
+                        }
+                        <button 
+                          type="button" 
+                          pButton 
+                          icon="pi pi-eye" 
+                          class="p-button-text p-button-sm p-button-rounded" 
+                          (click)="openExercisePreview(ex)"
+                          pTooltip="Ver detalles"
+                          tooltipPosition="top"
+                        ></button>
+                      </div>
                     </div>
                   </div>
                 }
@@ -415,4 +410,90 @@
       }
     }
   </div>
+
+  <!-- Modal de previsualización de ejercicio -->
+  <bp-dialog
+    [header]="selectedExercise?.name || 'Detalles del ejercicio'"
+    [(visible)]="exercisePreviewDialogOpen"
+    size="lg"
+    [showConfirm]="false"
+    cancelLabel="Cerrar"
+    (cancel)="closeExercisePreview()"
+  >
+    @if (selectedExercise) {
+      <div class="space-y-4">
+        <!-- Descripción -->
+        @if (selectedExercise.description) {
+          <div class="bp-dialog-field">
+            <label class="bp-dialog-label">Descripción</label>
+            <p class="text-[13px] text-[#e5e7eb]">{{ selectedExercise.description }}</p>
+          </div>
+        }
+
+        <!-- Información básica -->
+        <div class="bp-dialog-grid-2">
+          @if (selectedExercise.type) {
+            <div class="bp-dialog-field">
+              <label class="bp-dialog-label">Tipo</label>
+              <p-tag [value]="selectedExercise.type" severity="info" styleClass="text-[11px]"></p-tag>
+            </div>
+          }
+          @if (selectedExercise.phase) {
+            <div class="bp-dialog-field">
+              <label class="bp-dialog-label">Fase</label>
+              <p-tag [value]="selectedExercise.phase" severity="secondary" styleClass="text-[11px]"></p-tag>
+            </div>
+          }
+          @if (selectedExercise.durationMin) {
+            <div class="bp-dialog-field">
+              <label class="bp-dialog-label">Duración</label>
+              <p class="text-[13px] text-[#e5e7eb]">{{ selectedExercise.durationMin }} minutos</p>
+            </div>
+          }
+        </div>
+
+        <!-- Dificultades 4D -->
+        @if (selectedExercise.difficulty && getDifficultyKeys().length > 0) {
+          <div class="bp-dialog-field">
+            <label class="bp-dialog-label">Dificultad (1-5)</label>
+            <div class="grid grid-cols-2 gap-3 mt-2">
+              @for (key of getDifficultyKeys(); track key) {
+                <div class="flex items-center justify-between p-3 rounded-lg bg-[#111827] border border-[#1f2937]">
+                  <span class="text-[12px] text-[#9ca3af]">{{ getDifficultyLabel(key) }}</span>
+                  <div class="flex gap-1">
+                    @for (i of [1,2,3,4,5]; track i) {
+                      <div 
+                        class="w-6 h-6 rounded flex items-center justify-center text-[11px] font-semibold"
+                        [class.bg-blue-600]="i <= getDifficultyValue(key)"
+                        [class.bg-[#1f2937]]="i > getDifficultyValue(key)"
+                        [class.text-white]="i <= getDifficultyValue(key)"
+                        [class.text-[#6b7280]]="i > getDifficultyValue(key)"
+                      >
+                        {{ i }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="mt-2 text-[12px] text-[#9ca3af] text-center">
+              Media: {{ formatDifficultyShort(selectedExercise.difficulty) }} / 5.0
+            </div>
+          </div>
+        }
+
+        <!-- Materiales necesarios -->
+        @if (selectedExercise.equipment && selectedExercise.equipment.length > 0) {
+          <div class="bp-dialog-field">
+            <label class="bp-dialog-label">Materiales necesarios</label>
+            <div class="flex flex-wrap gap-2">
+              @for (item of selectedExercise.equipment; track item) {
+                <p-tag [value]="item" severity="contrast" styleClass="text-[11px]"></p-tag>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </bp-dialog>
 </app-shell>
