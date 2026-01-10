@@ -1,15 +1,13 @@
 <app-shell title="Administración" subtitle="Audit log">
   <p-toast></p-toast>
 
-  <p-dialog
+  <bp-dialog
     header="Detalle de auditoría"
     [(visible)]="detailDialogOpen"
-    [modal]="true"
-    [draggable]="false"
-    [dismissableMask]="!detailLoading"
-    [closable]="!detailLoading"
-    [style]="{ width: '900px' }"
-    [contentStyle]="{ background: '#020617', border: '1px solid #1f2937' }"
+    [loading]="detailLoading"
+    [showConfirm]="false"
+    cancelLabel="Cerrar"
+    size="lg"
   >
     @if (detailLoading) {
       <div class="flex items-center gap-2 text-[13px] text-[#9ca3af]">
@@ -23,25 +21,25 @@
     } @else if (selected) {
       <div class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-4 py-3">
+          <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-4 py-3">
             <div class="text-[11px] text-[#9ca3af]">Fecha</div>
             <div class="text-[13px] text-[#e5e7eb]">{{ selected.createdAt }}</div>
           </div>
-          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-4 py-3">
+          <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-4 py-3">
             <div class="text-[11px] text-[#9ca3af]">Usuario</div>
             <div class="text-[13px] text-[#e5e7eb]">{{ selected.actor.name }} <span class="text-[#6b7280]">({{ selected.actor.email || selected.actor.id }})</span></div>
           </div>
-          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-4 py-3">
+          <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-4 py-3">
             <div class="text-[11px] text-[#9ca3af]">Acción</div>
             <div class="text-[13px] text-[#e5e7eb]">{{ selected.action }}</div>
           </div>
-          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-4 py-3">
+          <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-4 py-3">
             <div class="text-[11px] text-[#9ca3af]">Entidad</div>
             <div class="text-[13px] text-[#e5e7eb]">{{ selected.entity }} · {{ selected.entityId }}</div>
           </div>
         </div>
 
-        <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-4 py-3">
+        <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-4 py-3">
           <div class="text-[11px] text-[#9ca3af]">Resumen</div>
           <div class="text-[13px] text-[#e5e7eb]">{{ selected.summary }}</div>
         </div>
@@ -68,13 +66,9 @@
             <pre class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[260px]">{{ prettyJson(selected.diff) }}</pre>
           </div>
         }
-
-        <div class="flex justify-end">
-          <button pButton type="button" label="Cerrar" class="p-button-sm p-button-secondary" (click)="detailDialogOpen = false"></button>
-        </div>
       </div>
     }
-  </p-dialog>
+  </bp-dialog>
 
   <div class="max-w-7xl mx-auto">
     <app-page-header

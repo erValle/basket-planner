@@ -18,9 +18,6 @@ export interface ExerciseDto {
   equipmentItems?: Array<{
     id: number;
     name: string;
-    ExerciseEquipment?: {
-      quantity?: number;
-    };
   }>;
 }
 
@@ -36,13 +33,19 @@ export interface PaginatedExercisesResponse {
   };
 }
 
+export type ExerciseTags = string[] | {
+  tipo_original?: string;
+  tags?: string[];
+  materiales?: string[];
+};
+
 export interface CreateExerciseDto {
   name: string;
   type: ExerciseType;
   difficulty: Record<string, unknown>;
   duration: number;
   description?: string | null;
-  tags?: string[];
+  tags?: ExerciseTags;
   active?: boolean;
 }
 
@@ -52,7 +55,7 @@ export interface UpdateExerciseDto {
   difficulty?: Record<string, unknown>;
   duration?: number;
   description?: string | null;
-  tags?: string[];
+  tags?: ExerciseTags;
   active?: boolean;
 }
 

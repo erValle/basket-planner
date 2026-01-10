@@ -54,10 +54,11 @@ export class NewUser {
 
   roleOptions = [
     { label: 'Sin rol', value: '' },
+    { label: 'Admin', value: 'admin' },
+    { label: 'Director Técnico', value: 'technical_director' },
     { label: 'Entrenador', value: 'coach' },
     { label: 'Jugador', value: 'player' },
-    { label: 'Staff', value: 'staff' },
-    { label: 'Admin', value: 'admin' },
+    { label: 'Usuario', value: 'user' },
   ];
 
   form = {

@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
@@ -12,6 +11,7 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog/bp-dialog';
 import { AppShell } from '../layout/app-shell/app-shell';
 import { ClubsApi, ClubDto } from '../services/clubs.api';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
@@ -24,7 +24,7 @@ import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operato
     FormsModule,
     RouterLink,
     ButtonModule,
-    DialogModule,
+    BpDialog,
     InputTextModule,
     SelectModule,
     TagModule,
@@ -106,7 +106,7 @@ export class Clubs {
       id: Number(c.id),
       name: c.name,
       city: (c.city ?? '').toString(),
-      status: 'active',
+      status: c.active === false ? 'inactive' : 'active',
       teams: typeof c.teamsCount === 'number' ? c.teamsCount : 0,
     };
   }
@@ -140,7 +140,7 @@ export class Clubs {
     const name = this.draft.name.trim();
     if (!name) return;
 
-    const payload = { name, city: this.draft.city.trim() || null };
+    const payload = { name, city: this.draft.city.trim() || null, status: this.draft.status };
 
     if (this.dialogMode === 'create') {
       this.api.create(payload).subscribe({

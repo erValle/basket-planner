@@ -10,8 +10,6 @@ module.exports = {
     const passwordCoach = await bcrypt.hash('Coach123!', 10);
     const passwordPlayer = await bcrypt.hash('Player123!', 10);
 
-    // Reset-strategy seed: we run db:seed:undo:all before re-seeding, so we can use
-    // stable IDs to satisfy FK relationships in later seeders (user_clubs, teams, etc.).
     const usersToSeed = [
       { id: 1, firstName: 'Admin', lastName: 'User', email: 'admin@demo.com', passwordHash: passwordAdmin, role: 'admin', status: 'active', createdAt: now, updatedAt: now },
       { id: 2, firstName: 'Coach', lastName: 'One', email: 'coach@demo.com', passwordHash: passwordCoach, role: 'coach', status: 'active', createdAt: now, updatedAt: now },

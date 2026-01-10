@@ -26,14 +26,30 @@ const getUserById = async (id) => {
   return user;
 };
 
-const createUser = async ({ email, name, password, role, status }, auditCtx = {}) => {
+const createUser = async ({ email, name, firstName, lastName, password, role, status }, auditCtx = {}) => {
   if (!password) {
     throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'PASSWORD_REQUIRED', 'Password is required');
   }
 
+  // Parse 'name' into firstName/lastName if not provided separately
+  let finalFirstName = firstName;
+  let finalLastName = lastName;
+  if (name && (!firstName || !lastName)) {
+    const nameParts = name.trim().split(/\s+/);
+    finalFirstName = finalFirstName || nameParts[0] || '';
+    finalLastName = finalLastName || nameParts.slice(1).join(' ') || '';
+  }
+
   try {
     const passwordHash = await bcrypt.hash(password, ENCRYPTION_CONST.SALT_ROUNDS);
-    const created = await User.create({ email, name, passwordHash, role, status });
+    const created = await User.create({ 
+      email, 
+      firstName: finalFirstName, 
+      lastName: finalLastName, 
+      passwordHash, 
+      role, 
+      status 
+    });
 
     await auditLogService.createAuditLog({
       user: auditCtx.user,
@@ -57,12 +73,23 @@ const createUser = async ({ email, name, password, role, status }, auditCtx = {}
   }
 };
 
-const updateUser = async (id, { email, name, password, role, status }, auditCtx = {}) => {
+const updateUser = async (id, { email, name, firstName, lastName, password, role, status }, auditCtx = {}) => {
   const user = await getUserById(id);
 
-  const before = { email: user.email, name: user.name, role: user.role, status: user.status };
+  const before = { email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, status: user.status };
 
-  const updates = { email, name, role, status };
+  // Parse 'name' into firstName/lastName if provided as single field
+  let finalFirstName = firstName;
+  let finalLastName = lastName;
+  if (name && (!firstName && !lastName)) {
+    const nameParts = name.trim().split(/\s+/);
+    finalFirstName = nameParts[0] || undefined;
+    finalLastName = nameParts.slice(1).join(' ') || undefined;
+  }
+
+  const updates = { email, role, status };
+  if (finalFirstName !== undefined) updates.firstName = finalFirstName;
+  if (finalLastName !== undefined) updates.lastName = finalLastName;
   if (password) {
     updates.passwordHash = await bcrypt.hash(password, ENCRYPTION_CONST.SALT_ROUNDS);
   }
@@ -70,7 +97,7 @@ const updateUser = async (id, { email, name, password, role, status }, auditCtx 
   try {
     await user.update(updates);
 
-    const after = { email: user.email, name: user.name, role: user.role, status: user.status };
+    const after = { email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, status: user.status };
     const roleChanged = before.role !== after.role;
 
     await auditLogService.createAuditLog({

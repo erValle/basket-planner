@@ -51,12 +51,24 @@ const getClubById = async (id) => {
 };
 
 const createClub = async (payload) => {
-  return Club.create(payload);
+  // Map frontend 'status' to model 'active' field
+  const data = { ...payload };
+  if (data.status !== undefined) {
+    data.active = data.status === 'active';
+    delete data.status;
+  }
+  return Club.create(data);
 };
 
 const updateClub = async (id, payload) => {
   const club = await getClubById(id);
-  await club.update(payload);
+  // Map frontend 'status' to model 'active' field
+  const data = { ...payload };
+  if (data.status !== undefined) {
+    data.active = data.status === 'active';
+    delete data.status;
+  }
+  await club.update(data);
   return club;
 };
 

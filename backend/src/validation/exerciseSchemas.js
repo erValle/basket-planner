@@ -40,13 +40,26 @@ const difficultySchema = Joi.object({
   'object.base': 'El campo difficulty debe ser un objeto con las 4 dimensiones'
 });
 
+/**
+ * Schema de validación para tags en formato JSONB
+ * Puede ser un array de strings (compatibilidad) o un objeto con tipo_original
+ */
+const tagsSchema = Joi.alternatives().try(
+  Joi.array().items(Joi.string().max(40)),
+  Joi.object({
+    tipo_original: Joi.string().max(50).optional(),
+    tags: Joi.array().items(Joi.string().max(40)).optional(),
+    materiales: Joi.array().items(Joi.string().max(50)).optional(),
+  })
+);
+
 const createExerciseSchema = Joi.object({
   name: Joi.string().min(2).max(200).required(),
   type: Joi.string().valid(...exerciseTypeValues).required(),
   difficulty: difficultySchema.required(),
   duration: Joi.number().integer().min(1).required(),
   description: Joi.string().allow('', null).optional(),
-  tags: Joi.array().items(Joi.string().max(40)).optional(),
+  tags: tagsSchema.optional(),
   active: Joi.boolean().optional()
 });
 
@@ -56,7 +69,7 @@ const updateExerciseSchema = Joi.object({
   difficulty: difficultySchema,
   duration: Joi.number().integer().min(1),
   description: Joi.string().allow('', null),
-  tags: Joi.array().items(Joi.string().max(40)),
+  tags: tagsSchema,
   active: Joi.boolean()
 }).min(1);
 

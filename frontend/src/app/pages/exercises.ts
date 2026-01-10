@@ -5,11 +5,11 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
-import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { PaginatorModule } from 'primeng/paginator';
 
 import { ExerciseDraft, ExerciseForm, ExerciseFormValue } from '../components/exercise-form/exercise-form';
+import { BpDialog } from '../components/bp-dialog/bp-dialog';
 import { ExercisesApi, ExerciseDto, ExerciseType } from '../services/exercises.api';
 import { EquipmentApi } from '../services/equipment.api';
 import { ExerciseEquipmentApi } from '../services/exercise-equipment.api';
@@ -26,7 +26,7 @@ interface Exercise {
   duracion: number;
   tipo: string;
   material: string[];
-  materialEquipo?: Array<{ equipmentId: number; name: string; quantity: number }>;
+  materialEquipo?: Array<{ equipmentId: number; name: string }>;
   dificultad?: {
     tactica?: number;
     tecnica?: number;
@@ -53,7 +53,7 @@ type UiType =
     ButtonModule,
     InputTextModule,
     SelectModule,
-    DialogModule,
+    BpDialog,
     TagModule,
     PaginatorModule,
     ExerciseForm,
@@ -310,14 +310,18 @@ export class Exercises implements OnInit {
     const materialEquipo = (dto.equipmentItems || []).map(item => ({
       equipmentId: item.id,
       name: item.name,
-      quantity: item.ExerciseEquipment?.quantity || 1
     }));
+    
+    // Obtener tipo original de tags (preferido) o usar mapeo inverso como fallback
+    const tags = dto.tags as { tipo_original?: string; tags?: string[]; materiales?: string[] } | null;
+    const tipoOriginal = tags?.tipo_original as UiType | undefined;
+    const tipo = tipoOriginal || this.mapApiToUiType(dto.type);
     
     return {
       id: String(dto.id),
       nombre: dto.name,
       duracion: Math.ceil(dto.duration / 60), // Convertir segundos a minutos si es necesario
-      tipo: this.mapApiToUiType(dto.type),
+      tipo,
       material,
       materialEquipo,
       dificultad: dto.difficulty as any,
@@ -325,7 +329,8 @@ export class Exercises implements OnInit {
   }
 
   private toApiPayload(value: ExerciseFormValue) {
-    const type = this.mapUiToApiType((value.tipo || 'TECNICA_BOTE') as UiType);
+    const tipoOriginal = (value.tipo || 'TECNICA_BOTE') as UiType;
+    const type = this.mapUiToApiType(tipoOriginal);
     return {
       name: value.nombre,
       type,
@@ -338,22 +343,52 @@ export class Exercises implements OnInit {
         fisica: value.dificultadFisica,
         mental: value.dificultadMental,
       },
-      tags: value.etiquetas ?? [],
+      // Guardar tipo original de basketball y etiquetas
+      tags: {
+        tipo_original: tipoOriginal,
+        tags: value.etiquetas ?? [],
+        materiales: value.materialesNecesarios ?? [],
+      },
       active: value.estado !== 'Inactivo',
     };
   }
 
   private mapUiToApiType(ui: UiType): ExerciseType {
-    // Mapeo directo de tipos específicos de basketball a tipos de API
-    // Por ahora mapeamos todo a 'strength' ya que el API aún no tiene los tipos específicos
-    // TODO: Actualizar el API para soportar los nuevos tipos
-    return 'strength';
+    // Mapeo de tipos específicos de basketball a tipos de API
+    const mapping: Record<UiType, ExerciseType> = {
+      'TECNICA_BOTE': 'strength',
+      'FINALIZACION_ARO': 'strength',
+      'TIRO': 'strength',
+      'PASE': 'strength',
+      'TACTICA_ATAQUE': 'balance',
+      'TACTICA_ATAQUE_DEFENSA': 'balance',
+      'DEFENSA_EQUIPO': 'balance',
+      'DEFENSA_INDIVIDUAL': 'strength',
+      'DEFENSA_FUNDAMENTOS': 'strength',
+      'REBOTE': 'strength',
+      'TECNICA_POSTE': 'strength',
+      'ATAQUE_INDIVIDUAL': 'strength',
+      'TECNICA_PIES': 'balance',
+      'CONDICIONAMIENTO_FISICO': 'cardio',
+      'MOVILIDAD_RECUPERACION': 'flexibility',
+      'TACTICA_TRANSICION': 'cardio',
+      'ABP_SAQUES': 'balance',
+      'JUEGO_REDUCIDO': 'balance',
+    };
+    return mapping[ui] || 'balance';
   }
 
   private mapApiToUiType(type: ExerciseType): UiType {
-    // Por defecto, retornar TECNICA_BOTE
-    // TODO: Implementar mapeo inverso cuando el API soporte los tipos específicos
-    return 'TECNICA_BOTE';
+    // Mapeo inverso: tipos de API a tipos específicos de basketball
+    // Como hay múltiples tipos UI que mapean al mismo API type,
+    // usamos un tipo por defecto para cada categoría
+    const mapping: Record<ExerciseType, UiType> = {
+      'strength': 'TECNICA_BOTE',
+      'balance': 'TACTICA_ATAQUE',
+      'cardio': 'CONDICIONAMIENTO_FISICO',
+      'flexibility': 'MOVILIDAD_RECUPERACION',
+    };
+    return mapping[type] || 'TECNICA_BOTE';
   }
 
   private loadExerciseEquipmentForDialog(exercise: Exercise): void {
@@ -371,7 +406,6 @@ export class Exercises implements OnInit {
               (typeof fromJoin === 'string' && fromJoin.trim().length > 0
                 ? fromJoin
                 : this.equipmentIndex.get(equipmentId)) ?? `Material #${equipmentId}`,
-            quantity: Number(row.quantity) || 1,
           };
         });
 
@@ -393,7 +427,7 @@ export class Exercises implements OnInit {
 
   private syncExerciseEquipment(
     exerciseId: number,
-    desired: Array<{ equipmentId: number; name: string; quantity: number }>,
+    desired: Array<{ equipmentId: number; name: string }>,
   ): Promise<void> {
     const listCurrent = () =>
       new Promise<import('../services/exercise-equipment.api').ExerciseEquipmentRowDto[]>((resolve, reject) => {
@@ -406,43 +440,31 @@ export class Exercises implements OnInit {
     const currentRowsPromise = listCurrent();
 
     return currentRowsPromise.then(async (currentRows) => {
-      const current = new Map<number, number>();
+      const current = new Set<number>();
       for (const row of currentRows ?? []) {
-        current.set(Number(row.equipmentId), Number(row.quantity) || 1);
+        current.add(Number(row.equipmentId));
       }
 
-      const wanted = new Map<number, number>();
+      const wanted = new Set<number>();
       for (const item of desired ?? []) {
         const equipmentId = Number(item.equipmentId);
         if (!Number.isFinite(equipmentId)) continue;
-        const qty = Math.max(1, Number(item.quantity) || 1);
-        wanted.set(equipmentId, qty);
+        wanted.add(equipmentId);
       }
 
-      const toCreate: Array<{ equipmentId: number; quantity: number }> = [];
-      const toUpdate: Array<{ equipmentId: number; quantity: number }> = [];
+      const toCreate: number[] = [];
       const toDelete: number[] = [];
 
-      for (const [equipmentId, quantity] of wanted.entries()) {
-        if (!current.has(equipmentId)) toCreate.push({ equipmentId, quantity });
-        else if (current.get(equipmentId) !== quantity) toUpdate.push({ equipmentId, quantity });
+      for (const equipmentId of wanted) {
+        if (!current.has(equipmentId)) toCreate.push(equipmentId);
       }
-      for (const equipmentId of current.keys()) {
+      for (const equipmentId of current) {
         if (!wanted.has(equipmentId)) toDelete.push(equipmentId);
       }
 
-      const createOne = (row: { equipmentId: number; quantity: number }) =>
+      const createOne = (equipmentId: number) =>
         new Promise<void>((resolve, reject) => {
-          this.exerciseEquipmentApi.createForExercise(exerciseId, row).subscribe({
-            next: () => resolve(),
-            error: (e: unknown) => reject(e),
-          });
-        });
-      const updateOne = (row: { equipmentId: number; quantity: number }) =>
-        new Promise<void>((resolve, reject) => {
-          this.exerciseEquipmentApi.updateForExercise(exerciseId, row.equipmentId, {
-            quantity: row.quantity,
-          }).subscribe({
+          this.exerciseEquipmentApi.createForExercise(exerciseId, { equipmentId }).subscribe({
             next: () => resolve(),
             error: (e: unknown) => reject(e),
           });
@@ -455,8 +477,7 @@ export class Exercises implements OnInit {
           });
         });
 
-      for (const row of toCreate) await createOne(row);
-      for (const row of toUpdate) await updateOne(row);
+      for (const equipmentId of toCreate) await createOne(equipmentId);
       for (const equipmentId of toDelete) await deleteOne(equipmentId);
     });
   }

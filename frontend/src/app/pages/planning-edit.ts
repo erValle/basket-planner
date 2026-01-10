@@ -12,12 +12,12 @@ import { ChipModule } from 'primeng/chip';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
-import { DialogModule } from 'primeng/dialog';
 import { TooltipModule } from 'primeng/tooltip';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog';
 
 import { PlanningApiService } from '../services/planning.api';
 import { ExercisesApi, ExerciseDto } from '../services/exercises.api';
@@ -49,7 +49,7 @@ type Option = { label: string; value: string };
     TagModule,
     ToastModule,
     ConfirmDialogModule,
-    DialogModule,
+    BpDialog,
     TooltipModule,
     PageHeader,
     AppShell,
@@ -211,15 +211,12 @@ export class PlanningEdit {
     // Cargar planificación desde el backend
     this.api.get(this.planningId, this.fromVersion || undefined).subscribe({
       next: (plan: any) => {
-        console.log('🔍 Loaded plan for editing:', plan);
-        
         // Obtener las sesiones desde la versión activa o la especificada
         const version = this.fromVersion 
           ? plan.versions?.find((v: any) => String(v.id) === this.fromVersion)
           : plan.activeVersion;
         
         const sessionsData = version?.sessions || plan.activeVersion?.sessions || [];
-        console.log('🔍 Sessions data for editing:', sessionsData);
         
         // Mapear sesiones a la estructura del editor
         this.sessions.set(this.mapSessionsToEditor(sessionsData));
@@ -252,17 +249,17 @@ export class PlanningEdit {
           {
             id: this.uid('b'),
             name: `Sesión ${s?.sessionId || idx + 1}`,
-            durationMin: s?.metrics?.durationMinutes || 0,
+            durationMin: s?.metrics?.durationMinutes || 60,
             notes: s?.goals?.join(', ') || '',
             exercises: exercises.map((e: any) => ({
               id: this.uid('e'),
               name: e?.name || 'Ejercicio sin nombre',
-              series: undefined,
-              reps: undefined,
-              durationMin: e?.durationMinutes || 0,
+              series: e?.series || 1,
+              reps: e?.reps || 1,
+              durationMin: e?.durationMinutes || 1,
               intensity: e?.intensity || 'Media',
-              restSec: undefined,
-              material: [],
+              restSec: e?.restSeconds || 0,
+              material: Array.isArray(e?.material) ? e.material : [],
               notes: [
                 e?.type ? `Tipo: ${e.type}` : null,
                 e?.phase ? `Fase: ${e.phase}` : null,
@@ -346,6 +343,8 @@ export class PlanningEdit {
         exercises: [],
       },
     ];
+    // Trigger signal update to refresh the view
+    this.sessions.set([...this.sessions()]);
   }
 
   removeBlock(session: PlanningSessionEditor, blockId: string): void {
@@ -357,6 +356,8 @@ export class PlanningEdit {
       rejectLabel: 'Cancelar',
       accept: () => {
         session.blocks = session.blocks.filter((b) => b.id !== blockId);
+        // Trigger signal update to refresh the view
+        this.sessions.set([...this.sessions()]);
         this.toast.add({ severity: 'success', summary: 'Eliminado', detail: 'Bloque eliminado.' });
       },
     });
@@ -370,6 +371,8 @@ export class PlanningEdit {
     const [item] = copy.splice(idx, 1);
     copy.splice(next, 0, item);
     session.blocks = copy;
+    // Trigger signal update to refresh the view
+    this.sessions.set([...this.sessions()]);
   }
 
   // --- Exercise actions ---
@@ -388,6 +391,8 @@ export class PlanningEdit {
         notes: '',
       },
     ];
+    // Trigger signal update to refresh the view
+    this.sessions.set([...this.sessions()]);
   }
 
   openExerciseSearch(block: PlanningBlockEditor): void {
@@ -442,6 +447,9 @@ export class PlanningEdit {
       },
     ];
 
+    // Trigger signal update to refresh the view
+    this.sessions.set([...this.sessions()]);
+
     this.toast.add({
       severity: 'success',
       summary: 'Ejercicio añadido',
@@ -459,10 +467,14 @@ export class PlanningEdit {
     const m = material.trim();
     if (!m) return;
     ex.material = ex.material.includes(m) ? ex.material : [...ex.material, m];
+    // Trigger signal update to refresh the view
+    this.sessions.set([...this.sessions()]);
   }
 
   clearMaterial(ex: PlanningExerciseEditor): void {
     ex.material = [];
+    // Trigger signal update to refresh the view
+    this.sessions.set([...this.sessions()]);
   }
 
   removeExercise(block: PlanningBlockEditor, exerciseId: string): void {
@@ -474,6 +486,8 @@ export class PlanningEdit {
       rejectLabel: 'Cancelar',
       accept: () => {
         block.exercises = block.exercises.filter((e) => e.id !== exerciseId);
+        // Trigger signal update to refresh the view
+        this.sessions.set([...this.sessions()]);
         this.toast.add({ severity: 'success', summary: 'Eliminado', detail: 'Ejercicio eliminado.' });
       },
     });
@@ -487,6 +501,8 @@ export class PlanningEdit {
     const [item] = copy.splice(idx, 1);
     copy.splice(next, 0, item);
     block.exercises = copy;
+    // Trigger signal update to refresh the view
+    this.sessions.set([...this.sessions()]);
   }
 
   // --- Validation ---
@@ -549,9 +565,7 @@ export class PlanningEdit {
       date: new Date().toISOString(),
       comments: this.fromVersion ? `created-from:${this.fromVersion}` : undefined,
       createdFrom: this.fromVersion ? { fromVersionId: this.fromVersion } : undefined,
-      items: {
-        sessions: this.sessions(),
-      },
+      sessions: this.sessions(), // Fixed: send sessions directly, not nested in items
     };
 
     this.api.createNewVersion(this.planningId, payload).subscribe({

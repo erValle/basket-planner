@@ -8,7 +8,6 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { TooltipModule } from 'primeng/tooltip';
@@ -16,6 +15,7 @@ import { MessageService } from 'primeng/api';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog';
 
 import { PlanningApiService } from '../services/planning.api';
 import { FeedbackApiService } from '../services/feedback.api';
@@ -43,7 +43,7 @@ type Option = { label: string; value: string };
     TagModule,
     ToastModule,
     ProgressSpinnerModule,
-    DialogModule,
+    BpDialog,
     InputTextModule,
     TextareaModule,
     TooltipModule,
@@ -134,8 +134,6 @@ export class PlanningDetail {
     const sessions = Array.isArray(items) ? items : [];
     const blocks: PlanningBlock[] = [];
 
-    console.log('🔍 Building blocks from sessions:', sessions);
-
     for (const s of sessions) {
       // Primero verificar si la sesión tiene bloques (estructura antigua)
       const sBlocks = Array.isArray(s?.blocks) ? s.blocks : [];
@@ -193,7 +191,6 @@ export class PlanningDetail {
       });
     }
 
-    console.log('🔍 Built blocks:', blocks);
     return blocks;
   }
 
@@ -468,7 +465,25 @@ export class PlanningDetail {
   }
 
   canAcceptPlanning(): boolean {
-    return this.detail?.status === 'draft';
+    // Solo coaches y admins pueden activar planificaciones
+    const role = this.userContext.getRoleSnapshot();
+    const canManage = role === 'admin' || role === 'technical_director' || role === 'coach';
+    return canManage && this.detail?.status === 'draft';
+  }
+
+  canManagePlanning(): boolean {
+    // Solo coaches y admins pueden crear versiones, editar, etc.
+    const role = this.userContext.getRoleSnapshot();
+    return role === 'admin' || role === 'technical_director' || role === 'coach';
+  }
+
+  isPlayerView(): boolean {
+    const role = this.userContext.getRoleSnapshot();
+    return role === 'player';
+  }
+
+  getBackRoute(): string {
+    return this.isPlayerView() ? '/player' : '/planning';
   }
 
   openSendDialog(): void {

@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink, RouterModule } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { TagModule } from 'primeng/tag';
 import { SelectModule } from 'primeng/select';
@@ -13,6 +12,7 @@ import { MessageService } from 'primeng/api';
 
 import { PageHeader } from '../components/page-header/page-header';
 import { AppShell } from '../layout/app-shell/app-shell';
+import { BpDialog } from '../components/bp-dialog';
 
 import { FeedbackApiService } from '../services/feedback.api';
 import { FeedbackSurveyAnswers, FeedbackSurveyListItem } from '../models/feedback-survey';
@@ -25,7 +25,7 @@ import { FeedbackSurveyAnswers, FeedbackSurveyListItem } from '../models/feedbac
     RouterModule,
     RouterLink,
     ButtonModule,
-    DialogModule,
+    BpDialog,
     TextareaModule,
     TagModule,
     SelectModule,

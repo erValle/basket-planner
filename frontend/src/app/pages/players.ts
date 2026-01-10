@@ -7,9 +7,9 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 
+import { BpDialog } from '../components/bp-dialog';
 import { PlayerDetail, PlayerDetailModel } from '../modals/player-detail/player-detail';
 import { PlayerSelection, PlayerSelectionItem } from '../modals/player-selection/player-selection';
 
@@ -58,7 +58,7 @@ type Option = { label: string; value: string };
     InputTextModule,
     SelectModule,
     TableModule,
-    DialogModule,
+    BpDialog,
     TagModule,
     PlayerDetail,
     PlayerSelection,
@@ -230,6 +230,15 @@ export class Players {
     const firstTeam = Array.isArray(p.teams) && p.teams.length ? p.teams[0] : null;
     const firstClub = Array.isArray(p.clubs) && p.clubs.length ? p.clubs[0] : null;
 
+    // Parse dateOfBirth to a display format (YYYY-MM-DD or empty)
+    let birthDateDisplay = '';
+    if (p.dateOfBirth) {
+      const d = new Date(p.dateOfBirth);
+      if (!isNaN(d.getTime())) {
+        birthDateDisplay = d.toISOString().split('T')[0];
+      }
+    }
+
     return {
       id: String(p.id),
       name,
@@ -239,9 +248,9 @@ export class Players {
       status: (p.status === 'active' ? 'active' : p.status ? 'revision' : 'active'),
       firstName: firstName ?? '',
       lastName,
-      birthDate: '',
+      birthDate: birthDateDisplay,
       dni: '',
-      height: 0,
+      height: p.height ?? 0,
       weight: 0,
       dominantHand: '',
       club: firstClub?.name ?? '',
@@ -291,24 +300,34 @@ export class Players {
   }
 
   savePlayer(updated: PlayerDetailModel) {
-    // Update player data via users API (players are users with role='player')
-    const payload: any = {
-      name: `${updated.firstName} ${updated.lastName}`.trim(),
-      firstName: updated.firstName,
-      lastName: updated.lastName,
-      position: updated.position,
-      // Note: dni, height, weight, dominantHand, notes may not be supported by backend yet
-      // Including them as custom fields in case backend accepts them
+    // Use the dedicated player profile API for sports-specific fields
+    const payload: {
+      status?: string;
+      position?: string | null;
+      category?: string | null;
+      height?: number | null;
+      dateOfBirth?: string | null;
+    } = {
+      status: updated.status === 'active' ? 'active' : 'pending',
+      position: updated.position || null,
+      category: updated.category || null,
+      height: updated.height || null,
+      dateOfBirth: updated.birthDate || null,
     };
 
-    this.usersApi.update(updated.id, payload).subscribe({
+    this.savingPlayer = true;
+    this.saveError = null;
+
+    this.playersApi.updateProfile(updated.id, payload).subscribe({
       next: () => {
+        this.savingPlayer = false;
         this.closePlayer();
         this.refresh();
       },
       error: (e: unknown) => {
-        const msg = e instanceof Error ? e.message : 'No se pudo guardar el jugador.';
-        console.error('[players] savePlayer error', msg);
+        this.savingPlayer = false;
+        this.saveError = e instanceof Error ? e.message : 'No se pudo guardar el jugador.';
+        console.error('[players] savePlayer error', this.saveError);
         // Keep modal open so user can retry
       },
     });

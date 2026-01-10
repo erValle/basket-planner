@@ -12,7 +12,6 @@ import { SliderModule } from 'primeng/slider';
 import { AutoCompleteModule } from 'primeng/autocomplete';
 import { ChipModule } from 'primeng/chip';
 
-import { MaterialSelection } from '../../modals/material-selection/material-selection';
 import { EquipmentApi, EquipmentDto } from '../../services/equipment.api';
 
 export interface ExerciseFormValue {
@@ -51,7 +50,6 @@ type Option = { label: string; value: string };
     SliderModule,
     AutoCompleteModule,
     ChipModule,
-    MaterialSelection,
   ],
   templateUrl: './exercise-form.html',
   styleUrl: './exercise-form.css',
@@ -74,14 +72,9 @@ export class ExerciseForm implements OnChanges {
   }
 
   stepIndex = 0;
-  materialModalVisible = false;
   equipmentLoading = false;
   equipmentError: string | null = null;
   equipmentItems: EquipmentDto[] = [];
-
-  get availableEquipmentForModal(): Array<{ id: number; name: string }> {
-    return (this.equipmentItems ?? []).map((e) => ({ id: Number(e.id), name: String(e.name ?? '') }));
-  }
 
   // Títulos EXACTOS usados en el mockup para separar las secciones del formulario
   readonly steps = [
@@ -294,22 +287,6 @@ export class ExerciseForm implements OnChanges {
   // Convertidor de segundos a minutos para mostrar
   get duracionEnMinutos(): number {
     return Math.round(this.form.controls.duracionSegundos.value / 60);
-  }
-
-  openMaterialModal(): void {
-    this.materialModalVisible = true;
-  }
-
-  onMaterialsConfirmed(materials: string[]): void {
-    this.form.controls.materialesNecesarios.setValue(materials);
-  }
-
-  onEquipmentConfirmed(items: Array<{ equipmentId: number; name: string; quantity: number }>): void {
-    // Extraer nombres de materiales
-    const names = (items ?? [])
-      .map((x) => (x?.name ?? '').toString().trim())
-      .filter((x) => x.length > 0);
-    this.form.controls.materialesNecesarios.setValue(Array.from(new Set(names)));
   }
 
   // Helper para obtener el label del tipo seleccionado

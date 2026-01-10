@@ -56,9 +56,10 @@ export class AdminUsers {
   roleOptions: Option<AdminUserRole>[] = [
     { label: 'Todos', value: 'all' },
     { label: 'Admin', value: 'admin' },
+    { label: 'Director Técnico', value: 'technical_director' },
     { label: 'Entrenador', value: 'coach' },
-    { label: 'Staff', value: 'staff' },
     { label: 'Jugador', value: 'player' },
+    { label: 'Usuario', value: 'user' },
   ];
 
   statusOptions: Option<AdminUserStatus>[] = [
@@ -148,16 +149,21 @@ export class AdminUsers {
     this.refresh();
   }
 
-  roleLabel(role: AdminUserRole): string {
+  roleLabel(role: AdminUserRole | null): string {
+    if (!role) return '—';
     switch (role) {
       case 'admin':
         return 'Admin';
+      case 'technical_director':
+        return 'Director Técnico';
       case 'coach':
         return 'Entrenador';
-      case 'staff':
-        return 'Staff';
       case 'player':
         return 'Jugador';
+      case 'user':
+        return 'Usuario';
+      default:
+        return '—';
     }
   }
 

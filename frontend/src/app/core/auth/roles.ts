@@ -1,11 +1,11 @@
-export type Role = 'admin' | 'technical_director' | 'coach' | 'staff' | 'player';
+export type Role = 'admin' | 'technical_director' | 'coach' | 'player' | 'user';
 
 export const ROLE_LABELS: Record<Role, string> = {
 	admin: 'Admin',
 	technical_director: 'Director Técnico',
 	coach: 'Coach',
-	staff: 'Staff',
 	player: 'Jugador',
+	user: 'Usuario',
 };
 
 export function hasRole(userRole: Role | null | undefined, allowedRoles: Role[] | null | undefined): boolean {

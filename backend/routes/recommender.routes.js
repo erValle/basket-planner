@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
 
-const { authenticateToken, authorizeRoles } = require('../src/middlewares/auth');
+const { requireAuth, requireAnyRole } = require('../src/middlewares/rbac');
 const { getModelInfo, getModelConfig, listAvailableModels } = require('../src/recommender/modelManager');
 
-router.use(authenticateToken);
-router.use(authorizeRoles('admin', 'technical_director', 'coach'));
+// CU.028: Solo admin puede acceder al sistema recomendador
+router.use(requireAuth);
+router.use(requireAnyRole('admin'));
 
 // Minimal in-memory recommender state to back the frontend screens.
 // Later: replace with real ML job runner + DB.
@@ -101,6 +102,102 @@ router.post('/versions/:versionId/activate', (req, res) => {
   state.activeVersion = versionId;
   state.versions = state.versions.map((v) => ({ ...v, isActive: v.id === versionId }));
   res.json({ ok: true });
+});
+
+// Nuevo endpoint: sugerir objetivos/etiquetas para planificaciones
+router.post('/suggest-goals', (req, res) => {
+  try {
+    const config = getModelConfig();
+    const { context } = req.body;
+    
+    // Obtener todos los objetivos disponibles del config
+    const availableGoals = Object.keys(config.goalToTags);
+    
+    // Si hay contexto (nivel, intensidad, duración), podemos personalizar las sugerencias
+    const playerLevel = context?.playerLevel || 'intermediate';
+    const intensity = context?.intensity || 'medium';
+    const sessionDuration = context?.sessionDuration || 90;
+    
+    // Sugerencias basadas en popularidad y balance
+    // Para el modelo baseline, recomendamos un mix balanceado
+    const suggestions = [
+      {
+        goal: 'shooting',
+        label: 'Mejora del tiro exterior',
+        reason: 'Fundamento técnico esencial para el desarrollo individual',
+        priority: 'high',
+        relevantTags: config.goalToTags['shooting'] || [],
+        estimatedDuration: Math.ceil(sessionDuration * 0.3),
+      },
+      {
+        goal: 'ball_handling',
+        label: 'Manejo de balón',
+        reason: 'Base fundamental para el juego individual y colectivo',
+        priority: 'high',
+        relevantTags: config.goalToTags['ball_handling'] || [],
+        estimatedDuration: Math.ceil(sessionDuration * 0.25),
+      },
+      {
+        goal: 'defense',
+        label: 'Defensa individual',
+        reason: 'Aspecto clave del juego completo',
+        priority: 'medium',
+        relevantTags: config.goalToTags['defense'] || [],
+        estimatedDuration: Math.ceil(sessionDuration * 0.2),
+      },
+      {
+        goal: 'conditioning',
+        label: 'Condición física general',
+        reason: intensity === 'high' ? 'Intensidad alta requiere buen acondicionamiento' : 'Importante para el rendimiento sostenido',
+        priority: intensity === 'high' ? 'high' : 'medium',
+        relevantTags: config.goalToTags['conditioning'] || [],
+        estimatedDuration: Math.ceil(sessionDuration * 0.15),
+      },
+      {
+        goal: 'tactics',
+        label: 'Táctica de equipo',
+        reason: 'Mejora la comprensión del juego colectivo',
+        priority: 'medium',
+        relevantTags: config.goalToTags['tactics'] || [],
+        estimatedDuration: Math.ceil(sessionDuration * 0.25),
+      },
+    ];
+    
+    // Filtrar según el nivel del jugador
+    let filtered = suggestions;
+    if (playerLevel === 'beginner') {
+      // Para principiantes, priorizar fundamentos básicos
+      filtered = suggestions.map(s => {
+        if (['shooting', 'ball_handling', 'fundamentals'].includes(s.goal)) {
+          return { ...s, priority: 'high' };
+        }
+        return s;
+      });
+    } else if (playerLevel === 'advanced') {
+      // Para avanzados, priorizar aspectos tácticos y específicos
+      filtered = suggestions.map(s => {
+        if (['tactics', 'pick_and_roll', 'transition'].includes(s.goal)) {
+          return { ...s, priority: 'high' };
+        }
+        return s;
+      });
+    }
+    
+    // Ordenar por prioridad
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    filtered.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+    
+    res.json({
+      suggestions: filtered.slice(0, 5), // Top 5 sugerencias
+      allAvailableGoals: availableGoals,
+      modelVersion: config.modelVersion,
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: 'Error al generar sugerencias de objetivos', 
+      error: error.message 
+    });
+  }
 });
 
 module.exports = router;

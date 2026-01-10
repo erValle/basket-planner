@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, inject, OnInit } from '@angular/core';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 
@@ -13,6 +13,7 @@ import { AppNotification, NotificationType } from '../../models/notification';
 import { AuthService } from '../../core/auth/auth.service';
 import { ROLE_LABELS, Role } from '../../core/auth/roles';
 import { NAV_ITEMS, canAccess } from '../../core/auth/permissions';
+import { ClubContextService } from '../../core/context/club-context.service';
 
 export type AppShellNavItem = {
 	label: string;
@@ -25,15 +26,16 @@ export type AppShellNavItem = {
 @Component({
 	selector: 'app-shell',
 	standalone: true,
-	imports: [CommonModule, RouterLink, RouterLinkActive, FormsModule, SelectModule, ButtonModule, ToastModule],
+	imports: [CommonModule, AsyncPipe, RouterLink, RouterLinkActive, FormsModule, SelectModule, ButtonModule, ToastModule],
 	templateUrl: './app-shell.html',
 	styleUrl: './app-shell.css',
 	providers: [MessageService],
 })
-export class AppShell {
+export class AppShell implements OnInit {
 	private readonly notificationsApi = inject(NotificationsApiService);
 	private readonly toast = inject(MessageService);
 	private readonly auth = inject(AuthService);
+	private readonly clubContext = inject(ClubContextService);
 
 	@Input({ required: true }) title = '';
 	@Input() subtitle = '';
@@ -70,6 +72,21 @@ export class AppShell {
 	notificationsLoading = false;
 	notificationsError: string | null = null;
 	notifications: AppNotification[] = [];
+
+	// Club selector
+	readonly clubOptions$ = this.clubContext.clubs$;
+	selectedClubId: number | null = this.clubContext.getSelectedClubIdSnapshot();
+
+	get showClubSelector(): boolean {
+		const role = this.auth.getRoleSnapshot();
+		return role === 'admin' || role === 'coach';
+	}
+
+	onClubChange(value: number | null): void {
+		if (value == null) return;
+		this.selectedClubId = value;
+		this.clubContext.setSelectedClubId(value);
+	}
 
 	get currentUserName(): string {
 		return this.auth.getSession()?.user?.name ?? 'Usuario';
@@ -164,5 +181,12 @@ export class AppShell {
 		} catch {
 			return iso;
 		}
+	}
+
+	getPanelLabel(): string {
+		const role = this.auth.getRoleSnapshot();
+		if (role === 'player') return 'Panel jugador';
+		if (role === 'admin') return 'Panel administrador';
+		return 'Panel entrenador';
 	}
 }

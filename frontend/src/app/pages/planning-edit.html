@@ -308,8 +308,8 @@
                                 pButton
                                 label="Añadir"
                                 class="p-button-text p-button-sm"
-                                [disabled]="!selectedMaterialName"
-                                (click)="selectedMaterialName && addMaterial(e, selectedMaterialName)"
+                                [disabled]="!selectedMaterialName()"
+                                (click)="selectedMaterialName() && addMaterial(e, selectedMaterialName()!)"
                               ></button>
                               <button type="button" pButton label="Limpiar" class="p-button-text p-button-sm" (click)="clearMaterial(e)"></button>
                             </div>
@@ -344,22 +344,20 @@
   </div>
 
   <!-- Diálogo de búsqueda de ejercicios -->
-  <p-dialog
-    styleClass="bp-dialog"
+  <bp-dialog
     header="Buscar ejercicio"
     [(visible)]="exerciseSearchDialogOpen"
-    [modal]="true"
-    [draggable]="false"
-    [resizable]="false"
-    [style]="{ width: 'min(900px, 96vw)', 'max-height': '80vh' }"
+    size="xl"
+    [showConfirm]="false"
+    cancelLabel="Cerrar"
+    (cancel)="closeExerciseSearch()"
   >
     <div class="space-y-4">
-      <div>
-        <label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
+      <div class="bp-dialog-field">
+        <label class="bp-dialog-label">Buscar</label>
         <input
           pInputText
           [(ngModel)]="exerciseSearchQuery"
-          (ngModelChange)="filterExercises()"
           placeholder="Nombre, tipo o descripción..."
           class="w-full"
         />
@@ -418,53 +416,38 @@
         </div>
       }
     </div>
-
-    <div class="mt-4 flex justify-end">
-      <button
-        type="button"
-        pButton
-        label="Cerrar"
-        severity="secondary"
-        [outlined]="true"
-        (click)="closeExerciseSearch()"
-        styleClass="bp-btn bp-btn-secondary"
-      ></button>
-    </div>
-  </p-dialog>
+  </bp-dialog>
 
   <!-- Modal de previsualización de ejercicio -->
-  <p-dialog
+  <bp-dialog
     [header]="selectedExerciseForPreview()?.name || 'Detalles del ejercicio'"
     [(visible)]="exercisePreviewDialogOpen"
-    [modal]="true"
-    [draggable]="false"
-    [closable]="true"
-    [dismissableMask]="true"
-    [style]="{ width: '600px', maxWidth: '90vw' }"
-    styleClass="bp-dialog"
-    (onHide)="closeExercisePreview()"
+    size="lg"
+    [showConfirm]="false"
+    cancelLabel="Cerrar"
+    (cancel)="closeExercisePreview()"
   >
     @if (selectedExerciseForPreview()) {
       <div class="space-y-4">
         <!-- Descripción -->
         @if (selectedExerciseForPreview()!.description) {
-          <div>
-            <label class="block text-[#9ca3af] text-[12px] font-semibold mb-2">Descripción</label>
+          <div class="bp-dialog-field">
+            <label class="bp-dialog-label">Descripción</label>
             <p class="text-[13px] text-[#e5e7eb]">{{ selectedExerciseForPreview()!.description }}</p>
           </div>
         }
 
         <!-- Información básica -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="bp-dialog-grid-2">
           @if (selectedExerciseForPreview()!.type) {
-            <div>
-              <label class="block text-[#9ca3af] text-[12px] font-semibold mb-2">Tipo</label>
+            <div class="bp-dialog-field">
+              <label class="bp-dialog-label">Tipo</label>
               <p-tag [value]="selectedExerciseForPreview()!.type" severity="info" styleClass="text-[11px]"></p-tag>
             </div>
           }
           @if (selectedExerciseForPreview()!.duration) {
-            <div>
-              <label class="block text-[#9ca3af] text-[12px] font-semibold mb-2">Duración</label>
+            <div class="bp-dialog-field">
+              <label class="bp-dialog-label">Duración</label>
               <p class="text-[13px] text-[#e5e7eb]">{{ Math.ceil(selectedExerciseForPreview()!.duration / 60) }} minutos</p>
             </div>
           }
@@ -472,9 +455,9 @@
 
         <!-- Dificultades 4D -->
         @if (selectedExerciseForPreview()!.difficulty && getDifficultyKeys().length > 0) {
-          <div>
-            <label class="block text-[#9ca3af] text-[12px] font-semibold mb-3">Dificultad (1-5)</label>
-            <div class="grid grid-cols-2 gap-3">
+          <div class="bp-dialog-field">
+            <label class="bp-dialog-label">Dificultad (1-5)</label>
+            <div class="grid grid-cols-2 gap-3 mt-2">
               @for (key of getDifficultyKeys(); track key) {
                 <div class="flex items-center justify-between p-3 rounded-lg bg-[#111827] border border-[#1f2937]">
                   <span class="text-[12px] text-[#9ca3af]">{{ getDifficultyLabel(key) }}</span>
@@ -499,18 +482,7 @@
             </div>
           </div>
         }
-
-        <!-- Botón cerrar -->
-        <div class="flex justify-end pt-2">
-          <button 
-            type="button" 
-            pButton 
-            label="Cerrar" 
-            class="p-button-text p-button-sm" 
-            (click)="closeExercisePreview()"
-          ></button>
-        </div>
       </div>
     }
-  </p-dialog>
+  </bp-dialog>
 </app-shell>

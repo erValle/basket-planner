@@ -12,6 +12,9 @@ export interface PlayerDto {
   status?: string;
   position?: string | null;
   category?: string | null;
+  maxCategory?: string | null;
+  height?: number | null;
+  dateOfBirth?: string | null;
   clubs?: Array<{ id: number; name: string }>;
   teams?: Array<{ id: number; name: string; category?: string | null; clubId?: number | null }>;
   createdAt?: string;

@@ -4,27 +4,27 @@ const app = require('../../app');
 const { signTestToken } = require('../helpers/jwtTestHelper');
 
 describe('Feedback API', () => {
-  it('POST /api/feedback without token returns 401', async () => {
-    const res = await request(app).post('/api/feedback').send({});
+  it('POST /api/feedbacks without token returns 401', async () => {
+    const res = await request(app).post('/api/feedbacks').send({});
     expect(res.status).toBe(401);
   });
 
-  it('POST /api/feedback validates body', async () => {
+  it('POST /api/feedbacks validates body', async () => {
     const token = signTestToken({ id: 123, role: 'player' });
 
     const res = await request(app)
-      .post('/api/feedback')
+      .post('/api/feedbacks')
       .set('Authorization', `Bearer ${token}`)
       .send({});
 
     expect(res.status).toBe(400);
   });
 
-  it('POST /api/feedback (contract) accepts payload shape', async () => {
+  it('POST /api/feedbacks (contract) accepts payload shape', async () => {
     const token = signTestToken({ id: 123, role: 'player' });
 
     const res = await request(app)
-      .post('/api/feedback')
+      .post('/api/feedbacks')
       .set('Authorization', `Bearer ${token}`)
       .send({
         trainingPlanVersionId: 1,
@@ -35,7 +35,7 @@ describe('Feedback API', () => {
     expect([201, 404, 500]).toContain(res.status);
   });
 
-  it('POST /api/feedback persists when USE_TEST_DB=1', async () => {
+  it('POST /api/feedbacks persists when USE_TEST_DB=1', async () => {
     if (process.env.USE_TEST_DB !== '1') {
       return;
     }
@@ -50,7 +50,7 @@ describe('Feedback API', () => {
   const versionId = 1;
 
     const res = await request(app)
-      .post('/api/feedback')
+      .post('/api/feedbacks')
       .set('Authorization', `Bearer ${token}`)
       .send({
         trainingPlanVersionId: versionId,

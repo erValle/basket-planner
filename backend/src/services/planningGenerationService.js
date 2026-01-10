@@ -4,6 +4,7 @@ const { getActiveModel } = require('../recommender/modelManager');
 const { getAllExercisesForRecommender } = require('./exerciseService');
 const { TrainingPlan, TrainingPlanVersion, Equipment } = require('../../models');
 const auditLogService = require('./auditLogService');
+const planAssignmentService = require('./planAssignmentService');
 
 const dayOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 
@@ -368,6 +369,24 @@ const generateIndividual = async (input, auditCtx = {}) => {
   // Establecer como versión activa
   await trainingPlan.update({ activeVersionId: version.id });
 
+  // Crear asignación automática para el atleta
+  if (profile.athleteId) {
+    try {
+      await planAssignmentService.createAssignment({
+        trainingPlanId: trainingPlan.id,
+        userId: profile.athleteId,
+        assignedById: auditCtx.user?.id || null,
+        status: 'assigned',
+        assignedAt: new Date()
+      });
+      
+      console.log(`✅ Asignación automática creada: Plan ${trainingPlan.id} → Usuario ${profile.athleteId}`);
+    } catch (err) {
+      console.error('⚠️  Error creando asignación automática:', err);
+      // No fallar la generación si falla la asignación
+    }
+  }
+
   // Audit log
   if (auditCtx.user) {
     await auditLogService.createAuditLog({
@@ -511,6 +530,28 @@ const generateGroup = async (input, auditCtx = {}) => {
 
   // Establecer como versión activa
   await trainingPlan.update({ activeVersionId: version.id });
+
+  // Crear asignaciones automáticas para todos los atletas del grupo
+  if (input.profiles && input.profiles.length > 0) {
+    const assignmentPromises = input.profiles.map(async (profile) => {
+      if (profile.athleteId) {
+        try {
+          await planAssignmentService.createAssignment({
+            trainingPlanId: trainingPlan.id,
+            userId: profile.athleteId,
+            assignedById: auditCtx.user?.id || null,
+            status: 'assigned',
+            assignedAt: new Date()
+          });
+          console.log(`✅ Asignación automática creada: Plan ${trainingPlan.id} → Usuario ${profile.athleteId}`);
+        } catch (err) {
+          console.error(`⚠️  Error creando asignación para usuario ${profile.athleteId}:`, err);
+        }
+      }
+    });
+    
+    await Promise.all(assignmentPromises);
+  }
 
   // Audit log
   if (auditCtx.user) {

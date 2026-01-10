@@ -62,20 +62,19 @@
 		}
 	</div>
 
-	<p-dialog
-		styleClass="bp-dialog"
+	<bp-dialog
 		header="Añadir jugadores al equipo"
 		[(visible)]="addDialogOpen"
-		[modal]="true"
-		[dismissableMask]="true"
-		[draggable]="false"
-		[resizable]="false"
-		[style]="{ width: 'min(900px, 95vw)' }"
-		(onHide)="closeAddDialog()"
+		[confirmLabel]="'Añadir ' + selectedPlayerIds().length + ' jugador(es)'"
+		[confirmDisabled]="saving() || selectedPlayerIds().length === 0"
+		[loading]="saving()"
+		(confirm)="addSelectedPlayers()"
+		(cancel)="closeAddDialog()"
+		size="lg"
 	>
 		<div class="grid grid-cols-1 gap-4">
-			<div>
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Buscar en jugadores disponibles</label>
+			<div class="bp-dialog-field">
+				<label class="bp-dialog-label">Buscar en jugadores disponibles</label>
 				<input 
 					pInputText 
 					[(ngModel)]="playerSearch" 
@@ -84,7 +83,7 @@
 					class="w-full" 
 					(ngModelChange)="searchInAvailable()"
 				/>
-				<div class="mt-2 text-[12px] text-[#94a3b8]">
+				<div class="bp-dialog-help">
 					Mostrando jugadores del club sin equipo asignado
 				</div>
 			</div>
@@ -98,7 +97,7 @@
 					pButton
 					label="Añadir seleccionados"
 					icon="pi pi-plus"
-					class="p-button-sm"
+					class="bp-btn bp-btn-primary bp-btn-sm"
 					[disabled]="saving() || selectedPlayerIds().length === 0"
 					(click)="addSelectedPlayers()"
 				></button>
@@ -142,7 +141,7 @@
 								type="button"
 								pButton
 								[label]="isSelected(player.id) ? 'Quitar' : 'Seleccionar'"
-								class="p-button-text p-button-sm"
+								class="bp-btn bp-btn-ghost bp-btn-sm"
 								[disabled]="saving()"
 								(click)="$event.stopPropagation(); toggleSelection(player.id)"
 							></button>
@@ -151,19 +150,5 @@
 				</div>
 			}
 		</div>
-
-		<ng-template pTemplate="footer">
-			<div class="flex justify-between gap-2">
-				<button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" (click)="closeAddDialog()"></button>
-				<button
-					type="button"
-					pButton
-					[label]="'Añadir ' + selectedPlayerIds().length + ' jugador(es)'"
-					class="p-button-sm"
-					[disabled]="saving() || selectedPlayerIds().length === 0"
-					(click)="addSelectedPlayers()"
-				></button>
-			</div>
-		</ng-template>
-	</p-dialog>
+	</bp-dialog>
 </app-shell>

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { authenticateToken } = require('../src/middlewares/auth');
+const { requireAuth } = require('../src/middlewares/rbac');
 
 // Minimal in-memory implementation to support the frontend.
 // Later: persist to DB + user scoping.
@@ -24,7 +24,7 @@ function seedIfEmpty() {
   ];
 }
 
-router.use(authenticateToken);
+router.use(requireAuth);
 
 router.get('/', (req, res) => {
   seedIfEmpty();

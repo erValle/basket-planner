@@ -8,7 +8,6 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TabsModule } from 'primeng/tabs';
 import { TableModule } from 'primeng/table';
-import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -16,6 +15,7 @@ import { SelectModule } from 'primeng/select';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
+import { BpDialog } from '../../components/bp-dialog';
 import { PlayerClubsApiService } from '../../services/player-clubs.api';
 import { ClubsApi, ClubDto } from '../../services/clubs.api';
 import { PlayerMembership } from '../../models/player-memberships';
@@ -55,7 +55,7 @@ export interface PlayerDetailModel {
     TagModule,
     TabsModule,
     TableModule,
-    DialogModule,
+    BpDialog,
     ToastModule,
     ConfirmDialogModule,
     DatePickerModule,

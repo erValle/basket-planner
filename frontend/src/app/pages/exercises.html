@@ -112,25 +112,25 @@
 									<div class="mt-4">
 										<div class="text-[12px] text-[#9ca3af] mb-2">Dificultad</div>
 										<div class="grid grid-cols-2 gap-2">
-											@if (exercise.dificultad?.tactica !== undefined) {
+											@if (exercise.dificultad.tactica !== undefined) {
 												<div class="flex items-center justify-between text-[11px] bg-[#020617] border border-[#1f2937] rounded px-2 py-1.5">
 													<span class="text-[#9ca3af]">Táctica</span>
 													<span class="text-[#e5e7eb] font-medium">{{ exercise.dificultad.tactica }}/5</span>
 												</div>
 											}
-											@if (exercise.dificultad?.tecnica !== undefined) {
+											@if (exercise.dificultad.tecnica !== undefined) {
 												<div class="flex items-center justify-between text-[11px] bg-[#020617] border border-[#1f2937] rounded px-2 py-1.5">
 													<span class="text-[#9ca3af]">Técnica</span>
 													<span class="text-[#e5e7eb] font-medium">{{ exercise.dificultad.tecnica }}/5</span>
 												</div>
 											}
-											@if (exercise.dificultad?.fisica !== undefined) {
+											@if (exercise.dificultad.fisica !== undefined) {
 												<div class="flex items-center justify-between text-[11px] bg-[#020617] border border-[#1f2937] rounded px-2 py-1.5">
 													<span class="text-[#9ca3af]">Física</span>
 													<span class="text-[#e5e7eb] font-medium">{{ exercise.dificultad.fisica }}/5</span>
 												</div>
 											}
-											@if (exercise.dificultad?.mental !== undefined) {
+											@if (exercise.dificultad.mental !== undefined) {
 												<div class="flex items-center justify-between text-[11px] bg-[#020617] border border-[#1f2937] rounded px-2 py-1.5">
 													<span class="text-[#9ca3af]">Mental</span>
 													<span class="text-[#e5e7eb] font-medium">{{ exercise.dificultad.mental }}/5</span>
@@ -173,15 +173,13 @@
 		</div>
 	</div>
 
-	<p-dialog
-		styleClass="bp-dialog"
+	<bp-dialog
 		[header]="dialogHeader"
 		[(visible)]="newExerciseVisible"
-		[modal]="true"
-		[draggable]="false"
-		[resizable]="false"
-		[style]="{ width: 'min(960px, 96vw)' }"
-		(onHide)="closeNewExercise()"
+		[showConfirm]="false"
+		[showCancel]="false"
+		size="xl"
+		(closed)="closeNewExercise()"
 	>
 		<app-exercise-form
 			[mode]="dialogMode"
@@ -189,5 +187,5 @@
 			(cancel)="closeNewExercise()"
 			(save)="saveNewExercise($event)"
 		/>
-	</p-dialog>
+	</bp-dialog>
 </app-shell>

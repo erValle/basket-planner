@@ -48,7 +48,7 @@ const listPlayers = async ({ search, clubId, teamId, withoutTeam, limit } = {}) 
 
   const rows = await User.findAll({
     where,
-    attributes: ['id', 'firstName', 'lastName', 'email', 'role', 'status', 'position', 'category'],
+    attributes: ['id', 'firstName', 'lastName', 'email', 'role', 'status', 'position', 'category', 'maxCategory', 'height', 'dateOfBirth'],
     include,
     limit: limit ? Number(limit) : undefined,
     order: [
@@ -89,6 +89,9 @@ const listPlayers = async ({ search, clubId, teamId, withoutTeam, limit } = {}) 
       status: json.status,
       position: json.position,
       category: json.category,
+      maxCategory: json.maxCategory,
+      height: json.height,
+      dateOfBirth: json.dateOfBirth,
       clubs,
       teams,
     };

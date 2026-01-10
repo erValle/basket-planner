@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
-const ROLE_VALUES = ['admin', 'technical_director', 'coach', 'staff', 'player'];
-const STATUS_VALUES = ['pending', 'active', 'blocked'];
+const ROLE_VALUES = ['admin', 'technical_director', 'coach', 'player', 'user'];
+const STATUS_VALUES = ['pending', 'active', 'inactive'];
 
 const userQuerySchema = Joi.object({
   email: Joi.string().email().optional(), // partial handled by controller with iLike; still ensure valid email format? allow relaxed

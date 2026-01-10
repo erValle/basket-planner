@@ -6,7 +6,6 @@ import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
-import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
@@ -16,6 +15,7 @@ import { MessageService } from 'primeng/api';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog/bp-dialog';
 
 import { AuditApiService } from '../services/audit.api';
 import { AuditAction, AuditLogDetail, AuditLogListItem } from '../models/audit';
@@ -32,7 +32,7 @@ type Option = { label: string; value: string };
     ButtonModule,
     SelectModule,
     TableModule,
-    DialogModule,
+    BpDialog,
     TagModule,
     ToastModule,
     ProgressSpinnerModule,

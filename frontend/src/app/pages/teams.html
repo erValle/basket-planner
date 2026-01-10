@@ -79,65 +79,72 @@
 		}
 	</div>
 
-	<p-dialog
-		styleClass="bp-dialog"
+	<bp-dialog
 		[header]="dialogMode === 'create' ? 'Nuevo equipo' : 'Editar equipo'"
 		[(visible)]="teamDialogVisible"
-		[modal]="true"
-		[dismissableMask]="true"
-		[draggable]="false"
-		[resizable]="false"
-		[style]="{ width: 'min(760px, 95vw)' }"
-		(onHide)="closeDialog()"
+		[confirmLabel]="'Guardar'"
+		[confirmDisabled]="!draft.name.trim()"
+		(confirm)="saveDialog()"
+		(cancel)="closeDialog()"
+		size="md"
 	>
-		<div class="grid grid-cols-2 gap-4">
-			<div class="col-span-2">
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre</label>
-				<input pInputText [(ngModel)]="draft.name" name="teamName" placeholder="Ej.: Senior Masculino" class="w-full" />
-			</div>
-			<div>
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Club</label>
-				<p-select
-					[options]="clubOptions"
-					[(ngModel)]="draft.clubId"
-					name="teamClub"
-					optionLabel="label"
-					optionValue="value"
-					styleClass="bp-select"
-					[panelStyleClass]="'bp-select-panel'"
-				></p-select>
-			</div>
-			<div>
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Categoría</label>
-				<p-select
-					[options]="categoryOptionsWithoutAll"
-					[(ngModel)]="draft.category"
-					name="teamCategory"
-					optionLabel="label"
-					optionValue="value"
-					styleClass="bp-select"
-					[panelStyleClass]="'bp-select-panel'"
-				></p-select>
-			</div>
-			<div>
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Estado</label>
-				<p-select
-					[options]="[{ label: 'Activo', value: 'active' }, { label: 'Inactivo', value: 'inactive' }]"
-					[(ngModel)]="draft.status"
-					name="teamStatus"
-					optionLabel="label"
-					optionValue="value"
-					styleClass="bp-select"
-					[panelStyleClass]="'bp-select-panel'"
-				></p-select>
+		<div class="bp-dialog-section">
+			<div class="bp-dialog-section-title">Información del equipo</div>
+			<div class="bp-dialog-grid-2">
+				<div class="bp-dialog-field span-2">
+					<label class="bp-dialog-label bp-dialog-label-required">Nombre</label>
+					<input pInputText [(ngModel)]="draft.name" name="teamName" placeholder="Ej.: Senior Masculino" class="w-full" />
+				</div>
+				<div class="bp-dialog-field">
+					<label class="bp-dialog-label bp-dialog-label-required">Club</label>
+					<p-select
+						[options]="clubOptions"
+						[(ngModel)]="draft.clubId"
+						name="teamClub"
+						optionLabel="label"
+						optionValue="value"
+						styleClass="bp-select w-full"
+						[panelStyleClass]="'bp-select-panel'"
+					></p-select>
+				</div>
+				<div class="bp-dialog-field">
+					<label class="bp-dialog-label bp-dialog-label-required">Categoría</label>
+					<p-select
+						[options]="categoryOptionsWithoutAll"
+						[(ngModel)]="draft.category"
+						name="teamCategory"
+						optionLabel="label"
+						optionValue="value"
+						styleClass="bp-select w-full"
+						[panelStyleClass]="'bp-select-panel'"
+					></p-select>
+				</div>
+				<div class="bp-dialog-field">
+					<label class="bp-dialog-label">Entrenador</label>
+					<p-select
+						[options]="coachOptions"
+						[(ngModel)]="draft.coachId"
+						name="teamCoach"
+						optionLabel="label"
+						optionValue="value"
+						styleClass="bp-select w-full"
+						[panelStyleClass]="'bp-select-panel'"
+						placeholder="Seleccionar entrenador"
+					></p-select>
+				</div>
+				<div class="bp-dialog-field">
+					<label class="bp-dialog-label">Estado</label>
+					<p-select
+						[options]="[{ label: 'Activo', value: 'active' }, { label: 'Inactivo', value: 'inactive' }]"
+						[(ngModel)]="draft.status"
+						name="teamStatus"
+						optionLabel="label"
+						optionValue="value"
+						styleClass="bp-select w-full"
+						[panelStyleClass]="'bp-select-panel'"
+					></p-select>
+				</div>
 			</div>
 		</div>
-
-		<ng-template pTemplate="footer">
-			<div class="flex justify-between gap-2">
-				<button type="button" pButton label="Cancelar" class="p-button-text p-button-sm" (click)="closeDialog()"></button>
-				<button type="button" pButton label="Guardar" class="p-button-sm" (click)="saveDialog()"></button>
-			</div>
-		</ng-template>
-	</p-dialog>
+	</bp-dialog>
 </app-shell>

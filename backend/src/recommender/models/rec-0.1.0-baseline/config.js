@@ -1,7 +1,3 @@
-/**
- * Configuración del modelo de recomendación baseline (versión 0.1.0)
- * Este modelo no es reentrenable, usa reglas heurísticas fijas.
- */
 
 module.exports = {
   // Identificador del modelo

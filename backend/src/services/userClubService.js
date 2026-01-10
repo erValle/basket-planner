@@ -21,14 +21,11 @@ const getUserClubById = async (id) => {
 };
 
 const createUserClub = async (payload) => {
-  console.log('📝 Creating UserClub with payload:', payload);
   try {
     const result = await UserClub.create(payload);
-    console.log('✅ UserClub created successfully:', result.id);
     return result;
   } catch (error) {
     console.error('❌ Error creating UserClub:', error.message);
-    console.error('Payload was:', payload);
     throw error;
   }
 };

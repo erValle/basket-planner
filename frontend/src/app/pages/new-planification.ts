@@ -11,7 +11,6 @@ import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
 import { ChipModule } from 'primeng/chip';
 import { CheckboxModule } from 'primeng/checkbox';
-import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -19,6 +18,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 import { PlayerSelectCard } from '../components/player-select-card/player-select-card';
+import { BpDialog } from '../components/bp-dialog';
 
 import { PlanificationsApi } from '../services/planifications.api';
 import { PlanificationDraft } from '../models/planification';
@@ -27,6 +27,8 @@ import { TeamsApi, TeamDto } from '../services/teams.api';
 import { ClubContextService } from '../core/context/club-context.service';
 import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
 import { ClubResourcesStore } from '../core/stores/club-resources.store';
+import { RecommenderApiService } from '../services/recommender.api';
+import { GoalSuggestion } from '../models/recommender';
 
 type Step = { number: number; label: string };
 type Option = { label: string; value: string };
@@ -45,7 +47,7 @@ type Option = { label: string; value: string };
     SelectModule,
 		ChipModule,
 		CheckboxModule,
-		DialogModule,
+		BpDialog,
 		ToastModule,
 		ConfirmDialogModule,
 		AppShell,
@@ -290,6 +292,7 @@ export class NewPlanification {
     private readonly clubContext: ClubContextService,
     private readonly equipmentApi: EquipmentApi,
     private readonly clubResources: ClubResourcesStore,
+    private readonly recommenderApi: RecommenderApiService,
   ) {
 	this.loadTeams();
 	this.loadPlayers();
@@ -525,6 +528,76 @@ export class NewPlanification {
 
   completedDialogVisible = false;
   generatedResultId: string | null = null;
+
+  // Goal suggestions
+  suggestionsDialogVisible = false;
+  loadingSuggestions = false;
+  suggestionsError: string | null = null;
+  goalSuggestions: GoalSuggestion[] = [];
+
+  openSuggestionsDialog(): void {
+    this.suggestionsDialogVisible = true;
+    this.loadGoalSuggestions();
+  }
+
+  loadGoalSuggestions(): void {
+    this.loadingSuggestions = true;
+    this.suggestionsError = null;
+    
+    this.recommenderApi.suggestGoals({
+      context: {
+        playerLevel: 'intermediate', // Podríamos inferir esto del jugador seleccionado
+        intensity: this.formData.intensity === 'Baja' ? 'low' : this.formData.intensity === 'Alta' ? 'high' : 'medium',
+        sessionDuration: this.formData.duration,
+      }
+    }).subscribe({
+      next: (response) => {
+        this.loadingSuggestions = false;
+        this.goalSuggestions = response.suggestions;
+      },
+      error: (e: unknown) => {
+        this.loadingSuggestions = false;
+        this.suggestionsError = e instanceof Error ? e.message : 'No se pudieron cargar las sugerencias';
+        this.goalSuggestions = [];
+      }
+    });
+  }
+
+  applySuggestion(suggestion: GoalSuggestion): void {
+    // Mapear el goal del backend al label del frontend
+    const matchingOption = this.objectiveOptions.find(opt => 
+      opt.label.toLowerCase().includes(suggestion.label.toLowerCase()) ||
+      suggestion.label.toLowerCase().includes(opt.label.toLowerCase())
+    );
+    
+    if (matchingOption && !matchingOption.disabled) {
+      this.formData.objective = matchingOption.value;
+      this.suggestionsDialogVisible = false;
+      this.toast.add({
+        severity: 'info',
+        summary: 'Objetivo aplicado',
+        detail: `Se ha seleccionado: ${matchingOption.label}`,
+      });
+    }
+  }
+
+  getPriorityColor(priority: string): string {
+    switch (priority) {
+      case 'high': return '#22c55e';
+      case 'medium': return '#f59e0b';
+      case 'low': return '#6b7280';
+      default: return '#6b7280';
+    }
+  }
+
+  getPriorityLabel(priority: string): string {
+    switch (priority) {
+      case 'high': return 'Alta';
+      case 'medium': return 'Media';
+      case 'low': return 'Baja';
+      default: return 'Media';
+    }
+  }
 
   private buildDraft(): PlanificationDraft {
     // make sure tags reflect the latest input before sending

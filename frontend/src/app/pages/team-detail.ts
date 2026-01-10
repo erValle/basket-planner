@@ -7,11 +7,11 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
-import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog/bp-dialog';
 import { TeamsApi, TeamDto, TeamPlayerDto } from '../services/teams.api';
 import { PlayersApi, PlayerDto } from '../services/players.api';
 import { AuthService } from '../core/auth/auth.service';
@@ -27,7 +27,7 @@ import { hasRole } from '../core/auth/roles';
     InputTextModule,
     TagModule,
     ToastModule,
-    DialogModule,
+    BpDialog,
     AppShell,
     PageHeader,
   ],
@@ -219,6 +219,7 @@ export class TeamDetail {
         this.selectedPlayerIds.set([]);
         this.closeAddDialog();
         this.loadPlayers();
+        this.load(); // Recargar el equipo para actualizar el contador
       },
       error: (e: unknown) => {
         this.saving.set(false);
@@ -243,6 +244,7 @@ export class TeamDetail {
         this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Jugador añadido.' });
         this.selectedPlayerIds.update(ids => ids.filter((id) => id !== userId));
         this.loadPlayers();
+        this.load(); // Recargar el equipo para actualizar el contador
       },
       error: (e: unknown) => {
         this.saving.set(false);
@@ -261,6 +263,7 @@ export class TeamDetail {
         this.saving.set(false);
         this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Jugador eliminado.' });
         this.loadPlayers();
+        this.load(); // Recargar el equipo para actualizar el contador
       },
       error: (e: unknown) => {
         this.saving.set(false);

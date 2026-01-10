@@ -8,11 +8,11 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { DialogModule } from 'primeng/dialog';
 import { MessageService } from 'primeng/api';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog';
 
 import { UsersApiService } from '../services/users.api';
 import { AdminUserRole, AdminUserStatus, AdminUserUpsertPayload } from '../models/user-admin';
@@ -31,7 +31,7 @@ type Option = { label: string; value: string | null };
     SelectModule,
     ToastModule,
     ProgressSpinnerModule,
-    DialogModule,
+    BpDialog,
     PageHeader,
     AppShell,
   ],
@@ -50,9 +50,10 @@ export class AdminUserForm {
   roleOptions: Option[] = [
     { label: 'Sin rol', value: null },
     { label: 'Admin', value: 'admin' },
+    { label: 'Director Técnico', value: 'technical_director' },
     { label: 'Entrenador', value: 'coach' },
-    { label: 'Staff', value: 'staff' },
     { label: 'Jugador', value: 'player' },
+    { label: 'Usuario', value: 'user' },
   ];
 
   statusOptions: Option[] = [

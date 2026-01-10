@@ -6,6 +6,7 @@ export interface ClubDto {
   id: number;
   name: string;
   city?: string | null;
+  active?: boolean;
   teamsCount?: number;
   createdAt?: string;
   updatedAt?: string;
@@ -14,11 +15,13 @@ export interface ClubDto {
 export interface ClubCreatePayload {
   name: string;
   city?: string | null;
+  status?: 'active' | 'inactive';
 }
 
 export interface ClubUpdatePayload {
   name?: string;
   city?: string | null;
+  status?: 'active' | 'inactive';
 }
 
 @Injectable({ providedIn: 'root' })

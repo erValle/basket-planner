@@ -44,7 +44,7 @@ const listExercises = async ({ type, difficulty, tags } = {}) => {
 
 const getExerciseById = async (id) => {
   const ex = await Exercise.findByPk(id, {
-    include: [{ model: Equipment, through: { attributes: ['quantity'] } }],
+    include: [{ model: Equipment, through: { attributes: [] } }],
   });
   if (!ex) {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'EXERCISE_NOT_FOUND', 'Exercise not found');
@@ -194,7 +194,7 @@ const listExercisesPaginated = async (query = {}) => {
   // Consulta paginada
   const { count, rows } = await Exercise.findAndCountAll({
     where,
-    include: [{ model: Equipment, as: 'equipmentItems', through: { attributes: ['quantity'] } }],
+    include: [{ model: Equipment, as: 'equipmentItems', through: { attributes: [] } }],
     limit,
     offset,
     order: [['name', 'ASC']],

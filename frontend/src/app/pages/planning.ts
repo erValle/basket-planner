@@ -13,13 +13,13 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog';
 
 import { PlanningApiService } from '../services/planning.api';
 import { ClubContextService } from '../core/context/club-context.service';
@@ -47,7 +47,7 @@ type Option = { label: string; value: string };
     ToastModule,
     ConfirmDialogModule,
     ProgressSpinnerModule,
-    DialogModule,
+    BpDialog,
     TextareaModule,
     PageHeader,
     AppShell,

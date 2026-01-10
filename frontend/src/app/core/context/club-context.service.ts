@@ -38,10 +38,10 @@ export class ClubContextService {
 
 		// For admin/coach/technical_director: show all clubs (they manage multiple)
 		// For players: show only their assigned clubs via user_clubs
-		const isStaff = role === 'admin' || role === 'coach' || role === 'staff';
+		const isStaff = role === 'admin' || role === 'technical_director' || role === 'coach';
 
 		if (isStaff) {
-			// Staff users can see all clubs
+			// Admin, technical director and coach users can see all clubs
 			this.clubsApi.list().subscribe({
 				next: (items) => {
 					this.clubsSubject.next(items ?? []);
