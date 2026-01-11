@@ -34,9 +34,9 @@ export class PlayerSelection {
     { id: '3', nombre: 'Miguel Ángel Ruiz', posicion: 'Escolta', categoria: 'Senior' },
     { id: '4', nombre: 'David Martín', posicion: 'Pívot', categoria: 'Senior' },
     { id: '5', nombre: 'Alberto Sánchez', posicion: 'Ala-Pívot', categoria: 'Senior' },
-    { id: '6', nombre: 'Javier González', posicion: 'Base', categoria: 'Junior' },
-    { id: '7', nombre: 'Pablo Fernández', posicion: 'Alero', categoria: 'Junior' },
-    { id: '8', nombre: 'Sergio Rodríguez', posicion: 'Escolta', categoria: 'Junior' },
+    { id: '6', nombre: 'Javier González', posicion: 'Base', categoria: 'Juvenil' },
+    { id: '7', nombre: 'Pablo Fernández', posicion: 'Alero', categoria: 'Juvenil' },
+    { id: '8', nombre: 'Sergio Rodríguez', posicion: 'Escolta', categoria: 'Juvenil' },
   ];
 
   @Output() cancel = new EventEmitter<void>();

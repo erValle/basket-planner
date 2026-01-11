@@ -10,7 +10,7 @@ export type DialogSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
   standalone: true,
   imports: [CommonModule, DialogModule, ButtonModule],
   templateUrl: './bp-dialog.html',
-  styleUrl: './bp-dialog.css',
+  styleUrl: './bp-dialog.scss',
 })
 export class BpDialog {
   /** Título del diálogo */

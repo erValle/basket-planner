@@ -58,8 +58,8 @@ describe('Planning Generation API', () => {
         intensity: 'high'
       },
       profiles: [
-        { athleteId: 1, level: 'intermediate', position: 'guard' },
-        { athleteId: 2, level: 'beginner', position: 'forward' }
+        { athleteId: 1, level: 'intermediate', position: 'base' },
+        { athleteId: 2, level: 'beginner', position: 'ala-pivot' }
       ],
       goals: ['conditioning'],
       constraints: {

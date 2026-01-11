@@ -560,93 +560,11 @@
   </bp-dialog>
 
   <!-- Goal Suggestions Dialog -->
-  <bp-dialog
-    header="Sugerencias de objetivos"
+  <app-goal-suggestions-dialog
     [(visible)]="suggestionsDialogVisible"
-    size="xl"
-    [showConfirm]="false"
-    cancelLabel="Cerrar"
-    (cancel)="suggestionsDialogVisible = false"
-  >
-    <div class="text-[13px] text-[#9ca3af] mb-4">
-      Estas sugerencias están basadas en tu configuración actual (intensidad: {{ formData.intensity }}, duración: {{ formData.duration }} min).
-    </div>
-
-    @if (loadingSuggestions) {
-      <div class="text-center py-8 text-[#9ca3af]">
-        <i class="pi pi-spin pi-spinner text-[32px]"></i>
-        <div class="mt-3">Generando sugerencias...</div>
-      </div>
-    } @else if (suggestionsError) {
-      <div class="rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-[13px] text-red-200">
-        {{ suggestionsError }}
-      </div>
-      <div class="mt-3 flex justify-end">
-        <button
-          type="button"
-          pButton
-          label="Reintentar"
-          icon="pi pi-refresh"
-          class="p-button-text p-button-sm"
-          (click)="loadGoalSuggestions()"
-        ></button>
-      </div>
-    } @else if (goalSuggestions.length === 0) {
-      <div class="text-center py-8 text-[#9ca3af]">
-        No hay sugerencias disponibles en este momento.
-      </div>
-    } @else {
-      <div class="space-y-3">
-        @for (suggestion of goalSuggestions; track suggestion.goal) {
-          <div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4 hover:border-[#0ea5e9]/50 transition-colors cursor-pointer"
-               (click)="applySuggestion(suggestion)">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                  <div class="text-[14px] font-semibold text-[#f9fafb]">{{ suggestion.label }}</div>
-                  <div 
-                    class="text-[11px] px-2 py-0.5 rounded"
-                    [style.background-color]="getPriorityColor(suggestion.priority) + '20'"
-                    [style.color]="getPriorityColor(suggestion.priority)"
-                  >
-                    {{ getPriorityLabel(suggestion.priority) }}
-                  </div>
-                </div>
-                <div class="text-[12px] text-[#9ca3af] mb-2">{{ suggestion.reason }}</div>
-                <div class="flex items-center gap-2 text-[11px] text-[#6b7280]">
-                  <i class="pi pi-clock"></i>
-                  <span>~{{ suggestion.estimatedDuration }} min estimados</span>
-                  <span class="mx-1">·</span>
-                  <span>{{ suggestion.relevantTags.length }} etiquetas relevantes</span>
-                </div>
-              </div>
-              <button
-                type="button"
-                pButton
-                icon="pi pi-check"
-                class="p-button-rounded p-button-text p-button-sm"
-                (click)="$event.stopPropagation(); applySuggestion(suggestion)"
-              ></button>
-            </div>
-            
-            @if (suggestion.relevantTags.length > 0) {
-              <div class="mt-3 pt-3 border-t border-[#1f2937] flex flex-wrap gap-1">
-                @for (tag of suggestion.relevantTags.slice(0, 8); track tag) {
-                  <span class="text-[10px] px-2 py-1 rounded bg-[#0ea5e9]/10 text-[#0ea5e9]">
-                    {{ tag }}
-                  </span>
-                }
-                @if (suggestion.relevantTags.length > 8) {
-                  <span class="text-[10px] px-2 py-1 text-[#6b7280]">
-                    +{{ suggestion.relevantTags.length - 8 }} más
-                  </span>
-                }
-              </div>
-            }
-          </div>
-        }
-      </div>
-    }
-  </bp-dialog>
+    [intensity]="formData.intensity"
+    [duration]="formData.duration"
+    (select)="applySuggestion($event)"
+  ></app-goal-suggestions-dialog>
 
 </app-shell>

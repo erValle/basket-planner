@@ -41,6 +41,7 @@ const createAuditLog = async ({ user, action, entity, entityId, requestId, metad
 const listAuditLogsPaged = async ({
   page = 1,
   pageSize = 20,
+  limit, // Alias for pageSize from frontend
   action,
   entity,
   entityId,
@@ -71,13 +72,15 @@ const listAuditLogsPaged = async ({
     if (to) where.createdAt[Op.lte] = new Date(to);
   }
 
-  const limit = Math.min(Math.max(parseInt(pageSize, 10) || 20, 1), 100);
-  const offset = (Math.max(parseInt(page, 10) || 1, 1) - 1) * limit;
+  // Use limit as alias for pageSize if provided
+  const effectivePageSize = limit ?? pageSize;
+  const limitVal = Math.min(Math.max(parseInt(effectivePageSize, 10) || 20, 1), 200);
+  const offset = (Math.max(parseInt(page, 10) || 1, 1) - 1) * limitVal;
 
   const { rows, count } = await AuditLog.findAndCountAll({
     where,
     order: [['createdAt', 'DESC']],
-    limit,
+    limit: limitVal,
     offset,
     include: User
       ? [
@@ -117,17 +120,65 @@ const listAuditLogsPaged = async ({
     };
   });
 
-  const totalPages = Math.ceil(count / limit);
+  const totalPages = Math.ceil(count / limitVal);
   return {
     items,
     page: Math.max(parseInt(page, 10) || 1, 1),
-    pageSize: limit,
+    pageSize: limitVal,
     total: count,
     totalPages,
+  };
+};
+
+/**
+ * Get a single audit log by ID
+ */
+const getAuditLogById = async (id) => {
+  if (!AuditLog) return null;
+
+  const { User } = require('../../models');
+
+  const row = await AuditLog.findByPk(id, {
+    include: User
+      ? [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['id', 'email', 'name', 'firstName', 'lastName'],
+          },
+        ]
+      : [],
+  });
+
+  if (!row) return null;
+
+  const json = row.toJSON ? row.toJSON() : row;
+  const user = json.user;
+  const actorName =
+    user?.name ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
+    user?.email ||
+    `User ${json.userId ?? 'unknown'}`;
+
+  return {
+    id: String(json.id),
+    createdAt: json.createdAt,
+    action: json.action,
+    entity: json.entity,
+    entityId: json.entityId ?? '',
+    requestId: json.requestId ?? '',
+    metadata: json.metadata,
+    summary: `${json.action} ${json.entity}${json.entityId ? ` #${json.entityId}` : ''}`,
+    actor: {
+      id: String(json.userId ?? ''),
+      name: actorName,
+      email: user?.email ?? '',
+    },
   };
 };
 
 module.exports = {
   createAuditLog,
   listAuditLogsPaged,
+  getAuditLogById,
 };

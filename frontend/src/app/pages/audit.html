@@ -44,28 +44,32 @@
           <div class="text-[13px] text-[#e5e7eb]">{{ selected.summary }}</div>
         </div>
 
-        <div>
-          <div class="text-[12px] text-[#9ca3af] mb-2">Metadata (JSON)</div>
-          <pre class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[320px]">{{ prettyJson(selected.metadata) }}</pre>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <div class="text-[12px] text-[#9ca3af] mb-2">Request (JSON)</div>
-            <pre class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[260px]">{{ prettyJson(selected.request) }}</pre>
-          </div>
-          <div>
-            <div class="text-[12px] text-[#9ca3af] mb-2">Response (JSON)</div>
-            <pre class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[260px]">{{ prettyJson(selected.response) }}</pre>
-          </div>
-        </div>
-
-        @if (selected.diff) {
-          <div>
-            <div class="text-[12px] text-[#9ca3af] mb-2">Diff (JSON)</div>
-            <pre class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[260px]">{{ prettyJson(selected.diff) }}</pre>
+        @if (selected.requestId) {
+          <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-4 py-3">
+            <div class="text-[11px] text-[#9ca3af]">Request ID</div>
+            <div class="text-[13px] text-[#e5e7eb] font-mono">{{ selected.requestId }}</div>
           </div>
         }
+
+        @if (selected.metadata) {
+          <div>
+            <div class="text-[12px] text-[#9ca3af] mb-2">Metadata (JSON)</div>
+            <pre class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[320px]">{{ prettyJson(selected.metadata) }}</pre>
+          </div>
+        }
+
+        <!-- Export functionality commented out for future use
+        <div class="flex justify-end gap-2 pt-4 border-t border-[#1f2937]">
+          <button
+            type="button"
+            pButton
+            label="Exportar JSON"
+            icon="pi pi-download"
+            class="p-button-text p-button-sm"
+            (click)="exportDetailAsJson(selected)"
+          ></button>
+        </div>
+        -->
       </div>
     }
   </bp-dialog>

@@ -6,7 +6,7 @@ const individualGenerateSchema = Joi.object({
   profile: Joi.object({
     athleteId: Joi.number().integer().positive().required(),
     level: Joi.string().valid('beginner', 'intermediate', 'advanced').default('intermediate'),
-    position: Joi.string().valid('guard', 'forward', 'center').optional(),
+    position: Joi.string().valid('base', 'escolta', 'alero', 'ala-pivot', 'pivot').optional(),
     numberOfSessions: Joi.number().integer().min(1).max(20).optional(),
     sessionDurationMinutes: Joi.number().integer().min(15).max(240).default(75),
     intensity: Joi.string().valid(...intensityValues).default('medium'),
@@ -44,7 +44,7 @@ const groupGenerateSchema = Joi.object({
       Joi.object({
         athleteId: Joi.number().integer().positive().required(),
         level: Joi.string().valid('beginner', 'intermediate', 'advanced').default('intermediate'),
-        position: Joi.string().valid('guard', 'forward', 'center').optional()
+        position: Joi.string().valid('base', 'escolta', 'alero', 'ala-pivot', 'pivot').optional()
       })
     )
     .min(2)

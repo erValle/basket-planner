@@ -1,7 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -22,7 +21,6 @@ import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operato
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     ButtonModule,
     BpDialog,
     InputTextModule,

@@ -2,7 +2,8 @@ import { Injectable, inject } from '@angular/core';
 
 import { ApiClient } from './api-client';
 
-export type ExerciseType = 'cardio' | 'strength' | 'flexibility' | 'balance';
+// Tipos de ejercicios específicos para baloncesto
+export type ExerciseType = 'tecnico' | 'tactico' | 'fisico' | 'tiro' | 'defensa' | 'ataque';
 
 export interface ExerciseDto {
   id: number;

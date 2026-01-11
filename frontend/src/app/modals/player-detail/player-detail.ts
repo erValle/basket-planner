@@ -19,6 +19,7 @@ import { BpDialog } from '../../components/bp-dialog';
 import { PlayerClubsApiService } from '../../services/player-clubs.api';
 import { ClubsApi, ClubDto } from '../../services/clubs.api';
 import { PlayerMembership } from '../../models/player-memberships';
+import { POSITION_OPTIONS } from '../../constants/planning-options';
 
 type PlayerStatus = 'active' | 'revision';
 
@@ -73,6 +74,7 @@ export class PlayerDetail {
   @Output() save = new EventEmitter<PlayerDetailModel>();
 
   activeTabIndex = 0;
+  readonly positionOptions = POSITION_OPTIONS;
 
   // Memberships tab state
   membershipsLoading = false;

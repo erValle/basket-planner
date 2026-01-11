@@ -1,55 +1,50 @@
 const { StatusCodes } = require('http-status-codes');
-const logger = require('../middlewares/logger');
+const { asyncHandler } = require('../middlewares/asyncHandler');
 const clubService = require('../services/clubService');
 
-const listClubs = async (req, res, next) => {
-  try {
-    const clubs = await clubService.listClubs(req.query);
-    return res.status(StatusCodes.OK).json(clubs);
-  } catch (error) {
-    logger.error('Error fetching clubs:', error);
-    return next(error);
-  }
-};
+/**
+ * @route GET /api/clubs
+ * @desc List all clubs with optional filters
+ */
+const listClubs = asyncHandler(async (req, res) => {
+  const clubs = await clubService.listClubs(req.query);
+  return res.status(StatusCodes.OK).json(clubs);
+});
 
-const getClub = async (req, res, next) => {
-  try {
-    const club = await clubService.getClubById(req.params.id);
-    return res.status(StatusCodes.OK).json(club);
-  } catch (error) {
-    logger.error('Error fetching club:', error);
-    return next(error);
-  }
-};
+/**
+ * @route GET /api/clubs/:id
+ * @desc Get a single club by ID
+ */
+const getClub = asyncHandler(async (req, res) => {
+  const club = await clubService.getClubById(req.params.id);
+  return res.status(StatusCodes.OK).json(club);
+});
 
-const createClub = async (req, res, next) => {
-  try {
-    const club = await clubService.createClub(req.body);
-    return res.status(StatusCodes.CREATED).json(club);
-  } catch (error) {
-    logger.error('Error creating club:', error);
-    return next(error);
-  }
-};
+/**
+ * @route POST /api/clubs
+ * @desc Create a new club
+ */
+const createClub = asyncHandler(async (req, res) => {
+  const club = await clubService.createClub(req.body);
+  return res.status(StatusCodes.CREATED).json(club);
+});
 
-const updateClub = async (req, res, next) => {
-  try {
-    const club = await clubService.updateClub(req.params.id, req.body);
-    return res.status(StatusCodes.OK).json(club);
-  } catch (error) {
-    logger.error('Error updating club:', error);
-    return next(error);
-  }
-};
+/**
+ * @route PUT /api/clubs/:id
+ * @desc Update an existing club
+ */
+const updateClub = asyncHandler(async (req, res) => {
+  const club = await clubService.updateClub(req.params.id, req.body);
+  return res.status(StatusCodes.OK).json(club);
+});
 
-const deleteClub = async (req, res, next) => {
-  try {
-    await clubService.deleteClub(req.params.id);
-    return res.status(StatusCodes.NO_CONTENT).send();
-  } catch (error) {
-    logger.error('Error deleting club:', error);
-    return next(error);
-  }
-};
+/**
+ * @route DELETE /api/clubs/:id
+ * @desc Delete a club
+ */
+const deleteClub = asyncHandler(async (req, res) => {
+  await clubService.deleteClub(req.params.id);
+  return res.status(StatusCodes.NO_CONTENT).send();
+});
 
 module.exports = { listClubs, getClub, createClub, updateClub, deleteClub };

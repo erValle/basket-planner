@@ -356,26 +356,26 @@ export class Exercises implements OnInit {
   private mapUiToApiType(ui: UiType): ExerciseType {
     // Mapeo de tipos específicos de basketball a tipos de API
     const mapping: Record<UiType, ExerciseType> = {
-      'TECNICA_BOTE': 'strength',
-      'FINALIZACION_ARO': 'strength',
-      'TIRO': 'strength',
-      'PASE': 'strength',
-      'TACTICA_ATAQUE': 'balance',
-      'TACTICA_ATAQUE_DEFENSA': 'balance',
-      'DEFENSA_EQUIPO': 'balance',
-      'DEFENSA_INDIVIDUAL': 'strength',
-      'DEFENSA_FUNDAMENTOS': 'strength',
-      'REBOTE': 'strength',
-      'TECNICA_POSTE': 'strength',
-      'ATAQUE_INDIVIDUAL': 'strength',
-      'TECNICA_PIES': 'balance',
-      'CONDICIONAMIENTO_FISICO': 'cardio',
-      'MOVILIDAD_RECUPERACION': 'flexibility',
-      'TACTICA_TRANSICION': 'cardio',
-      'ABP_SAQUES': 'balance',
-      'JUEGO_REDUCIDO': 'balance',
+      'TECNICA_BOTE': 'tecnico',
+      'FINALIZACION_ARO': 'tiro',
+      'TIRO': 'tiro',
+      'PASE': 'tecnico',
+      'TACTICA_ATAQUE': 'ataque',
+      'TACTICA_ATAQUE_DEFENSA': 'tactico',
+      'DEFENSA_EQUIPO': 'defensa',
+      'DEFENSA_INDIVIDUAL': 'defensa',
+      'DEFENSA_FUNDAMENTOS': 'defensa',
+      'REBOTE': 'fisico',
+      'TECNICA_POSTE': 'tecnico',
+      'ATAQUE_INDIVIDUAL': 'ataque',
+      'TECNICA_PIES': 'fisico',
+      'CONDICIONAMIENTO_FISICO': 'fisico',
+      'MOVILIDAD_RECUPERACION': 'fisico',
+      'TACTICA_TRANSICION': 'tactico',
+      'ABP_SAQUES': 'tactico',
+      'JUEGO_REDUCIDO': 'tactico',
     };
-    return mapping[ui] || 'balance';
+    return mapping[ui] || 'tactico';
   }
 
   private mapApiToUiType(type: ExerciseType): UiType {
@@ -383,10 +383,12 @@ export class Exercises implements OnInit {
     // Como hay múltiples tipos UI que mapean al mismo API type,
     // usamos un tipo por defecto para cada categoría
     const mapping: Record<ExerciseType, UiType> = {
-      'strength': 'TECNICA_BOTE',
-      'balance': 'TACTICA_ATAQUE',
-      'cardio': 'CONDICIONAMIENTO_FISICO',
-      'flexibility': 'MOVILIDAD_RECUPERACION',
+      'tecnico': 'TECNICA_BOTE',
+      'tactico': 'TACTICA_ATAQUE',
+      'fisico': 'CONDICIONAMIENTO_FISICO',
+      'tiro': 'TIRO',
+      'defensa': 'DEFENSA_EQUIPO',
+      'ataque': 'ATAQUE_INDIVIDUAL',
     };
     return mapping[type] || 'TECNICA_BOTE';
   }

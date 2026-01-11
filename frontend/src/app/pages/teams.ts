@@ -47,8 +47,8 @@ export class Teams {
   categoryOptions = [
     { label: 'Todas', value: 'all' },
     { label: 'Senior', value: 'Senior' },
-    { label: 'Junior', value: 'Junior' },
     { label: 'Juvenil', value: 'Juvenil' },
+    { label: 'Infantil', value: 'Infantil' },
   ];
 
   categoryOptionsWithoutAll = this.categoryOptions.filter((opt) => opt.value !== 'all');

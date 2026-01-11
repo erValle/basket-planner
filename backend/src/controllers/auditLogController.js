@@ -11,6 +11,25 @@ const listAuditLogs = async (req, res, next) => {
   }
 };
 
+const getAuditLog = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const item = await auditLogService.getAuditLogById(id);
+    
+    if (!item) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        error: 'NOT_FOUND',
+        message: 'Audit log not found',
+      });
+    }
+    
+    return res.status(StatusCodes.OK).json({ item });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   listAuditLogs,
+  getAuditLog,
 };
