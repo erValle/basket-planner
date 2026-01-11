@@ -16,7 +16,7 @@ import { ClubsApi } from '../services/clubs.api';
   selector: 'app-new-club',
   imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, ToastModule, AppShell, PageHeader],
   templateUrl: './new-club.html',
-  styleUrl: './new-club.css',
+  styleUrl: './new-club.scss',
   providers: [MessageService],
 })
 export class NewClub {

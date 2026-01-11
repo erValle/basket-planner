@@ -18,7 +18,7 @@ import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operato
   selector: 'app-dashboard',
   imports: [CommonModule, RouterLink, FormsModule, ButtonModule, SelectModule, AppShell],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css',
+  styleUrl: './dashboard.scss',
 })
 export class Dashboard {
   private readonly clubContext = inject(ClubContextService);

@@ -20,7 +20,7 @@ import { PlayersApi, PlayerDto } from '../services/players.api';
   selector: 'app-new-team',
   imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, InputNumberModule, SelectModule, ToastModule, AppShell, PageHeader],
   templateUrl: './new-team.html',
-  styleUrl: './new-team.css',
+  styleUrl: './new-team.scss',
   providers: [MessageService],
 })
 export class NewTeam {

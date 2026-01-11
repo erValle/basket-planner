@@ -33,7 +33,7 @@ import { PlanningStatus } from '../models/planning';
     AppShell,
   ],
   templateUrl: './player-planning.html',
-  styleUrl: './player-planning.css',
+  styleUrl: './player-planning.scss',
 })
 export class PlayerPlanningPage {
   // Signals para estado reactivo

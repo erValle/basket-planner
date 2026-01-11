@@ -61,7 +61,7 @@ type UiType =
 		PageHeader,
   ],
   templateUrl: './exercises.html',
-  styleUrl: './exercises.css',
+  styleUrl: './exercises.scss',
 })
 export class Exercises implements OnInit {
   private readonly exercisesApi = inject(ExercisesApi);

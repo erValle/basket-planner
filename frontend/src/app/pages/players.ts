@@ -64,7 +64,7 @@ type Option = { label: string; value: string };
 		AppShell,
   ],
   templateUrl: './players.html',
-  styleUrl: './players.css',
+  styleUrl: './players.scss',
 })
 export class Players {
   private readonly playersApi = inject(PlayersApi);

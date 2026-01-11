@@ -1,0 +1,650 @@
+// =============================================================================
+// PrimeNG Overrides for Basket Planner
+// =============================================================================
+// Custom styling for PrimeNG components to match our dark theme.
+// Uses SCSS variables and nesting for maintainability.
+// =============================================================================
+
+@use 'variables' as *;
+
+// =============================================================================
+// DIALOG STYLES
+// =============================================================================
+
+// Usage: Add `styleClass="bp-dialog"` to any <p-dialog>
+.bp-dialog {
+  .p-dialog {
+    border-radius: $radius-2xl;
+    overflow: hidden;
+    border: 2px solid rgba($neutral-500, 0.6) !important;
+    box-shadow: $shadow-dialog !important;
+
+    &:focus-within {
+      box-shadow: $shadow-dialog-focus;
+    }
+  }
+
+  .p-tablist {
+    &::before,
+    &::after {
+      content: none !important;
+      display: none !important;
+    }
+  }
+
+  .p-dialog-mask {
+    background: $bg-overlay !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+  }
+
+  .p-dialog-header {
+    background: $bg-card;
+    border-bottom: 1px solid $border-default;
+    padding: $spacing-4 $spacing-5;
+  }
+
+  .p-dialog-title {
+    color: $text-primary;
+    font-weight: $font-weight-semibold;
+  }
+
+  .p-dialog-content {
+    background: rgba(3, 7, 22, 0.92);
+    padding: $spacing-5;
+  }
+
+  .p-dialog-footer {
+    background: $bg-card;
+    border-top: 1px solid $border-default;
+    padding: $spacing-3 $spacing-5;
+  }
+
+  // ConfirmDialog specific
+  .p-confirmdialog-message {
+    color: $neutral-200;
+    font-size: $font-size-sm;
+    line-height: $line-height-relaxed;
+    margin-left: $spacing-3;
+  }
+
+  .p-confirmdialog-icon {
+    color: $warning-400;
+    font-size: $font-size-2xl;
+  }
+
+  .p-confirm-dialog-accept,
+  .p-confirmdialog-accept-button {
+    background: $primary-400 !important;
+    border-color: $primary-400 !important;
+    color: $bg-page !important;
+    border-radius: $radius-lg;
+    padding: $spacing-2 $spacing-4;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+
+    &:hover {
+      background: $primary-500 !important;
+      border-color: $primary-500 !important;
+    }
+
+    .p-button-label {
+      color: $bg-page !important;
+      font-weight: $font-weight-semibold !important;
+    }
+  }
+
+  .p-confirm-dialog-reject,
+  .p-confirmdialog-reject-button {
+    background: rgba($neutral-800, 0.8) !important;
+    border: 1px solid $neutral-600 !important;
+    color: $neutral-200 !important;
+    border-radius: $radius-lg;
+    padding: $spacing-2 $spacing-4;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+
+    &:hover {
+      background: rgba($neutral-700, 0.9) !important;
+      border-color: $neutral-500 !important;
+      color: $neutral-50 !important;
+    }
+
+    .p-button-label {
+      color: $neutral-200 !important;
+      font-weight: $font-weight-medium !important;
+    }
+  }
+}
+
+// Stronger dialog variant (for dense modals like Player Detail)
+.bp-dialog-strong {
+  .p-dialog-mask {
+    background: $bg-overlay-strong !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+
+  .p-dialog {
+    border-width: 2px !important;
+    border-style: solid !important;
+    border-color: rgba($primary-400, 0.7) !important;
+    border-radius: $radius-xl !important;
+    box-shadow: $shadow-dialog-strong !important;
+  }
+}
+
+// =============================================================================
+// SELECT / DROPDOWN STYLES
+// =============================================================================
+
+// Usage: Add `styleClass="bp-select"` to <p-select> / <p-dropdown>
+.bp-select {
+  &.p-select,
+  &.p-dropdown {
+    width: 100%;
+    border-radius: $radius-xl;
+    border: 1px solid $neutral-800;
+    background: $neutral-900;
+    padding-right: $spacing-2;
+  }
+
+  .p-select-label,
+  .p-dropdown-label {
+    color: $neutral-200;
+    font-size: $font-size-sm;
+    padding: $spacing-2 $spacing-3;
+  }
+
+  .p-select-trigger,
+  .p-dropdown-trigger {
+    color: $neutral-400;
+    width: 2.25rem;
+  }
+
+  &.p-focus,
+  &:focus-within {
+    border-color: $primary-400;
+    box-shadow: 0 0 0 2px rgba($primary-400, 0.15);
+  }
+}
+
+// Select panel overlay
+.bp-select-panel {
+  &.p-select-overlay,
+  &.p-dropdown-panel {
+    background: rgba($bg-page, 0.98);
+    border: 1px solid $neutral-800;
+    border-radius: $radius-xl;
+    overflow: hidden;
+  }
+
+  .p-select-list,
+  .p-dropdown-items {
+    padding: $spacing-2;
+  }
+
+  .p-select-option,
+  .p-dropdown-item {
+    border-radius: $radius-lg;
+    padding: $spacing-2 $spacing-3;
+    font-size: $font-size-sm;
+    color: $neutral-300;
+    margin-bottom: 2px;
+    transition: all $transition-fast;
+
+    &:hover {
+      background: rgba($neutral-700, 0.5);
+      color: $text-primary;
+    }
+
+    &.p-highlight,
+    &.p-select-option-selected {
+      background: rgba($primary-400, 0.15);
+      color: $primary-400;
+    }
+  }
+
+  .p-select-option-group,
+  .p-dropdown-item-group {
+    font-weight: $font-weight-semibold;
+    color: $neutral-500;
+    padding: $spacing-2 $spacing-3;
+    font-size: $font-size-xs;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+// =============================================================================
+// INPUT TEXT STYLES
+// =============================================================================
+
+.p-inputtext {
+  background: $bg-input;
+  border: 1px solid $border-default;
+  border-radius: $radius-lg;
+  color: $text-primary;
+  font-size: $font-size-sm;
+  padding: $spacing-2 $spacing-3;
+  transition: border-color $transition-fast, box-shadow $transition-fast;
+
+  &::placeholder {
+    color: $text-muted;
+  }
+
+  &:focus {
+    border-color: $primary-400;
+    box-shadow: 0 0 0 3px rgba($primary-400, 0.15);
+    outline: none;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// =============================================================================
+// BUTTON STYLES
+// =============================================================================
+
+.p-button {
+  border-radius: $radius-lg;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  padding: $spacing-2 $spacing-4;
+  transition: all $transition-fast;
+  gap: $spacing-2;
+
+  &.p-button-primary {
+    background: $primary-500;
+    border-color: $primary-500;
+
+    &:hover:not(:disabled) {
+      background: $primary-600;
+      border-color: $primary-600;
+    }
+  }
+
+  &.p-button-secondary {
+    background: $neutral-800;
+    border: 1px solid $border-default;
+    color: $text-primary;
+
+    &:hover:not(:disabled) {
+      background: $neutral-700;
+      border-color: $neutral-600;
+    }
+  }
+
+  &.p-button-danger {
+    background: $error-600;
+    border-color: $error-600;
+
+    &:hover:not(:disabled) {
+      background: $error-700;
+      border-color: $error-700;
+    }
+  }
+
+  &.p-button-text {
+    background: transparent;
+    color: $text-secondary;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.05);
+      color: $text-primary;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px $bg-page, 0 0 0 4px $primary-400;
+  }
+}
+
+// =============================================================================
+// TABLE STYLES
+// =============================================================================
+
+.p-datatable {
+  .p-datatable-thead > tr > th {
+    background: $neutral-900;
+    border-color: $border-default;
+    color: $text-secondary;
+    font-weight: $font-weight-medium;
+    font-size: $font-size-xs;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: $spacing-3 $spacing-4;
+  }
+
+  .p-datatable-tbody > tr {
+    background: transparent;
+    border-color: $border-default;
+    transition: background $transition-fast;
+
+    &:hover {
+      background: rgba($neutral-800, 0.5);
+    }
+
+    > td {
+      border-color: $border-default;
+      color: $text-primary;
+      font-size: $font-size-sm;
+      padding: $spacing-3 $spacing-4;
+    }
+  }
+
+  .p-datatable-emptymessage {
+    color: $text-muted;
+    font-size: $font-size-sm;
+    padding: $spacing-8;
+    text-align: center;
+  }
+}
+
+// =============================================================================
+// TAG STYLES
+// =============================================================================
+
+.p-tag {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-full;
+
+  &.p-tag-success {
+    background: rgba($success-500, 0.15);
+    color: $success-400;
+  }
+
+  &.p-tag-warning {
+    background: rgba($warning-500, 0.15);
+    color: $warning-400;
+  }
+
+  &.p-tag-danger {
+    background: rgba($error-500, 0.15);
+    color: $error-400;
+  }
+
+  &.p-tag-info {
+    background: rgba($info-500, 0.15);
+    color: $info-400;
+  }
+
+  &.p-tag-secondary {
+    background: rgba($neutral-500, 0.15);
+    color: $neutral-400;
+  }
+}
+
+// =============================================================================
+// TOAST STYLES
+// =============================================================================
+
+.p-toast {
+  .p-toast-message {
+    border-radius: $radius-xl;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    &.p-toast-message-success {
+      background: rgba($success-700, 0.95);
+      border-left: 4px solid $success-500;
+    }
+
+    &.p-toast-message-warn {
+      background: rgba($warning-600, 0.95);
+      border-left: 4px solid $warning-500;
+    }
+
+    &.p-toast-message-error {
+      background: rgba($error-700, 0.95);
+      border-left: 4px solid $error-500;
+    }
+
+    &.p-toast-message-info {
+      background: rgba($info-600, 0.95);
+      border-left: 4px solid $info-500;
+    }
+  }
+
+  .p-toast-message-content {
+    padding: $spacing-3 $spacing-4;
+  }
+
+  .p-toast-summary {
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+  }
+
+  .p-toast-detail {
+    color: $text-secondary;
+    font-size: $font-size-sm;
+  }
+}
+
+// =============================================================================
+// CHECKBOX STYLES
+// =============================================================================
+
+.p-checkbox {
+  .p-checkbox-box {
+    background: $bg-input;
+    border: 1px solid $border-default;
+    border-radius: $radius-sm;
+    transition: all $transition-fast;
+
+    &.p-highlight {
+      background: $primary-500;
+      border-color: $primary-500;
+    }
+
+    &:hover {
+      border-color: $primary-400;
+    }
+  }
+}
+
+// =============================================================================
+// MENU STYLES
+// =============================================================================
+
+.p-menu {
+  background: rgba($bg-page, 0.98);
+  border: 1px solid $border-default;
+  border-radius: $radius-xl;
+  padding: $spacing-2;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  .p-menuitem {
+    margin-bottom: 2px;
+
+    .p-menuitem-link {
+      border-radius: $radius-lg;
+      padding: $spacing-2 $spacing-3;
+      color: $text-secondary;
+      font-size: $font-size-sm;
+      transition: all $transition-fast;
+
+      &:hover {
+        background: rgba($neutral-700, 0.5);
+        color: $text-primary;
+      }
+
+      .p-menuitem-icon {
+        color: $text-muted;
+        margin-right: $spacing-2;
+      }
+    }
+  }
+
+  .p-menu-separator {
+    border-color: $border-default;
+    margin: $spacing-2 0;
+  }
+}
+
+// =============================================================================
+// TAB STYLES
+// =============================================================================
+
+.p-tabview {
+  .p-tabview-nav {
+    background: transparent;
+    border-bottom: 1px solid $border-default;
+
+    li {
+      .p-tabview-nav-link {
+        background: transparent;
+        border: none;
+        color: $text-muted;
+        font-weight: $font-weight-medium;
+        padding: $spacing-3 $spacing-4;
+        transition: all $transition-fast;
+
+        &:hover {
+          color: $text-primary;
+        }
+      }
+
+      &.p-highlight {
+        .p-tabview-nav-link {
+          color: $primary-400;
+          border-bottom: 2px solid $primary-400;
+        }
+      }
+    }
+  }
+
+  .p-tabview-panels {
+    background: transparent;
+    padding: $spacing-4 0;
+  }
+}
+
+// =============================================================================
+// CHIP STYLES
+// =============================================================================
+
+.p-chip {
+  background: rgba($neutral-700, 0.5);
+  border-radius: $radius-full;
+  color: $text-secondary;
+  font-size: $font-size-xs;
+  padding: $spacing-1 $spacing-3;
+
+  .p-chip-remove-icon {
+    color: $text-muted;
+    margin-left: $spacing-2;
+    transition: color $transition-fast;
+
+    &:hover {
+      color: $error-400;
+    }
+  }
+}
+
+// =============================================================================
+// TOOLTIP STYLES
+// =============================================================================
+
+.p-tooltip {
+  .p-tooltip-text {
+    background: $neutral-800;
+    border-radius: $radius-lg;
+    color: $text-primary;
+    font-size: $font-size-xs;
+    padding: $spacing-2 $spacing-3;
+    box-shadow: $shadow-lg;
+  }
+
+  .p-tooltip-arrow {
+    border-color: $neutral-800;
+  }
+}
+
+// =============================================================================
+// PROGRESS SPINNER
+// =============================================================================
+
+.p-progress-spinner {
+  .p-progress-spinner-circle {
+    stroke: $primary-400;
+  }
+}
+
+// =============================================================================
+// CALENDAR / DATEPICKER STYLES
+// =============================================================================
+
+.p-datepicker {
+  background: rgba($bg-page, 0.98);
+  border: 1px solid $border-default;
+  border-radius: $radius-xl;
+  padding: $spacing-3;
+
+  .p-datepicker-header {
+    background: transparent;
+    border-bottom: 1px solid $border-default;
+    padding-bottom: $spacing-3;
+    margin-bottom: $spacing-2;
+  }
+
+  .p-datepicker-title {
+    color: $text-primary;
+    font-weight: $font-weight-semibold;
+  }
+
+  .p-datepicker-prev,
+  .p-datepicker-next {
+    color: $text-muted;
+
+    &:hover {
+      color: $text-primary;
+      background: rgba($neutral-700, 0.5);
+    }
+  }
+
+  table {
+    td {
+      padding: 2px;
+
+      span {
+        border-radius: $radius-lg;
+        color: $text-secondary;
+        width: 2.5rem;
+        height: 2.5rem;
+        transition: all $transition-fast;
+
+        &:hover {
+          background: rgba($neutral-700, 0.5);
+          color: $text-primary;
+        }
+
+        &.p-highlight {
+          background: $primary-500;
+          color: white;
+        }
+      }
+
+      &.p-datepicker-today span {
+        border: 1px solid $primary-400;
+      }
+    }
+
+    th {
+      color: $text-muted;
+      font-size: $font-size-xs;
+      font-weight: $font-weight-medium;
+    }
+  }
+}

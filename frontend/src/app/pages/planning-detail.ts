@@ -51,7 +51,7 @@ type Option = { label: string; value: string };
     AppShell,
   ],
   templateUrl: './planning-detail.html',
-  styleUrl: './planning-detail.css',
+  styleUrl: './planning-detail.scss',
   providers: [MessageService],
 })
 export class PlanningDetail {

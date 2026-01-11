@@ -40,7 +40,7 @@ type Option = { label: string; value: string };
     AppShell,
   ],
   templateUrl: './audit.html',
-  styleUrl: './audit.css',
+  styleUrl: './audit.scss',
   providers: [MessageService],
 })
 export class AuditPage {

@@ -62,9 +62,10 @@ type Option = { label: string; value: string };
 		AppShell,
 		PageHeader,
     PlayerSelectCard,
+    GoalSuggestionsDialog,
   ],
   templateUrl: './new-planification.html',
-  styleUrl: './new-planification.css',
+  styleUrl: './new-planification.scss',
   providers: [MessageService, ConfirmationService],
 })
 export class NewPlanification {

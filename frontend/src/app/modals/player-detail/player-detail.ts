@@ -64,7 +64,7 @@ export interface PlayerDetailModel {
     ProgressSpinnerModule,
   ],
   templateUrl: './player-detail.html',
-  styleUrl: './player-detail.css',
+  styleUrl: './player-detail.scss',
   providers: [MessageService, ConfirmationService],
 })
 export class PlayerDetail {

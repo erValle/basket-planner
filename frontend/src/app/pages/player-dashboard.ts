@@ -18,7 +18,7 @@ import { UserContextService } from '../core/auth/user-context.service';
   selector: 'app-player-dashboard',
   imports: [CommonModule, FormsModule, RouterLink, ButtonModule, TagModule, ProgressSpinnerModule, PageHeader, AppShell],
   templateUrl: './player-dashboard.html',
-  styleUrl: './player-dashboard.css',
+  styleUrl: './player-dashboard.scss',
 })
 export class PlayerDashboard {
   readonly playerName = 'Jugador';

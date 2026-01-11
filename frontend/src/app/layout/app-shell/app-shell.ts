@@ -28,7 +28,7 @@ export type AppShellNavItem = {
 	standalone: true,
 	imports: [CommonModule, AsyncPipe, RouterLink, RouterLinkActive, FormsModule, SelectModule, ButtonModule, ToastModule],
 	templateUrl: './app-shell.html',
-	styleUrl: './app-shell.css',
+	styleUrl: './app-shell.scss',
 	providers: [MessageService],
 })
 export class AppShell implements OnInit {

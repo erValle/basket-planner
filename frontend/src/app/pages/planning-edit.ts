@@ -49,13 +49,14 @@ type Option = { label: string; value: string };
     TagModule,
     ToastModule,
     ConfirmDialogModule,
-    BpDialog,
     TooltipModule,
     PageHeader,
     AppShell,
+    ExerciseSearchDialog,
+    ExercisePreviewDialog,
   ],
   templateUrl: './planning-edit.html',
-  styleUrl: './planning-edit.css',
+  styleUrl: './planning-edit.scss',
   providers: [MessageService, ConfirmationService],
 })
 export class PlanningEdit {

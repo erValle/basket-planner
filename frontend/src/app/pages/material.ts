@@ -33,7 +33,7 @@ import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operato
   ],
   providers: [MessageService],
   templateUrl: './material.html',
-  styleUrl: './material.css',
+  styleUrl: './material.scss',
 })
 export class Material {
   private readonly api = inject(EquipmentApi);

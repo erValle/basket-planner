@@ -27,7 +27,7 @@ interface MonitoringVm {
   selector: 'app-monitoring',
   imports: [CommonModule, FormsModule, ButtonModule, TagModule, DatePickerModule, ProgressSpinnerModule, ToastModule, PageHeader, AppShell],
   templateUrl: './monitoring.html',
-  styleUrl: './monitoring.css',
+  styleUrl: './monitoring.scss',
   providers: [MessageService],
 })
 export class Monitoring {

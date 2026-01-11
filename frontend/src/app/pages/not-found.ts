@@ -10,7 +10,7 @@ import { AppShell } from '../layout/app-shell/app-shell';
   selector: 'app-not-found',
   imports: [CommonModule, RouterLink, ButtonModule, AppShell],
   templateUrl: './not-found.html',
-  styleUrl: './not-found.css',
+  styleUrl: './not-found.scss',
 })
 export class NotFoundPage {
 }

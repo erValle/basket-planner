@@ -18,7 +18,7 @@ export interface PlayerSelectionItem {
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, TagModule],
   templateUrl: './player-selection.html',
-  styleUrl: './player-selection.css',
+  styleUrl: './player-selection.scss',
 })
 export class PlayerSelection {
   @Input() title = 'Seleccionar jugadores';

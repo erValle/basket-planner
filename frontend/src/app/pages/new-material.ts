@@ -29,7 +29,7 @@ import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
     AppShell,
   ],
   templateUrl: './new-material.html',
-  styleUrl: './new-material.css',
+  styleUrl: './new-material.scss',
   providers: [MessageService],
 })
 export class NewMaterial {

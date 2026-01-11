@@ -12,7 +12,7 @@ import { AuthService } from '../core/auth/auth.service';
   selector: 'app-login',
   imports: [ReactiveFormsModule, ButtonModule, InputTextModule],
   templateUrl: './login.html',
-  styleUrl: './login.css',
+  styleUrl: './login.scss',
 })
 export class Login {
   loading = false;
