@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -21,7 +21,6 @@ import { AdminUserUpsertPayload } from '../models/user-admin';
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     ButtonModule,
     InputTextModule,
     SelectModule,

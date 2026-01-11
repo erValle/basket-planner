@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -36,7 +36,6 @@ type Option = { label: string; value: string };
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     ButtonModule,
     InputTextModule,
     SelectModule,

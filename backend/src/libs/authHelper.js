@@ -6,7 +6,8 @@ const validateUser = async(email, password) => {
     if (!user) {
         return null;
     }
-    return bcrypt.compare(password, user.passwordHash) ? user : null;
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    return ok ? user : null;
 }
 
 module.exports = {

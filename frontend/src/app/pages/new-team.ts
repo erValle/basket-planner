@@ -48,16 +48,16 @@ export class NewTeam {
 
   positionOptions = [
     { label: 'Base', value: 'base' },
-    { label: 'Escolta', value: 'guard' },
-    { label: 'Alero', value: 'wing' },
-    { label: 'Ala-pívot', value: 'forward' },
-    { label: 'Pívot', value: 'center' },
+    { label: 'Escolta', value: 'escolta' },
+    { label: 'Alero', value: 'alero' },
+    { label: 'Ala-pívot', value: 'ala-pivot' },
+    { label: 'Pívot', value: 'pivot' },
   ];
 
   categoryOptions = [
     { label: 'Senior', value: 'senior' },
-    { label: 'Juvenil', value: 'junior' },
-    { label: 'Infantil', value: 'kid' },
+    { label: 'Juvenil', value: 'juvenil' },
+    { label: 'Infantil', value: 'infantil' },
   ];
 
   constructor(

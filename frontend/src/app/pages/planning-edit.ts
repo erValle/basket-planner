@@ -1,7 +1,7 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -17,7 +17,8 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
-import { BpDialog } from '../components/bp-dialog';
+import { ExerciseSearchDialog } from '../components/exercise-search-dialog';
+import { ExercisePreviewDialog } from '../components/exercise-preview-dialog';
 
 import { PlanningApiService } from '../services/planning.api';
 import { ExercisesApi, ExerciseDto } from '../services/exercises.api';
@@ -39,7 +40,6 @@ type Option = { label: string; value: string };
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     ButtonModule,
     InputTextModule,
     InputNumberModule,
@@ -98,18 +98,6 @@ export class PlanningEdit {
 
   // Exercise search dialog
   exerciseSearchDialogOpen = signal(false);
-  exerciseSearchQuery = signal('');
-  availableExercises = signal<ExerciseDto[]>([]);
-  filteredExercises = computed(() => {
-    const query = this.exerciseSearchQuery().trim().toLowerCase();
-    const exercises = this.availableExercises();
-    if (!query) return exercises;
-    return exercises.filter((e) => 
-      e.name?.toLowerCase().includes(query) || 
-      e.description?.toLowerCase().includes(query)
-    );
-  });
-  loadingExercises = signal(false);
   currentBlockForExercise = signal<PlanningBlockEditor | null>(null);
 
   // Exercise preview modal
@@ -398,31 +386,6 @@ export class PlanningEdit {
   openExerciseSearch(block: PlanningBlockEditor): void {
     this.currentBlockForExercise.set(block);
     this.exerciseSearchDialogOpen.set(true);
-    this.exerciseSearchQuery.set('');
-    
-    if (this.availableExercises().length === 0) {
-      this.loadExercises();
-    }
-  }
-
-  loadExercises(): void {
-    this.loadingExercises.set(true);
-    this.exercisesApi.list({}).subscribe({
-      next: (response) => {
-        // El API puede devolver un array directo o un objeto paginado
-        this.availableExercises.set(Array.isArray(response) ? response : (response as any).items || []);
-        this.loadingExercises.set(false);
-      },
-      error: (e) => {
-        console.error('Error loading exercises:', e);
-        this.toast.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'No se pudieron cargar los ejercicios.',
-        });
-        this.loadingExercises.set(false);
-      },
-    });
   }
 
   addExerciseFromDatabase(exercise: ExerciseDto): void {
@@ -460,7 +423,6 @@ export class PlanningEdit {
   closeExerciseSearch(): void {
     this.exerciseSearchDialogOpen.set(false);
     this.currentBlockForExercise.set(null);
-    this.exerciseSearchQuery.set('');
   }
 
   addMaterial(ex: PlanningExerciseEditor, material: string): void {
@@ -594,25 +556,12 @@ export class PlanningEdit {
   }
 
   openExercisePreviewFromBlock(exercise: PlanningExerciseEditor): void {
-    // Intentar convertir el ID a número si es posible
-    const numericId = parseInt(exercise.id);
-    
-    // Buscar el ejercicio completo en availableExercises si está disponible
-    if (!isNaN(numericId)) {
-      const fullExercise = this.availableExercises().find(e => e.id === numericId);
-      if (fullExercise) {
-        this.selectedExerciseForPreview.set(fullExercise);
-        this.exercisePreviewDialogOpen.set(true);
-        return;
-      }
-    }
-    
-    // Si no se encuentra o no tiene ID numérico, crear un objeto temporal con los datos que tenemos
+    // Crear un objeto ExerciseDto temporal con los datos que tenemos del ejercicio en el bloque
     this.selectedExerciseForPreview.set({
-      id: numericId || 0,
+      id: 0,
       name: exercise.name,
       description: exercise.notes || '',
-      type: 'cardio' as any, // Tipo por defecto
+      type: 'general' as any,
       difficulty: {},
       duration: exercise.durationMin * 60, // Convertir minutos a segundos
       tags: {},

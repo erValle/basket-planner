@@ -1,6 +1,7 @@
 const Joi = require('joi');
 
-const exerciseTypeValues = ['cardio', 'strength', 'flexibility', 'balance'];
+// Tipos de ejercicios específicos para baloncesto
+const exerciseTypeValues = ['tecnico', 'tactico', 'fisico', 'tiro', 'defensa', 'ataque'];
 
 /**
  * Schema de validación para difficulty en formato JSONB

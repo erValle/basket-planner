@@ -5,11 +5,11 @@ const app = express();
 
 const logger = require('./src/middlewares/logger');
 const { requestIdMiddleware } = require('./src/middlewares/requestId');
-const { authenticateToken } = require('./src/middlewares/auth');
+const { requireAuth } = require('./src/middlewares/rbac');
 const securityMiddleware = require('./src/middlewares/security');
 
-const usersRouter = require('./routes/userRouter');
-const authRouter = require('./routes/authRouter');
+const usersRouter = require('./routes/users.routes');
+const authRouter = require('./routes/auth.routes');
 const clubsRouter = require('./routes/clubs.routes');
 const teamsRouter = require('./routes/teams.routes');
 const equipmentRouter = require('./routes/equipment.routes');
@@ -40,7 +40,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/api/health', (req, res) => { res.json({ status: 'OK' }); });
 
 app.use('/api/auth', authRouter);
-app.use('/api/users', authenticateToken, usersRouter);
+app.use('/api/users', requireAuth, usersRouter);
 
 // Monitoring: record request KPIs (safe no-op if DB isn't initialized).
 app.use(auditRequestMiddleware);

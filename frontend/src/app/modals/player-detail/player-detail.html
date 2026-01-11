@@ -76,12 +76,15 @@
 							<div class="grid grid-cols-2 gap-4">
 								<div>
 									<label class="block text-[#e5e7eb] text-[13px] mb-2">Posición</label>
-									<input
-										pInputText
+									<p-select
 										[(ngModel)]="player.position"
-										name="position"
-										class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
-									/>
+										[options]="positionOptions"
+										optionLabel="label"
+										optionValue="value"
+										placeholder="Selecciona una posición"
+										styleClass="w-full bp-select"
+										panelStyleClass="bp-select-panel"
+									></p-select>
 								</div>
 								<div>
 									<label class="block text-[#e5e7eb] text-[13px] mb-2">Altura (cm)</label>

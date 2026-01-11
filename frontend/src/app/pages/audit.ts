@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
@@ -28,7 +27,6 @@ type Option = { label: string; value: string };
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     ButtonModule,
     SelectModule,
     TableModule,
@@ -64,25 +62,27 @@ export class AuditPage {
 
   entityOptions: Option[] = [
     { label: 'Todas', value: '' },
-    { label: 'Usuarios', value: 'users' },
-    { label: 'Planificaciones', value: 'plannings' },
-    { label: 'Sesiones', value: 'sessions' },
-    { label: 'Feedback', value: 'feedback' },
-    { label: 'Equipamiento', value: 'equipment' },
-    { label: 'Otros', value: 'other' },
+    { label: 'HttpRequest', value: 'HttpRequest' },
+    { label: 'TrainingPlan', value: 'TrainingPlan' },
+    { label: 'TrainingPlanVersion', value: 'TrainingPlanVersion' },
+    { label: 'User', value: 'User' },
+    { label: 'ENDPOINT', value: 'ENDPOINT' },
+    { label: 'PERMISSION', value: 'PERMISSION' },
+    { label: 'SCOPE_CHECK', value: 'SCOPE_CHECK' },
   ];
 
   actionOptions: Option[] = [
     { label: 'Todas', value: '' },
-    { label: 'CREATE', value: 'CREATE' },
-    { label: 'UPDATE', value: 'UPDATE' },
-    { label: 'DELETE', value: 'DELETE' },
-    { label: 'LOGIN', value: 'LOGIN' },
-    { label: 'LOGOUT', value: 'LOGOUT' },
-    { label: 'EXPORT', value: 'EXPORT' },
-    { label: 'EMAIL', value: 'EMAIL' },
-    { label: 'ASSIGN', value: 'ASSIGN' },
-    { label: 'OTHER', value: 'OTHER' },
+    { label: 'http_request.success', value: 'http_request.success' },
+    { label: 'http_request.error', value: 'http_request.error' },
+    { label: 'training_plan.create', value: 'training_plan.create' },
+    { label: 'training_plan.update', value: 'training_plan.update' },
+    { label: 'training_plan_version.create', value: 'training_plan_version.create' },
+    { label: 'training_plan_version.activate', value: 'training_plan_version.activate' },
+    { label: 'user.create', value: 'user.create' },
+    { label: 'user.update', value: 'user.update' },
+    { label: 'UNAUTHORIZED_ACCESS_ATTEMPT', value: 'UNAUTHORIZED_ACCESS_ATTEMPT' },
+    { label: 'UNAUTHORIZED_SCOPE_ACCESS', value: 'UNAUTHORIZED_SCOPE_ACCESS' },
   ];
 
   items: AuditLogListItem[] = [];
@@ -145,23 +145,12 @@ export class AuditPage {
     this.rows = e.rows ?? this.rows;
   }
 
-  actionSeverity(a: AuditAction): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
-    switch (a) {
-      case 'CREATE':
-        return 'success';
-      case 'UPDATE':
-        return 'info';
-      case 'DELETE':
-        return 'danger';
-      case 'LOGIN':
-      case 'LOGOUT':
-        return 'secondary';
-      case 'EXPORT':
-      case 'EMAIL':
-        return 'warn';
-      default:
-        return 'secondary';
-    }
+  actionSeverity(a: AuditAction | string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' {
+    if (a.includes('create') || a === 'http_request.success') return 'success';
+    if (a.includes('update') || a.includes('activate')) return 'info';
+    if (a.includes('delete')) return 'danger';
+    if (a.includes('UNAUTHORIZED') || a === 'http_request.error') return 'warn';
+    return 'secondary';
   }
 
   openDetail(row: AuditLogListItem): void {

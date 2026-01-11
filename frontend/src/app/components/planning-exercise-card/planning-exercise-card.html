@@ -1,0 +1,182 @@
+<div class="rounded-lg border border-[#1f2937] bg-[#0f172a] p-4">
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div class="flex-1 min-w-0">
+      <div class="flex items-center gap-2 mb-3">
+        <span class="text-[12px] text-[#6b7280]">#{{ exerciseIndex + 1 }}</span>
+        <span class="text-[14px] font-medium text-[#f9fafb] truncate">{{ exercise.name }}</span>
+        <button
+          type="button"
+          pButton
+          icon="pi pi-eye"
+          class="p-button-text p-button-sm ml-auto"
+          pTooltip="Ver ejercicio"
+          (click)="onPreview()"
+        ></button>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <!-- Series -->
+        <div>
+          <label class="block text-[#9ca3af] text-[11px] mb-1">Series</label>
+          <p-inputNumber
+            [(ngModel)]="exercise.series"
+            [name]="'ex-series-' + exercise.id"
+            (blur)="markTouched('ex-series-' + exercise.id)"
+            (ngModelChange)="emitChange()"
+            [min]="1"
+            [showButtons]="true"
+            styleClass="w-full"
+            [inputStyleClass]="'w-full text-[13px]'"
+          ></p-inputNumber>
+          @if (hasError('ex-series-' + exercise.id, exercise.series > 0)) {
+            <div class="mt-1 text-[11px] text-red-300">Mín. 1</div>
+          }
+        </div>
+
+        <!-- Repeticiones -->
+        <div>
+          <label class="block text-[#9ca3af] text-[11px] mb-1">Reps</label>
+          <p-inputNumber
+            [(ngModel)]="exercise.reps"
+            [name]="'ex-reps-' + exercise.id"
+            (blur)="markTouched('ex-reps-' + exercise.id)"
+            (ngModelChange)="emitChange()"
+            [min]="1"
+            [showButtons]="true"
+            styleClass="w-full"
+            [inputStyleClass]="'w-full text-[13px]'"
+          ></p-inputNumber>
+          @if (hasError('ex-reps-' + exercise.id, exercise.reps > 0)) {
+            <div class="mt-1 text-[11px] text-red-300">Mín. 1</div>
+          }
+        </div>
+
+        <!-- Duración -->
+        <div>
+          <label class="block text-[#9ca3af] text-[11px] mb-1">Duración (min)</label>
+          <p-inputNumber
+            [(ngModel)]="exercise.durationMin"
+            [name]="'ex-dur-' + exercise.id"
+            (blur)="markTouched('ex-dur-' + exercise.id)"
+            (ngModelChange)="emitChange()"
+            [min]="1"
+            [showButtons]="true"
+            styleClass="w-full"
+            [inputStyleClass]="'w-full text-[13px]'"
+          ></p-inputNumber>
+          @if (hasError('ex-dur-' + exercise.id, exercise.durationMin > 0)) {
+            <div class="mt-1 text-[11px] text-red-300">Mín. 1</div>
+          }
+        </div>
+
+        <!-- Descanso -->
+        <div>
+          <label class="block text-[#9ca3af] text-[11px] mb-1">Descanso (seg)</label>
+          <p-inputNumber
+            [(ngModel)]="exercise.restSec"
+            [name]="'ex-rest-' + exercise.id"
+            (blur)="markTouched('ex-rest-' + exercise.id)"
+            (ngModelChange)="emitChange()"
+            [min]="0"
+            [showButtons]="true"
+            styleClass="w-full"
+            [inputStyleClass]="'w-full text-[13px]'"
+          ></p-inputNumber>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+        <!-- Intensidad -->
+        <div>
+          <label class="block text-[#9ca3af] text-[11px] mb-1">Intensidad</label>
+          <p-select
+            [(ngModel)]="exercise.intensity"
+            [name]="'ex-intensity-' + exercise.id"
+            [options]="intensityOptions"
+            optionLabel="label"
+            optionValue="value"
+            (ngModelChange)="emitChange()"
+            styleClass="bp-select w-full"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+
+        <!-- Material -->
+        <div>
+          <label class="block text-[#9ca3af] text-[11px] mb-1">Material</label>
+          <div class="flex items-center gap-2">
+            <p-select
+              [(ngModel)]="selectedMaterial"
+              [name]="'ex-material-' + exercise.id"
+              [options]="materialOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Seleccionar..."
+              styleClass="bp-select flex-1"
+              [panelStyleClass]="'bp-select-panel'"
+            ></p-select>
+            <button
+              type="button"
+              pButton
+              icon="pi pi-plus"
+              class="p-button-sm p-button-outlined"
+              (click)="addMaterial()"
+              [disabled]="!selectedMaterial()"
+            ></button>
+          </div>
+          @if (exercise.material.length > 0) {
+            <div class="flex flex-wrap gap-1 mt-2">
+              @for (mat of exercise.material; track mat) {
+                <p-chip [label]="mat" [removable]="true" (onRemove)="removeMaterial(mat)"></p-chip>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Notas -->
+      <div class="mt-3">
+        <label class="block text-[#9ca3af] text-[11px] mb-1">Notas</label>
+        <textarea
+          pInputTextarea
+          [(ngModel)]="exercise.notes"
+          [name]="'ex-notes-' + exercise.id"
+          (ngModelChange)="emitChange()"
+          [rows]="2"
+          class="w-full text-[13px]"
+          placeholder="Indicaciones adicionales..."
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-col gap-1">
+      <button
+        type="button"
+        pButton
+        icon="pi pi-arrow-up"
+        class="p-button-text p-button-sm"
+        pTooltip="Subir"
+        [disabled]="isFirst"
+        (click)="onMoveUp()"
+      ></button>
+      <button
+        type="button"
+        pButton
+        icon="pi pi-arrow-down"
+        class="p-button-text p-button-sm"
+        pTooltip="Bajar"
+        [disabled]="isLast"
+        (click)="onMoveDown()"
+      ></button>
+      <button
+        type="button"
+        pButton
+        icon="pi pi-trash"
+        class="p-button-text p-button-sm p-button-danger"
+        pTooltip="Eliminar"
+        (click)="onRemove()"
+      ></button>
+    </div>
+  </div>
+</div>

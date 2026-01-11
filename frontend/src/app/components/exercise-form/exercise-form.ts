@@ -52,7 +52,7 @@ type Option = { label: string; value: string };
     ChipModule,
   ],
   templateUrl: './exercise-form.html',
-  styleUrl: './exercise-form.css',
+  styleUrl: './exercise-form.scss',
 })
 export class ExerciseForm implements OnChanges {
   private fb = inject(FormBuilder);
