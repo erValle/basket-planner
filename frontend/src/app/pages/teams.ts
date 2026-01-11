@@ -25,7 +25,7 @@ import { catchError, map, shareReplay, startWith, switchMap, tap } from 'rxjs/op
 	imports: [CommonModule, FormsModule, RouterLink, ButtonModule, BpDialog, InputTextModule, SelectModule, TagModule, ToastModule, PageHeader, AppShell],
   providers: [MessageService],
   templateUrl: './teams.html',
-  styleUrl: './teams.css',
+  styleUrl: './teams.scss',
 })
 export class Teams {
   private readonly api = inject(TeamsApi);

@@ -34,7 +34,7 @@ import { FeedbackSurveyAnswers, FeedbackSurveyListItem } from '../models/feedbac
     AppShell,
   ],
   templateUrl: './session-detail.html',
-  styleUrl: './session-detail.css',
+  styleUrl: './session-detail.scss',
   providers: [MessageService],
 })
 export class SessionDetail {

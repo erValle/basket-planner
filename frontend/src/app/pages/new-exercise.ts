@@ -12,7 +12,7 @@ import { PageHeader } from '../components/page-header/page-header';
 	standalone: true,
 	imports: [CommonModule, ButtonModule, AppShell, PageHeader],
 	templateUrl: './new-exercise.html',
-	styleUrl: './new-exercise.css'
+	styleUrl: './new-exercise.scss'
 })
 export class NewExercise {
 	constructor(private readonly router: Router) {}

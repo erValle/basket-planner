@@ -185,7 +185,7 @@
 					<div class="mt-4 text-[13px] text-[#9ca3af]">No hay pertenencias registradas.</div>
 				} @else {
 					<div class="mt-4">
-						<p-table [value]="memberships" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,20]" styleClass="p-datatable-sm">
+						<p-table [value]="memberships" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,20]" styleClass="bp-table p-datatable-sm">
 							<ng-template pTemplate="header">
 								<tr>
 									<th>Club</th>
@@ -238,7 +238,7 @@
 					<div class="mt-4 text-[13px] text-[#9ca3af]">No hay datos todavía.</div>
 				} @else {
 					<div class="mt-4">
-						<p-table [value]="memberships" [paginator]="true" [rows]="5" styleClass="p-datatable-sm">
+						<p-table [value]="memberships" [paginator]="true" [rows]="5" styleClass="bp-table p-datatable-sm">
 							<ng-template pTemplate="header">
 								<tr>
 										<th>Inicio</th>

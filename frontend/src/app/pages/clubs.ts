@@ -32,7 +32,7 @@ import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operato
   ],
   providers: [MessageService],
   templateUrl: './clubs.html',
-  styleUrl: './clubs.css',
+  styleUrl: './clubs.scss',
 })
 export class Clubs {
   private readonly api = inject(ClubsApi);

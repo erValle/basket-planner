@@ -43,7 +43,7 @@ type Option<T extends string> = { label: string; value: T };
     AppShell,
   ],
   templateUrl: './recommender.html',
-  styleUrl: './recommender.css',
+  styleUrl: './recommender.scss',
   providers: [MessageService, ConfirmationService],
 })
 export class RecommenderPage {

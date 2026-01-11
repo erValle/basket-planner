@@ -36,7 +36,7 @@ type Option = { label: string; value: string | null };
     AppShell,
   ],
   templateUrl: './admin-user-form.html',
-  styleUrl: './admin-user-form.css',
+  styleUrl: './admin-user-form.scss',
   providers: [MessageService],
 })
 export class AdminUserForm {

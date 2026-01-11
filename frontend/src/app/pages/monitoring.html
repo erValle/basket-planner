@@ -13,25 +13,17 @@
 			<div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-12">
 				<div class="md:col-span-5">
 					<label class="block text-[#9ca3af] text-[12px] mb-2">Desde</label>
-					<p-datepicker
+					<p-datePicker
 						[(ngModel)]="range.from"
-						[showIcon]="true"
-						[showButtonBar]="true"
-						dateFormat="yy-mm-dd"
-						styleClass="bp-select"
-						[panelStyleClass]="'bp-select-panel'"
-					></p-datepicker>
+						class="w-full date-range-start"
+					></p-datePicker>
 				</div>
 				<div class="md:col-span-5">
 					<label class="block text-[#9ca3af] text-[12px] mb-2">Hasta</label>
-					<p-datepicker
+					<p-datePicker
 						[(ngModel)]="range.to"
-						[showIcon]="true"
-						[showButtonBar]="true"
-						dateFormat="yy-mm-dd"
-						styleClass="bp-select"
-						[panelStyleClass]="'bp-select-panel'"
-					></p-datepicker>
+						class="w-full date-range-end"
+					></p-datePicker>
 				</div>
 				<div class="md:col-span-2 flex items-end gap-2">
 					<button pButton type="button" label="Limpiar" icon="pi pi-filter-slash" class="p-button-text p-button-sm w-full" (click)="clearRange()"></button>
@@ -83,16 +75,16 @@
 					</div>
 					<div class="mt-3 space-y-2 text-sm">
 						<div class="flex items-center justify-between">
-							<div class="text-zinc-400">Latencia</div>
-							<div class="font-medium">{{ overview.backend.latencyMs }} ms</div>
+							<div class="text-zinc-400">Acciones totales</div>
+							<div class="font-medium">{{ overview.backend.totalActions }}</div>
+						</div>
+						<div class="flex items-center justify-between">
+							<div class="text-zinc-400">Acciones/día</div>
+							<div class="font-medium">{{ overview.backend.actionsPerDay }}</div>
 						</div>
 						<div class="flex items-center justify-between">
 							<div class="text-zinc-400">Errores</div>
 							<div class="font-medium">{{ overview.backend.errorRatePct }}%</div>
-						</div>
-						<div class="flex items-center justify-between">
-							<div class="text-zinc-400">Throughput</div>
-							<div class="font-medium">{{ overview.backend.throughputRps }} rps</div>
 						</div>
 					</div>
 				</div>

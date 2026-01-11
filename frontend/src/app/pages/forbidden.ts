@@ -10,7 +10,7 @@ import { AppShell } from '../layout/app-shell/app-shell';
 	selector: 'app-forbidden',
 	imports: [CommonModule, RouterLink, ButtonModule, AppShell],
 	templateUrl: './forbidden.html',
-	styleUrl: './forbidden.css',
+	styleUrl: './forbidden.scss',
 })
 export class ForbiddenPage {
 }

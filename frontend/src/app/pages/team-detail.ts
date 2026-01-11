@@ -32,7 +32,7 @@ import { hasRole } from '../core/auth/roles';
     PageHeader,
   ],
   templateUrl: './team-detail.html',
-  styleUrl: './team-detail.css',
+  styleUrl: './team-detail.scss',
   providers: [MessageService],
 })
 export class TeamDetail {

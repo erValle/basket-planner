@@ -10,7 +10,7 @@ import { ClubContextService } from '../../core/context/club-context.service';
   selector: 'bp-shell',
   imports: [RouterOutlet],
   templateUrl: './shell.html',
-  styleUrls: ['./shell.css'],
+  styleUrls: ['./shell.scss'],
 })
 export class Shell {
   private readonly clubContext = inject(ClubContextService);

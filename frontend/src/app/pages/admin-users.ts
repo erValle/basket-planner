@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -36,7 +36,6 @@ interface AdminUsersVm {
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     ButtonModule,
     InputTextModule,
     SelectModule,
@@ -49,7 +48,7 @@ interface AdminUsersVm {
     AppShell,
   ],
   templateUrl: './admin-users.html',
-  styleUrl: './admin-users.css',
+  styleUrl: './admin-users.scss',
   providers: [MessageService, ConfirmationService],
 })
 export class AdminUsers {

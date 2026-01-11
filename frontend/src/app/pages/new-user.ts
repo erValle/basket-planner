@@ -30,7 +30,7 @@ import { AdminUserUpsertPayload } from '../models/user-admin';
     PageHeader,
   ],
   templateUrl: './new-user.html',
-  styleUrl: './new-user.css',
+  styleUrl: './new-user.scss',
   providers: [MessageService],
 })
 export class NewUser {

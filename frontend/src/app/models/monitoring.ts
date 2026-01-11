@@ -4,9 +4,9 @@ export type MonitoringRange = {
 };
 
 export type MonitoringBackendKpis = {
-  latencyMs: number;
+  totalActions: number;
+  actionsPerDay: number;
   errorRatePct: number;
-  throughputRps: number;
 };
 
 export type MonitoringRecommenderKpis = {

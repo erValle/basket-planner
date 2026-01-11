@@ -52,7 +52,7 @@ type Option = { label: string; value: string };
     AppShell,
   ],
   templateUrl: './planning.html',
-  styleUrl: './planning.css',
+  styleUrl: './planning.scss',
   providers: [MessageService, ConfirmationService],
 })
 export class Planning {

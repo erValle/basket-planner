@@ -9,7 +9,7 @@ import { AppShell } from '../layout/app-shell/app-shell';
   selector: 'app-player-no-plannings',
   imports: [RouterLink, ButtonModule, AppShell],
   templateUrl: './player-no-plannings.html',
-  styleUrl: './player-no-plannings.css',
+  styleUrl: './player-no-plannings.scss',
 })
 export class PlayerNoPlanningsPage {
   // Intentionally simple: this is a “state page” for players with no assigned plannings.

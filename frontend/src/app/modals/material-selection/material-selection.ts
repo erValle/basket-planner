@@ -12,7 +12,7 @@ import { BpDialog } from '../../components/bp-dialog';
   standalone: true,
   imports: [CommonModule, FormsModule, BpDialog, ButtonModule, InputTextModule],
   templateUrl: './material-selection.html',
-  styleUrl: './material-selection.css',
+  styleUrl: './material-selection.scss',
 })
 export class MaterialSelection {
 
