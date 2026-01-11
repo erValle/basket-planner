@@ -19,7 +19,6 @@ import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 import { PlayerSelectCard } from '../components/player-select-card/player-select-card';
 import { BpDialog } from '../components/bp-dialog';
-import { GoalSuggestionsDialog } from '../components/goal-suggestions-dialog';
 
 import { PlanningApiService } from '../services/planning.api';
 import { PlanningDraft } from '../models/planning';
@@ -28,7 +27,6 @@ import { TeamsApi, TeamDto } from '../services/teams.api';
 import { ClubContextService } from '../core/context/club-context.service';
 import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
 import { ClubResourcesStore } from '../core/stores/club-resources.store';
-import { GoalSuggestion } from '../models/recommender';
 
 import {
   OBJECTIVE_OPTIONS,
@@ -62,7 +60,6 @@ type Option = { label: string; value: string };
 		AppShell,
 		PageHeader,
     PlayerSelectCard,
-    GoalSuggestionsDialog,
   ],
   templateUrl: './new-planification.html',
   styleUrl: './new-planification.scss',
@@ -457,31 +454,6 @@ export class NewPlanification {
 
   completedDialogVisible = false;
   generatedResultId: string | null = null;
-
-  // Goal suggestions dialog (managed by child component)
-  suggestionsDialogVisible = false;
-
-  openSuggestionsDialog(): void {
-    this.suggestionsDialogVisible = true;
-  }
-
-  applySuggestion(suggestion: GoalSuggestion): void {
-    // Mapear el goal del backend al label del frontend
-    const matchingOption = this.objectiveOptions.find(opt => 
-      opt.label.toLowerCase().includes(suggestion.label.toLowerCase()) ||
-      suggestion.label.toLowerCase().includes(opt.label.toLowerCase())
-    );
-    
-    if (matchingOption && !matchingOption.disabled) {
-      (this.formData as { objective: string }).objective = matchingOption.value;
-      this.suggestionsDialogVisible = false;
-      this.toast.add({
-        severity: 'info',
-        summary: 'Objetivo aplicado',
-        detail: `Se ha seleccionado: ${matchingOption.label}`,
-      });
-    }
-  }
 
   private buildDraft(): PlanningDraft {
     // make sure tags reflect the latest input before sending

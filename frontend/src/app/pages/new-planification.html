@@ -1,14 +1,14 @@
 <app-shell
   title="Nueva planificación"
-  subtitle="Define parámetros y deja que la IA proponga la sesión."
+  subtitle="Define parámetros para generar la planificación."
 >
   <p-toast></p-toast>
   <p-confirmDialog styleClass="bp-dialog"></p-confirmDialog>
 
   <div class="max-w-6xl mx-auto">
     <app-page-header
-      [title]="planningMode === 'individual' ? 'Nueva planificación individual' : 'Nueva planificación grupal'"
-      [subtitle]="planningMode === 'individual' ? 'Define parámetros básicos para un jugador.' : 'Define parámetros básicos para un grupo de jugadores.'"
+      title="Nueva planificación"
+      subtitle="Define los parámetros para la planificación."
     ></app-page-header>
 
     @if (saveError) {
@@ -104,17 +104,7 @@
             </div>
 
             <div>
-              <div class="flex items-center justify-between mb-2">
-                <label class="block text-[#e5e7eb] text-[13px]">Objetivo principal</label>
-                <button
-                  type="button"
-                  pButton
-                  label="Sugerencias IA"
-                  icon="pi pi-sparkles"
-                  class="p-button-text p-button-sm"
-                  (click)="openSuggestionsDialog()"
-                ></button>
-              </div>
+              <label class="block text-[#e5e7eb] text-[13px] mb-2">Objetivo principal</label>
               <p-select
                 [options]="objectiveOptions"
                 [(ngModel)]="formData.objective"
@@ -558,13 +548,5 @@
       <div class="mt-3 text-[12px] text-[#94a3b8]">Referencia: <span class="text-[#e5e7eb]">{{ generatedResultId }}</span></div>
     }
   </bp-dialog>
-
-  <!-- Goal Suggestions Dialog -->
-  <app-goal-suggestions-dialog
-    [(visible)]="suggestionsDialogVisible"
-    [intensity]="formData.intensity"
-    [duration]="formData.duration"
-    (select)="applySuggestion($event)"
-  ></app-goal-suggestions-dialog>
 
 </app-shell>

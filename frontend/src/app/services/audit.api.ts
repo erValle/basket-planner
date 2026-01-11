@@ -10,7 +10,11 @@ export class AuditApiService {
   list(params: AuditListParams = {}) {
     // Backend: GET /api/audit-logs
     // We use GET + query params.
-    return this.api.get<AuditListResponse>(`/api/audit-logs`, { params });
+    // Filter out undefined/empty values to avoid validation errors
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v !== undefined && v !== '' && v !== null)
+    );
+    return this.api.get<AuditListResponse>(`/api/audit-logs`, { params: cleanParams });
   }
 
   get(id: string) {

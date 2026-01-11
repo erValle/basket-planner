@@ -12,6 +12,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
 import { MessageService } from 'primeng/api';
 
+import { BehaviorSubject, switchMap, map, catchError, of, startWith, shareReplay } from 'rxjs';
+
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 import { BpDialog } from '../components/bp-dialog/bp-dialog';
@@ -20,6 +22,12 @@ import { AuditApiService } from '../services/audit.api';
 import { AuditAction, AuditLogDetail, AuditLogListItem } from '../models/audit';
 
 type Option = { label: string; value: string };
+
+interface AuditVm {
+  loading: boolean;
+  error: string | null;
+  items: AuditLogListItem[];
+}
 
 @Component({
   selector: 'app-audit',
@@ -44,8 +52,7 @@ type Option = { label: string; value: string };
   providers: [MessageService],
 })
 export class AuditPage {
-  loading = false;
-  loadError: string | null = null;
+  private readonly refresh$ = new BehaviorSubject<void>(undefined);
 
   rows = 20;
   first = 0;
@@ -85,7 +92,34 @@ export class AuditPage {
     { label: 'UNAUTHORIZED_SCOPE_ACCESS', value: 'UNAUTHORIZED_SCOPE_ACCESS' },
   ];
 
-  items: AuditLogListItem[] = [];
+  vm$ = this.refresh$.pipe(
+    switchMap(() =>
+      this.api
+        .list({
+          entity: this.filters.entity || undefined,
+          action: this.filters.action || undefined,
+          userId: this.filters.user ? Number(this.filters.user) : undefined,
+          entityId: this.filters.entityId || undefined,
+          requestId: this.filters.requestId || undefined,
+          from: this.toIsoDate(this.filters.from),
+          to: this.toIsoDate(this.filters.to),
+          limit: 200,
+        })
+        .pipe(
+          map((res) => {
+            const items = (res?.items && Array.isArray(res.items) ? res.items : []).slice();
+            return { loading: false, error: null, items } as AuditVm;
+          }),
+          startWith({ loading: true, error: null, items: [] } as AuditVm),
+          catchError((e: unknown) => {
+            const error = e instanceof Error ? e.message : 'No se pudo cargar el audit log.';
+            this.toast.add({ severity: 'error', summary: 'Error', detail: error });
+            return of({ loading: false, error, items: [] } as AuditVm);
+          }),
+        ),
+    ),
+    shareReplay({ bufferSize: 1, refCount: true }),
+  );
 
   detailDialogOpen = false;
   detailLoading = false;
@@ -107,31 +141,7 @@ export class AuditPage {
   }
 
   load(): void {
-    this.loading = true;
-    this.loadError = null;
-
-    this.api
-      .list({
-        entity: this.filters.entity || undefined,
-        action: this.filters.action || undefined,
-        userId: this.filters.user ? Number(this.filters.user) : undefined,
-        entityId: this.filters.entityId || undefined,
-        requestId: this.filters.requestId || undefined,
-        from: this.toIsoDate(this.filters.from),
-        to: this.toIsoDate(this.filters.to),
-        limit: 200,
-      })
-      .subscribe({
-        next: (res) => {
-          this.loading = false;
-          this.items = (res?.items && Array.isArray(res.items) ? res.items : []).slice();
-        },
-        error: (e: unknown) => {
-          this.loading = false;
-          this.loadError = e instanceof Error ? e.message : 'No se pudo cargar el audit log.';
-          this.toast.add({ severity: 'error', summary: 'Error', detail: this.loadError });
-        },
-      });
+    this.refresh$.next();
   }
 
   clearFilters(): void {

@@ -132,12 +132,12 @@
 
         <div>
           <label class="block text-[#9ca3af] text-[12px] mb-2">Desde</label>
-          <p-datePicker [(ngModel)]="filters.from" class="w-full"></p-datePicker>
+          <p-datePicker [(ngModel)]="filters.from" class="w-full date-range-start"></p-datePicker>
         </div>
 
         <div>
           <label class="block text-[#9ca3af] text-[12px] mb-2">Hasta</label>
-          <p-datePicker [(ngModel)]="filters.to" class="w-full"></p-datePicker>
+          <p-datePicker [(ngModel)]="filters.to" class="w-full date-range-end"></p-datePicker>
         </div>
 
         <div class="col-span-6 flex items-end justify-end gap-2">
@@ -149,55 +149,64 @@
 
     <!-- Table -->
     <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-      @if (loading) {
-        <div class="border-b border-[#1f2937] pb-4 mb-4 text-[13px] text-[#9ca3af] flex items-center gap-2">
-          <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
-          Cargando audit log…
+      @let vm = (vm$ | async);
+      
+      @if (vm?.loading) {
+        <div class="flex flex-col items-center justify-center py-12 gap-3">
+          <p-progressSpinner strokeWidth="4" styleClass="w-8 h-8"></p-progressSpinner>
+          <div class="text-[13px] text-[#9ca3af]">Cargando audit log…</div>
         </div>
       }
 
-      @if (loadError) {
+      @if (!vm?.loading && vm?.error) {
         <div class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200 mb-4">
-          {{ loadError }}
+          {{ vm?.error }}
         </div>
       }
 
-      @if (!loading && !loadError && items.length === 0) {
+      @if (!vm?.loading && !vm?.error && (vm?.items?.length ?? 0) === 0) {
         <div class="text-[13px] text-[#9ca3af]">No hay eventos para los filtros seleccionados.</div>
       }
 
-      <p-table
-        [value]="items"
+      @if (!vm?.loading && (vm?.items?.length ?? 0) > 0) {
+        <p-table
+        [value]="vm?.items ?? []"
         [paginator]="true"
         [rows]="rows"
         [first]="first"
         [rowsPerPageOptions]="[10, 20, 50]"
         (onPage)="onPageChange($event)"
-        [tableStyle]="{ width: '100%' }"
-        styleClass="p-datatable-sm"
+        [tableStyle]="{ width: '100%', 'table-layout': 'fixed' }"
+        styleClass="bp-table p-datatable-sm"
       >
         <ng-template pTemplate="header">
           <tr class="border-b border-[#1f2937]">
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Fecha</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Usuario</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Acción</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Entidad</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">EntityId</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Resumen</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3">Acciones</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4 whitespace-nowrap" style="width: 140px">Fecha</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4" style="width: 150px">Usuario</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4 whitespace-nowrap" style="width: 180px">Acción</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4 whitespace-nowrap" style="width: 120px">Entidad</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4" style="width: 100px">EntityId</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4" style="width: auto">Resumen</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 whitespace-nowrap" style="width: 80px">Acciones</th>
           </tr>
         </ng-template>
 
         <ng-template pTemplate="body" let-r>
           <tr class="border-b border-[#1f2937]">
-            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ r.createdAt.slice(0, 19).replace('T', ' ') }}</td>
-            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ r.actor.name }}</td>
-            <td class="py-4 pr-4">
-              <p-tag [value]="r.action" [severity]="actionSeverity(r.action)"></p-tag>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4 whitespace-nowrap overflow-hidden text-ellipsis">{{ r.createdAt.slice(0, 19).replace('T', ' ') }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4 overflow-hidden text-ellipsis" [title]="r.actor.name">{{ r.actor.name }}</td>
+            <td class="py-4 pr-4 overflow-hidden">
+              <p-tag [value]="r.action" [severity]="actionSeverity(r.action)" styleClass="text-ellipsis block"></p-tag>
             </td>
-            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ r.entity }}</td>
-            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ r.entityId }}</td>
-            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ r.summary }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4 overflow-hidden text-ellipsis">{{ r.entity }}</td>
+            <td class="text-[13px] py-4 pr-4 overflow-hidden text-ellipsis font-mono text-[11px]" [title]="r.entityId" [class.text-[#6b7280]]="!r.entityId || r.entityId === '/' || r.entityId.includes('/overview')" [class.text-[#e5e7eb]]="r.entityId && r.entityId !== '/' && !r.entityId.includes('/overview')">
+              @if (r.entityId && r.entityId !== '/' && !r.entityId.includes('/overview')) {
+                {{ r.entityId }}
+              } @else {
+                <span class="text-[#6b7280]">—</span>
+              }
+            </td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4 overflow-hidden text-ellipsis" [title]="r.summary">{{ r.summary }}</td>
             <td class="py-4">
               <div class="flex items-center gap-1">
                 <button
@@ -213,6 +222,7 @@
           </tr>
         </ng-template>
       </p-table>
+      }
     </div>
   </div>
 </app-shell>

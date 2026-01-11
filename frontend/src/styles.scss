@@ -5,9 +5,9 @@
 // SCSS Variables & Mixins (must come before other rules)
 @use 'variables' as vars;
 
-// PrimeNG Overrides
-@use 'primeng-overrides';
-
 // Tailwind CSS (using @import as Tailwind requires it for v4)
 /* stylelint-disable scss/at-import-partial-extension */
-@import "tailwindcss";
+@use "tailwindcss";
+
+// PrimeNG Overrides - global styles
+@use './styles/primeng-overrides';

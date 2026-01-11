@@ -1,0 +1,19 @@
+/* Date range styling: make the date pickers connect visually */
+
+:host ::ng-deep {
+  // Date range start (Desde): remove right border radius
+  .date-range-start {
+    input {
+      border-top-right-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+    }
+  }
+
+  // Date range end (Hasta): remove left border radius
+  .date-range-end {
+    input {
+      border-top-left-radius: 0 !important;
+      border-bottom-left-radius: 0 !important;
+    }
+  }
+}
