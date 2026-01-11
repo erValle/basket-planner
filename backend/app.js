@@ -28,7 +28,6 @@ const monitoringRouter = require('./routes/monitoring.routes');
 const recommenderRouter = require('./routes/recommender.routes');
 const {sequelize} = require('./models');
 const { errorHandler } = require('./src/middlewares/errorHandler');
-const { auditRequestMiddleware } = require('./src/middlewares/auditRequest');
 
 // Apply security middleware first (helmet, CORS, rate limiting, payload limits)
 securityMiddleware(app);
@@ -41,9 +40,6 @@ app.get('/api/health', (req, res) => { res.json({ status: 'OK' }); });
 
 app.use('/api/auth', authRouter);
 app.use('/api/users', requireAuth, usersRouter);
-
-// Monitoring: record request KPIs (safe no-op if DB isn't initialized).
-app.use(auditRequestMiddleware);
 
 app.use('/api/clubs', clubsRouter);
 app.use('/api/teams', teamsRouter);

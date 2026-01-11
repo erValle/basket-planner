@@ -6,15 +6,30 @@ const auditLogListQuerySchema = Joi.object({
   // Alias for pageSize used by frontend
   limit: Joi.number().integer().min(1).max(200).optional(),
 
-  action: Joi.string().trim().min(1).optional(),
-  entity: Joi.string().trim().min(1).optional(),
-  entityId: Joi.string().trim().min(1).optional(),
-  userId: Joi.number().integer().positive().optional(),
-  requestId: Joi.string().trim().min(1).optional(),
+  action: Joi.string().trim().allow('').optional(),
+  entity: Joi.string().trim().allow('').optional(),
+  entityId: Joi.string().trim().allow('').optional(),
+  userId: Joi.alternatives()
+    .try(
+      Joi.number().integer().positive(),
+      Joi.string().valid('').optional()
+    )
+    .optional(),
+  requestId: Joi.string().trim().allow('').optional(),
 
-  // ISO strings; optional
-  from: Joi.date().iso().optional(),
-  to: Joi.date().iso().optional(),
+  // ISO strings; allow empty string or valid ISO date
+  from: Joi.alternatives()
+    .try(
+      Joi.date().iso(),
+      Joi.string().valid('').optional()
+    )
+    .optional(),
+  to: Joi.alternatives()
+    .try(
+      Joi.date().iso(),
+      Joi.string().valid('').optional()
+    )
+    .optional(),
 });
 
 module.exports = {

@@ -4,6 +4,7 @@ const authHelper  = require('../libs/authHelper');
 const jwtHelper = require('../libs/jwtHelper');
 
 const logger = require('../middlewares/logger');
+const auditLogService = require('../services/auditLogService');
 
 const { User } = require('../../models');
 const { auth } = require('../../config/config').development;
@@ -27,6 +28,16 @@ const login = async (req, res, next) => {
     }
 
     const token = jwtHelper.userEncode(user);
+
+    // Registrar login en auditoría
+    await auditLogService.createAuditLog({
+        user: { id: user.id },
+        requestId: req.requestId,
+        action: 'user.login',
+        entity: 'User',
+        entityId: user.id,
+        metadata: { email: user.email, role: user.role }
+    });
 
     return res.status(StatusCodes.OK).json({ 
         token, 
@@ -69,6 +80,16 @@ const changePassword = async (req, res, next) => {
 
     user.passwordHash = await bcrypt.hash(newPassword, 10);
     await user.save();
+
+    // Registrar cambio de contraseña en auditoría
+    await auditLogService.createAuditLog({
+        user: { id: req.user.id },
+        requestId: req.requestId,
+        action: 'user.password_changed',
+        entity: 'User',
+        entityId: req.user.id,
+        metadata: { email: user.email }
+    });
 
     return res.status(StatusCodes.OK).json({ message: 'PASSWORD_CHANGED_SUCCESSFULLY' });
 }
