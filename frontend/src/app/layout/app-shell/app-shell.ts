@@ -8,8 +8,6 @@ import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
-import { NotificationsApiService } from '../../services/notifications.api';
-import { AppNotification, NotificationType } from '../../models/notification';
 import { AuthService } from '../../core/auth/auth.service';
 import { ROLE_LABELS, Role } from '../../core/auth/roles';
 import { NAV_ITEMS, canAccess } from '../../core/auth/permissions';
@@ -32,7 +30,6 @@ export type AppShellNavItem = {
 	providers: [MessageService],
 })
 export class AppShell implements OnInit {
-	private readonly notificationsApi = inject(NotificationsApiService);
 	private readonly toast = inject(MessageService);
 	private readonly auth = inject(AuthService);
 	private readonly clubContext = inject(ClubContextService);
@@ -66,12 +63,6 @@ export class AppShell implements OnInit {
 
 	// Responsive navigation
 	isMobileNavOpen = false;
-
-	// Notifications
-	notificationsOpen = false;
-	notificationsLoading = false;
-	notificationsError: string | null = null;
-	notifications: AppNotification[] = [];
 
 	// Club selector
 	readonly clubOptions$ = this.clubContext.clubs$;
@@ -110,77 +101,7 @@ export class AppShell implements OnInit {
 	}
 
 	ngOnInit(): void {
-		this.loadNotifications();
-	}
-
-	toggleNotifications(): void {
-		this.notificationsOpen = !this.notificationsOpen;
-		if (this.notificationsOpen) this.loadNotifications();
-	}
-
-	closeNotifications(): void {
-		this.notificationsOpen = false;
-	}
-
-	loadNotifications(): void {
-		this.notificationsLoading = true;
-		this.notificationsError = null;
-
-		this.notificationsApi.list().subscribe({
-			next: (res) => {
-				this.notificationsLoading = false;
-				this.notifications = Array.isArray(res?.items) ? res.items : [];
-			},
-			error: (e: unknown) => {
-				this.notificationsLoading = false;
-				const msg = e instanceof Error ? e.message : 'No se pudieron cargar las notificaciones.';
-				this.notificationsError = msg;
-				this.toast.add({ severity: 'error', summary: 'Notificaciones', detail: msg });
-			},
-		});
-	}
-
-	get unreadCount(): number {
-		return this.notifications.filter((n) => !n.read).length;
-	}
-
-	markRead(n: AppNotification): void {
-		if (n.read) return;
-		this.notificationsApi.markRead(n.id).subscribe({
-			next: () => {
-				this.notifications = this.notifications.map((x) => (x.id === n.id ? { ...x, read: true } : x));
-			},
-			error: (e: unknown) => {
-				const msg = e instanceof Error ? e.message : 'No se pudo marcar como leída.';
-				this.toast.add({ severity: 'error', summary: 'Notificaciones', detail: msg });
-			},
-		});
-	}
-
-	markAllRead(): void {
-		this.notificationsApi.markAllRead().subscribe({
-			next: () => {
-				this.notifications = this.notifications.map((x) => ({ ...x, read: true }));
-				this.toast.add({ severity: 'success', summary: 'Notificaciones', detail: 'Todas marcadas como leídas.' });
-			},
-			error: (e: unknown) => {
-				const msg = e instanceof Error ? e.message : 'No se pudo marcar todas como leídas.';
-				this.toast.add({ severity: 'error', summary: 'Notificaciones', detail: msg });
-			},
-		});
-	}
-
-	notificationSeverity(t: NotificationType): 'success' | 'info' | 'warn' | 'danger' {
-		return t;
-	}
-
-	formatIso(iso: string): string {
-		try {
-			const d = new Date(iso);
-			return isNaN(d.getTime()) ? iso : d.toLocaleString();
-		} catch {
-			return iso;
-		}
+		// Component initialization
 	}
 
 	getPanelLabel(): string {

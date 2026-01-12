@@ -20,7 +20,7 @@ import { BpDialog } from '../components/bp-dialog';
 import { PlanningApiService } from '../services/planning.api';
 import { FeedbackApiService } from '../services/feedback.api';
 import { UserContextService } from '../core/auth/user-context.service';
-import { FeedbackSurveyAnswers, FeedbackSurveyListItem } from '../models/feedback-survey';
+import { FeedbackSurveyAnswers, FeedbackSurveyListItem, FeedbackVersionAnswers } from '../models/feedback-survey';
 import {
   PlanningBlock,
   PlanningDetailResponse,
@@ -101,13 +101,11 @@ export class PlanningDetail {
   scale0to10 = Array.from({ length: 11 }, (_, i) => ({ label: String(i), value: i }));
   scale1to5 = Array.from({ length: 5 }, (_, i) => ({ label: String(i + 1), value: i + 1 }));
 
-  draftSurvey: FeedbackSurveyAnswers = {
-    rpe: 5,
-    fatigue: 5,
-    pain: 0,
-    sleep: 3,
-    stress: 3,
-    mood: 3,
+  draftSurvey: FeedbackVersionAnswers = {
+    overall: 5,
+    physicalEffort: 5,
+    technicalEffort: 5,
+    mentalEffort: 5,
     notes: '',
   };
 
@@ -269,6 +267,37 @@ export class PlanningDetail {
     this.feedbackDialogOpen = false;
   }
 
+  loadFeedbackForVersion(versionId: string): void {
+    const currentUser = this.userContext.getUserSnapshot();
+    if (!currentUser?.id) {
+      // Usuario no autenticado, no cargar feedback
+      this.latestSurvey = null;
+      return;
+    }
+
+    // Buscar feedback para esta versión y este usuario
+    this.feedbackApi.listRecentForPlayer(String(currentUser.id), 50).subscribe({
+      next: (response) => {
+        // Buscar el feedback más reciente para esta versión específica
+        const feedbackForVersion = response.items.find(
+          (item) => item.targetType === 'version' && item.targetId === versionId
+        );
+        
+        if (feedbackForVersion) {
+          this.latestSurvey = feedbackForVersion;
+        } else {
+          this.latestSurvey = null;
+        }
+        this.cdr.markForCheck();
+      },
+      error: (e: unknown) => {
+        console.error('Error loading feedback:', e);
+        this.latestSurvey = null;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
   saveFeedback(): void {
     if (this.savingFeedback) return;
     if (!this.planningId) return;
@@ -285,7 +314,7 @@ export class PlanningDetail {
 
     const a = this.draftSurvey;
     const isMissing =
-      a.rpe == null || a.fatigue == null || a.pain == null || a.sleep == null || a.stress == null || a.mood == null;
+      a.overall == null || a.physicalEffort == null || a.technicalEffort == null || a.mentalEffort == null;
     if (isMissing) {
       this.toast.add({ severity: 'warn', summary: 'Revisa el formulario', detail: 'Completa todas las escalas.' });
       return;
@@ -295,7 +324,7 @@ export class PlanningDetail {
     this.feedbackApi
       .createSurvey({
         playerId: String(currentUser.id),
-        targetType: 'planning',
+        targetType: 'version',
         targetId: this.planningId,
         answers: this.draftSurvey,
       })
@@ -306,7 +335,7 @@ export class PlanningDetail {
           this.latestSurvey = {
             id: (res?.id != null ? String(res.id) : `fp-${Math.random().toString(16).slice(2)}`),
             playerId: String(currentUser.id),
-            targetType: 'planning',
+            targetType: 'version',
             targetId: this.planningId!,
             createdAt: new Date().toISOString(),
             answers: { ...this.draftSurvey },
@@ -318,6 +347,12 @@ export class PlanningDetail {
           const msg = e instanceof Error ? e.message : 'No se pudo guardar el feedback.';
           this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
         },
+        complete: () => {
+          // Ensure loading state is always cleared
+          if (this.savingFeedback) {
+            this.savingFeedback = false;
+          }
+        }
       });
   }
 
@@ -375,6 +410,10 @@ export class PlanningDetail {
             // options show labels, values are real version IDs so export works
             this.versionOptions = (resolved.versions ?? []).map((v: any) => ({ label: v.label, value: v.value }));
             this.selectedVersion = resolvedVersionId;
+            
+            // Load feedback for this version
+            this.loadFeedbackForVersion(resolvedVersionId);
+            
             this.cdr.markForCheck();
           },
           error: (e: unknown) => {
@@ -533,16 +572,36 @@ export class PlanningDetail {
       return;
     }
     this.downloading = 'pdf';
-    this.toast.add({ severity: 'info', summary: 'Exportación', detail: 'Descargando PDF…' });
+    
+    // Mostrar toast de descarga
+    this.toast.add({ 
+      severity: 'info', 
+      summary: 'Exportación', 
+      detail: 'Descargando PDF…',
+      key: 'download-toast'
+    });
+    this.cdr.markForCheck();
+    
     this.api.exportPdf(this.planningId, this.selectedVersion).subscribe({
       next: (blob) => {
         this.downloading = null;
         this.downloadBlob(blob, `planning-${this.planningId}-${this.selectedVersion ?? 'latest'}.pdf`);
+        // Cerrar el toast de descarga
+        this.toast.clear('download-toast');
+        this.toast.add({ 
+          severity: 'success', 
+          summary: 'Exportación', 
+          detail: 'PDF descargado correctamente',
+          life: 3000
+        });
+        this.cdr.markForCheck();
       },
       error: (e: unknown) => {
         this.downloading = null;
+        this.toast.clear('download-toast');
         const msg = e instanceof Error ? e.message : 'No se pudo exportar PDF.';
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        this.cdr.markForCheck();
       },
     });
   }
@@ -554,16 +613,36 @@ export class PlanningDetail {
       return;
     }
     this.downloading = 'csv';
-    this.toast.add({ severity: 'info', summary: 'Exportación', detail: 'Descargando CSV…' });
+    
+    // Mostrar toast de descarga
+    this.toast.add({ 
+      severity: 'info', 
+      summary: 'Exportación', 
+      detail: 'Descargando CSV…',
+      key: 'download-toast'
+    });
+    this.cdr.markForCheck();
+    
     this.api.exportCsv(this.planningId, this.selectedVersion).subscribe({
       next: (blob) => {
         this.downloading = null;
         this.downloadBlob(blob, `planning-${this.planningId}-${this.selectedVersion ?? 'latest'}.csv`);
+        // Cerrar el toast de descarga
+        this.toast.clear('download-toast');
+        this.toast.add({ 
+          severity: 'success', 
+          summary: 'Exportación', 
+          detail: 'CSV descargado correctamente',
+          life: 3000
+        });
+        this.cdr.markForCheck();
       },
       error: (e: unknown) => {
         this.downloading = null;
+        this.toast.clear('download-toast');
         const msg = e instanceof Error ? e.message : 'No se pudo exportar CSV.';
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        this.cdr.markForCheck();
       },
     });
   }

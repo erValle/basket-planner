@@ -29,7 +29,7 @@ const listTeams = async ({ clubId } = {}) => {
   });
 };
 
-const getTeamById = async (id) => {
+const getTeamById = async (id, { raw = false } = {}) => {
   const team = await Team.findByPk(id);
   if (!team) {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'TEAM_NOT_FOUND', 'Team not found');
@@ -38,6 +38,12 @@ const getTeamById = async (id) => {
   // Get players count separately
   const playersCount = await TeamPlayer.count({ where: { teamId: id } });
   
+  // Return raw model for internal operations (update/delete)
+  if (raw) {
+    team.playersCount = playersCount;
+    return team;
+  }
+
   return {
     ...team.toJSON(),
     playersCount,
@@ -47,7 +53,7 @@ const getTeamById = async (id) => {
 const createTeam = async (payload) => Team.create(payload);
 
 const updateTeam = async (id, payload) => {
-  const team = await getTeamById(id);
+  const team = await getTeamById(id, { raw: true });
 
   // Business rule: activating a team requires at least N players.
   // Only validate when changing from inactive to active (not when already active)
@@ -67,7 +73,7 @@ const updateTeam = async (id, payload) => {
 };
 
 const deleteTeam = async (id) => {
-  const team = await getTeamById(id);
+  const team = await getTeamById(id, { raw: true });
   await team.destroy();
 };
 

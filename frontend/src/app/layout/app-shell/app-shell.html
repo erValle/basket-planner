@@ -73,23 +73,25 @@
 					</nav>
 				</div>
 
-				<div>
-					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">Control</div>
-					<nav>
-						@for (item of controlNav; track item.route) {
-							<a
-								[routerLink]="item.route"
-								routerLinkActive="bg-[#111827] text-[#f9fafb]"
-								class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-							>
-								@if (item.icon) {
-									<i class="{{ item.icon }}"></i>
-								}
-								<span>{{ item.label }}</span>
-							</a>
-						}
-					</nav>
-				</div>
+				@if (controlNav.length > 0) {
+					<div>
+						<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">Control</div>
+						<nav>
+							@for (item of controlNav; track item.route) {
+								<a
+									[routerLink]="item.route"
+									routerLinkActive="bg-[#111827] text-[#f9fafb]"
+									class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+								>
+									@if (item.icon) {
+										<i class="{{ item.icon }}"></i>
+									}
+									<span>{{ item.label }}</span>
+								</a>
+							}
+						</nav>
+					</div>
+				}
 			</div>
 
 			<div class="p-4 border-t border-[#1f2937]">

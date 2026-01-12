@@ -112,77 +112,53 @@
     (cancel)="feedbackDialogOpen = false"
   >
     <div class="space-y-4">
-      <div class="text-[13px] text-[#9ca3af]">Encuesta estructurada (RPE, fatiga, dolor y bienestar).</div>
+      <div class="text-[13px] text-[#9ca3af]">Valora el esfuerzo de la planificación (escala de esfuerzo).</div>
 
       <div class="bp-dialog-grid-2">
         <div class="bp-dialog-field">
-          <label class="bp-dialog-label">RPE (1-10)</label>
+          <label class="bp-dialog-label">Valoración general (1-10)</label>
           <p-select
             class="w-full"
             [options]="scale1to10"
             optionLabel="label"
             optionValue="value"
-            [(ngModel)]="draftSurvey.rpe"
+            [(ngModel)]="draftSurvey.overall"
             styleClass="bp-select"
             [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
         <div class="bp-dialog-field">
-          <label class="bp-dialog-label">Fatiga (1-10)</label>
+          <label class="bp-dialog-label">Esfuerzo físico (1-10)</label>
           <p-select
             class="w-full"
             [options]="scale1to10"
             optionLabel="label"
             optionValue="value"
-            [(ngModel)]="draftSurvey.fatigue"
+            [(ngModel)]="draftSurvey.physicalEffort"
             styleClass="bp-select"
             [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
         <div class="bp-dialog-field">
-          <label class="bp-dialog-label">Dolor (0-10)</label>
+          <label class="bp-dialog-label">Esfuerzo técnico (1-10)</label>
           <p-select
             class="w-full"
-            [options]="scale0to10"
+            [options]="scale1to10"
             optionLabel="label"
             optionValue="value"
-            [(ngModel)]="draftSurvey.pain"
+            [(ngModel)]="draftSurvey.technicalEffort"
             styleClass="bp-select"
             [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
         <div class="bp-dialog-field">
-          <label class="bp-dialog-label">Sueño (1-5)</label>
+          <label class="bp-dialog-label">Esfuerzo mental (1-10)</label>
           <p-select
             class="w-full"
-            [options]="scale1to5"
+            [options]="scale1to10"
             optionLabel="label"
             optionValue="value"
-            [(ngModel)]="draftSurvey.sleep"
-            styleClass="bp-select"
-            [panelStyleClass]="'bp-select-panel'"
-          ></p-select>
-        </div>
-        <div class="bp-dialog-field">
-          <label class="bp-dialog-label">Estrés (1-5)</label>
-          <p-select
-            class="w-full"
-            [options]="scale1to5"
-            optionLabel="label"
-            optionValue="value"
-            [(ngModel)]="draftSurvey.stress"
-            styleClass="bp-select"
-            [panelStyleClass]="'bp-select-panel'"
-          ></p-select>
-        </div>
-        <div class="bp-dialog-field">
-          <label class="bp-dialog-label">Ánimo (1-5)</label>
-          <p-select
-            class="w-full"
-            [options]="scale1to5"
-            optionLabel="label"
-            optionValue="value"
-            [(ngModel)]="draftSurvey.mood"
+            [(ngModel)]="draftSurvey.mentalEffort"
             styleClass="bp-select"
             [panelStyleClass]="'bp-select-panel'"
           ></p-select>
@@ -312,33 +288,24 @@
               <div class="text-[14px] font-semibold text-[#f9fafb]">Feedback registrado</div>
               <div class="mt-1 text-[12px] text-[#9ca3af]">{{ latestSurvey.createdAt.slice(0, 10) }} · Planificación</div>
             </div>
-            <p-tag severity="success" value="OK"></p-tag>
           </div>
 
-          <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-              <div class="text-[11px] text-[#9ca3af]">RPE</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.rpe }}/10</div>
+              <div class="text-[11px] text-[#9ca3af]">Valoración general</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ $any(latestSurvey.answers).overall }}/10</div>
             </div>
             <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-              <div class="text-[11px] text-[#9ca3af]">Fatiga</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.fatigue }}/10</div>
+              <div class="text-[11px] text-[#9ca3af]">Esfuerzo físico</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ $any(latestSurvey.answers).physicalEffort }}/10</div>
             </div>
             <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-              <div class="text-[11px] text-[#9ca3af]">Dolor</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.pain }}/10</div>
+              <div class="text-[11px] text-[#9ca3af]">Esfuerzo técnico</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ $any(latestSurvey.answers).technicalEffort }}/10</div>
             </div>
             <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-              <div class="text-[11px] text-[#9ca3af]">Sueño</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.sleep }}/5</div>
-            </div>
-            <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-              <div class="text-[11px] text-[#9ca3af]">Estrés</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.stress }}/5</div>
-            </div>
-            <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-              <div class="text-[11px] text-[#9ca3af]">Ánimo</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ latestSurvey.answers.mood }}/5</div>
+              <div class="text-[11px] text-[#9ca3af]">Esfuerzo mental</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ $any(latestSurvey.answers).mentalEffort }}/10</div>
             </div>
           </div>
 
@@ -421,74 +388,111 @@
     (cancel)="closeExercisePreview()"
   >
     @if (selectedExercise) {
-      <div class="space-y-4">
-        <!-- Descripción -->
+      <div class="space-y-5">
+        <!-- Descripción destacada -->
         @if (selectedExercise.description) {
-          <div class="bp-dialog-field">
-            <label class="bp-dialog-label">Descripción</label>
-            <p class="text-[13px] text-[#e5e7eb]">{{ selectedExercise.description }}</p>
+          <div class="rounded-lg bg-gradient-to-br from-blue-950/40 to-purple-950/40 border border-blue-800/30 p-4">
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center">
+                <i class="pi pi-info-circle text-blue-400 text-sm"></i>
+              </div>
+              <div class="flex-1">
+                <label class="block text-[12px] font-semibold text-blue-300 mb-1">Descripción</label>
+                <p class="text-[13px] text-[#e5e7eb] leading-relaxed">{{ selectedExercise.description }}</p>
+              </div>
+            </div>
           </div>
         }
 
-        <!-- Información básica -->
-        <div class="bp-dialog-grid-2">
+        <!-- Información básica con iconos -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           @if (selectedExercise.type) {
-            <div class="bp-dialog-field">
-              <label class="bp-dialog-label">Tipo</label>
-              <p-tag [value]="selectedExercise.type" severity="info" styleClass="text-[11px]"></p-tag>
+            <div class="rounded-lg bg-[#111827] border border-[#1f2937] p-4 hover:border-blue-800/50 transition-colors">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="pi pi-tag text-blue-400 text-xs"></i>
+                <label class="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wide">Tipo</label>
+              </div>
+              <p-tag [value]="selectedExercise.type" severity="info" styleClass="text-[11px] w-full"></p-tag>
             </div>
           }
           @if (selectedExercise.phase) {
-            <div class="bp-dialog-field">
-              <label class="bp-dialog-label">Fase</label>
-              <p-tag [value]="selectedExercise.phase" severity="secondary" styleClass="text-[11px]"></p-tag>
+            <div class="rounded-lg bg-[#111827] border border-[#1f2937] p-4 hover:border-purple-800/50 transition-colors">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="pi pi-calendar text-purple-400 text-xs"></i>
+                <label class="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wide">Fase</label>
+              </div>
+              <p-tag [value]="selectedExercise.phase" severity="secondary" styleClass="text-[11px] w-full"></p-tag>
             </div>
           }
           @if (selectedExercise.durationMin) {
-            <div class="bp-dialog-field">
-              <label class="bp-dialog-label">Duración</label>
-              <p class="text-[13px] text-[#e5e7eb]">{{ selectedExercise.durationMin }} minutos</p>
+            <div class="rounded-lg bg-[#111827] border border-[#1f2937] p-4 hover:border-green-800/50 transition-colors">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="pi pi-clock text-green-400 text-xs"></i>
+                <label class="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wide">Duración</label>
+              </div>
+              <p class="text-[14px] font-semibold text-[#f9fafb]">{{ selectedExercise.durationMin }} <span class="text-[12px] text-[#9ca3af] font-normal">minutos</span></p>
             </div>
           }
         </div>
 
-        <!-- Dificultades 4D -->
+        <!-- Dificultades 4D mejoradas -->
         @if (selectedExercise.difficulty && getDifficultyKeys().length > 0) {
-          <div class="bp-dialog-field">
-            <label class="bp-dialog-label">Dificultad (1-5)</label>
-            <div class="grid grid-cols-2 gap-3 mt-2">
+          <div class="rounded-lg bg-[#0b1220] border border-[#1f2937] p-4">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-chart-bar text-yellow-400"></i>
+                <label class="text-[13px] font-semibold text-[#f9fafb]">Dificultad 4D</label>
+              </div>
+              <div class="px-3 py-1 rounded-full bg-yellow-500/10 border border-yellow-500/20">
+                <span class="text-[12px] font-semibold text-yellow-400">
+                  Media: {{ formatDifficultyShort(selectedExercise.difficulty) }} / 5.0
+                </span>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               @for (key of getDifficultyKeys(); track key) {
-                <div class="flex items-center justify-between p-3 rounded-lg bg-[#111827] border border-[#1f2937]">
-                  <span class="text-[12px] text-[#9ca3af]">{{ getDifficultyLabel(key) }}</span>
-                  <div class="flex gap-1">
-                    @for (i of [1,2,3,4,5]; track i) {
-                      <div 
-                        class="w-6 h-6 rounded flex items-center justify-center text-[11px] font-semibold"
-                        [class.bg-blue-600]="i <= getDifficultyValue(key)"
-                        [class.bg-[#1f2937]]="i > getDifficultyValue(key)"
-                        [class.text-white]="i <= getDifficultyValue(key)"
-                        [class.text-[#6b7280]]="i > getDifficultyValue(key)"
-                      >
-                        {{ i }}
-                      </div>
-                    }
+                <div class="rounded-lg bg-[#111827] border border-[#1f2937] p-3 hover:border-yellow-800/50 transition-colors">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[13px] font-medium text-[#e5e7eb]">{{ getDifficultyLabel(key) }}</span>
+                    <div class="flex gap-1">
+                      @for (i of [1,2,3,4,5]; track i) {
+                        <div 
+                          class="w-7 h-7 rounded-md flex items-center justify-center text-[11px] font-bold transition-all"
+                          [class.bg-gradient-to-br]="i <= getDifficultyValue(key)"
+                          [class.from-yellow-500]="i <= getDifficultyValue(key)"
+                          [class.to-orange-600]="i <= getDifficultyValue(key)"
+                          [class.shadow-md]="i <= getDifficultyValue(key)"
+                          [class.bg-[#1f2937]]="i > getDifficultyValue(key)"
+                          [class.text-white]="i <= getDifficultyValue(key)"
+                          [class.text-[#6b7280]]="i > getDifficultyValue(key)"
+                        >
+                          {{ i }}
+                        </div>
+                      }
+                    </div>
                   </div>
                 </div>
               }
             </div>
-            <div class="mt-2 text-[12px] text-[#9ca3af] text-center">
-              Media: {{ formatDifficultyShort(selectedExercise.difficulty) }} / 5.0
-            </div>
           </div>
         }
 
-        <!-- Materiales necesarios -->
+        <!-- Materiales necesarios mejorados -->
         @if (selectedExercise.equipment && selectedExercise.equipment.length > 0) {
-          <div class="bp-dialog-field">
-            <label class="bp-dialog-label">Materiales necesarios</label>
+          <div class="rounded-lg bg-[#0b1220] border border-[#1f2937] p-4">
+            <div class="flex items-center gap-2 mb-3">
+              <i class="pi pi-box text-cyan-400"></i>
+              <label class="text-[13px] font-semibold text-[#f9fafb]">Materiales necesarios</label>
+              <span class="ml-auto px-2 py-0.5 rounded-full bg-cyan-500/10 text-[11px] text-cyan-400 font-semibold">
+                {{ selectedExercise.equipment.length }}
+              </span>
+            </div>
             <div class="flex flex-wrap gap-2">
               @for (item of selectedExercise.equipment; track item) {
-                <p-tag [value]="item" severity="contrast" styleClass="text-[11px]"></p-tag>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-950/50 to-blue-950/50 border border-cyan-800/30 hover:border-cyan-600/50 transition-colors">
+                  <i class="pi pi-check-circle text-cyan-400 text-xs"></i>
+                  <span class="text-[12px] text-[#e5e7eb] font-medium">{{ item }}</span>
+                </div>
               }
             </div>
           </div>

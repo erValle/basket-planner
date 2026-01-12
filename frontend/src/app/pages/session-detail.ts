@@ -15,7 +15,7 @@ import { AppShell } from '../layout/app-shell/app-shell';
 import { BpDialog } from '../components/bp-dialog';
 
 import { FeedbackApiService } from '../services/feedback.api';
-import { FeedbackSurveyAnswers, FeedbackSurveyListItem } from '../models/feedback-survey';
+import { FeedbackSurveyAnswers, FeedbackVersionAnswers, FeedbackSurveyListItem } from '../models/feedback-survey';
 
 @Component({
   selector: 'app-session-detail',
@@ -86,13 +86,11 @@ export class SessionDetail {
   scale0to10 = Array.from({ length: 11 }, (_, i) => ({ label: String(i), value: i }));
   scale1to5 = Array.from({ length: 5 }, (_, i) => ({ label: String(i + 1), value: i + 1 }));
 
-  draftSurvey: FeedbackSurveyAnswers = {
-    rpe: 5,
-    fatigue: 5,
-    pain: 0,
-    sleep: 3,
-    stress: 3,
-    mood: 3,
+  draftSurvey: FeedbackVersionAnswers = {
+    overall: 5,
+    physicalEffort: 5,
+    technicalEffort: 5,
+    mentalEffort: 5,
     notes: '',
   };
 
@@ -148,7 +146,7 @@ export class SessionDetail {
     // Basic validation
     const a = this.draftSurvey;
     const isMissing =
-      a.rpe == null || a.fatigue == null || a.pain == null || a.sleep == null || a.stress == null || a.mood == null;
+      a.overall == null || a.physicalEffort == null || a.technicalEffort == null || a.mentalEffort == null;
     if (isMissing) {
       this.toast.add({ severity: 'warn', summary: 'Revisa el formulario', detail: 'Completa todas las escalas.' });
       return;
@@ -156,11 +154,10 @@ export class SessionDetail {
 
     this.savingFeedback = true;
 
-    // Create payload for session feedback
+    // Create payload for version feedback (not session-specific)
     const payload: any = {
       targetId: String(this.session.trainingPlanVersionId),
-      targetType: 'session',
-      sessionId: this.session.sessionId,
+      targetType: 'version',
       answers: this.draftSurvey,
     };
 
@@ -174,14 +171,22 @@ export class SessionDetail {
         this.savingFeedback = false;
         this.feedbackDialogVisible = false;
         
+        // Update the latest survey with the newly created feedback
+        this.latestSurvey = {
+          id: String(result.id),
+          playerId: String(result.userId),
+          targetType: 'version',
+          targetId: String(result.trainingPlanVersionId),
+          createdAt: result.createdAt || new Date().toISOString(),
+          answers: this.draftSurvey,
+        };
+        
         // Reset form
         this.draftSurvey = {
-          rpe: 5,
-          fatigue: 5,
-          pain: 0,
-          sleep: 3,
-          stress: 3,
-          mood: 3,
+          overall: 5,
+          physicalEffort: 5,
+          technicalEffort: 5,
+          mentalEffort: 5,
           notes: '',
         };
       },

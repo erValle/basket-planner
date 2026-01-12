@@ -56,33 +56,24 @@
 						<div class="text-[14px] font-semibold text-[#f9fafb]">Feedback registrado</div>
 						<div class="mt-1 text-[12px] text-[#9ca3af]">{{ latestSurvey.createdAt.slice(0, 10) }} · Encuesta</div>
 					</div>
-					<p-tag severity="success" value="OK"></p-tag>
 				</div>
 
-				<div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-3">
+				<div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
 					<div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-						<div class="text-[11px] text-[#9ca3af]">RPE</div>
-						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ latestSurvey.answers.rpe }}/10</div>
+						<div class="text-[11px] text-[#9ca3af]">Valoración general</div>
+						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ $any(latestSurvey.answers).overall }}/10</div>
 					</div>
 					<div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-						<div class="text-[11px] text-[#9ca3af]">Fatiga</div>
-						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ latestSurvey.answers.fatigue }}/10</div>
+						<div class="text-[11px] text-[#9ca3af]">Esfuerzo físico</div>
+						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ $any(latestSurvey.answers).physicalEffort }}/10</div>
 					</div>
 					<div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-						<div class="text-[11px] text-[#9ca3af]">Dolor</div>
-						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ latestSurvey.answers.pain }}/10</div>
+						<div class="text-[11px] text-[#9ca3af]">Esfuerzo técnico</div>
+						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ $any(latestSurvey.answers).technicalEffort }}/10</div>
 					</div>
 					<div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-						<div class="text-[11px] text-[#9ca3af]">Sueño</div>
-						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ latestSurvey.answers.sleep }}/5</div>
-					</div>
-					<div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-						<div class="text-[11px] text-[#9ca3af]">Estrés</div>
-						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ latestSurvey.answers.stress }}/5</div>
-					</div>
-					<div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-						<div class="text-[11px] text-[#9ca3af]">Ánimo</div>
-						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ latestSurvey.answers.mood }}/5</div>
+						<div class="text-[11px] text-[#9ca3af]">Esfuerzo mental</div>
+						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ $any(latestSurvey.answers).mentalEffort }}/10</div>
 					</div>
 				</div>
 
@@ -106,32 +97,24 @@
 		(cancel)="feedbackDialogVisible = false"
 	>
 		<div class="space-y-4">
-			<div class="text-[13px] text-[#9ca3af]">Encuesta estructurada (RPE, fatiga, dolor y bienestar).</div>
+			<div class="text-[13px] text-[#9ca3af]">Encuesta de esfuerzo percibido de la sesión.</div>
 
 			<div class="bp-dialog-grid-2">
 				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">RPE (1-10)</label>
-					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.rpe"></p-select>
+					<label class="bp-dialog-label">Valoración general (1-10)</label>
+					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.overall"></p-select>
 				</div>
 				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">Fatiga (1-10)</label>
-					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.fatigue"></p-select>
+					<label class="bp-dialog-label">Esfuerzo físico (1-10)</label>
+					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.physicalEffort"></p-select>
 				</div>
 				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">Dolor (0-10)</label>
-					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale0to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.pain"></p-select>
+					<label class="bp-dialog-label">Esfuerzo técnico (1-10)</label>
+					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.technicalEffort"></p-select>
 				</div>
 				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">Sueño (1-5)</label>
-					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to5" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.sleep"></p-select>
-				</div>
-				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">Estrés (1-5)</label>
-					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to5" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.stress"></p-select>
-				</div>
-				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">Ánimo (1-5)</label>
-					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to5" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.mood"></p-select>
+					<label class="bp-dialog-label">Esfuerzo mental (1-10)</label>
+					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.mentalEffort"></p-select>
 				</div>
 			</div>
 
