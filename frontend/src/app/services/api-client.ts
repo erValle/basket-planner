@@ -15,7 +15,13 @@ export class ApiClient {
    */
   private handleError(err: unknown) {
     if (err instanceof HttpErrorResponse) {
-      return throwError(() => new Error(err.error?.message ?? err.message));
+      // Try to extract the error message from various possible structures
+      const errorMessage = 
+        err.error?.error?.message ||  // Structured error: { error: { message: ... } }
+        err.error?.message ||          // Simple error: { message: ... }
+        err.message ||                 // HTTP error message
+        'Unknown API error';
+      return throwError(() => new Error(errorMessage));
     }
     return throwError(() => (err instanceof Error ? err : new Error('Unknown API error')));
   }
