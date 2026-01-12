@@ -1,6 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const logger = require('../middlewares/logger');
 const feedbackService = require('../services/feedbackService');
+const auditLogService = require('../services/auditLogService');
 
 const listFeedbacks = async (req, res, next) => {
   try {
@@ -25,6 +26,22 @@ const getFeedback = async (req, res, next) => {
 const createFeedback = async (req, res, next) => {
   try {
     const created = await feedbackService.createFeedback(req.body, req.user);
+    
+    // Registrar en auditoría
+    await auditLogService.createAuditLog({
+      user: req.user,
+      requestId: req.requestId,
+      action: 'feedback.create',
+      entity: 'Feedback',
+      entityId: created.id,
+      metadata: {
+        trainingPlanVersionId: created.trainingPlanVersionId,
+        targetType: created.targetType,
+        sessionId: created.sessionId,
+        rating: created.rating,
+      }
+    });
+    
     return res.status(StatusCodes.CREATED).json(created);
   } catch (error) {
     logger.error(`Error creating feedback: ${error?.message || error}`);
@@ -35,6 +52,20 @@ const createFeedback = async (req, res, next) => {
 const updateFeedback = async (req, res, next) => {
   try {
     const row = await feedbackService.updateFeedback(req.params.id, req.body);
+    
+    // Registrar en auditoría
+    await auditLogService.createAuditLog({
+      user: req.user,
+      requestId: req.requestId,
+      action: 'feedback.update',
+      entity: 'Feedback',
+      entityId: row.id,
+      metadata: {
+        trainingPlanVersionId: row.trainingPlanVersionId,
+        changes: req.body,
+      }
+    });
+    
     return res.status(StatusCodes.OK).json(row);
   } catch (error) {
     logger.error(`Error updating feedback: ${error?.message || error}`);
@@ -44,7 +75,27 @@ const updateFeedback = async (req, res, next) => {
 
 const deleteFeedback = async (req, res, next) => {
   try {
-    await feedbackService.deleteFeedback(req.params.id);
+    const feedbackId = req.params.id;
+    
+    // Obtener el feedback antes de eliminarlo para el audit log
+    const feedback = await feedbackService.getFeedbackById(feedbackId);
+    
+    await feedbackService.deleteFeedback(feedbackId);
+    
+    // Registrar en auditoría
+    await auditLogService.createAuditLog({
+      user: req.user,
+      requestId: req.requestId,
+      action: 'feedback.delete',
+      entity: 'Feedback',
+      entityId: feedbackId,
+      metadata: {
+        trainingPlanVersionId: feedback.trainingPlanVersionId,
+        targetType: feedback.targetType,
+        sessionId: feedback.sessionId,
+      }
+    });
+    
     return res.status(StatusCodes.NO_CONTENT).send();
   } catch (error) {
     logger.error(`Error deleting feedback: ${error?.message || error}`);
