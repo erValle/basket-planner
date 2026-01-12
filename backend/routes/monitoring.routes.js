@@ -31,18 +31,19 @@ const parseRange = (body) => {
 };
 
 /**
- * Backend KPIs based on audit_logs:
- * - throughputRps: requests / seconds
- * - errorRatePct: % of actions containing '.error' or ending with '.failed'
- * - latencyMs: derived from metadata.latencyMs (if present), else 0
+ * Backend KPIs based on business action audit_logs:
+ * Since we no longer log HTTP requests, we calculate metrics based on business actions
+ * - totalActions: count of business actions in the period
+ * - actionsPerDay: average actions per day
+ * - errorRatePct: % of UNAUTHORIZED_ACCESS_ATTEMPT or other error actions
  */
 async function computeBackendKpis({ from, to }) {
   if (!AuditLog) {
     // Contract/test mode without DB
-    return { latencyMs: 0, errorRatePct: 0, throughputRps: 0 };
+    return { totalActions: 0, actionsPerDay: 0, errorRatePct: 0 };
   }
 
-  const where = { entity: 'HttpRequest' };
+  const where = {};
   if (from || to) {
     where.createdAt = {};
     if (from) where.createdAt[Op.gte] = from;
@@ -51,29 +52,30 @@ async function computeBackendKpis({ from, to }) {
 
   const rows = await AuditLog.findAll({
     where,
-    attributes: ['action', 'metadata', 'createdAt'],
+    attributes: ['action', 'createdAt'],
     order: [['createdAt', 'ASC']],
   });
 
   const total = rows.length;
-  if (!total) return { latencyMs: 0, errorRatePct: 0, throughputRps: 0 };
+  if (!total) return { totalActions: 0, actionsPerDay: 0, errorRatePct: 0 };
 
-  const isErr = (action) => typeof action === 'string' && (action.includes('.error') || action.endsWith('.failed'));
-  const errors = rows.filter((r) => isErr(r.action)).length;
+  // Count error-related actions (UNAUTHORIZED_ACCESS_ATTEMPT, etc.)
+  const errorActions = ['UNAUTHORIZED_ACCESS_ATTEMPT'];
+  const errors = rows.filter((r) => 
+    errorActions.some(err => r.action.includes(err)) || 
+    r.action.includes('.error') || 
+    r.action.endsWith('.failed')
+  ).length;
 
+  // Calculate days in range
   const startedAt = rows[0].createdAt ? new Date(rows[0].createdAt).getTime() : Date.now();
   const endedAt = rows[rows.length - 1].createdAt ? new Date(rows[rows.length - 1].createdAt).getTime() : Date.now();
-  const seconds = Math.max((endedAt - startedAt) / 1000, 1);
-
-  const latencies = rows
-    .map((r) => (r.metadata && typeof r.metadata.latencyMs === 'number' ? r.metadata.latencyMs : null))
-    .filter((x) => typeof x === 'number' && isFinite(x));
-  const avgLatency = latencies.length ? latencies.reduce((a, b) => a + b, 0) / latencies.length : 0;
+  const days = Math.max((endedAt - startedAt) / (1000 * 60 * 60 * 24), 1);
 
   return {
-    latencyMs: Math.round(avgLatency),
+    totalActions: total,
+    actionsPerDay: Math.round((total / days) * 10) / 10,
     errorRatePct: Math.round((errors / total) * 1000) / 10, // 1 decimal
-    throughputRps: Math.round((total / seconds) * 10) / 10,
   };
 }
 

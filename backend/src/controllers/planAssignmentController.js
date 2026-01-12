@@ -1,6 +1,7 @@
 const { StatusCodes } = require('http-status-codes');
 const logger = require('../middlewares/logger');
 const planAssignmentService = require('../services/planAssignmentService');
+const auditLogService = require('../services/auditLogService');
 
 const listAssignments = async (req, res, next) => {
   try {
@@ -15,6 +16,22 @@ const listAssignments = async (req, res, next) => {
 const getAssignment = async (req, res, next) => {
   try {
     const row = await planAssignmentService.getAssignmentById(req.params.id);
+    
+    // Si el usuario autenticado es el jugador asignado (no el coach), registrar visualización
+    if (req.user && req.user.id === row.userId) {
+      await auditLogService.createAuditLog({
+        user: req.user,
+        requestId: req.requestId,
+        action: 'plan_assignment.viewed_by_player',
+        entity: 'PlanAssignment',
+        entityId: row.id,
+        metadata: { 
+          trainingPlanId: row.trainingPlanId,
+          planName: row.TrainingPlan?.name 
+        }
+      });
+    }
+    
     return res.status(StatusCodes.OK).json(row);
   } catch (error) {
     logger.error('Error fetching assignment:', error);

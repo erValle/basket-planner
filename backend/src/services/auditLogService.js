@@ -4,6 +4,78 @@ const { Op } = require('sequelize');
 const { AuditLog } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
 
+/**
+ * Whitelist de acciones que se deben registrar en auditoría.
+ * Solo se registran acciones de negocio relevantes, no todas las peticiones HTTP.
+ * 
+ * Categorías:
+ * - user.*: Gestión de usuarios (registro, login, actualización, eliminación)
+ * - training_plan.*: Gestión de planes de entrenamiento (creación, actualización, generación, eliminación)
+ * - training_plan_version.*: Gestión de versiones de planes (creación, publicación)
+ * - plan_assignment.*: Asignaciones de planes (asignación, visualización por jugador, actualización, eliminación)
+ * - feedback.*: Feedback de entrenamientos (creación, actualización, eliminación)
+ * - club.*: Gestión de clubes (creación, actualización, eliminación)
+ * - team.*: Gestión de equipos (creación, actualización, eliminación)
+ * - exercise.*: Gestión de ejercicios (creación, actualización, eliminación)
+ * - equipment.*: Gestión de equipamiento (creación, actualización, eliminación)
+ */
+const ALLOWED_AUDIT_ACTIONS = new Set([
+  // Usuarios
+  'user.created',
+  'user.login',
+  'user.logout',
+  'user.updated',
+  'user.deleted',
+  'user.password_changed',
+  'user.role_changed',
+  
+  // Planes de entrenamiento
+  'training_plan.created',
+  'training_plan.updated',
+  'training_plan.deleted',
+  'training_plan.generated',
+  'training_plan.duplicated',
+  
+  // Versiones de planes
+  'training_plan_version.created',
+  'training_plan_version.published',
+  'training_plan_version.activated',
+  
+  // Asignaciones
+  'plan_assignment.created',
+  'plan_assignment.viewed_by_player',
+  'plan_assignment.updated',
+  'plan_assignment.deleted',
+  'plan_assignment.status_changed',
+  
+  // Feedback
+  'feedback.created',
+  'feedback.updated',
+  'feedback.deleted',
+  
+  // Clubes
+  'club.created',
+  'club.updated',
+  'club.deleted',
+  
+  // Equipos
+  'team.created',
+  'team.updated',
+  'team.deleted',
+  'team.player_added',
+  'team.player_removed',
+  
+  // Ejercicios
+  'exercise.created',
+  'exercise.updated',
+  'exercise.deleted',
+  
+  // Equipamiento
+  'equipment.created',
+  'equipment.updated',
+  'equipment.deleted',
+]);
+
 const safeJson = (value) => {
   if (value === undefined) return null;
   try {
@@ -14,9 +86,14 @@ const safeJson = (value) => {
 };
 
 /**
+ * Crea un registro de auditoría para acciones de negocio relevantes.
+ * Solo se registran acciones incluidas en ALLOWED_AUDIT_ACTIONS.
+ * 
  * Contract:
  * - input: { user, action, entity, entityId, requestId, metadata }
- * - never throws for missing DB/model in test contract mode; returns null.
+ * - Si la acción no está en la whitelist, se ignora silenciosamente y retorna null
+ * - Nunca lanza error para acciones no permitidas (para no romper flujos existentes)
+ * - Retorna null en modo test sin DB
  */
 const createAuditLog = async ({ user, action, entity, entityId, requestId, metadata } = {}) => {
   // If AuditLog model isn't available (e.g. NODE_ENV=test without USE_TEST_DB), no-op.
@@ -24,6 +101,12 @@ const createAuditLog = async ({ user, action, entity, entityId, requestId, metad
 
   if (!action || !entity) {
     throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'INVALID_AUDIT_LOG', 'action and entity are required');
+  }
+
+  // Filtrar: solo registrar acciones en la whitelist
+  if (!ALLOWED_AUDIT_ACTIONS.has(action)) {
+    // Ignorar silenciosamente acciones no permitidas (no romper el flujo)
+    return null;
   }
 
   const payload = {
@@ -87,7 +170,7 @@ const listAuditLogsPaged = async ({
           {
             model: User,
             as: 'user',
-            attributes: ['id', 'email', 'name', 'firstName', 'lastName'],
+            attributes: ['id', 'email', 'firstName', 'lastName'],
           },
         ]
       : [],
@@ -144,7 +227,7 @@ const getAuditLogById = async (id) => {
           {
             model: User,
             as: 'user',
-            attributes: ['id', 'email', 'name', 'firstName', 'lastName'],
+            attributes: ['id', 'email', 'firstName', 'lastName'],
           },
         ]
       : [],
@@ -181,4 +264,5 @@ module.exports = {
   createAuditLog,
   listAuditLogsPaged,
   getAuditLogById,
+  ALLOWED_AUDIT_ACTIONS, // Exportar para consulta y testing
 };
