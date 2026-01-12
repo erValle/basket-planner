@@ -10,7 +10,6 @@ export * from './shared.types';
 export * from './audit';
 export * from './feedback-survey';
 export * from './monitoring';
-export * from './notification';
 // Exclude PlanningStatus from planning.ts since it's already in shared.types
 export type {
   PlanningMode,
