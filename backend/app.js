@@ -23,7 +23,6 @@ const feedbacksRouter = require('./routes/feedbacks.routes');
 const metricsRouter = require('./routes/metrics.routes');
 const planningRouter = require('./routes/planning.routes');
 const auditLogsRouter = require('./routes/auditLogs.routes');
-const notificationsRouter = require('./routes/notifications.routes');
 const monitoringRouter = require('./routes/monitoring.routes');
 const recommenderRouter = require('./routes/recommender.routes');
 const {sequelize} = require('./models');
@@ -57,7 +56,6 @@ app.use('/api/exercises/:exerciseId/equipment', require('./routes/exerciseEquipm
 app.use('/api/audit-logs', auditLogsRouter);
 
 // Supporting endpoints already used by the frontend.
-app.use('/api/notifications', notificationsRouter);
 app.use('/api/monitoring', monitoringRouter);
 app.use('/api/recommender', recommenderRouter);
 
