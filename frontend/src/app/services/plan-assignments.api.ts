@@ -8,7 +8,7 @@ export interface PlanAssignment {
   assignedAt: string;
   startDate?: string;
   endDate?: string;
-  status: 'active' | 'completed' | 'cancelled';
+  status: 'assigned' | 'active' | 'completed' | 'cancelled';
   notes?: string;
   createdAt: string;
   updatedAt: string;

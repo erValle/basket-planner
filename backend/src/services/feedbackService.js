@@ -9,7 +9,24 @@ const listFeedbacks = async ({ trainingPlanVersionId, userId, sessionId, targetT
   if (userId) where.userId = userId;
   if (sessionId) where.sessionId = sessionId;
   if (targetType) where.targetType = targetType;
-  return Feedback.findAll({ where });
+  
+  return Feedback.findAll({ 
+    where,
+    include: [
+      {
+        model: TrainingPlanVersion,
+        as: 'trainingPlanVersion',
+        include: [
+          {
+            model: TrainingPlan,
+            as: 'trainingPlan',
+            attributes: ['id', 'name']
+          }
+        ]
+      }
+    ],
+    order: [['createdAt', 'DESC']]
+  });
 };
 
 const getFeedbackById = async (id) => {

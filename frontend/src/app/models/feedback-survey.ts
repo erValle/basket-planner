@@ -2,17 +2,28 @@ export type FeedbackSurveyScale1to10 = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 export type FeedbackSurveyScale0to10 = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 export type FeedbackSurveyScale1to5 = 1 | 2 | 3 | 4 | 5;
 
-export interface FeedbackSurveyAnswers {
-  rpe: FeedbackSurveyScale1to10;
-  fatigue: FeedbackSurveyScale1to10;
-  pain: FeedbackSurveyScale0to10;
-  sleep: FeedbackSurveyScale1to5;
-  stress: FeedbackSurveyScale1to5;
-  mood: FeedbackSurveyScale1to5;
+// Session-level feedback: effort-based scales
+export interface FeedbackSessionAnswers {
+  overall: FeedbackSurveyScale1to10;
+  physicalEffort: FeedbackSurveyScale1to10;
+  technicalEffort: FeedbackSurveyScale1to10;
+  mentalEffort: FeedbackSurveyScale1to10;
   notes?: string;
 }
 
-export type FeedbackTargetType = 'session' | 'planning';
+// Version-level feedback: effort-based scales
+export interface FeedbackVersionAnswers {
+  overall: FeedbackSurveyScale1to10;
+  physicalEffort: FeedbackSurveyScale1to10;
+  technicalEffort: FeedbackSurveyScale1to10;
+  mentalEffort: FeedbackSurveyScale1to10;
+  notes?: string;
+}
+
+// Union type for both session and version answers
+export type FeedbackSurveyAnswers = FeedbackSessionAnswers | FeedbackVersionAnswers;
+
+export type FeedbackTargetType = 'session' | 'version';
 
 export interface FeedbackSurveyListItem {
   id: string;
@@ -21,6 +32,7 @@ export interface FeedbackSurveyListItem {
   targetId: string;
   createdAt: string; // ISO
   answers: FeedbackSurveyAnswers;
+  planningName?: string; // Name of the training plan
 }
 
 export interface FeedbackSurveyCreatePayload {
@@ -50,10 +62,8 @@ export interface FeedbackSurveyListResponse {
 export interface FeedbackSurveyWeeklyAggregate {
   week: string; // e.g. 2025-W52
   count: number;
-  avgRpe?: number;
-  avgFatigue?: number;
-  avgPain?: number;
-  avgSleep?: number;
-  avgStress?: number;
-  avgMood?: number;
+  avgOverall?: number;
+  avgPhysicalEffort?: number;
+  avgTechnicalEffort?: number;
+  avgMentalEffort?: number;
 }
