@@ -84,66 +84,54 @@
 	</div>
 
 	<!-- Club dialog -->
-	<p-dialog
-		styleClass="bp-dialog"
+	<bp-dialog
 		[header]="dialogMode === 'create' ? 'Nuevo club' : 'Editar club'"
 		[(visible)]="clubDialogVisible"
-		[modal]="true"
-		[dismissableMask]="true"
-		[draggable]="false"
-		[resizable]="false"
-		[style]="{ width: 'min(720px, 95vw)' }"
-		(onHide)="closeDialog()"
+		[confirmLabel]="dialogMode === 'create' ? 'Crear club' : 'Guardar cambios'"
+		[confirmDisabled]="!draft.name.trim()"
+		(confirm)="saveDialog()"
+		(cancel)="closeDialog()"
+		size="md"
 	>
-		<div class="grid grid-cols-2 gap-4">
-			<div class="col-span-2">
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre</label>
-				<input
-					pInputText
-					[(ngModel)]="draft.name"
-					name="clubName"
-					placeholder="Ej.: Club Central"
-					class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
-				/>
-			</div>
-			<div>
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Ciudad</label>
-				<input
-					pInputText
-					[(ngModel)]="draft.city"
-					name="clubCity"
-					placeholder="Ej.: Valencia"
-					class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
-				/>
-			</div>
-			<div>
-				<label class="block text-[#e5e7eb] text-[13px] mb-2">Estado</label>
-				<p-select
-					[options]="[
-						{ label: 'Activo', value: 'active' },
-						{ label: 'Inactivo', value: 'inactive' }
-					]"
-					[(ngModel)]="draft.status"
-					name="clubStatus"
-					optionLabel="label"
-					optionValue="value"
-					styleClass="bp-select"
-					[panelStyleClass]="'bp-select-panel'"
-				></p-select>
+		<div class="bp-dialog-section">
+			<div class="bp-dialog-section-title">Información del club</div>
+			<div class="bp-dialog-grid-2">
+				<div class="bp-dialog-field span-2">
+					<label class="bp-dialog-label bp-dialog-label-required">Nombre</label>
+					<input
+						pInputText
+						[(ngModel)]="draft.name"
+						name="clubName"
+						placeholder="Ej.: Club Central"
+						class="w-full"
+					/>
+				</div>
+				<div class="bp-dialog-field">
+					<label class="bp-dialog-label">Ciudad</label>
+					<input
+						pInputText
+						[(ngModel)]="draft.city"
+						name="clubCity"
+						placeholder="Ej.: Valencia"
+						class="w-full"
+					/>
+				</div>
+				<div class="bp-dialog-field">
+					<label class="bp-dialog-label">Estado</label>
+					<p-select
+						[options]="[
+							{ label: 'Activo', value: 'active' },
+							{ label: 'Inactivo', value: 'inactive' }
+						]"
+						[(ngModel)]="draft.status"
+						name="clubStatus"
+						optionLabel="label"
+						optionValue="value"
+						styleClass="bp-select w-full"
+						[panelStyleClass]="'bp-select-panel'"
+					></p-select>
+				</div>
 			</div>
 		</div>
-
-		<ng-template pTemplate="footer">
-			<div class="flex justify-between gap-2">
-				<button
-					type="button"
-					pButton
-					[label]="dialogMode === 'create' ? 'Crear club' : 'Guardar cambios'"
-					[disabled]="!draft.name.trim()"
-					class="bp-btn bp-btn-primary"
-					(click)="saveDialog()"
-				></button>
-			</div>
-		</ng-template>
-	</p-dialog>
+	</bp-dialog>
 </app-shell>

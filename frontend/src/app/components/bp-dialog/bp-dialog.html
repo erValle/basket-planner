@@ -1,0 +1,76 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="modal"
+  [dismissableMask]="dismissableMask"
+  [draggable]="draggable"
+  [header]="header"
+  styleClass="bp-dialog"
+  [style]="dialogStyle"
+  (onHide)="onHide()"
+>
+  <!-- Contenido principal -->
+  <div class="bp-dialog-body">
+    <!-- Header personalizado opcional -->
+    @if (headerTemplate) {
+      <ng-container *ngTemplateOutlet="headerTemplate"></ng-container>
+    }
+
+    <!-- Panel de contenido con estilo oscuro -->
+    <div class="bp-dialog-content-panel">
+      @if (subtitle) {
+        <p class="bp-dialog-subtitle">{{ subtitle }}</p>
+      }
+      
+      <!-- Contenido proyectado o template -->
+      @if (contentTemplate) {
+        <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
+      } @else {
+        <ng-content></ng-content>
+      }
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <ng-template pTemplate="footer">
+    @if (customFooter && footerTemplate) {
+      <ng-container *ngTemplateOutlet="footerTemplate"></ng-container>
+    } @else {
+      <div class="bp-dialog-footer">
+        @if (footerHint) {
+          <span class="bp-dialog-footer-hint">{{ footerHint }}</span>
+        } @else if (showDelete) {
+          <p-button 
+            [label]="deleteLabel" 
+            icon="pi pi-trash"
+            (click)="onDelete()" 
+            [disabled]="loading"
+            styleClass="bp-btn bp-btn-danger"
+          ></p-button>
+        } @else {
+          <span></span>
+        }
+        
+        <div class="bp-dialog-footer-actions">
+          @if (showCancel) {
+            <p-button 
+              [label]="cancelLabel" 
+              (click)="onCancel()" 
+              [disabled]="loading"
+              styleClass="bp-btn bp-btn-secondary"
+            ></p-button>
+          }
+          @if (showConfirm) {
+            <p-button 
+              [label]="confirmLabel" 
+              [icon]="confirmIcon"
+              (click)="onConfirm()" 
+              [disabled]="loading || confirmDisabled"
+              [loading]="loading"
+              styleClass="bp-btn bp-btn-primary"
+            ></p-button>
+          }
+        </div>
+      </div>
+    }
+  </ng-template>
+</p-dialog>

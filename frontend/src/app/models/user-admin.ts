@@ -1,11 +1,11 @@
-export type AdminUserRole = 'admin' | 'coach' | 'staff' | 'player';
-export type AdminUserStatus = 'active' | 'blocked' | 'pending';
+export type AdminUserRole = 'admin' | 'technical_director' | 'coach' | 'player' | 'user';
+export type AdminUserStatus = 'active' | 'inactive';
 
 export interface AdminUserListItem {
   id: string;
   name: string;
   email: string;
-  role: AdminUserRole | null;
+  role: AdminUserRole;
   status: AdminUserStatus;
   createdAt: string; // ISO date
 }
@@ -14,7 +14,7 @@ export interface AdminUserDetail {
   id: string;
   name: string;
   email: string;
-  role: AdminUserRole | null;
+  role: AdminUserRole;
   status: AdminUserStatus;
   createdAt: string;
 }
@@ -36,6 +36,6 @@ export interface AdminUserUpsertPayload {
   name: string;
   email: string;
   password?: string;
-  role?: AdminUserRole | null;
+  role?: AdminUserRole;
   status: AdminUserStatus;
 }

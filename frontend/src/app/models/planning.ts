@@ -1,10 +1,47 @@
-export type PlanningStatus = 'draft' | 'generated' | 'published' | 'archived';
+export type PlanningStatus = 'draft' | 'active' | 'archived';
+export type PlanningMode = 'individual' | 'group';
+
+export interface PlanningDraft {
+  name: string;
+  duration: number; // Duración máxima por sesión (en minutos)
+  sessionsCount?: number; // Número de sesiones deseadas
+  summary: string;
+  objective: string;
+  intensity: string;
+  mode: PlanningMode;
+
+  // Target
+  playerId?: string | null;
+  playerIds?: string[];
+  groupId?: string | null;
+
+  // Restrictions
+  materialIds?: string[];
+  materialNames?: string[]; // Equipment names for backend validation
+  tags?: string[];
+}
+
+export interface PlanningGenerated {
+  id: string;
+  versionId?: string;
+  title?: string;
+  createdAt?: string;
+  generatedAt?: string;
+  kind?: 'individual' | 'group';
+  modelVersion?: string;
+  payload?: unknown;
+  sessions?: unknown[];
+  metrics?: unknown;
+  inputSummary?: unknown;
+  athletes?: unknown[];
+}
 
 export interface PlanningListItem {
   id: string;
   date: string; // ISO or display-ready; backend TBD
-  team: string;
-  objective: string;
+  name: string; // Nombre de la planificación
+  targetType: 'individual' | 'group'; // Tipo: individual o grupal
+  assignedTo: string; // Jugador individual o "Grupal Club X"
   status: PlanningStatus;
   version: string;
   author: string;
@@ -51,6 +88,12 @@ export interface PlanningBlock {
     name: string;
     durationMin?: number;
     notes?: string;
+    // Datos completos del ejercicio para previsualización
+    type?: string;
+    phase?: string;
+    difficulty?: any;
+    description?: string;
+    equipment?: string[];
   }>;
 }
 
@@ -80,6 +123,12 @@ export interface PlanningExerciseEditor {
   restSec: number;
   material: string[];
   notes: string;
+  difficulty?: {
+    tactica?: number;
+    tecnica?: number;
+    fisica?: number;
+    mental?: number;
+  };
 }
 
 export type PlanningExportFormat = 'pdf' | 'csv';

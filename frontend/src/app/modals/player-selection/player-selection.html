@@ -1,80 +1,99 @@
 <div class="flex flex-col max-h-[80vh]">
-	<!-- Header -->
-	<div class="border-b border-[#1f2937] px-6 py-4 flex items-center justify-between">
-		<div>
-			<h2 class="text-[18px] text-[#f9fafb] mb-1">{{ title }}</h2>
-			<p class="text-[12px] text-[#9ca3af]">{{ subtitle }}</p>
-		</div>
-		<button
-			type="button"
-			pButton
-			icon="pi pi-times"
-			class="p-button-text p-button-sm"
-			(click)="onCancel()"
-			aria-label="Cerrar"
-		></button>
-	</div>
-
 	<!-- Search -->
 	<div class="px-6 py-4 border-b border-[#1f2937]">
 		<div class="relative">
-			<span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#6b7280]">🔎</span>
 			<input
 				pInputText
 				type="text"
 				[(ngModel)]="searchTerm"
 				name="searchTerm"
-				placeholder="Buscar por nombre o posición..."
-				class="w-full pl-10"
+				placeholder="Buscar por nombre..."
+				class="w-full"
 			/>
 		</div>
 	</div>
 
 	<!-- Players List -->
 	<div class="flex-1 overflow-y-auto px-6 py-4">
-		<div class="space-y-2">
-			@for (player of filteredPlayers; track player.id) {
-				<button
-					type="button"
-					pButton
-					(click)="togglePlayer(player.id)"
-					styleClass="w-full justify-between text-left px-4 py-3 rounded-lg border transition-colors"
-					[ngClass]="
-						isSelected(player.id)
-							? 'bg-[#0ea5e9] border-[#0ea5e9] text-[#0f172a]'
-							: 'bg-[#111827] border-[#1f2937] text-[#e5e7eb] hover:border-[#374151]'
-					"
-				>
-					<div class="flex items-center justify-between">
-						<div>
-							<div class="text-[14px]">{{ player.nombre }}</div>
-							<div
-								class="text-[12px]"
-								[ngClass]="isSelected(player.id) ? 'text-[#0f172a]/70' : 'text-[#9ca3af]'"
-							>
-								{{ player.posicion }} · {{ player.categoria }}
+		@if (filteredPlayers.length === 0) {
+			<div class="text-center py-8 text-[#9ca3af] text-[13px]">
+				@if (searchTerm) {
+					No se encontraron usuarios con ese nombre.
+				} @else {
+					No hay usuarios disponibles para añadir como jugadores.
+				}
+			</div>
+		} @else {
+			<div class="space-y-2">
+				@for (player of filteredPlayers; track player.id) {
+					<button
+						type="button"
+						(click)="togglePlayer(player.id)"
+						class="w-full text-left px-4 py-3 rounded-lg border transition-all duration-200"
+						[ngClass]="
+							isSelected(player.id)
+								? 'bg-sky-500/10 border-sky-500/50 hover:border-sky-500'
+								: 'bg-[#0a0f1a] border-[#1f2937] hover:border-[#374151] hover:bg-[#111827]'
+						"
+					>
+						<div class="flex items-center justify-between">
+							<div class="flex-1">
+								<div class="text-[14px] font-medium" [ngClass]="isSelected(player.id) ? 'text-sky-400' : 'text-[#e5e7eb]'">
+									{{ player.nombre }}
+								</div>
+								<div class="text-[12px] text-[#9ca3af] mt-1">
+									{{ player.categoria }}
+								</div>
 							</div>
+							@if (isSelected(player.id)) {
+								<div class="flex items-center justify-center w-6 h-6 rounded-full bg-sky-500 text-white text-[12px]">
+									<i class="pi pi-check"></i>
+								</div>
+							}
 						</div>
-						@if (isSelected(player.id)) {
-							<span class="text-[18px]">✓</span>
-						}
-					</div>
-				</button>
-			}
-		</div>
+					</button>
+				}
+			</div>
+		}
 	</div>
 
 	<!-- Footer -->
-	<div class="border-t border-[#1f2937] px-6 py-4 flex justify-between items-center">
-		<div class="text-[12px] text-[#9ca3af]">{{ selected.length }} jugadores seleccionados</div>
+	<div class="border-t border-[#1f2937] px-6 py-4 flex justify-between items-center bg-[#020617]">
+		<div class="text-[13px] text-[#9ca3af]">
+			@if (loading) {
+				<span class="flex items-center gap-2">
+					<i class="pi pi-spin pi-spinner"></i>
+					Añadiendo jugadores...
+				</span>
+			} @else if (selected.length > 0) {
+				<span class="text-sky-400 font-medium">{{ selected.length }}</span> {{ selected.length === 1 ? 'usuario seleccionado' : 'usuarios seleccionados' }}
+			} @else {
+				Selecciona usuarios para añadir
+			}
+		</div>
 		<div class="flex gap-2">
-			<p-button
-				label="Cancelar"
-				severity="secondary"
-				[outlined]="true"
+			<button
+				type="button"
+				class="bp-btn bp-btn-secondary"
+				[disabled]="loading"
 				(click)="onCancel()"
-			></p-button>
-			<p-button label="Añadir jugadores" (click)="onConfirm()"></p-button>
+			>
+				Cancelar
+			</button>
+			<button
+				type="button"
+				class="bp-btn bp-btn-primary"
+				[disabled]="selected.length === 0 || loading"
+				(click)="onConfirm()"
+			>
+				@if (loading) {
+					<i class="pi pi-spin pi-spinner mr-2"></i>
+					Añadiendo...
+				} @else {
+					<i class="pi pi-plus mr-2"></i>
+					Añadir {{ selected.length > 0 ? '(' + selected.length + ')' : '' }}
+				}
+			</button>
 		</div>
 	</div>
 </div>

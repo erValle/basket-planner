@@ -8,7 +8,6 @@ import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { TabsModule } from 'primeng/tabs';
 import { TableModule } from 'primeng/table';
-import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
@@ -16,9 +15,11 @@ import { SelectModule } from 'primeng/select';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ConfirmationService, MessageService } from 'primeng/api';
 
+import { BpDialog } from '../../components/bp-dialog';
 import { PlayerClubsApiService } from '../../services/player-clubs.api';
 import { ClubsApi, ClubDto } from '../../services/clubs.api';
 import { PlayerMembership } from '../../models/player-memberships';
+import { POSITION_OPTIONS } from '../../constants/planning-options';
 
 type PlayerStatus = 'active' | 'revision';
 
@@ -40,7 +41,6 @@ export interface PlayerDetailModel {
   currentTeam: string;
   weeklyLoad: string;
   lastFeedback: string;
-  notes: string;
 }
 
 @Component({
@@ -55,7 +55,7 @@ export interface PlayerDetailModel {
     TagModule,
     TabsModule,
     TableModule,
-    DialogModule,
+    BpDialog,
     ToastModule,
     ConfirmDialogModule,
     DatePickerModule,
@@ -63,7 +63,7 @@ export interface PlayerDetailModel {
     ProgressSpinnerModule,
   ],
   templateUrl: './player-detail.html',
-  styleUrl: './player-detail.css',
+  styleUrl: './player-detail.scss',
   providers: [MessageService, ConfirmationService],
 })
 export class PlayerDetail {
@@ -73,11 +73,26 @@ export class PlayerDetail {
   @Output() save = new EventEmitter<PlayerDetailModel>();
 
   activeTabIndex = 0;
+  readonly positionOptions = POSITION_OPTIONS;
+  readonly handOptions = [
+    { label: 'Derecha', value: 'Derecha' },
+    { label: 'Izquierda', value: 'Izquierda' },
+    { label: 'Ambidiestro', value: 'Ambidiestro' },
+  ];
 
   // Memberships tab state
   membershipsLoading = false;
   membershipsError: string | null = null;
   memberships: PlayerMembership[] = [];
+
+  // Computed properties para filtrar membresías
+  get activeMemberships(): PlayerMembership[] {
+    return this.memberships.filter(m => m.status === 'active');
+  }
+
+  get historicalMemberships(): PlayerMembership[] {
+    return this.memberships; // Muestra todas (activas y cerradas) en orden cronológico
+  }
 
   addDialogOpen = false;
   closeDialogOpen = false;
@@ -143,6 +158,26 @@ export class PlayerDetail {
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
+  }
+
+  private extractErrorMessage(error: unknown): string {
+    if (error instanceof Error) {
+      return error.message;
+    }
+    
+    const err = error as any;
+    
+    // Check for API error response structure
+    if (err?.error?.message) {
+      return err.error.message;
+    }
+    
+    // Check for HTTP error response
+    if (err?.message) {
+      return err.message;
+    }
+    
+    return 'Ocurrió un error desconocido';
   }
 
   loadMemberships(): void {
@@ -230,7 +265,7 @@ export class PlayerDetail {
         },
         error: (e: unknown) => {
           this.savingMembership = false;
-          const msg = e instanceof Error ? e.message : 'No se pudo añadir la pertenencia.';
+          const msg = this.extractErrorMessage(e);
           this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
         },
       });
@@ -331,7 +366,7 @@ export class PlayerDetail {
         },
         error: (e: unknown) => {
           this.savingMembership = false;
-          const msg = e instanceof Error ? e.message : 'No se pudo transferir el jugador.';
+          const msg = this.extractErrorMessage(e);
           this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
         },
       });

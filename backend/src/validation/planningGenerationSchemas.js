@@ -6,10 +6,14 @@ const individualGenerateSchema = Joi.object({
   profile: Joi.object({
     athleteId: Joi.number().integer().positive().required(),
     level: Joi.string().valid('beginner', 'intermediate', 'advanced').default('intermediate'),
-    position: Joi.string().valid('guard', 'forward', 'center').optional(),
-    maxSessionsPerWeek: Joi.number().integer().min(1).max(14).default(4),
+    position: Joi.string().valid('base', 'escolta', 'alero', 'ala-pivot', 'pivot').optional(),
+    numberOfSessions: Joi.number().integer().min(1).max(20).optional(),
     sessionDurationMinutes: Joi.number().integer().min(15).max(240).default(75),
-    intensity: Joi.string().valid(...intensityValues).default('medium')
+    intensity: Joi.string().valid(...intensityValues).default('medium'),
+    // DEPRECATED: Use numberOfSessions instead
+    maxSessionsPerWeek: Joi.number().integer().min(1).max(14).optional(),
+    // DEPRECATED: duration is now per session, not total
+    maxDurationMinutes: Joi.number().integer().min(30).max(480).optional()
   }).required(),
   goals: Joi.array().items(Joi.string().min(2).max(64)).min(0).max(10).default([]),
   constraints: Joi.object({
@@ -27,16 +31,20 @@ const groupGenerateSchema = Joi.object({
   group: Joi.object({
     groupId: Joi.number().integer().positive().optional(),
     name: Joi.string().min(2).max(64).optional(),
-    maxSessionsPerWeek: Joi.number().integer().min(1).max(14).default(4),
+    numberOfSessions: Joi.number().integer().min(1).max(20).optional(),
     sessionDurationMinutes: Joi.number().integer().min(15).max(240).default(90),
-    intensity: Joi.string().valid(...intensityValues).default('medium')
+    intensity: Joi.string().valid(...intensityValues).default('medium'),
+    // DEPRECATED: Use numberOfSessions instead
+    maxSessionsPerWeek: Joi.number().integer().min(1).max(14).optional(),
+    // DEPRECATED: duration is now per session, not total
+    maxDurationMinutes: Joi.number().integer().min(30).max(480).optional()
   }).required(),
   profiles: Joi.array()
     .items(
       Joi.object({
         athleteId: Joi.number().integer().positive().required(),
         level: Joi.string().valid('beginner', 'intermediate', 'advanced').default('intermediate'),
-        position: Joi.string().valid('guard', 'forward', 'center').optional()
+        position: Joi.string().valid('base', 'escolta', 'alero', 'ala-pivot', 'pivot').optional()
       })
     )
     .min(2)

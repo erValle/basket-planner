@@ -1,0 +1,81 @@
+<bp-dialog
+  [visible]="visible"
+  [header]="exercise?.name || 'Ejercicio'"
+  [customFooter]="true"
+  (closed)="close()"
+  (visibleChange)="visibleChange.emit($event)"
+>
+  @if (exercise) {
+    <div class="space-y-4">
+      <!-- Header info -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <p-tag [value]="getTypeLabel(exercise.type)" severity="info"></p-tag>
+        @if (calculateAverageDifficulty() > 0) {
+          <p-tag [value]="'Dificultad: ' + calculateAverageDifficulty()" severity="warn"></p-tag>
+        }
+        @if (exercise.duration) {
+          <span class="text-[12px] text-[#9ca3af]">
+            <i class="pi pi-clock mr-1"></i>{{ formatDuration(exercise.duration) }}
+          </span>
+        }
+      </div>
+
+      <!-- Description -->
+      @if (exercise.description) {
+        <div>
+          <div class="text-[12px] text-[#6b7280] mb-1">Descripción</div>
+          <div class="text-[13px] text-[#e5e7eb] whitespace-pre-wrap">{{ exercise.description }}</div>
+        </div>
+      }
+
+      <!-- Difficulty breakdown -->
+      @if (getDifficultyKeys().length > 0) {
+        <div>
+          <div class="text-[12px] text-[#6b7280] mb-2">Dificultad por área</div>
+          <div class="grid grid-cols-2 gap-2">
+            @for (key of getDifficultyKeys(); track key) {
+              <div class="flex items-center justify-between bg-[#0f172a] rounded-lg px-3 py-2">
+                <span class="text-[12px] text-[#9ca3af]">{{ getDifficultyLabel(key) }}</span>
+                <span class="text-[13px] font-medium text-[#f9fafb]">{{ getDifficultyValue(key) }}/10</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Tags -->
+      @if (getTagsArray().length > 0) {
+        <div>
+          <div class="text-[12px] text-[#6b7280] mb-2">Etiquetas</div>
+          <div class="flex flex-wrap gap-1">
+            @for (tag of getTagsArray(); track tag) {
+              <p-chip [label]="tag"></p-chip>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="text-center py-8 text-[#9ca3af]">No hay ejercicio seleccionado.</div>
+  }
+
+  <ng-template #dialogFooter>
+    <div class="flex justify-end gap-2">
+      <p-button
+        label="Cerrar"
+        severity="secondary"
+        [outlined]="true"
+        (click)="close()"
+        styleClass="bp-btn bp-btn-secondary"
+      ></p-button>
+      @if (exercise) {
+        <p-button
+          label="Añadir al bloque"
+          icon="pi pi-plus"
+          (click)="onAdd()"
+          styleClass="bp-btn bp-btn-primary"
+        ></p-button>
+      }
+    </div>
+  </ng-template>
+</bp-dialog>

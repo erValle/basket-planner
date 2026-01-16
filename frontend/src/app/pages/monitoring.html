@@ -1,140 +1,246 @@
-<app-shell title="Monitoring" subtitle="Alertas, recomendaciones y eventos recientes">
-	<div class="max-w-6xl mx-auto space-y-4">
-		<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-			<app-page-header
-				[title]="'Monitoring'"
-				[subtitle]="'Estado del sistema, recomendador y exportaciones'"
-				[actionLabel]="'Actualizar'"
-				[actionIcon]="'pi pi-refresh'"
-				[actionSeverity]="'secondary'"
-				[action]="refresh.bind(this)"
-			></app-page-header>
+<app-shell title="Monitoring" subtitle="Estado del sistema, recomendador y exportaciones">
+  <p-toast></p-toast>
+  <p-confirmDialog styleClass="bp-dialog"></p-confirmDialog>
 
-			<div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-12">
-				<div class="md:col-span-5">
-					<label class="block text-[#9ca3af] text-[12px] mb-2">Desde</label>
-					<p-datepicker
-						[(ngModel)]="range.from"
-						[showIcon]="true"
-						[showButtonBar]="true"
-						dateFormat="yy-mm-dd"
-						styleClass="bp-select"
-						[panelStyleClass]="'bp-select-panel'"
-					></p-datepicker>
-				</div>
-				<div class="md:col-span-5">
-					<label class="block text-[#9ca3af] text-[12px] mb-2">Hasta</label>
-					<p-datepicker
-						[(ngModel)]="range.to"
-						[showIcon]="true"
-						[showButtonBar]="true"
-						dateFormat="yy-mm-dd"
-						styleClass="bp-select"
-						[panelStyleClass]="'bp-select-panel'"
-					></p-datepicker>
-				</div>
-				<div class="md:col-span-2 flex items-end gap-2">
-					<button pButton type="button" label="Limpiar" icon="pi pi-filter-slash" class="p-button-text p-button-sm w-full" (click)="clearRange()"></button>
-				</div>
-			</div>
-		</div>
+  <div class="max-w-7xl mx-auto space-y-6">
+    <app-page-header
+      [title]="'Monitoring'"
+      [subtitle]="'Estado del sistema, recomendador y exportaciones'"
+      [actionLabel]="'Actualizar'"
+      [actionIcon]="'pi pi-refresh'"
+      [actionSeverity]="'secondary'"
+      [action]="refresh.bind(this)"
+    ></app-page-header>
 
-		<p-toast></p-toast>
+    <!-- Estado del Sistema -->
+    @let vm = (vm$ | async);
+    @if (vm?.loading) {
+      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        <div class="text-[13px] text-[#9ca3af] flex items-center gap-2">
+          <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+          Cargando información…
+        </div>
+      </div>
+    } @else if (vm?.error) {
+      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        <div class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200">
+          <div class="font-semibold mb-1">Error al cargar información</div>
+          <div>{{ vm?.error }}</div>
+          <div class="mt-3">
+            <button 
+              pButton 
+              type="button" 
+              label="Reintentar" 
+              icon="pi pi-refresh" 
+              class="p-button-sm p-button-danger"
+              (click)="refresh()"
+            ></button>
+          </div>
+        </div>
+      </div>
+    } @else if (!vm?.overview) {
+      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        <div class="text-[13px] text-[#9ca3af]">No hay datos disponibles.</div>
+      </div>
+    } @else {
+      @let overview = vm!.overview!;
+      
+      <!-- Información del Backend -->
+      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        <div>
+          <div class="text-sm font-semibold">Backend</div>
+          <div class="text-[13px] text-[#9ca3af]">Actividad y rendimiento del servidor</div>
+        </div>
 
-		<div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-			<div class="flex flex-wrap items-center justify-between gap-3">
-				<div class="text-sm text-zinc-300">
-					Informe para el rango seleccionado.
-					@if (!hasRange()) {
-						<span class="text-zinc-500"> (sin rango: datos globales)</span>
-					}
-				</div>
-				<div class="flex items-center gap-2">
-					<button pButton type="button" icon="pi pi-refresh" class="p-button-text" label="Recargar" (click)="refresh()"></button>
-					<button pButton type="button" icon="pi pi-download" label="Exportar informe CSV" class="p-button-sm" (click)="exportCsv()"></button>
-				</div>
-			</div>
-		</div>
+        <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+            <div class="text-xs text-zinc-400">Estado</div>
+            <div class="mt-1 flex items-center justify-between gap-2">
+              <div class="text-lg font-semibold">Operativo</div>
+              <p-tag value="OK" severity="success"></p-tag>
+            </div>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+            <div class="text-xs text-zinc-400">Acciones Totales</div>
+            <div class="mt-1 text-lg font-semibold">{{ overview.backend.totalActions }}</div>
+            <div class="text-xs text-zinc-500 mt-1">{{ overview.backend.actionsPerDay }} acciones/día</div>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+            <div class="text-xs text-zinc-400">Tasa de Errores</div>
+            <div class="mt-1 text-lg font-semibold">{{ overview.backend.errorRatePct }}%</div>
+            @if (overview.backend.errorRatePct > 5) {
+              <p-tag value="ALTO" severity="warn" class="mt-1"></p-tag>
+            } @else {
+              <p-tag value="NORMAL" severity="success" class="mt-1"></p-tag>
+            }
+          </div>
+        </div>
+      </div>
 
-		@let vm = (vm$ | async);
-		@if (vm?.loading) {
-			<div class="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-zinc-400">
-				<p-progressSpinner styleClass="w-8 h-8"></p-progressSpinner>
-				<div class="mt-3">Cargando monitoring…</div>
-			</div>
-		} @else if (vm?.error) {
-			<div class="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-zinc-400">
-				<div class="text-sm text-red-300">{{ vm?.error }}</div>
-				<div class="mt-3">
-					<button pButton type="button" label="Reintentar" icon="pi pi-refresh" class="p-button-text" (click)="refresh()"></button>
-				</div>
-			</div>
-		} @else if (!vm?.overview) {
-			<div class="rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-sm text-zinc-400">
-				No hay datos disponibles.
-			</div>
-		} @else {
-			@let overview = vm!.overview!;
-			<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-				<div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
-					<div class="flex items-center justify-between gap-2">
-						<div class="text-sm font-semibold">Backend</div>
-						<p-tag value="OK" severity="success"></p-tag>
-					</div>
-					<div class="mt-3 space-y-2 text-sm">
-						<div class="flex items-center justify-between">
-							<div class="text-zinc-400">Latencia</div>
-							<div class="font-medium">{{ overview.backend.latencyMs }} ms</div>
-						</div>
-						<div class="flex items-center justify-between">
-							<div class="text-zinc-400">Errores</div>
-							<div class="font-medium">{{ overview.backend.errorRatePct }}%</div>
-						</div>
-						<div class="flex items-center justify-between">
-							<div class="text-zinc-400">Throughput</div>
-							<div class="font-medium">{{ overview.backend.throughputRps }} rps</div>
-						</div>
-					</div>
-				</div>
+      <!-- Información del Recomendador (datos reales) -->
+      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        <div>
+          <div class="text-sm font-semibold">Información del Modelo</div>
+          <div class="text-[13px] text-[#9ca3af]">Versión activa y configuración</div>
+        </div>
 
-				<div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
-					<div class="flex items-center justify-between gap-2">
-						<div class="text-sm font-semibold">Recomendador</div>
-						<p-tag [value]="overview.recommender.techCost" [severity]="techCostSeverity(overview.recommender.techCost)"></p-tag>
-					</div>
-					<div class="mt-3 space-y-2 text-sm">
-						<div class="flex items-center justify-between">
-							<div class="text-zinc-400">Versión activa</div>
-							<div class="font-medium">{{ overview.recommender.activeVersion }}</div>
-						</div>
-						<div class="flex items-center justify-between">
-							<div class="text-zinc-400">Última ejecución</div>
-							<div class="font-medium">{{ formatIso(overview.recommender.lastRunAt) }}</div>
-						</div>
-						<div class="flex items-center justify-between">
-							<div class="text-zinc-400">CPU / RAM</div>
-							<div class="font-medium">{{ overview.recommender.cpuPct }}% / {{ overview.recommender.ramPct }}%</div>
-						</div>
-					</div>
-				</div>
+        @if (recommenderLoading) {
+          <div class="mt-4 text-[13px] text-[#9ca3af] flex items-center gap-2">
+            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
+            Cargando información del modelo…
+          </div>
+        }
 
-				<div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
-					<div class="flex items-center justify-between gap-2">
-						<div class="text-sm font-semibold">Exportaciones</div>
-						<p-tag value="CSV" severity="info"></p-tag>
-					</div>
-					<div class="mt-3 space-y-2 text-sm">
-						<div class="flex items-center justify-between">
-							<div class="text-zinc-400">Nº por día</div>
-							<div class="font-medium">{{ overview.exports.exportsPerDay }}</div>
-						</div>
-						<div class="flex items-center justify-between">
-							<div class="text-zinc-400">Fallos</div>
-							<div class="font-medium">{{ overview.exports.failuresPerDay }}</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		}
-	</div>
+        @if (recommenderError) {
+          <div class="mt-4 border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200">
+            <div class="font-semibold mb-1">Error al cargar información del modelo</div>
+            <div>{{ recommenderError }}</div>
+            <div class="mt-3">
+              <button 
+                pButton 
+                type="button" 
+                label="Reintentar" 
+                icon="pi pi-refresh" 
+                class="p-button-sm p-button-danger"
+                (click)="loadRecommenderStatus()"
+              ></button>
+            </div>
+          </div>
+        }
+
+        @if (!recommenderLoading && recommenderStatus) {
+          <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <div class="text-xs text-zinc-400">Versión del modelo</div>
+              <div class="mt-1 flex items-center justify-between gap-2">
+                <div class="text-lg font-semibold">{{ recommenderStatus.activeVersion }}</div>
+                <p-tag value="ACTIVO" severity="success"></p-tag>
+              </div>
+              @if (recommenderStatus.modelInfo) {
+                <div class="mt-2 text-xs text-zinc-500">{{ recommenderStatus.modelInfo.description }}</div>
+              }
+            </div>
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <div class="text-xs text-zinc-400">Configuración</div>
+              @if (recommenderStatus.modelConfig) {
+                <div class="mt-2 space-y-1 text-sm">
+                  <div class="flex justify-between"><span class="text-zinc-400">Objetivos</span><span class="font-medium">{{ recommenderStatus.modelConfig.totalGoals }}</span></div>
+                  <div class="flex justify-between"><span class="text-zinc-400">Etiquetas</span><span class="font-medium">{{ recommenderStatus.modelConfig.totalTags }}</span></div>
+                  <div class="text-xs text-zinc-500 mt-2">Creado: {{ recommenderStatus.modelConfig.createdAt }}</div>
+                </div>
+              }
+            </div>
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <div class="text-xs text-zinc-400">Tipo de modelo</div>
+              <div class="mt-1 flex items-center gap-2">
+                <p-tag [value]="recommenderStatus.techCost" [severity]="techCostSeverity(recommenderStatus.techCost)"></p-tag>
+                <div class="text-xs text-zinc-500">Coste técnico</div>
+              </div>
+              @if (recommenderStatus.modelInfo) {
+                <div class="mt-2 text-xs text-zinc-400">{{ recommenderStatus.modelInfo.type }}</div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Estadísticas de Uso del Recomendador -->
+      @if (!recommenderLoading && recommenderStatus && recommenderStatus.statistics) {
+        @let stats = recommenderStatus.statistics;
+        <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+          <div>
+            <div class="text-sm font-semibold">Estadísticas de Uso</div>
+            <div class="text-[13px] text-[#9ca3af]">Datos reales del sistema</div>
+          </div>
+
+          <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <!-- Estadísticas generales -->
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <div class="text-xs text-zinc-400 mb-3">Resumen General</div>
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Planificaciones creadas</span>
+                  <span class="text-lg font-semibold text-white">{{ stats.totalPlans }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Ejercicios disponibles</span>
+                  <span class="text-lg font-semibold text-white">{{ stats.totalExercises }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top ejercicios -->
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <div class="text-xs text-zinc-400 mb-3">Ejercicios Más Usados</div>
+              @if (stats.topExercises.length > 0) {
+                <div class="space-y-2">
+                  @for (ex of stats.topExercises; track ex.id) {
+                    <div class="flex justify-between items-center text-sm">
+                      <span class="text-zinc-300 truncate flex-1">{{ ex.name }}</span>
+                      <span class="text-cyan-400 font-medium ml-2">{{ ex.usageCount }}×</span>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="text-sm text-zinc-500">No hay datos disponibles</div>
+              }
+            </div>
+
+            <!-- Top objetivos -->
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4 md:col-span-2">
+              <div class="text-xs text-zinc-400 mb-3">Objetivos Más Populares</div>
+              @if (stats.topGoals.length > 0) {
+                <div class="flex flex-wrap gap-2">
+                  @for (goal of stats.topGoals; track goal.goal) {
+                    <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-900/60 border border-zinc-800">
+                      <span class="text-sm text-zinc-200">{{ formatGoal(goal.goal) }}</span>
+                      <span class="text-xs text-cyan-400 font-semibold">{{ goal.count }}</span>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="text-sm text-zinc-500">No hay datos disponibles</div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Información de Exportaciones -->
+      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        <div>
+          <div class="text-sm font-semibold">Exportaciones</div>
+          <div class="text-[13px] text-[#9ca3af]">Exportaciones CSV del sistema</div>
+        </div>
+
+        <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+            <div class="text-xs text-zinc-400">Exportaciones por Día</div>
+            <div class="mt-1 text-lg font-semibold">{{ overview.exports.exportsPerDay }}</div>
+            <p-tag value="CSV" severity="info" class="mt-2"></p-tag>
+          </div>
+          <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+            <div class="text-xs text-zinc-400">Fallos por Día</div>
+            <div class="mt-1 text-lg font-semibold">{{ overview.exports.failuresPerDay }}</div>
+            @if (overview.exports.failuresPerDay > 0) {
+              <p-tag value="ATENCIÓN" severity="warn" class="mt-2"></p-tag>
+            } @else {
+              <p-tag value="OK" severity="success" class="mt-2"></p-tag>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Exportar CSV -->
+      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-sm font-semibold">Exportar Informe</div>
+            <div class="text-[13px] text-[#9ca3af]">Descargar datos del sistema en formato CSV</div>
+          </div>
+          <button pButton type="button" icon="pi pi-download" label="Exportar CSV" class="bp-btn bp-btn-secondary bp-btn-sm" (click)="exportCsv()"></button>
+        </div>
+      </div>
+    }
+  </div>
 </app-shell>

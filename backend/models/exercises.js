@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true 
     },
     type: { 
-      type: DataTypes.ENUM('cardio', 'strength', 'flexibility', 'balance'), 
+      type: DataTypes.ENUM('tecnico', 'tactico', 'fisico', 'tiro', 'defensa', 'ataque'), 
       allowNull: false 
     },
     difficulty: { 

@@ -23,7 +23,6 @@ module.exports = (sequelize, DataTypes) => {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       clubId: { type: DataTypes.INTEGER, allowNull: false },
       name: { type: DataTypes.STRING, allowNull: false },
-      quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
       characteristics: { type: DataTypes.JSON, allowNull: true },
       status: { type: DataTypes.STRING, allowNull: false, defaultValue: 'available' },
     },

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, ChangeDetectorRef, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -8,23 +8,22 @@ import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService } from 'primeng/api';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog';
 
 import { PlanningApiService } from '../services/planning.api';
 import { FeedbackApiService } from '../services/feedback.api';
 import { UserContextService } from '../core/auth/user-context.service';
-import { FeedbackSurveyAnswers, FeedbackSurveyListItem } from '../models/feedback-survey';
+import { FeedbackSurveyAnswers, FeedbackSurveyListItem, FeedbackVersionAnswers } from '../models/feedback-survey';
 import {
   PlanningBlock,
   PlanningDetailResponse,
-  PlanningExportEmailPayload,
-  PlanningExportFormat,
   PlanningStatus,
   PlanningVersionInfo,
 } from '../models/planning';
@@ -42,14 +41,15 @@ type Option = { label: string; value: string };
     TagModule,
     ToastModule,
     ProgressSpinnerModule,
-    DialogModule,
+    BpDialog,
     InputTextModule,
     TextareaModule,
+    TooltipModule,
     PageHeader,
     AppShell,
   ],
   templateUrl: './planning-detail.html',
-  styleUrl: './planning-detail.css',
+  styleUrl: './planning-detail.scss',
   providers: [MessageService],
 })
 export class PlanningDetail {
@@ -64,18 +64,8 @@ export class PlanningDetail {
 
   downloading: 'pdf' | 'csv' | null = null;
 
-  // Email dialog
-  sendDialogOpen = false;
-  sendingEmail = false;
-  emailModel: PlanningExportEmailPayload = {
-    recipients: [],
-    subject: '',
-    message: '',
-    format: 'pdf',
-    version: undefined,
-  };
-
-  recipientDraft = '';
+  // Download dialog
+  downloadDialogOpen = false;
 
   formatOptions: Option[] = [
     { label: 'PDF', value: 'pdf' },
@@ -86,26 +76,35 @@ export class PlanningDetail {
   detail: PlanningDetailResponse | null = null;
   blocks: PlanningBlock[] = [];
 
+  // Exercise preview modal
+  exercisePreviewDialogOpen = false;
+  selectedExercise: any = null;
+
   // Survey feedback
   feedbackDialogOpen = false;
   savingFeedback = false;
   latestSurvey: FeedbackSurveyListItem | null = null;
+  
+  // All feedbacks for this planning (for admin/coach view)
+  allFeedbacks: FeedbackSurveyListItem[] = [];
+  loadingFeedbacks = false;
+  feedbacksToShow = 3; // Número inicial de feedbacks a mostrar
+  readonly FEEDBACKS_PER_PAGE = 3; // Incremento al hacer clic en "Ver más"
 
   scale1to10 = Array.from({ length: 10 }, (_, i) => ({ label: String(i + 1), value: i + 1 }));
   scale0to10 = Array.from({ length: 11 }, (_, i) => ({ label: String(i), value: i }));
   scale1to5 = Array.from({ length: 5 }, (_, i) => ({ label: String(i + 1), value: i + 1 }));
 
-  draftSurvey: FeedbackSurveyAnswers = {
-    rpe: 5,
-    fatigue: 5,
-    pain: 0,
-    sleep: 3,
-    stress: 3,
-    mood: 3,
+  draftSurvey: FeedbackVersionAnswers = {
+    overall: 5,
+    physicalEffort: 5,
+    technicalEffort: 5,
+    mentalEffort: 5,
     notes: '',
   };
 
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly zone = inject(NgZone);
 
   constructor(
     private readonly api: PlanningApiService,
@@ -124,10 +123,12 @@ export class PlanningDetail {
   }
 
   private buildUiBlocksFromItems(items: any): PlanningBlock[] {
-    const sessions = Array.isArray(items?.sessions) ? items.sessions : [];
+    // items es directamente el array de sesiones guardado en el campo sessions
+    const sessions = Array.isArray(items) ? items : [];
     const blocks: PlanningBlock[] = [];
 
     for (const s of sessions) {
+      // Primero verificar si la sesión tiene bloques (estructura antigua)
       const sBlocks = Array.isArray(s?.blocks) ? s.blocks : [];
       if (sBlocks.length) {
         for (const b of sBlocks) {
@@ -150,20 +151,29 @@ export class PlanningDetail {
         continue;
       }
 
-      // Fallback: if session has exercises directly.
+      // Nueva estructura: sesiones directamente con exercises
       const exs = Array.isArray(s?.exercises) ? s.exercises : [];
+      const sessionDuration = s?.metrics?.durationMinutes || 
+                              exs.reduce((sum: number, e: any) => sum + (e?.durationMinutes || 0), 0);
+      
       blocks.push({
-        id: String(s?.id ?? `s-${Math.random().toString(16).slice(2)}`),
-        name: String(s?.title ?? s?.name ?? 'Sesión'),
-        durationMin: Number(s?.durationMin ?? 0) || 0,
-        focus: (s?.focus != null ? String(s.focus) : undefined) as any,
-        notes: (s?.notes != null ? String(s.notes) : undefined) as any,
+        id: String(s?.sessionId ?? s?.id ?? `s-${Math.random().toString(16).slice(2)}`),
+        name: `Sesión ${s?.sessionId || s?.day || ''}`.trim(),
+        durationMin: Number(sessionDuration) || 0,
+        focus: s?.goals?.join(', ') || undefined,
+        notes: s?.metadata ? `Día: ${s.day || 'N/A'}` : undefined,
         exercises: exs.length
           ? exs.map((e: any) => ({
-              id: String(e?.id ?? `e-${Math.random().toString(16).slice(2)}`),
+              id: String(e?.exerciseId ?? e?.id ?? `e-${Math.random().toString(16).slice(2)}`),
               name: String(e?.name ?? 'Ejercicio'),
-              durationMin: e?.durationMin != null ? Number(e.durationMin) : undefined,
-              notes: e?.notes != null ? String(e.notes) : undefined,
+              durationMin: e?.durationMinutes ?? e?.durationMin ?? undefined,
+              notes: e?.description || undefined,
+              // Información completa para el modal de previsualización
+              type: e?.type,
+              phase: e?.phase,
+              difficulty: e?.difficulty,
+              description: e?.description,
+              equipment: e?.equipment || e?.materials || []
             }))
           : undefined,
       });
@@ -180,9 +190,33 @@ export class PlanningDetail {
     };
   }
 
+  // Calcula la media de las 4 dimensiones de dificultad
+  calculateAverageDifficulty(difficulty: any): number {
+    if (!difficulty || typeof difficulty !== 'object') return 0;
+    
+    const values = [
+      difficulty.tactica,
+      difficulty.tecnica,
+      difficulty.fisica,
+      difficulty.mental
+    ].filter(v => typeof v === 'number');
+    
+    if (values.length === 0) return 0;
+    const sum = values.reduce((acc, val) => acc + val, 0);
+    return Math.round((sum / values.length) * 10) / 10; // Redondear a 1 decimal
+  }
+
+  // Formatea la dificultad para mostrarla de forma abreviada
+  formatDifficultyShort(difficulty: any): string {
+    const avg = this.calculateAverageDifficulty(difficulty);
+    return avg > 0 ? avg.toFixed(1) : 'N/A';
+  }
+
   private mapTrainingPlanToDetail(plan: any, versionRow: any, versionLabel: string): PlanningDetailResponse {
-    const items = versionRow?.items ?? plan?.activeVersion?.items ?? null;
-    const blocks = this.buildUiBlocksFromItems(items);
+    // El campo correcto es sessions, no items
+    const sessionsData = versionRow?.sessions ?? plan?.activeVersion?.sessions ?? null;
+    
+    const blocks = this.buildUiBlocksFromItems(sessionsData);
     const metrics = this.computeMetrics(blocks);
 
     const versions: PlanningVersionInfo[] = (Array.isArray(plan?.versions) ? plan.versions : [])
@@ -201,7 +235,7 @@ export class PlanningDetail {
       date: this.formatIsoDate(versionRow?.date ?? plan?.activeVersion?.date ?? plan?.createdAt),
       team: plan?.targetType === 'group' ? 'Equipo' : 'Individual',
       objective: plan?.name ? String(plan.name) : '',
-      status: (['draft', 'generated', 'published', 'archived'].includes(String(plan?.status))
+      status: (['draft', 'active', 'archived'].includes(String(plan?.status))
         ? String(plan.status)
         : 'draft') as any,
       version: versionLabel,
@@ -223,6 +257,72 @@ export class PlanningDetail {
     this.feedbackDialogOpen = false;
   }
 
+  loadFeedbackForVersion(versionId: string): void {
+    const currentUser = this.userContext.getUserSnapshot();
+    const role = this.userContext.getRoleSnapshot();
+    
+    console.log('loadFeedbackForVersion called', { versionId, role, currentUser });
+    
+    if (!currentUser?.id) {
+      // Usuario no autenticado, no cargar feedback
+      this.latestSurvey = null;
+      this.allFeedbacks = [];
+      this.loadingFeedbacks = false;
+      console.log('No user authenticated');
+      return;
+    }
+
+    // Si es JUGADOR: cargar su propio feedback
+    if (role === 'player') {
+      this.feedbackApi.listRecentForPlayer(String(currentUser.id), 50).subscribe({
+        next: (response) => {
+          // Buscar el feedback más reciente para esta versión específica
+          const feedbackForVersion = response.items.find(
+            (item) => item.targetType === 'version' && item.targetId === versionId
+          );
+          
+          if (feedbackForVersion) {
+            this.latestSurvey = feedbackForVersion;
+          } else {
+            this.latestSurvey = null;
+          }
+          console.log('Player feedback loaded:', { feedbackForVersion, latestSurvey: this.latestSurvey });
+          this.cdr.markForCheck();
+        },
+        error: (e: unknown) => {
+          console.error('Error loading player feedback:', e);
+          this.latestSurvey = null;
+          this.cdr.markForCheck();
+        },
+      });
+    }
+
+    // Si es ADMIN/COACH/DT: cargar TODOS los feedbacks para visualizar
+    if (this.canViewAllFeedbacks()) {
+      console.log('Loading all feedbacks for version:', versionId);
+      this.loadingFeedbacks = true;
+      this.allFeedbacks = [];
+      this.feedbacksToShow = this.FEEDBACKS_PER_PAGE; // Resetear contador al cargar nueva versión
+      this.cdr.markForCheck();
+      
+      this.feedbackApi.listForVersion(Number(versionId)).subscribe({
+        next: (allResponse) => {
+          console.log('All feedbacks loaded:', allResponse);
+          this.allFeedbacks = allResponse.items || [];
+          console.log('All feedbacks array:', this.allFeedbacks);
+          this.loadingFeedbacks = false;
+          this.cdr.markForCheck();
+        },
+        error: (e: unknown) => {
+          console.error('Error loading all feedbacks:', e);
+          this.loadingFeedbacks = false;
+          this.allFeedbacks = [];
+          this.cdr.markForCheck();
+        },
+      });
+    }
+  }
+
   saveFeedback(): void {
     if (this.savingFeedback) return;
     if (!this.planningId) return;
@@ -239,7 +339,7 @@ export class PlanningDetail {
 
     const a = this.draftSurvey;
     const isMissing =
-      a.rpe == null || a.fatigue == null || a.pain == null || a.sleep == null || a.stress == null || a.mood == null;
+      a.overall == null || a.physicalEffort == null || a.technicalEffort == null || a.mentalEffort == null;
     if (isMissing) {
       this.toast.add({ severity: 'warn', summary: 'Revisa el formulario', detail: 'Completa todas las escalas.' });
       return;
@@ -249,7 +349,7 @@ export class PlanningDetail {
     this.feedbackApi
       .createSurvey({
         playerId: String(currentUser.id),
-        targetType: 'planning',
+        targetType: 'version',
         targetId: this.planningId,
         answers: this.draftSurvey,
       })
@@ -260,7 +360,7 @@ export class PlanningDetail {
           this.latestSurvey = {
             id: (res?.id != null ? String(res.id) : `fp-${Math.random().toString(16).slice(2)}`),
             playerId: String(currentUser.id),
-            targetType: 'planning',
+            targetType: 'version',
             targetId: this.planningId!,
             createdAt: new Date().toISOString(),
             answers: { ...this.draftSurvey },
@@ -272,6 +372,12 @@ export class PlanningDetail {
           const msg = e instanceof Error ? e.message : 'No se pudo guardar el feedback.';
           this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
         },
+        complete: () => {
+          // Ensure loading state is always cleared
+          if (this.savingFeedback) {
+            this.savingFeedback = false;
+          }
+        }
       });
   }
 
@@ -289,15 +395,19 @@ export class PlanningDetail {
     this.emptyState = false;
 
     if (!this.planningId) {
-      this.emptyState = true;
-      this.detail = null;
-      this.blocks = [];
-      this.cdr.markForCheck();
+      this.zone.run(() => {
+        this.emptyState = true;
+        this.detail = null;
+        this.blocks = [];
+        this.cdr.detectChanges();
+      });
       return;
     }
 
-    this.loading = true;
-    this.cdr.markForCheck();
+    this.zone.run(() => {
+      this.loading = true;
+      this.cdr.detectChanges();
+    });
 
     this.api.get(this.planningId).subscribe({
       next: (plan) => {
@@ -308,44 +418,56 @@ export class PlanningDetail {
         const resolvedVersionId = selectedVersionId ?? activeVersionId ?? (versions[0]?.id != null ? String(versions[0].id) : null);
 
         if (!resolvedVersionId) {
-          this.loading = false;
-          this.emptyState = true;
-          this.detail = null;
-          this.blocks = [];
-          this.cdr.markForCheck();
+          this.zone.run(() => {
+            this.loading = false;
+            this.emptyState = true;
+            this.detail = null;
+            this.blocks = [];
+            this.cdr.detectChanges();
+          });
           return;
         }
 
         this.api.getVersion(this.planningId!, resolvedVersionId).subscribe({
           next: (versionRow) => {
-            this.loading = false;
+            this.zone.run(() => {
+              this.loading = false;
 
-            const versionLabel = `v${versionRow?.versionNumber ?? resolvedVersionId}`;
-            const resolved = this.mapTrainingPlanToDetail(plan, versionRow, versionLabel);
+              const versionLabel = `v${versionRow?.versionNumber ?? resolvedVersionId}`;
+              const resolved = this.mapTrainingPlanToDetail(plan, versionRow, versionLabel);
 
-            this.detail = resolved;
-            this.blocks = resolved.blocks ?? [];
+              this.detail = resolved;
+              this.blocks = resolved.blocks ?? [];
 
-            // options show labels, values are real version IDs so export works
-            this.versionOptions = (resolved.versions ?? []).map((v: any) => ({ label: v.label, value: v.value }));
-            this.selectedVersion = resolvedVersionId;
-            this.cdr.markForCheck();
+              // options show labels, values are real version IDs so export works
+              this.versionOptions = (resolved.versions ?? []).map((v: any) => ({ label: v.label, value: v.value }));
+              this.selectedVersion = resolvedVersionId;
+              
+              // Load feedback for this version
+              this.loadFeedbackForVersion(resolvedVersionId);
+              
+              this.cdr.detectChanges();
+            });
           },
           error: (e: unknown) => {
-            this.loading = false;
-            const msg = e instanceof Error ? e.message : 'No se pudo cargar la versión.';
-            this.loadError = msg;
-            this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-            this.cdr.markForCheck();
+            this.zone.run(() => {
+              this.loading = false;
+              const msg = e instanceof Error ? e.message : 'No se pudo cargar la versión.';
+              this.loadError = msg;
+              this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+              this.cdr.detectChanges();
+            });
           },
         });
       },
       error: (e: unknown) => {
-        this.loading = false;
-        const msg = e instanceof Error ? e.message : 'No se pudo cargar la planificación.';
-        this.loadError = msg;
-        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-        this.cdr.markForCheck();
+        this.zone.run(() => {
+          this.loading = false;
+          const msg = e instanceof Error ? e.message : 'No se pudo cargar la planificación.';
+          this.loadError = msg;
+          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+          this.cdr.detectChanges();
+        });
       },
     });
   }
@@ -366,12 +488,12 @@ export class PlanningDetail {
     switch (s) {
       case 'draft':
         return 'Borrador';
-      case 'generated':
-        return 'Generada';
-      case 'published':
-        return 'Publicada';
+      case 'active':
+        return 'Activa';
       case 'archived':
         return 'Archivada';
+      default:
+        return 'Desconocido';
     }
   }
 
@@ -379,12 +501,12 @@ export class PlanningDetail {
     switch (s) {
       case 'draft':
         return 'warn';
-      case 'generated':
-        return 'info';
-      case 'published':
+      case 'active':
         return 'success';
       case 'archived':
         return 'danger';
+      default:
+        return 'info';
     }
   }
 
@@ -395,44 +517,77 @@ export class PlanningDetail {
     });
   }
 
-  openSendDialog(): void {
-    if (!this.planningId) return;
-    this.emailModel = {
-      recipients: [],
-      subject: `Planificación ${this.planningId} (${this.selectedVersion ?? this.detail?.version ?? 'última'})`,
-      message: '',
-      format: 'pdf',
-      version: this.selectedVersion ?? this.detail?.version ?? undefined,
-    };
-    this.sendDialogOpen = true;
-  }
-
-  addRecipient(): void {
-    const v = this.recipientDraft.trim();
-    if (!v) return;
-    if (this.emailModel.recipients.includes(v)) {
-      this.recipientDraft = '';
-      return;
-    }
-    this.emailModel.recipients = [...this.emailModel.recipients, v];
-    this.recipientDraft = '';
-  }
-
-  removeRecipient(v: string): void {
-    this.emailModel.recipients = this.emailModel.recipients.filter((r) => r !== v);
-  }
-
-  canSendEmail(): boolean {
-    // Email export isn't implemented server-side yet.
-    return false;
-  }
-
-  sendEmail(): void {
-    this.toast.add({
-      severity: 'info',
-      summary: 'No disponible',
-      detail: 'El envío por correo aún no está implementado en el backend. Usa la exportación a PDF/CSV.',
+  acceptPlanning(): void {
+    if (!this.planningId || !this.detail) return;
+    
+    this.api.updateStatus(this.planningId, 'active').subscribe({
+      next: () => {
+        this.toast.add({
+          severity: 'success',
+          summary: 'Planificación aceptada',
+          detail: 'La planificación ha sido activada correctamente.',
+        });
+        this.load(); // Reload to show updated status
+      },
+      error: (err) => {
+        this.toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo activar la planificación.',
+        });
+        console.error('Error accepting planning:', err);
+      },
     });
+  }
+
+  canAcceptPlanning(): boolean {
+    // Solo coaches y admins pueden activar planificaciones
+    const role = this.userContext.getRoleSnapshot();
+    const canManage = role === 'admin' || role === 'technical_director' || role === 'coach';
+    return canManage && this.detail?.status === 'draft';
+  }
+
+  canManagePlanning(): boolean {
+    // Solo coaches y admins pueden crear versiones, editar, etc.
+    const role = this.userContext.getRoleSnapshot();
+    return role === 'admin' || role === 'technical_director' || role === 'coach';
+  }
+
+  canViewAllFeedbacks(): boolean {
+    // Solo coaches, technical_director y admins pueden ver todos los feedbacks
+    const role = this.userContext.getRoleSnapshot();
+    const canView = role === 'admin' || role === 'technical_director' || role === 'coach';
+    console.log('canViewAllFeedbacks check:', { role, canView });
+    return canView;
+  }
+
+  getVisibleFeedbacks(): FeedbackSurveyListItem[] {
+    return this.allFeedbacks.slice(0, this.feedbacksToShow);
+  }
+
+  hasMoreFeedbacks(): boolean {
+    return this.allFeedbacks.length > this.feedbacksToShow;
+  }
+
+  showMoreFeedbacks(): void {
+    this.feedbacksToShow += this.FEEDBACKS_PER_PAGE;
+  }
+
+  showLessFeedbacks(): void {
+    this.feedbacksToShow = this.FEEDBACKS_PER_PAGE;
+  }
+
+  isPlayerView(): boolean {
+    const role = this.userContext.getRoleSnapshot();
+    return role === 'player';
+  }
+
+  getBackRoute(): string {
+    return this.isPlayerView() ? '/player' : '/planning';
+  }
+
+  openDownloadDialog(): void {
+    this.downloadDialogOpen = true;
   }
 
   exportPdf(): void {
@@ -442,16 +597,36 @@ export class PlanningDetail {
       return;
     }
     this.downloading = 'pdf';
-    this.toast.add({ severity: 'info', summary: 'Exportación', detail: 'Descargando PDF…' });
+    
+    // Mostrar toast de descarga
+    this.toast.add({ 
+      severity: 'info', 
+      summary: 'Exportación', 
+      detail: 'Descargando PDF…',
+      key: 'download-toast'
+    });
+    this.cdr.markForCheck();
+    
     this.api.exportPdf(this.planningId, this.selectedVersion).subscribe({
       next: (blob) => {
         this.downloading = null;
         this.downloadBlob(blob, `planning-${this.planningId}-${this.selectedVersion ?? 'latest'}.pdf`);
+        // Cerrar el toast de descarga
+        this.toast.clear('download-toast');
+        this.toast.add({ 
+          severity: 'success', 
+          summary: 'Exportación', 
+          detail: 'PDF descargado correctamente',
+          life: 3000
+        });
+        this.cdr.markForCheck();
       },
       error: (e: unknown) => {
         this.downloading = null;
+        this.toast.clear('download-toast');
         const msg = e instanceof Error ? e.message : 'No se pudo exportar PDF.';
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        this.cdr.markForCheck();
       },
     });
   }
@@ -463,16 +638,36 @@ export class PlanningDetail {
       return;
     }
     this.downloading = 'csv';
-    this.toast.add({ severity: 'info', summary: 'Exportación', detail: 'Descargando CSV…' });
+    
+    // Mostrar toast de descarga
+    this.toast.add({ 
+      severity: 'info', 
+      summary: 'Exportación', 
+      detail: 'Descargando CSV…',
+      key: 'download-toast'
+    });
+    this.cdr.markForCheck();
+    
     this.api.exportCsv(this.planningId, this.selectedVersion).subscribe({
       next: (blob) => {
         this.downloading = null;
         this.downloadBlob(blob, `planning-${this.planningId}-${this.selectedVersion ?? 'latest'}.csv`);
+        // Cerrar el toast de descarga
+        this.toast.clear('download-toast');
+        this.toast.add({ 
+          severity: 'success', 
+          summary: 'Exportación', 
+          detail: 'CSV descargado correctamente',
+          life: 3000
+        });
+        this.cdr.markForCheck();
       },
       error: (e: unknown) => {
         this.downloading = null;
+        this.toast.clear('download-toast');
         const msg = e instanceof Error ? e.message : 'No se pudo exportar CSV.';
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        this.cdr.markForCheck();
       },
     });
   }
@@ -486,5 +681,41 @@ export class PlanningDetail {
     a.click();
     URL.revokeObjectURL(url);
     this.toast.add({ severity: 'success', summary: 'Exportación', detail: `Descarga iniciada: ${filename}` });
+  }
+
+  // Exercise preview methods
+  openExercisePreview(exercise: any): void {
+    this.selectedExercise = exercise;
+    this.exercisePreviewDialogOpen = true;
+  }
+
+  closeExercisePreview(): void {
+    this.exercisePreviewDialogOpen = false;
+    this.selectedExercise = null;
+  }
+
+  getDifficultyLabel(key: string): string {
+    const labels: Record<string, string> = {
+      tactica: 'Táctica',
+      tecnica: 'Técnica',
+      fisica: 'Física',
+      mental: 'Mental'
+    };
+    return labels[key] || key;
+  }
+
+  getDifficultyValue(key: string): number {
+    if (!this.selectedExercise?.difficulty || typeof this.selectedExercise.difficulty !== 'object') {
+      return 0;
+    }
+    const difficulty = this.selectedExercise.difficulty as any;
+    return difficulty[key] || 0;
+  }
+
+  getDifficultyKeys(): string[] {
+    if (!this.selectedExercise?.difficulty || typeof this.selectedExercise.difficulty !== 'object') {
+      return [];
+    }
+    return Object.keys(this.selectedExercise.difficulty);
   }
 }

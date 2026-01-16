@@ -1,21 +1,15 @@
-<p-dialog
-	styleClass="bp-dialog"
+<bp-dialog
 	[(visible)]="visible"
-	[modal]="true"
-	[draggable]="false"
-	[resizable]="false"
-	[style]="{ width: 'min(900px, 96vw)' }"
-	(onHide)="onHide()"
+	[header]="title"
+	[subtitle]="subtitle"
+	size="xl"
+	confirmLabel="Añadir materiales"
+	cancelLabel="Cancelar"
+	(confirm)="onConfirm()"
+	(cancel)="onHide()"
 >
-	<ng-template pTemplate="header">
-		<div class="flex flex-col">
-			<div class="text-base font-semibold text-zinc-100">{{ title }}</div>
-			<div class="text-xs text-zinc-400">{{ subtitle }}</div>
-		</div>
-	</ng-template>
-
 	<div class="space-y-4">
-		<div>
+		<div class="bp-dialog-field">
 			<span class="p-input-icon-left w-full">
 				<i class="pi pi-search"></i>
 				<input
@@ -31,37 +25,20 @@
 		@if (isEquipmentMode) {
 			<div class="grid grid-cols-1 gap-2 md:grid-cols-2">
 				@for (row of filteredEquipment; track row.id) {
-					<div class="flex items-center justify-between gap-3 rounded-lg border border-zinc-800 bg-zinc-950/20 px-3 py-2">
-						<button
-							type="button"
-							pButton
-							(click)="toggleEquipment(row.id, row.name)"
-							styleClass="flex-1 rounded-lg border px-3 py-2 text-left text-sm transition-colors"
-							[class.border-sky-400]="row.selected"
-							[class.bg-sky-400]="row.selected"
-							[class.text-slate-950]="row.selected"
-							[class.border-zinc-800]="!row.selected"
-							[class.bg-zinc-950/40]="!row.selected"
-							[class.text-zinc-200]="!row.selected"
-						>
-							{{ row.name }}
-						</button>
-
-						@if (row.selected) {
-							<div class="flex items-center gap-2">
-								<button type="button" pButton icon="pi pi-minus" class="p-button-text p-button-sm" (click)="decEquipment(row.id)"></button>
-								<input
-									pInputText
-									class="w-[62px] text-center"
-									type="number"
-									[min]="1"
-									[ngModel]="row.quantity"
-									(ngModelChange)="setEquipmentQuantity(row.id, $event)"
-								/>
-								<button type="button" pButton icon="pi pi-plus" class="p-button-text p-button-sm" (click)="incEquipment(row.id)"></button>
-							</div>
-						}
-					</div>
+					<button
+						type="button"
+						pButton
+						(click)="toggleEquipment(row.id, row.name)"
+						styleClass="w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors"
+						[class.border-sky-400]="row.selected"
+						[class.bg-sky-400]="row.selected"
+						[class.text-slate-950]="row.selected"
+						[class.border-zinc-800]="!row.selected"
+						[class.bg-zinc-950/40]="!row.selected"
+						[class.text-zinc-200]="!row.selected"
+					>
+						{{ row.name }}
+					</button>
 				}
 			</div>
 		} @else {
@@ -87,11 +64,4 @@
 
 		<div class="text-xs text-zinc-400">{{ selectedCount }} materiales seleccionados</div>
 	</div>
-
-	<ng-template pTemplate="footer">
-		<div class="flex justify-between gap-2">
-			<p-button label="Cancelar" severity="secondary" [outlined]="true" styleClass="bp-btn bp-btn-secondary" (click)="onHide()"></p-button>
-			<p-button label="Añadir materiales" styleClass="bp-btn bp-btn-primary" (click)="onConfirm()"></p-button>
-		</div>
-	</ng-template>
-</p-dialog>
+</bp-dialog>

@@ -16,17 +16,8 @@ const listForExercise = async (exerciseId) => {
   });
 };
 
-const createForExercise = async (exerciseId, { equipmentId, quantity }) => {
-  return ExerciseEquipment.create({ exerciseId, equipmentId, quantity });
-};
-
-const updateForExercise = async (exerciseId, equipmentId, { quantity }) => {
-  const row = await ExerciseEquipment.findOne({ where: { exerciseId, equipmentId } });
-  if (!row) {
-    throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'EXERCISE_EQUIPMENT_NOT_FOUND', 'Relation not found');
-  }
-  await row.update({ quantity });
-  return row;
+const createForExercise = async (exerciseId, { equipmentId }) => {
+  return ExerciseEquipment.create({ exerciseId, equipmentId });
 };
 
 const deleteForExercise = async (exerciseId, equipmentId) => {
@@ -40,6 +31,5 @@ const deleteForExercise = async (exerciseId, equipmentId) => {
 module.exports = {
   listForExercise,
   createForExercise,
-  updateForExercise,
   deleteForExercise,
 };

@@ -2,12 +2,32 @@ export type RecommenderTechCost = 'low' | 'medium' | 'high';
 
 export type RecommenderStatus = {
   activeVersion: string;
-  trainedAt: string; // ISO
-  metrics: {
-    accuracy: number; // 0..1
-    coverage: number; // 0..1
-    latencyMs: number;
+  modelInfo?: {
+    version: string;
+    type: string;
+    description: string;
   };
+  modelConfig?: {
+    version: string;
+    description: string;
+    createdAt: string;
+    totalGoals: number;
+    totalTags: number;
+  };
+  statistics?: {
+    totalPlans: number;
+    totalExercises: number;
+    topExercises: Array<{
+      id: number;
+      name: string;
+      usageCount: number;
+    }>;
+    topGoals: Array<{
+      goal: string;
+      count: number;
+    }>;
+  };
+  trainedAt: string; // ISO
   techCost: RecommenderTechCost;
 };
 
@@ -47,4 +67,27 @@ export type RecommenderVersionListItem = {
 
 export type RecommenderListVersionsResponse = {
   items: RecommenderVersionListItem[];
+};
+
+export type GoalSuggestion = {
+  goal: string;
+  label: string;
+  reason: string;
+  priority: 'high' | 'medium' | 'low';
+  relevantTags: string[];
+  estimatedDuration: number;
+};
+
+export type SuggestGoalsRequest = {
+  context?: {
+    playerLevel?: 'beginner' | 'intermediate' | 'advanced';
+    intensity?: 'low' | 'medium' | 'high';
+    sessionDuration?: number;
+  };
+};
+
+export type SuggestGoalsResponse = {
+  suggestions: GoalSuggestion[];
+  allAvailableGoals: string[];
+  modelVersion: string;
 };

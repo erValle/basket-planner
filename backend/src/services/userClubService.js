@@ -20,11 +20,44 @@ const getUserClubById = async (id) => {
   return row;
 };
 
-const createUserClub = async (payload) => UserClub.create(payload);
+const createUserClub = async (payload) => {
+  try {
+    const result = await UserClub.create(payload);
+    return result;
+  } catch (error) {
+    console.error('❌ Error creating UserClub:', error.message);
+    throw error;
+  }
+};
 
 const updateUserClub = async (id, payload) => {
   const row = await getUserClubById(id);
-  await row.update(payload);
+  
+  // Si se está marcando como principal, quitar el flag de los demás
+  if (payload.isPrimary === true) {
+    await sequelize.transaction(async (t) => {
+      // Quitar isPrimary de todas las demás membresías activas del usuario
+      await UserClub.update(
+        { isPrimary: false },
+        {
+          where: {
+            userId: row.userId,
+            id: { [Op.ne]: id }, // Excluir el registro actual
+            isPrimary: true,
+            endDate: { [Op.is]: null }, // Solo activas
+          },
+          transaction: t,
+        }
+      );
+      
+      // Actualizar el registro actual
+      await row.update(payload, { transaction: t });
+    });
+  } else {
+    // Si no es isPrimary, actualizar normalmente
+    await row.update(payload);
+  }
+  
   return row;
 };
 
@@ -79,8 +112,16 @@ async function transferPlayerToClub(userId, { clubId, startDate, closePreviousAt
       throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'USER_NOT_A_PLAYER', 'User is not a player');
     }
 
-    const effectiveStart = startDate ? new Date(startDate) : new Date();
-    const closeAt = closePreviousAt ? new Date(closePreviousAt) : effectiveStart;
+    // Convert string dates to proper format (ISO date string for DATEONLY)
+    const toIsoDateString = (date) => {
+      if (!date) return new Date().toISOString().split('T')[0];
+      if (typeof date === 'string') return date;
+      const d = new Date(date);
+      return d.toISOString().split('T')[0];
+    };
+
+    const effectiveStartStr = toIsoDateString(startDate);
+    const closeAtStr = toIsoDateString(closePreviousAt || startDate);
 
     // Find current active primary membership (endDate is null) and lock it.
     const currentPrimary = await UserClub.findOne({
@@ -91,7 +132,7 @@ async function transferPlayerToClub(userId, { clubId, startDate, closePreviousAt
 
     let closed = null;
     if (currentPrimary) {
-      await currentPrimary.update({ endDate: closeAt }, { transaction: t });
+      await currentPrimary.update({ endDate: closeAtStr }, { transaction: t });
       closed = currentPrimary;
     }
 
@@ -115,7 +156,7 @@ async function transferPlayerToClub(userId, { clubId, startDate, closePreviousAt
         userId,
         clubId,
         isPrimary: Boolean(makePrimary),
-        startDate: effectiveStart,
+        startDate: effectiveStartStr,
         endDate: null,
       },
       { transaction: t }

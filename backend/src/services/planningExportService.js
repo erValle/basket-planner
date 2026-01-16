@@ -10,8 +10,7 @@ const escapeCsvValue = (value) => {
 };
 
 const flattenExercises = (planVersion) => {
-  const items = planVersion?.items || {};
-  const sessions = Array.isArray(items.sessions) ? items.sessions : [];
+  const sessions = Array.isArray(planVersion?.sessions) ? planVersion.sessions : [];
 
   const rows = [];
   for (const session of sessions) {
@@ -126,8 +125,7 @@ const exportToPDF = async (planVersion, { title, author, planId } = {}) => {
   doc.fontSize(14).text('Sessions', { underline: true });
   doc.moveDown(0.5);
 
-  const items = planVersion?.items || {};
-  const sessions = Array.isArray(items.sessions) ? items.sessions : [];
+  const sessions = Array.isArray(planVersion?.sessions) ? planVersion.sessions : [];
 
   doc.fontSize(11);
   if (sessions.length === 0) {

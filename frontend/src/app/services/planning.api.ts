@@ -4,8 +4,10 @@ import { ApiClient } from './api-client';
 import { HttpClient } from '@angular/common/http';
 import {
   PlanningDetailResponse,
+  PlanningDraft,
   PlanningExportEmailPayload,
   PlanningExportEmailResponse,
+  PlanningGenerated,
   PlanningListParams,
   PlanningListResponse,
 } from '../models/planning';
@@ -16,6 +18,66 @@ export class PlanningApiService {
     private readonly api: ApiClient,
     private readonly http: HttpClient,
   ) {}
+
+  /**
+   * Generate a new planning (individual or group).
+   * Backend: POST /api/planning/generate/individual or /api/planning/generate/group
+   */
+  generate(draft: PlanningDraft) {
+    const mode = draft.mode;
+
+    const constraints = {
+      equipment: draft.materialNames ?? [],
+    };
+
+    const goals = (draft.tags ?? []).map((t) => String(t));
+
+    if (mode === 'group') {
+      const athleteIds = (draft.playerIds ?? [])
+        .map((id) => Number(id))
+        .filter((n) => Number.isFinite(n) && n > 0);
+
+      const groupData: Record<string, unknown> = {
+        groupId: draft.groupId ? Number(draft.groupId) : undefined,
+        numberOfSessions: Number(draft.sessionsCount) || undefined,
+        sessionDurationMinutes: Number(draft.duration) || undefined,
+        intensity: String(draft.intensity).toLowerCase() === 'alta'
+          ? 'high'
+          : String(draft.intensity).toLowerCase() === 'baja'
+            ? 'low'
+            : 'medium',
+      };
+
+      // Solo incluir name si tiene valor
+      if (draft.name && draft.name.trim().length > 0) {
+        groupData['name'] = draft.name.trim();
+      }
+
+      return this.api.post<PlanningGenerated>('/api/planning/generate/group', {
+        group: groupData,
+        profiles: athleteIds.map((athleteId) => ({ athleteId })),
+        goals,
+        constraints,
+      } as any);
+    }
+
+    // Individual
+    const athleteId = draft.playerId ? Number(draft.playerId) : NaN;
+    return this.api.post<PlanningGenerated>('/api/planning/generate/individual', {
+      profile: {
+        athleteId,
+        numberOfSessions: Number(draft.sessionsCount) || undefined,
+        sessionDurationMinutes: Number(draft.duration) || undefined,
+        intensity: String(draft.intensity).toLowerCase() === 'alta'
+          ? 'high'
+          : String(draft.intensity).toLowerCase() === 'baja'
+            ? 'low'
+            : 'medium',
+      },
+      goals,
+      constraints,
+    } as any);
+  }
 
   /**
    * List plannings for listing screen.
@@ -100,6 +162,14 @@ export class PlanningApiService {
    */
   remove(id: string) {
     return this.api.delete<void>(`/api/training-plans/${encodeURIComponent(id)}`);
+  }
+
+  /**
+   * Update training plan status.
+   * Backend: PUT /api/training-plans/:id
+   */
+  updateStatus(id: string, status: string) {
+    return this.api.put<any>(`/api/training-plans/${encodeURIComponent(id)}`, { status });
   }
 
   /**

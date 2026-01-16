@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -21,7 +21,6 @@ import { AdminUserUpsertPayload } from '../models/user-admin';
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     ButtonModule,
     InputTextModule,
     SelectModule,
@@ -31,7 +30,7 @@ import { AdminUserUpsertPayload } from '../models/user-admin';
     PageHeader,
   ],
   templateUrl: './new-user.html',
-  styleUrl: './new-user.css',
+  styleUrl: './new-user.scss',
   providers: [MessageService],
 })
 export class NewUser {
@@ -54,10 +53,11 @@ export class NewUser {
 
   roleOptions = [
     { label: 'Sin rol', value: '' },
+    { label: 'Admin', value: 'admin' },
+    { label: 'Director Técnico', value: 'technical_director' },
     { label: 'Entrenador', value: 'coach' },
     { label: 'Jugador', value: 'player' },
-    { label: 'Staff', value: 'staff' },
-    { label: 'Admin', value: 'admin' },
+    { label: 'Usuario', value: 'user' },
   ];
 
   form = {

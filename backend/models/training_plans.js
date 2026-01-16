@@ -67,7 +67,18 @@ module.exports = (sequelize, DataTypes) => {
       },
       duration: { 
         type: DataTypes.INTEGER, 
-        allowNull: true 
+        allowNull: true,
+        comment: 'DEPRECATED: Use sessionDurationMinutes instead'
+      },
+      sessionsCount: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Número de sesiones en la planificación'
+      },
+      sessionDurationMinutes: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'Duración máxima por sesión en minutos'
       },
       status: { 
         type: DataTypes.STRING, 

@@ -15,7 +15,7 @@ import { AppShell } from '../layout/app-shell/app-shell';
   selector: 'app-post-login-redirect',
   imports: [CommonModule, ProgressSpinnerModule, AppShell],
   templateUrl: './post-login-redirect.html',
-  styleUrl: './post-login-redirect.css',
+  styleUrl: './post-login-redirect.scss',
 })
 export class PostLoginRedirectPage {
   constructor(

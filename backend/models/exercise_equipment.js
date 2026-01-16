@@ -21,7 +21,6 @@ module.exports = (sequelize, DataTypes) => {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       exerciseId: { type: DataTypes.INTEGER, allowNull: false },
       equipmentId: { type: DataTypes.INTEGER, allowNull: false },
-      quantity: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
     },
     {
       sequelize,

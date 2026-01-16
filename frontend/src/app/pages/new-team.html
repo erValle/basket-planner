@@ -10,26 +10,40 @@
 			class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mt-6"
 			style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
 		>
+			@if (formError) {
+				<div class="mb-4">
+					<app-error-card
+						[title]="'Error al crear el equipo'"
+						[message]="formError"
+						(onDismiss)="formError = null"
+					></app-error-card>
+				</div>
+			}
+
+			<div class="mb-4">
+				<app-info-card
+					[message]="'Los equipos se crean en estado <strong>inactivo</strong>. Para activar un equipo necesitas asignarle al menos <strong>5 jugadores</strong>.'"
+				></app-info-card>
+			</div>
+
 			<div class="grid grid-cols-2 gap-6">
 				<div class="col-span-2">
 					<label class="block text-[#e5e7eb] text-[13px] mb-2">Club</label>
 					<select
 						[(ngModel)]="selectedClubId"
 						name="clubId"
-						class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937]"
-					>
-						@for (c of clubs; track c.id) {
-							<option [value]="c.id">{{ c.name }}</option>
-						}
-					</select>
-					@if (!clubs?.length) {
-						<div class="mt-2 text-[12px] text-[#94a3b8]">
-							No se pudieron cargar los clubs. El equipo se creará sin asignación de club.
-						</div>
+						class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] hover:border-[#38bdf8] focus:border-[#38bdf8] focus:outline-none transition-colors cursor-pointer"
+				>
+					@for (c of clubs; track c.id) {
+						<option [value]="c.id">{{ c.name }}</option>
 					}
-				</div>
-
-				<div class="col-span-2">
+				</select>
+				@if (!clubs.length) {
+					<div class="mt-2 text-[12px] text-[#94a3b8]">
+						No se pudieron cargar los clubs. El equipo se creará sin asignación de club.
+					</div>
+				}
+			</div>				<div class="col-span-2">
 					<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre del equipo</label>
 					<input
 						pInputText
@@ -55,8 +69,8 @@
 			<div class="mt-6">
 				<div class="flex items-center justify-between">
 					<div>
-						<div class="text-[13px] text-[#e5e7eb]">Jugadores</div>
-						<div class="text-[12px] text-[#94a3b8]">Selecciona al menos 5 jugadores ({{ selectedPlayerIds.length }}/5).</div>
+						<div class="text-[13px] text-[#e5e7eb]">Jugadores (opcional)</div>
+						<div class="text-[12px] text-[#94a3b8]">Puedes añadir jugadores ahora o más tarde desde el detalle del equipo.</div>
 					</div>
 					<button
 						type="button"

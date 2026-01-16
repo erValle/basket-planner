@@ -86,7 +86,7 @@ const createNewVersion = async (trainingPlanId, content, metadata = {}) => {
     source: metadata.source || 'manual',
     date: metadata.date ? new Date(metadata.date) : new Date(),
     comments: metadata.comments ?? null,
-    items: content ? structuredClone(content) : null,
+    sessions: content ? structuredClone(content) : null,
     createdFrom: metadata.createdFrom ?? null,
   };
 
@@ -97,7 +97,7 @@ const createNewVersion = async (trainingPlanId, content, metadata = {}) => {
 
 const restoreVersion = async (trainingPlanId, versionId, metadata = {}) => {
   const sourceVersion = await getVersion(trainingPlanId, versionId);
-  const restoredContent = sourceVersion.items ? structuredClone(sourceVersion.items) : null;
+  const restoredContent = sourceVersion.sessions ? structuredClone(sourceVersion.sessions) : null;
 
   const comment = [metadata.comments, `restored-from:${sourceVersion.id}`]
     .filter(Boolean)
@@ -127,7 +127,11 @@ const setActiveVersion = async (trainingPlanId, versionId, auditCtx = {}) => {
     );
   }
 
-  await plan.update({ activeVersionId: version.id });
+  // Actualizar la versión activa Y cambiar el estado a 'active'
+  await plan.update({ 
+    activeVersionId: version.id,
+    status: 'active'
+  });
 
   await auditLogService.createAuditLog({
     user: auditCtx.user,
@@ -135,7 +139,7 @@ const setActiveVersion = async (trainingPlanId, versionId, auditCtx = {}) => {
     action: 'training_plan_version.activated',
     entity: 'TrainingPlan',
     entityId: plan.id,
-    metadata: { activeVersionId: version.id, trainingPlanId },
+    metadata: { activeVersionId: version.id, trainingPlanId, status: 'active' },
   });
   return plan;
 };
@@ -143,6 +147,14 @@ const setActiveVersion = async (trainingPlanId, versionId, auditCtx = {}) => {
 const updateVersion = async (trainingPlanId, id, payload) => {
   const row = await getVersion(trainingPlanId, id);
   await row.update(payload);
+  
+  // Si la versión actualizada es la versión activa del plan y el plan está en draft,
+  // cambiar el estado del plan a 'active'
+  const plan = await getPlan(trainingPlanId);
+  if (plan.activeVersionId === row.id && plan.status === 'draft') {
+    await plan.update({ status: 'active' });
+  }
+  
   return row;
 };
 

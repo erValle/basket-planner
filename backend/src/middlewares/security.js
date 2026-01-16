@@ -33,7 +33,7 @@ function securityMiddleware(app) {
 
     const apiLimiter = rateLimit({
         windowMs: 15 * 60 * 1000, 
-        max: 120, 
+        max: 500, // Increased from 120 to 500 for development/testing
         message: 'Too many requests from this IP, please try again later.',
         legacyHeaders: false,
         message: {error: "RATE_LIMIT", message: 'Too many requests from this IP, please try again later.'}
@@ -43,7 +43,7 @@ function securityMiddleware(app) {
 
     const authLimiter = rateLimit({
         windowMs: 15 * 60 * 1000, 
-        max: 20, 
+        max: 50, // Increased from 20 to 50 for auth endpoints
         message: {error: "AUTH_RATE_LIMIT", message: 'Too many auth attempts from this IP, please try again later.'},
         legacyHeaders: false,
         standardHeaders: true,

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
-import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { distinctUntilChanged, map } from 'rxjs';
 
 import { ButtonModule } from 'primeng/button';
@@ -11,7 +11,6 @@ import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
 import { ChipModule } from 'primeng/chip';
 import { CheckboxModule } from 'primeng/checkbox';
-import { DialogModule } from 'primeng/dialog';
 import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -19,16 +18,30 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 import { PlayerSelectCard } from '../components/player-select-card/player-select-card';
+import { BpDialog } from '../components/bp-dialog';
 
-import { PlanificationsApi } from '../services/planifications.api';
-import { PlanificationDraft } from '../models/planification';
+import { PlanningApiService } from '../services/planning.api';
+import { PlanningDraft } from '../models/planning';
 import { PlayersApi, PlayerDto } from '../services/players.api';
 import { TeamsApi, TeamDto } from '../services/teams.api';
 import { ClubContextService } from '../core/context/club-context.service';
 import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
 import { ClubResourcesStore } from '../core/stores/club-resources.store';
+import { ExercisesApi } from '../services/exercises.api';
 
-type Step = { number: number; label: string };
+import {
+  OBJECTIVE_OPTIONS,
+  INTENSITY_OPTIONS,
+  POSITION_OPTIONS,
+  POSITION_FILTER_OPTIONS,
+  CATEGORY_OPTIONS,
+  CATEGORY_FILTER_OPTIONS,
+  PLANNING_MODE_OPTIONS,
+  NEW_PLANNING_STEPS,
+  DEFAULT_PLANNING_FORM,
+  SelectOption,
+} from '../constants/planning-options';
+
 type Option = { label: string; value: string };
 
 @Component({
@@ -37,7 +50,6 @@ type Option = { label: string; value: string };
   CommonModule,
   FormsModule,
   ReactiveFormsModule,
-    RouterLink,
     ButtonModule,
     InputTextModule,
     InputNumberModule,
@@ -45,7 +57,7 @@ type Option = { label: string; value: string };
     SelectModule,
 		ChipModule,
 		CheckboxModule,
-		DialogModule,
+		BpDialog,
 		ToastModule,
 		ConfirmDialogModule,
 		AppShell,
@@ -53,44 +65,22 @@ type Option = { label: string; value: string };
     PlayerSelectCard,
   ],
   templateUrl: './new-planification.html',
-  styleUrl: './new-planification.css',
+  styleUrl: './new-planification.scss',
   providers: [MessageService, ConfirmationService],
 })
 export class NewPlanification {
   currentStep = 1;
 
-  steps: Step[] = [
-    { number: 1, label: 'Datos básicos' },
-    { number: 2, label: 'Destino' },
-    { number: 3, label: 'Restricciones' },
-    { number: 4, label: 'Revisión' },
-  ];
+  readonly steps = NEW_PLANNING_STEPS;
+  readonly objectiveOptions = OBJECTIVE_OPTIONS;
+  readonly intensityOptions = INTENSITY_OPTIONS;
+  readonly positionOptions = POSITION_OPTIONS;
+  readonly positionFilterOptions = POSITION_FILTER_OPTIONS;
+  readonly categoryOptions = CATEGORY_OPTIONS;
+  readonly categoryFilterOptions = CATEGORY_FILTER_OPTIONS;
+  readonly modeOptions = PLANNING_MODE_OPTIONS;
 
-  objectiveOptions: Option[] = [
-    { label: 'Mejora del tiro exterior', value: 'Mejora del tiro exterior' },
-    { label: 'Defensa individual', value: 'Defensa individual' },
-    { label: 'Manejo de balón', value: 'Manejo de balón' },
-    { label: 'Condición física', value: 'Condición física' },
-  ];
-
-  intensityOptions: Option[] = [
-    { label: 'Baja', value: 'Baja' },
-    { label: 'Media', value: 'Media' },
-    { label: 'Alta', value: 'Alta' },
-  ];
-
-  formData = {
-    name: '',
-    duration: 90,
-    summary: '',
-    objective: 'Mejora del tiro exterior',
-    intensity: 'Media',
-  };
-
-  modeOptions: Option[] = [
-    { label: 'Individual', value: 'individual' },
-    { label: 'Grupal', value: 'group' },
-  ];
+  formData = { ...DEFAULT_PLANNING_FORM };
 
   // Step 2 - Destino
   planningMode: 'individual' | 'group' = 'individual';
@@ -114,21 +104,6 @@ export class NewPlanification {
 
   // Options can be derived from loaded players (kept for potential dropdown usage).
   playerOptions: Option[] = [];
-
-  // Extra filters
-  positionOptions = [
-    { label: 'Base', value: 'base' },
-    { label: 'Escolta', value: 'guard' },
-    { label: 'Alero', value: 'wing' },
-    { label: 'Ala-pívot', value: 'forward' },
-    { label: 'Pívot', value: 'center' },
-  ];
-
-  categoryOptions = [
-    { label: 'Senior', value: 'senior' },
-    { label: 'Juvenil', value: 'junior' },
-    { label: 'Infantil', value: 'kid' },
-  ];
 
   teamOptions: Array<{ label: string; value: string }> = [];
 
@@ -241,7 +216,7 @@ export class NewPlanification {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly api: PlanificationsApi,
+    private readonly planningApi: PlanningApiService,
     private readonly toast: MessageService,
     private readonly confirmation: ConfirmationService,
     private readonly playersApi: PlayersApi,
@@ -249,10 +224,12 @@ export class NewPlanification {
     private readonly clubContext: ClubContextService,
     private readonly equipmentApi: EquipmentApi,
     private readonly clubResources: ClubResourcesStore,
+    private readonly exercisesApi: ExercisesApi,
   ) {
 	this.loadTeams();
 	this.loadPlayers();
 	this.loadMaterials();
+	this.loadPopularTags();
 
     // Restore & keep wizard state in sync with query params.
     // This avoids a "needs one extra click" situation when landing directly on
@@ -335,6 +312,12 @@ export class NewPlanification {
   restrictionTags: string[] = [];
   tagsControl = new FormControl('');
 
+  // Etiquetas populares de ejercicios
+  popularTags: Array<{ tag: string; count: number }> = [];
+  popularTagsLoading = false;
+  showAllTags = false;
+  readonly INITIAL_TAGS_TO_SHOW = 15;
+
 	private normalizeTag(raw: string): string {
 		return raw.trim();
 	}
@@ -369,6 +352,44 @@ export class NewPlanification {
 
   removeTag(tag: string) {
     this.restrictionTags = this.restrictionTags.filter((t) => t !== tag);
+  }
+
+  // Métodos para etiquetas populares
+  togglePopularTag(tag: string): void {
+    if (this.restrictionTags.includes(tag)) {
+      this.removeTag(tag);
+    } else {
+      this.addTag(tag);
+    }
+  }
+
+  isTagSelected(tag: string): boolean {
+    return this.restrictionTags.includes(tag);
+  }
+
+  get visiblePopularTags(): Array<{ tag: string; count: number }> {
+    if (this.showAllTags) {
+      return this.popularTags;
+    }
+    return this.popularTags.slice(0, this.INITIAL_TAGS_TO_SHOW);
+  }
+
+  toggleShowAllTags(): void {
+    this.showAllTags = !this.showAllTags;
+  }
+
+  private loadPopularTags(): void {
+    this.popularTagsLoading = true;
+    this.exercisesApi.getPopularTags().subscribe({
+      next: (tags: Array<{ tag: string; count: number }>) => {
+        this.popularTags = tags ?? [];
+        this.popularTagsLoading = false;
+      },
+      error: () => {
+        this.popularTags = [];
+        this.popularTagsLoading = false;
+      },
+    });
   }
 
   isMaterialSelected(id: string): boolean {
@@ -448,7 +469,7 @@ export class NewPlanification {
   }
 
   cancel() {
-    // TODO: navigate back when we have a dedicated listing page
+    this.router.navigate(['/planning']);
   }
 
   back() {
@@ -485,7 +506,7 @@ export class NewPlanification {
   completedDialogVisible = false;
   generatedResultId: string | null = null;
 
-  private buildDraft(): PlanificationDraft {
+  private buildDraft(): PlanningDraft {
     // make sure tags reflect the latest input before sending
     this.syncRestrictionTags();
 
@@ -493,9 +514,15 @@ export class NewPlanification {
       .filter(([, selected]) => !!selected)
       .map(([id]) => id);
 
+    // Get the equipment names for the selected IDs
+    const materialNames = this.materialOptions
+      .filter((m) => this.materialSelectedMap[m.id])
+      .map((m) => m.label);
+
     return {
       name: this.formData.name,
       duration: this.formData.duration,
+      sessionsCount: this.formData.sessionsCount,
       summary: this.formData.summary,
       objective: this.formData.objective,
       intensity: this.formData.intensity,
@@ -504,6 +531,7 @@ export class NewPlanification {
       playerIds: this.planningMode === 'group' ? this.selectedPlayerIds : [],
       groupId: this.planningMode === 'group' ? this.selectedGroupId : null,
       materialIds,
+      materialNames,
       tags: this.restrictionTags,
     };
   }
@@ -513,7 +541,7 @@ export class NewPlanification {
     this.saving = true;
     const draft = this.buildDraft();
 
-    this.api.generatePlanification(draft).subscribe({
+    this.planningApi.generate(draft).subscribe({
       next: (res) => {
         this.saving = false;
         this.generatedResultId = res?.id ?? null;
@@ -531,5 +559,10 @@ export class NewPlanification {
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
       },
     });
+  }
+
+  goToPlanifications() {
+    this.completedDialogVisible = false;
+    this.router.navigate(['/planning']);
   }
 }

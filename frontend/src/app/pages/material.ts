@@ -1,20 +1,19 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
-import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
-import { InputNumberModule } from 'primeng/inputnumber';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog/bp-dialog';
 import { AppShell } from '../layout/app-shell/app-shell';
 import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
+import { ClubContextService } from '../core/context/club-context.service';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
 import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
 
@@ -23,24 +22,23 @@ import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operato
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     ButtonModule,
-    DialogModule,
     InputTextModule,
     SelectModule,
     TagModule,
-    InputNumberModule,
     ToastModule,
     PageHeader,
+    BpDialog,
 		AppShell,
   ],
   providers: [MessageService],
   templateUrl: './material.html',
-  styleUrl: './material.css',
+  styleUrl: './material.scss',
 })
 export class Material {
   private readonly api = inject(EquipmentApi);
   private readonly toast = inject(MessageService);
+  private readonly clubContext = inject(ClubContextService);
 
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
   private readonly loading$ = new BehaviorSubject<boolean>(true);
@@ -48,8 +46,14 @@ export class Material {
   categoryOptions = [
     { label: 'Todas', value: 'all' },
     { label: 'Balones', value: 'Balones' },
-    { label: 'Conos', value: 'Conos' },
-    { label: 'Petos', value: 'Petos' },
+    { label: 'Conos y marcadores', value: 'Conos' },
+    { label: 'Petos y camisetas', value: 'Petos' },
+    { label: 'Aros y canastas', value: 'Aros' },
+    { label: 'Escaleras y vallas', value: 'Agilidad' },
+    { label: 'Bandas elásticas', value: 'Bandas' },
+    { label: 'Colchonetas', value: 'Colchonetas' },
+    { label: 'Pizarras tácticas', value: 'Pizarras' },
+    { label: 'Cronómetros', value: 'Cronometros' },
     { label: 'Otros', value: 'Otros' },
   ];
 
@@ -58,8 +62,8 @@ export class Material {
   statusOptions = [
     { label: 'Todos', value: 'all' },
     { label: 'Disponible', value: 'available' },
-    { label: 'Bajo stock', value: 'low' },
-    { label: 'Agotado', value: 'out' },
+    { label: 'Mantenimiento', value: 'maintenance' },
+    { label: 'No disponible', value: 'unavailable' },
   ];
 
   filters = {
@@ -68,15 +72,21 @@ export class Material {
     status: 'all',
   };
 
-  items$ = this.refresh$.pipe(
-    switchMap(() => {
+  items$ = combineLatest([
+    this.refresh$,
+    this.clubContext.selectedClubId$,
+  ]).pipe(
+    switchMap(([, clubId]) => {
       this.loading$.next(true);
-      return this.api.list({ search: this.filters.search || undefined }).pipe(
+      return this.api.list({ 
+        search: this.filters.search || undefined,
+        clubId: clubId ? String(clubId) : undefined,
+      }).pipe(
         map((items) => (items ?? []).map((e) => this.toUiItem(e))),
         catchError((e: unknown) => {
           const msg = e instanceof Error ? e.message : 'No se pudo cargar el material.';
           this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-          return of([] as Array<{ id: number; name: string; category: string; total: number; available: number }>);
+          return of([] as Array<{ id: number; name: string; category: string; status: string }>);
         }),
       );
     }),
@@ -89,8 +99,7 @@ export class Material {
       const filtered = items.filter((i) => {
         const matchesQuery = !q || i.name.toLowerCase().includes(q);
         const matchesCat = this.filters.category === 'all' || i.category === this.filters.category;
-        const status = this.stockStatus(i);
-        const matchesStatus = this.filters.status === 'all' || status === this.filters.status;
+        const matchesStatus = this.filters.status === 'all' || i.status === this.filters.status;
         return matchesQuery && matchesCat && matchesStatus;
       });
       return { items, filtered, loading: Boolean(loading) };
@@ -106,56 +115,44 @@ export class Material {
     id: 0,
     name: '',
     category: 'Balones',
-    total: 0,
-    available: 0,
+    status: 'available' as 'available' | 'unavailable' | 'maintenance',
   };
 
   constructor() {
     this.refresh();
   }
 
-  private toUiItem(e: EquipmentDto): { id: number; name: string; category: string; total: number; available: number } {
-    // Nota: el backend equipa `quantity` + `status`, y no tiene categoría ni disponibles.
-    // Para mantener la UI: total = quantity. available depende de status.
-    const total = Math.max(0, Number(e.quantity) || 0);
-    const available = e.status === 'unavailable' || e.status === 'maintenance' ? 0 : total;
-
+  private toUiItem(e: EquipmentDto): { id: number; name: string; category: string; status: string } {
     return {
       id: Number(e.id),
       name: e.name,
       category: (e.characteristics as any)?.category ? String((e.characteristics as any).category) : 'Otros',
-      total,
-      available,
+      status: e.status || 'available',
     };
   }
 
   private toPayload(draft: typeof this.draft): Partial<EquipmentDto> {
-    const total = Math.max(0, Number(draft.total) || 0);
-    const available = Math.min(total, Math.max(0, Number(draft.available) || 0));
-    const status: 'available' | 'unavailable' = available <= 0 ? 'unavailable' : 'available';
-    return {
+    const payload: Partial<EquipmentDto> = {
       name: draft.name.trim(),
-      quantity: total,
-      status,
+      status: draft.status,
       characteristics: { category: draft.category },
-    } as any;
+    };
+    // RF024/CU-020: Associate material with the selected club
+    const clubId = this.clubContext.getSelectedClubIdSnapshot();
+    if (clubId) {
+      payload.clubId = clubId;
+    }
+    return payload;
   }
 
   refresh(): void {
     this.refresh$.next();
   }
 
-  stockStatus(item: { id: number; name: string; category: string; total: number; available: number }): 'available' | 'low' | 'out' {
-    if (item.available <= 0) return 'out';
-    if (item.available <= Math.max(1, Math.round(item.total * 0.25))) return 'low';
-    return 'available';
-  }
-
-  stockTag(item: { id: number; name: string; category: string; total: number; available: number }) {
-    const status = this.stockStatus(item);
-    if (status === 'available') return { label: 'Disponible', severity: 'success' as const };
-    if (status === 'low') return { label: 'Bajo stock', severity: 'warn' as const };
-    return { label: 'Agotado', severity: 'danger' as const };
+  statusTag(item: { id: number; name: string; category: string; status: string }) {
+    if (item.status === 'available') return { label: 'Disponible', severity: 'success' as const };
+    if (item.status === 'maintenance') return { label: 'Mantenimiento', severity: 'warn' as const };
+    return { label: 'No disponible', severity: 'danger' as const };
   }
 
   clearFilters(): void {
@@ -167,13 +164,20 @@ export class Material {
 
   openCreate(): void {
     this.dialogMode = 'create';
-    this.draft = { id: 0, name: '', category: 'Balones', total: 0, available: 0 };
+    this.draft = { id: 0, name: '', category: 'Balones', status: 'available' };
     this.materialDialogVisible = true;
   }
 
-  openEdit(item: { id: number; name: string; category: string; total: number; available: number }): void {
+  openEdit(item: { id: number; name: string; category: string; status: string }): void {
     this.dialogMode = 'edit';
-    this.draft = { ...item };
+    this.draft = { 
+      id: item.id, 
+      name: item.name, 
+      category: item.category, 
+      status: (item.status === 'available' || item.status === 'maintenance' || item.status === 'unavailable') 
+        ? item.status 
+        : 'available'
+    };
     this.materialDialogVisible = true;
   }
 
@@ -185,10 +189,7 @@ export class Material {
     const name = this.draft.name.trim();
     if (!name) return;
 
-    const total = Math.max(0, Number(this.draft.total) || 0);
-    const available = Math.min(total, Math.max(0, Number(this.draft.available) || 0));
-
-    const payload = this.toPayload({ ...this.draft, name, total, available });
+    const payload = this.toPayload(this.draft);
 
     if (this.dialogMode === 'create') {
       this.api.create(payload).subscribe({
@@ -213,6 +214,26 @@ export class Material {
       },
       error: (e: unknown) => {
         const msg = e instanceof Error ? e.message : 'No se pudo actualizar el material.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
+  }
+
+  deleteDialog(): void {
+    if (!this.draft.id) return;
+
+    if (!confirm('¿Estás seguro de que quieres eliminar este material? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    this.api.remove(this.draft.id).subscribe({
+      next: () => {
+        this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Material eliminado.' });
+        this.closeDialog();
+        this.refresh();
+      },
+      error: (e: unknown) => {
+        const msg = e instanceof Error ? e.message : 'No se pudo eliminar el material.';
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
       },
     });

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, inject } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -8,25 +8,24 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { TagModule } from 'primeng/tag';
+import { ChipModule } from 'primeng/chip';
 
-import { MaterialSelection } from '../../modals/material-selection/material-selection';
 import { EquipmentApi, EquipmentDto } from '../../services/equipment.api';
+import { ExercisesApi } from '../../services/exercises.api';
+import { ErrorCard } from '../error-card/error-card';
 
 export interface ExerciseFormValue {
   nombre: string;
   descripcion: string;
   tipo: string;
   estado: 'Activo' | 'Inactivo';
-  subtipo: string[];
-  nivelDificultad: string;
-  duracionPredeterminada: number;
-  intensidad: string;
-  objetivoPrincipal: string;
-  numeroJugadores: number;
-  categoriaRecomendada: string[];
-  materialNecesario: string[];
-  materialEquipo?: Array<{ equipmentId: number; name: string; quantity: number }>;
-  observaciones: string;
+  dificultadTactica: number;
+  dificultadTecnica: number;
+  dificultadFisica: number;
+  dificultadMental: number;
+  duracionSegundos: number;
+  etiquetas: string[];
+  materialesNecesarios: string[];
 }
 
 export type ExerciseDraft = Partial<ExerciseFormValue> & { id?: string };
@@ -39,71 +38,70 @@ type Option = { label: string; value: string };
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     ButtonModule,
     InputTextModule,
     TextareaModule,
     InputNumberModule,
     SelectModule,
     TagModule,
-    MaterialSelection,
+    ChipModule,
+    ErrorCard,
   ],
   templateUrl: './exercise-form.html',
-  styleUrl: './exercise-form.css',
+  styleUrl: './exercise-form.scss',
 })
-export class ExerciseForm implements OnChanges {
+export class ExerciseForm implements OnChanges, OnInit {
   private fb = inject(FormBuilder);
   private equipmentApi = inject(EquipmentApi);
+  private exercisesApi = inject(ExercisesApi);
 
   @Input() initialValue: ExerciseDraft | null = null;
   @Input() mode: 'create' | 'edit' | 'view' = 'create';
 
   @Output() cancel = new EventEmitter<void>();
   @Output() save = new EventEmitter<ExerciseFormValue>();
+  @Output() delete = new EventEmitter<void>();
+
+  Math = Math;
 
   get isViewMode(): boolean {
     return this.mode === 'view';
   }
 
-  stepIndex = 0;
-  materialModalVisible = false;
+  // Estado
   equipmentLoading = false;
-  equipmentError: string | null = null;
   equipmentItems: EquipmentDto[] = [];
+  popularTags: Array<{ tag: string; count: number }> = [];
+  popularTagsLoading = false;
+  showAllTags = false;
+  showAllMaterials = false;
+  formError: string | null = null;
 
-  get availableEquipmentForModal(): Array<{ id: number; name: string }> {
-    return (this.equipmentItems ?? []).map((e) => ({ id: Number(e.id), name: String(e.name ?? '') }));
-  }
+  readonly INITIAL_ITEMS_TO_SHOW = 10;
+  readonly difficultyLevels = [1, 2, 3, 4, 5];
 
-  // Títulos EXACTOS usados en el mockup para separar las secciones del formulario
-  readonly steps = [
-    { id: 'basic', title: 'Información básica' },
-    { id: 'params', title: 'Parámetros del ejercicio' },
-    { id: 'category', title: 'Categoría recomendada' },
-    { id: 'material', title: 'Material necesario' },
-    { id: 'notes', title: 'Observaciones' },
-  ] as const;
-
-  readonly subtipoOptions = [
-    'Tiro',
-    'Pase',
-    'Bote',
-    'Defensa individual',
-    'Defensa colectiva',
-    'Ataque en estático',
-    'Contraataque',
-    'Fuerza',
-    'Resistencia',
-    'Velocidad',
-    'Coordinación',
-  ];
-
-  readonly categoriaOptions = ['Infantil', 'Cadete', 'Junior', 'Senior'];
-
+  // Tipos específicos de baloncesto
   readonly tipoOptions: Option[] = [
-    { label: 'Selecciona', value: '' },
-    { label: 'Técnico', value: 'Técnico' },
-    { label: 'Táctico', value: 'Táctico' },
-    { label: 'Físico', value: 'Físico' },
+    { label: 'Selecciona un tipo', value: '' },
+    { label: 'Técnica de bote', value: 'TECNICA_BOTE' },
+    { label: 'Finalización al aro', value: 'FINALIZACION_ARO' },
+    { label: 'Tiro', value: 'TIRO' },
+    { label: 'Pase', value: 'PASE' },
+    { label: 'Táctica de ataque', value: 'TACTICA_ATAQUE' },
+    { label: 'Táctica ataque-defensa', value: 'TACTICA_ATAQUE_DEFENSA' },
+    { label: 'Defensa en equipo', value: 'DEFENSA_EQUIPO' },
+    { label: 'Defensa individual', value: 'DEFENSA_INDIVIDUAL' },
+    { label: 'Fundamentos defensivos', value: 'DEFENSA_FUNDAMENTOS' },
+    { label: 'Rebote', value: 'REBOTE' },
+    { label: 'Técnica de poste', value: 'TECNICA_POSTE' },
+    { label: 'Ataque individual', value: 'ATAQUE_INDIVIDUAL' },
+    { label: 'Técnica de pies', value: 'TECNICA_PIES' },
+    { label: 'Condicionamiento físico', value: 'CONDICIONAMIENTO_FISICO' },
+    { label: 'Movilidad y recuperación', value: 'MOVILIDAD_RECUPERACION' },
+    { label: 'Táctica de transición', value: 'TACTICA_TRANSICION' },
+    { label: 'ABP y saques', value: 'ABP_SAQUES' },
+    { label: 'Juego reducido', value: 'JUEGO_REDUCIDO' },
   ];
 
   readonly estadoOptions: Option[] = [
@@ -111,184 +109,228 @@ export class ExerciseForm implements OnChanges {
     { label: 'Inactivo', value: 'Inactivo' },
   ];
 
-  readonly dificultadOptions: Option[] = [
-    { label: 'Selecciona', value: '' },
-    { label: 'Bajo', value: 'Bajo' },
-    { label: 'Medio', value: 'Medio' },
-    { label: 'Alto', value: 'Alto' },
-  ];
-
-  readonly intensidadOptions: Option[] = [
-    { label: 'Selecciona', value: '' },
-    { label: 'Baja', value: 'Baja' },
-    { label: 'Media', value: 'Media' },
-    { label: 'Alta', value: 'Alta' },
-  ];
-
-  readonly objetivoOptions: Option[] = [
-    { label: 'Selecciona', value: '' },
-    { label: 'Mejora técnica', value: 'Mejora técnica' },
-    { label: 'Mejora táctica', value: 'Mejora táctica' },
-    { label: 'Preparación física', value: 'Preparación física' },
-    { label: 'Recuperación activa', value: 'Recuperación activa' },
-  ];
-
   form = this.fb.nonNullable.group({
-    // Step 1
     nombre: this.fb.nonNullable.control('', [Validators.required]),
     descripcion: this.fb.nonNullable.control(''),
-    tipo: this.fb.nonNullable.control(''),
+    tipo: this.fb.nonNullable.control('', [Validators.required]),
     estado: this.fb.nonNullable.control<'Activo' | 'Inactivo'>('Activo'),
-    subtipo: this.fb.nonNullable.control<string[]>([]),
-
-    // Step 2
-    nivelDificultad: this.fb.nonNullable.control(''),
-    duracionPredeterminada: this.fb.nonNullable.control(15),
-    intensidad: this.fb.nonNullable.control(''),
-    objetivoPrincipal: this.fb.nonNullable.control(''),
-    numeroJugadores: this.fb.nonNullable.control(10),
-
-    // Step 3
-    categoriaRecomendada: this.fb.nonNullable.control<string[]>([]),
-
-    // Step 4
-    materialNecesario: this.fb.nonNullable.control<string[]>([]),
-  materialEquipo: this.fb.nonNullable.control<Array<{ equipmentId: number; name: string; quantity: number }>>([]),
-
-    // Step 5
-    observaciones: this.fb.nonNullable.control(''),
+    duracionSegundos: this.fb.nonNullable.control(300, [Validators.required, Validators.min(30)]),
+    dificultadTactica: this.fb.nonNullable.control(3, [Validators.required, Validators.min(1), Validators.max(5)]),
+    dificultadTecnica: this.fb.nonNullable.control(3, [Validators.required, Validators.min(1), Validators.max(5)]),
+    dificultadFisica: this.fb.nonNullable.control(3, [Validators.required, Validators.min(1), Validators.max(5)]),
+    dificultadMental: this.fb.nonNullable.control(3, [Validators.required, Validators.min(1), Validators.max(5)]),
+    etiquetas: this.fb.nonNullable.control<string[]>([]),
+    materialesNecesarios: this.fb.nonNullable.control<string[]>([]),
   });
 
-  ngOnChanges(): void {
-    if (!this.initialValue) return;
-    this.form.patchValue({
-      nombre: this.initialValue.nombre ?? '',
-      descripcion: this.initialValue.descripcion ?? '',
-      tipo: this.initialValue.tipo ?? '',
-      estado: (this.initialValue.estado as 'Activo' | 'Inactivo') ?? 'Activo',
-      subtipo: this.initialValue.subtipo ?? [],
-      nivelDificultad: this.initialValue.nivelDificultad ?? '',
-      duracionPredeterminada: this.initialValue.duracionPredeterminada ?? 15,
-      intensidad: this.initialValue.intensidad ?? '',
-      objetivoPrincipal: this.initialValue.objetivoPrincipal ?? '',
-      numeroJugadores: this.initialValue.numeroJugadores ?? 10,
-      categoriaRecomendada: this.initialValue.categoriaRecomendada ?? [],
-      materialNecesario: this.initialValue.materialNecesario ?? [],
-      materialEquipo: this.initialValue.materialEquipo ?? [],
-      observaciones: this.initialValue.observaciones ?? '',
-    });
-
-    // In view mode we disable the entire form.
-    if (this.mode === 'view') this.form.disable({ emitEvent: false });
-    else this.form.enable({ emitEvent: false });
+  ngOnInit(): void {
+    this.loadEquipment();
+    this.loadPopularTags();
+    // Si es modo create sin initialValue, asegurar que el form está reseteado
+    if (this.mode === 'create' && !this.initialValue) {
+      this.resetFormToDefaults();
+    }
+    
+    // Asegurar estado del formulario después de la inicialización
+    this.updateFormEnabledState();
   }
 
-  ngOnInit(): void {
-    if (this.mode === 'view') this.form.disable({ emitEvent: false });
+  ngOnChanges(): void {
+    // Reset error state
+    this.formError = null;
+    
+    if (this.initialValue) {
+      // Edit or View mode with existing data
+      this.form.patchValue({
+        nombre: this.initialValue.nombre ?? '',
+        descripcion: this.initialValue.descripcion ?? '',
+        tipo: this.initialValue.tipo ?? '',
+        estado: (this.initialValue.estado as 'Activo' | 'Inactivo') ?? 'Activo',
+        duracionSegundos: this.initialValue.duracionSegundos ?? 300,
+        dificultadTactica: this.initialValue.dificultadTactica ?? 3,
+        dificultadTecnica: this.initialValue.dificultadTecnica ?? 3,
+        dificultadFisica: this.initialValue.dificultadFisica ?? 3,
+        dificultadMental: this.initialValue.dificultadMental ?? 3,
+        etiquetas: this.initialValue.etiquetas ?? [],
+        materialesNecesarios: this.initialValue.materialesNecesarios ?? [],
+      });
+    } else {
+      // Create mode - reset form to defaults
+      this.resetFormToDefaults();
+    }
 
-    // Load equipment list so material selection uses real inventory.
-    // If it fails, the modal will fall back to its internal default list.
+    // Enable/disable based on mode
+    this.updateFormEnabledState();
+  }
+  
+  private updateFormEnabledState(): void {
+    if (this.mode === 'view') {
+      this.form.disable({ emitEvent: false });
+    } else {
+      this.form.enable({ emitEvent: false });
+    }
+  }
+
+  private resetFormToDefaults(): void {
+    this.form.controls.nombre.setValue('');
+    this.form.controls.descripcion.setValue('');
+    this.form.controls.tipo.setValue('');
+    this.form.controls.estado.setValue('Activo');
+    this.form.controls.duracionSegundos.setValue(300);
+    this.form.controls.dificultadTactica.setValue(3);
+    this.form.controls.dificultadTecnica.setValue(3);
+    this.form.controls.dificultadFisica.setValue(3);
+    this.form.controls.dificultadMental.setValue(3);
+    this.form.controls.etiquetas.setValue([]);
+    this.form.controls.materialesNecesarios.setValue([]);
+    this.form.markAsPristine();
+    this.form.markAsUntouched();
+  }
+
+  private loadEquipment(): void {
     this.equipmentLoading = true;
-    this.equipmentError = null;
     this.equipmentApi.list({ limit: 200 } as any).subscribe({
       next: (items) => {
         this.equipmentLoading = false;
         this.equipmentItems = items ?? [];
       },
-      error: (e: unknown) => {
+      error: () => {
         this.equipmentLoading = false;
-        this.equipmentError = e instanceof Error ? e.message : 'No se pudo cargar el material.';
         this.equipmentItems = [];
       },
     });
   }
 
-  get availableMaterials(): string[] {
-    // Use real equipment names when available.
-    const fromApi = (this.equipmentItems ?? [])
-      .map((e) => (e?.name ?? '').toString().trim())
-      .filter((x) => x.length > 0);
-    return Array.from(new Set(fromApi));
+  private loadPopularTags(): void {
+    this.popularTagsLoading = true;
+    this.exercisesApi.getPopularTags().subscribe({
+      next: (tags: Array<{ tag: string; count: number }>) => {
+        this.popularTags = tags ?? [];
+        this.popularTagsLoading = false;
+      },
+      error: () => {
+        this.popularTags = [];
+        this.popularTagsLoading = false;
+      },
+    });
   }
 
-  isStepActive(idx: number): boolean {
-    return idx === this.stepIndex;
+  get visibleTags(): Array<{ tag: string; count: number }> {
+    if (this.showAllTags) return this.popularTags;
+    return this.popularTags.slice(0, this.INITIAL_ITEMS_TO_SHOW);
   }
 
-  canGoPrev(): boolean {
-    return this.stepIndex > 0;
+  get visibleMaterials(): EquipmentDto[] {
+    if (this.showAllMaterials) return this.equipmentItems;
+    return this.equipmentItems.slice(0, this.INITIAL_ITEMS_TO_SHOW);
   }
 
-  canGoNext(): boolean {
-    return this.stepIndex < this.steps.length - 1;
+  setDifficulty(field: 'dificultadTactica' | 'dificultadTecnica' | 'dificultadFisica' | 'dificultadMental', value: number): void {
+    if (this.isViewMode) return;
+    this.form.controls[field].setValue(value);
   }
 
-  goPrev(): void {
-    if (!this.canGoPrev()) return;
-    this.stepIndex -= 1;
+  isTagSelected(tag: string): boolean {
+    return this.form.controls.etiquetas.value.includes(tag);
   }
 
-  goNext(): void {
-    if (!this.canGoNext()) return;
-    this.stepIndex += 1;
+  toggleTag(tag: string): void {
+    if (this.isViewMode) return;
+    const current = this.form.controls.etiquetas.value;
+    if (current.includes(tag)) {
+      this.form.controls.etiquetas.setValue(current.filter((t: string) => t !== tag));
+    } else {
+      this.form.controls.etiquetas.setValue([...current, tag]);
+    }
   }
 
-  goToStep(idx: number): void {
-    if (idx < 0 || idx >= this.steps.length) return;
-    this.stepIndex = idx;
+  removeTag(tag: string): void {
+    if (this.isViewMode) return;
+    const current = this.form.controls.etiquetas.value;
+    this.form.controls.etiquetas.setValue(current.filter((t: string) => t !== tag));
   }
 
-  toggleInArrayControl(controlName: 'subtipo' | 'categoriaRecomendada', value: string): void {
-    const control = this.form.controls[controlName];
-    const current = control.value;
-    control.setValue(current.includes(value) ? current.filter((x) => x !== value) : [...current, value]);
+  isMaterialSelected(name: string): boolean {
+    return this.form.controls.materialesNecesarios.value.includes(name);
+  }
+
+  toggleMaterial(name: string): void {
+    if (this.isViewMode) return;
+    const current = this.form.controls.materialesNecesarios.value;
+    if (current.includes(name)) {
+      this.form.controls.materialesNecesarios.setValue(current.filter((m: string) => m !== name));
+    } else {
+      this.form.controls.materialesNecesarios.setValue([...current, name]);
+    }
   }
 
   removeMaterial(material: string): void {
-    const current = this.form.controls.materialNecesario.value;
-    this.form.controls.materialNecesario.setValue(current.filter((m) => m !== material));
+    if (this.isViewMode) return;
+    const current = this.form.controls.materialesNecesarios.value;
+    this.form.controls.materialesNecesarios.setValue(current.filter((m: string) => m !== material));
   }
 
-  removeEquipment(equipmentId: number): void {
-    const id = Number(equipmentId);
-    const current = this.form.controls.materialEquipo.value;
-    this.form.controls.materialEquipo.setValue(current.filter((row) => Number(row.equipmentId) !== id));
+  get duracionEnMinutos(): number {
+    return Math.round(this.form.controls.duracionSegundos.value / 60);
   }
 
-  openMaterialModal(): void {
-    this.materialModalVisible = true;
-  }
-
-  onMaterialsConfirmed(materials: string[]): void {
-    this.form.controls.materialNecesario.setValue(materials);
-  }
-
-  onEquipmentConfirmed(items: Array<{ equipmentId: number; name: string; quantity: number }>): void {
-    // Source of truth for v2 material.
-    this.form.controls.materialEquipo.setValue(items ?? []);
-
-    // Keep legacy string list in sync (best-effort) so existing UI continues to show something.
-    const names = (items ?? [])
-      .map((x) => (x?.name ?? '').toString().trim())
-      .filter((x) => x.length > 0);
-    this.form.controls.materialNecesario.setValue(Array.from(new Set(names)));
+  getTipoLabel(value: string): string {
+    const option = this.tipoOptions.find(opt => opt.value === value);
+    return option?.label || value;
   }
 
   onCancel(): void {
     this.cancel.emit();
   }
 
+  onDelete(): void {
+    this.delete.emit();
+  }
+
   onSubmit(): void {
-    if (this.mode === 'view') return;
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
+    console.log('[ExerciseForm] onSubmit called, mode:', this.mode);
+    console.log('[ExerciseForm] form value:', this.form.getRawValue());
+    console.log('[ExerciseForm] form valid:', this.form.valid);
+    console.log('[ExerciseForm] form errors:', this.form.errors);
+    
+    // Log individual field errors
+    Object.keys(this.form.controls).forEach(key => {
+      const control = this.form.get(key);
+      if (control?.invalid) {
+        console.log(`[ExerciseForm] Field "${key}" is invalid:`, control.errors);
+      }
+    });
+    
+    if (this.mode === 'view') {
+      this.cancel.emit();
       return;
     }
+    
+    this.formError = null;
+    
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      
+      const errors: string[] = [];
+      if (this.form.controls.nombre.invalid) errors.push('Nombre del ejercicio');
+      if (this.form.controls.tipo.invalid) errors.push('Tipo de ejercicio');
+      if (this.form.controls.duracionSegundos.invalid) errors.push('Duración');
+      
+      this.formError = `Por favor, completa los campos obligatorios: ${errors.join(', ')}.`;
+      console.log('[ExerciseForm] Form invalid, showing error:', this.formError);
+      return;
+    }
+    
+    console.log('[ExerciseForm] Emitting save event');
     this.save.emit(this.form.getRawValue());
+  }
+
+  dismissError(): void {
+    this.formError = null;
   }
 
   titleForSave(): string {
     if (this.mode === 'view') return 'Cerrar';
-    return this.mode === 'edit' ? 'Guardar cambios' : 'Guardar ejercicio';
+    return this.mode === 'edit' ? 'Guardar cambios' : 'Crear ejercicio';
   }
 }

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const validate = require('../src/middlewares/validate');
-const { authenticateToken, authorizeRoles } = require('../src/middlewares/auth');
-const { createTeamSchema, updateTeamSchema } = require('../src/validation/teamSchemas');
+const { requireAuth, requireAnyRole } = require('../src/middlewares/rbac');
+const { createTeamSchema, updateTeamSchema, listTeamsQuerySchema } = require('../src/validation/teamSchemas');
 const { idParamSchema } = require('../src/validation/commonSchemas');
 const { listTeams, getTeam, createTeam, updateTeam, deleteTeam } = require('../src/controllers/teamController');
 const {
@@ -19,40 +19,46 @@ const {
 	removeTeamPlayer,
 } = require('../src/controllers/teamPlayersController');
 
-router.use(authenticateToken);
+router.use(requireAuth);
 
-router.get('/', listTeams);
+// CU.008/009: Todos pueden listar/ver equipos
+router.get('/', validate({ query: listTeamsQuerySchema }), listTeams);
 router.get('/:id', validate({ params: idParamSchema }), getTeam);
 
-// Players management for teams
+// Players management for teams - admin, technical_director, coach
 router.get(
 	'/:id/players',
-	authorizeRoles('admin', 'technical_director', 'coach'),
+	requireAnyRole('admin', 'technical_director', 'coach'),
 	validate({ params: teamIdParamSchema, query: listTeamPlayersQuerySchema }),
 	listTeamPlayers
 );
 router.post(
 	'/:id/players',
-	authorizeRoles('admin', 'technical_director', 'coach'),
+	requireAnyRole('admin', 'technical_director', 'coach'),
 	validate({ params: teamIdParamSchema, body: addTeamPlayerSchema }),
 	addTeamPlayer
 );
 
 router.post(
 	'/:id/players/bulk',
-	authorizeRoles('admin', 'technical_director', 'coach'),
+	requireAnyRole('admin', 'technical_director', 'coach'),
 	validate({ params: teamIdParamSchema, body: addTeamPlayersBulkSchema }),
 	addTeamPlayersBulk
 );
 router.delete(
 	'/:id/players/:userId',
-	authorizeRoles('admin', 'technical_director', 'coach'),
+	requireAnyRole('admin', 'technical_director', 'coach'),
 	validate({ params: teamIdParamSchema.concat(removeTeamPlayerSchema) }),
 	removeTeamPlayer
 );
 
-router.post('/', authorizeRoles('admin','technical_director'), validate({ body: createTeamSchema }), createTeam);
-router.put('/:id', authorizeRoles('admin','technical_director'), validate({ params: idParamSchema, body: updateTeamSchema }), updateTeam);
-router.delete('/:id', authorizeRoles('admin','technical_director'), validate({ params: idParamSchema }), deleteTeam);
+// CU.008: Creación de equipos - admin, technical_director (su club), coach (su club)
+router.post('/', requireAnyRole('admin', 'technical_director', 'coach'), validate({ body: createTeamSchema }), createTeam);
+
+// CU.009: Edición de equipos - admin, technical_director (su club), coach (sus equipos)
+router.put('/:id', requireAnyRole('admin', 'technical_director', 'coach'), validate({ params: idParamSchema, body: updateTeamSchema }), updateTeam);
+
+// CU.010: Eliminación de equipos - solo admin
+router.delete('/:id', requireAnyRole('admin'), validate({ params: idParamSchema }), deleteTeam);
 
 module.exports = router;

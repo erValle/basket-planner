@@ -4,6 +4,13 @@ const exerciseService = require('../services/exerciseService');
 
 const listExercises = async (req, res, next) => {
   try {
+    // Si se envían parámetros de paginación, usar versión paginada
+    if (req.query.page || req.query.pageSize) {
+      const result = await exerciseService.listExercisesPaginated(req.query);
+      return res.status(StatusCodes.OK).json(result);
+    }
+    
+    // Sino, devolver todos (mantener compatibilidad)
     const exercises = await exerciseService.listExercises(req.query);
     return res.status(StatusCodes.OK).json(exercises);
   } catch (error) {
@@ -24,7 +31,9 @@ const getExercise = async (req, res, next) => {
 
 const createExercise = async (req, res, next) => {
   try {
+    logger.info('Creating exercise with payload:', JSON.stringify(req.body, null, 2));
     const created = await exerciseService.createExercise(req.body);
+    logger.info('Exercise created:', JSON.stringify(created, null, 2));
     return res.status(StatusCodes.CREATED).json(created);
   } catch (error) {
     logger.error('Error creating exercise:', error);
@@ -52,4 +61,14 @@ const deleteExercise = async (req, res, next) => {
   }
 };
 
-module.exports = { listExercises, getExercise, createExercise, updateExercise, deleteExercise };
+const getPopularTags = async (req, res, next) => {
+  try {
+    const tags = await exerciseService.getPopularTags();
+    return res.status(StatusCodes.OK).json(tags);
+  } catch (error) {
+    logger.error('Error fetching popular tags:', error);
+    return next(error);
+  }
+};
+
+module.exports = { listExercises, getExercise, createExercise, updateExercise, deleteExercise, getPopularTags };

@@ -31,10 +31,27 @@
 					</div>
 					<div class="flex flex-col">
 						<span class="text-[14px] text-[#f9fafb]">BasketPlanner</span>
-						<span class="text-[11px] text-[#9ca3af]">Panel entrenador</span>
+						<span class="text-[11px] text-[#9ca3af]">{{ getPanelLabel() }}</span>
 					</div>
 				</div>
 			</div>
+
+			@if (showClubSelector) {
+				<div class="px-4 py-3 border-b border-[#1f2937]">
+					<div class="text-[11px] text-[#6b7280] mb-2 uppercase tracking-wider">Club</div>
+					<p-select
+						[options]="(clubOptions$ | async) ?? []"
+						optionLabel="name"
+						optionValue="id"
+						[(ngModel)]="selectedClubId"
+						(ngModelChange)="onClubChange($event)"
+						placeholder="Selecciona club"
+						styleClass="bp-select w-full"
+						[panelStyleClass]="'bp-select-panel'"
+						[showClear]="false"
+					></p-select>
+				</div>
+			}
 
 			<div class="flex-1 overflow-y-auto px-3 py-4" (click)="closeMobileNav()">
 				<div class="mb-4">
@@ -56,23 +73,25 @@
 					</nav>
 				</div>
 
-				<div>
-					<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">Control</div>
-					<nav>
-						@for (item of controlNav; track item.route) {
-							<a
-								[routerLink]="item.route"
-								routerLinkActive="bg-[#111827] text-[#f9fafb]"
-								class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
-							>
-								@if (item.icon) {
-									<i class="{{ item.icon }}"></i>
-								}
-								<span>{{ item.label }}</span>
-							</a>
-						}
-					</nav>
-				</div>
+				@if (controlNav.length > 0) {
+					<div>
+						<div class="text-[11px] text-[#6b7280] px-3 mb-2 uppercase tracking-wider">Control</div>
+						<nav>
+							@for (item of controlNav; track item.route) {
+								<a
+									[routerLink]="item.route"
+									routerLinkActive="bg-[#111827] text-[#f9fafb]"
+									class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#111827] text-[#9ca3af] hover:text-[#f9fafb] text-[13px] mb-1 transition-colors"
+								>
+									@if (item.icon) {
+										<i class="{{ item.icon }}"></i>
+									}
+									<span>{{ item.label }}</span>
+								</a>
+							}
+						</nav>
+					</div>
+				}
 			</div>
 
 			<div class="p-4 border-t border-[#1f2937]">
@@ -94,7 +113,7 @@
 		</aside>
 
 		<!-- Content -->
-		<main class="flex-1 p-4 sm:p-6">
+		<main class="flex-1 p-4 md:p-10">
 			<ng-content></ng-content>
 		</main>
 	</div>

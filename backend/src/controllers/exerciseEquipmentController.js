@@ -22,16 +22,6 @@ const createForExercise = async (req, res, next) => {
   }
 };
 
-const updateForExercise = async (req, res, next) => {
-  try {
-    const row = await exerciseEquipmentService.updateForExercise(req.params.exerciseId, req.params.equipmentId, req.body);
-    return res.status(StatusCodes.OK).json(row);
-  } catch (error) {
-    logger.error('Error updating relation:', error);
-    return next(error);
-  }
-};
-
 const deleteForExercise = async (req, res, next) => {
   try {
     await exerciseEquipmentService.deleteForExercise(req.params.exerciseId, req.params.equipmentId);
@@ -42,4 +32,4 @@ const deleteForExercise = async (req, res, next) => {
   }
 };
 
-module.exports = { listForExercise, createForExercise, updateForExercise, deleteForExercise };
+module.exports = { listForExercise, createForExercise, deleteForExercise };

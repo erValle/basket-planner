@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -7,7 +7,8 @@ import { TagModule } from 'primeng/tag';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { MessageService, ConfirmationService } from 'primeng/api';
 
 import { BehaviorSubject, switchMap, of, catchError, map, startWith, shareReplay } from 'rxjs';
 
@@ -16,6 +17,8 @@ import { AppShell } from '../layout/app-shell/app-shell';
 
 import { MonitoringApiService } from '../services/monitoring.api';
 import { MonitoringOverview, MonitoringRange } from '../models/monitoring';
+import { RecommenderApiService } from '../services/recommender.api';
+import { RecommenderStatus } from '../models/recommender';
 
 interface MonitoringVm {
   loading: boolean;
@@ -25,19 +28,27 @@ interface MonitoringVm {
 
 @Component({
   selector: 'app-monitoring',
-  imports: [CommonModule, FormsModule, ButtonModule, TagModule, DatePickerModule, ProgressSpinnerModule, ToastModule, PageHeader, AppShell],
+  imports: [CommonModule, FormsModule, ButtonModule, TagModule, DatePickerModule, ProgressSpinnerModule, ToastModule, ConfirmDialogModule, PageHeader, AppShell],
   templateUrl: './monitoring.html',
-  styleUrl: './monitoring.css',
-  providers: [MessageService],
+  styleUrl: './monitoring.scss',
+  providers: [MessageService, ConfirmationService],
 })
 export class Monitoring {
   private readonly api = inject(MonitoringApiService);
+  private readonly recommenderApi = inject(RecommenderApiService);
   private readonly messageService = inject(MessageService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
+  // Monitoring state
   range: MonitoringRange = {
     from: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7),
     to: new Date(),
   };
+
+  // Recommender state
+  recommenderStatus: RecommenderStatus | null = null;
+  recommenderLoading = false;
+  recommenderError: string | null = null;
 
   hasRange = computed(() => Boolean(this.range.from && this.range.to));
 
@@ -68,6 +79,27 @@ export class Monitoring {
 
   refresh(): void {
     this.refresh$.next();
+    this.loadRecommenderStatus();
+  }
+
+  loadRecommenderStatus(): void {
+    this.recommenderLoading = true;
+    this.recommenderError = null;
+    this.cdr.detectChanges();
+
+    this.recommenderApi.getStatus().subscribe({
+      next: (res) => {
+        this.recommenderStatus = res;
+        this.recommenderLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (e: unknown) => {
+        this.recommenderLoading = false;
+        const msg = e instanceof Error ? e.message : 'No se pudo cargar el estado del recomendador.';
+        this.recommenderError = msg;
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   clearRange(): void {
@@ -116,5 +148,20 @@ export class Monitoring {
     } catch {
       return iso;
     }
+  }
+
+  formatGoal(goal: string): string {
+    const goalLabels: Record<string, string> = {
+      improve_shooting: 'Mejorar Tiro',
+      improve_passing: 'Mejorar Pase',
+      improve_dribbling: 'Mejorar Dribling',
+      improve_defense: 'Mejorar Defensa',
+      improve_rebounding: 'Mejorar Rebote',
+      improve_conditioning: 'Mejorar Condición Física',
+      improve_team_play: 'Mejorar Juego en Equipo',
+      warmup: 'Calentamiento',
+      cooldown: 'Vuelta a la Calma',
+    };
+    return goalLabels[goal] || goal.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   }
 }

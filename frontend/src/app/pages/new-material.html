@@ -36,25 +36,20 @@
 						</div>
 
 						<div>
-							<label class="block text-[#e5e7eb] text-[13px] mb-2">Total</label>
-							<p-inputNumber
-								[(ngModel)]="form.total"
-								name="total"
-								[min]="0"
-								[showButtons]="false"
-								styleClass="w-full"
-							></p-inputNumber>
-						</div>
-
-						<div>
-							<label class="block text-[#e5e7eb] text-[13px] mb-2">Disponibles</label>
-							<p-inputNumber
-								[(ngModel)]="form.available"
-								name="available"
-								[min]="0"
-								[showButtons]="false"
-								styleClass="w-full"
-							></p-inputNumber>
+							<label class="block text-[#e5e7eb] text-[13px] mb-2">Estado</label>
+							<p-select
+								[options]="[
+									{ label: 'Disponible', value: 'available' },
+									{ label: 'Mantenimiento', value: 'maintenance' },
+									{ label: 'No disponible', value: 'unavailable' }
+								]"
+								[(ngModel)]="form.status"
+								name="status"
+								optionLabel="label"
+								optionValue="value"
+								styleClass="bp-select"
+								[panelStyleClass]="'bp-select-panel'"
+							></p-select>
 						</div>
 					</div>
 

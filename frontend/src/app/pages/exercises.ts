@@ -5,10 +5,13 @@ import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
-import { DialogModule } from 'primeng/dialog';
 import { TagModule } from 'primeng/tag';
+import { PaginatorModule } from 'primeng/paginator';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 
 import { ExerciseDraft, ExerciseForm, ExerciseFormValue } from '../components/exercise-form/exercise-form';
+import { BpDialog } from '../components/bp-dialog/bp-dialog';
 import { ExercisesApi, ExerciseDto, ExerciseType } from '../services/exercises.api';
 import { EquipmentApi } from '../services/equipment.api';
 import { ExerciseEquipmentApi } from '../services/exercise-equipment.api';
@@ -25,10 +28,68 @@ interface Exercise {
   duracion: number;
   tipo: string;
   material: string[];
-  materialEquipo?: Array<{ equipmentId: number; name: string; quantity: number }>;
+  materialEquipo?: Array<{ equipmentId: number; name: string }>;
+  dificultad?: {
+    tactica?: number;
+    tecnica?: number;
+    fisica?: number;
+    mental?: number;
+  };
+  etiquetas?: string[];
 }
 
-type UiType = 'Técnico' | 'Táctico' | 'Físico';
+// Tipos específicos de basketball que ahora usa el formulario
+type UiType = 
+  | 'TECNICA_BOTE' | 'FINALIZACION_ARO' | 'TIRO' | 'PASE'
+  | 'TACTICA_ATAQUE' | 'TACTICA_ATAQUE_DEFENSA'
+  | 'DEFENSA_EQUIPO' | 'DEFENSA_INDIVIDUAL' | 'DEFENSA_FUNDAMENTOS'
+  | 'REBOTE' | 'TECNICA_POSTE' | 'ATAQUE_INDIVIDUAL' | 'TECNICA_PIES'
+  | 'CONDICIONAMIENTO_FISICO' | 'MOVILIDAD_RECUPERACION'
+  | 'TACTICA_TRANSICION' | 'ABP_SAQUES' | 'JUEGO_REDUCIDO';
+
+// Mapeo de categorías de filtro a tipos específicos de ejercicios
+const CATEGORY_TO_TYPES: Record<string, string[]> = {
+  'Técnica Individual': [
+    'TECNICA_BOTE', 'TECNICA_PIES', 'TECNICA_POSTE', 
+    'TIRO', 'FINALIZACION_ARO', 'PASE'
+  ],
+  'Táctica': [
+    'TACTICA_ATAQUE', 'TACTICA_ATAQUE_DEFENSA', 
+    'TACTICA_TRANSICION', 'JUEGO_REDUCIDO', 'ABP_SAQUES'
+  ],
+  'Defensa': [
+    'DEFENSA_INDIVIDUAL', 'DEFENSA_EQUIPO', 'DEFENSA_FUNDAMENTOS'
+  ],
+  'Físico / Recuperación': [
+    'CONDICIONAMIENTO_FISICO', 'MOVILIDAD_RECUPERACION'
+  ],
+  'Otros': [
+    'REBOTE', 'ATAQUE_INDIVIDUAL'
+  ],
+};
+
+// Mapeo de tipos técnicos a etiquetas legibles para la UI
+const TYPE_LABELS: Record<string, string> = {
+  'TECNICA_BOTE': 'Bote',
+  'TECNICA_PIES': 'Pies',
+  'TECNICA_POSTE': 'Poste',
+  'TIRO': 'Tiro',
+  'FINALIZACION_ARO': 'Finalización',
+  'PASE': 'Pase',
+  'TACTICA_ATAQUE': 'Ataque',
+  'TACTICA_ATAQUE_DEFENSA': 'Ataque/Defensa',
+  'TACTICA_TRANSICION': 'Transición',
+  'JUEGO_REDUCIDO': 'Juego Reducido',
+  'ABP_SAQUES': 'Saques',
+  'DEFENSA_INDIVIDUAL': 'Def. Individual',
+  'DEFENSA_EQUIPO': 'Def. Equipo',
+  'DEFENSA_FUNDAMENTOS': 'Def. Fundamentos',
+  'CONDICIONAMIENTO_FISICO': 'Físico',
+  'MOVILIDAD_RECUPERACION': 'Recuperación',
+  'REBOTE': 'Rebote',
+  'ATAQUE_INDIVIDUAL': 'Ataque Individual',
+};
+
 
 @Component({
   selector: 'app-exercises',
@@ -38,31 +99,48 @@ type UiType = 'Técnico' | 'Táctico' | 'Físico';
     ButtonModule,
     InputTextModule,
     SelectModule,
-    DialogModule,
+    BpDialog,
     TagModule,
+    PaginatorModule,
     ExerciseForm,
 		AppShell,
 		PageHeader,
+		ConfirmDialogModule,
   ],
+  providers: [ConfirmationService],
   templateUrl: './exercises.html',
-  styleUrl: './exercises.css',
+  styleUrl: './exercises.scss',
 })
 export class Exercises implements OnInit {
   private readonly exercisesApi = inject(ExercisesApi);
   private readonly equipmentApi = inject(EquipmentApi);
   private readonly exerciseEquipmentApi = inject(ExerciseEquipmentApi);
+  private readonly confirmation = inject(ConfirmationService);
+
+  // Make Math available in template
+  Math = Math;
+
+  // Método para formatear el tipo de ejercicio de forma legible
+  formatType(type: string): string {
+    return TYPE_LABELS[type] ?? type;
+  }
 
   tipoOptions: Option[] = [
     { label: 'Todos', value: 'Todos' },
-    { label: 'Técnico', value: 'Técnico' },
-    { label: 'Táctico', value: 'Táctico' },
-    { label: 'Físico', value: 'Físico' },
+    { label: 'Técnica Individual', value: 'Técnica Individual' },
+    { label: 'Táctica', value: 'Táctica' },
+    { label: 'Defensa', value: 'Defensa' },
+    { label: 'Físico / Recuperación', value: 'Físico / Recuperación' },
+    { label: 'Otros', value: 'Otros' },
   ];
 
   duracionOptions: Option[] = [
     { label: 'Cualquiera', value: 'Cualquiera' },
+    { label: 'Menos de 5 min', value: '<5' },
+    { label: '5-10 min', value: '5-10' },
     { label: '10-15 min', value: '10-15' },
     { label: '15-20 min', value: '15-20' },
+    { label: 'Más de 20 min', value: '>20' },
   ];
 
   filters = {
@@ -71,19 +149,42 @@ export class Exercises implements OnInit {
     search: '',
   };
 
+  // Pagination
+  currentPage = 0;
+  pageSize = 12; // Mostrar 12 ejercicios por página
+  totalRecords = 0;
+
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
+  private readonly page$ = new BehaviorSubject<number>(0);
   readonly loading$ = new BehaviorSubject<boolean>(false);
   readonly loadError$ = new BehaviorSubject<string | null>(null);
+
+  // Almacenar todos los ejercicios para filtrado client-side
+  private allExercises: Exercise[] = [];
 
   private readonly exercises$ = this.refresh$.pipe(
     switchMap(() => {
       this.loading$.next(true);
       this.loadError$.next(null);
-      return this.exercisesApi.list().pipe(
-        map((items) => (items ?? []).map((dto) => this.fromDto(dto))),
-        map((items) => {
+      
+      // Obtener TODOS los ejercicios (sin paginación backend)
+      // El filtrado y paginación se hará client-side
+      const params = {
+        search: this.filters.search || undefined,
+      };
+      
+      return this.exercisesApi.list(params).pipe(
+        map((response) => {
           this.loading$.next(false);
-          return items;
+          
+          // Si backend devuelve { exercises, pagination }
+          if (response && typeof response === 'object' && 'exercises' in response && 'pagination' in response) {
+            return (response.exercises ?? []).map((dto) => this.fromDto(dto));
+          }
+          
+          // Fallback: backend devolvió array directo (sin paginación)
+          const items = Array.isArray(response) ? response : [];
+          return items.map((dto) => this.fromDto(dto));
         }),
       );
     }),
@@ -95,22 +196,70 @@ export class Exercises implements OnInit {
     loading: this.loading$.pipe(startWith(false)),
     error: this.loadError$.pipe(startWith(null)),
     tick: this.refresh$.pipe(startWith(undefined)),
+    page: this.page$.pipe(startWith(0)),
   }).pipe(
-    map(({ items, loading, error }) => {
+    map(({ items, loading, error, page }) => {
+      // Guardar todos los ejercicios
+      this.allExercises = items;
+      
+      // 1. Aplicar filtros client-side (búsqueda, tipo y duración)
+      const searchTerm = this.filters.search?.toLowerCase().trim() || '';
+      
       const filtered = items.filter((exercise) => {
-        const matchesTipo = this.filters.tipo === 'Todos' || exercise.tipo === this.filters.tipo;
-        const matchesDuracion =
-          this.filters.duracion === 'Cualquiera' ||
-          (this.filters.duracion === '10-15' && exercise.duracion >= 10 && exercise.duracion <= 15) ||
-          (this.filters.duracion === '15-20' && exercise.duracion >= 15 && exercise.duracion <= 20);
-        const matchesSearch =
-          this.filters.search === '' ||
-          exercise.nombre.toLowerCase().includes(this.filters.search.toLowerCase());
+        // Filtro por búsqueda de texto
+        let matchesSearch = true;
+        if (searchTerm) {
+          const nombre = exercise.nombre?.toLowerCase() || '';
+          const tipo = exercise.tipo?.toLowerCase() || '';
+          const materiales = (exercise.material || []).join(' ').toLowerCase();
+          const etiquetas = (exercise.etiquetas || []).join(' ').toLowerCase();
+          matchesSearch = nombre.includes(searchTerm) || 
+                         tipo.includes(searchTerm) || 
+                         materiales.includes(searchTerm) ||
+                         etiquetas.includes(searchTerm);
+        }
+        
+        // Filtro por categoría de tipo
+        let matchesTipo = this.filters.tipo === 'Todos';
+        if (!matchesTipo && this.filters.tipo in CATEGORY_TO_TYPES) {
+          const typesInCategory = CATEGORY_TO_TYPES[this.filters.tipo];
+          matchesTipo = typesInCategory.includes(exercise.tipo);
+        }
+        
+        // Filtro por duración
+        let matchesDuracion = this.filters.duracion === 'Cualquiera';
+        if (!matchesDuracion) {
+          const dur = exercise.duracion;
+          switch (this.filters.duracion) {
+            case '<5': matchesDuracion = dur < 5; break;
+            case '5-10': matchesDuracion = dur >= 5 && dur < 10; break;
+            case '10-15': matchesDuracion = dur >= 10 && dur < 15; break;
+            case '15-20': matchesDuracion = dur >= 15 && dur <= 20; break;
+            case '>20': matchesDuracion = dur > 20; break;
+          }
+        }
 
-        return matchesTipo && matchesDuracion && matchesSearch;
+        return matchesSearch && matchesTipo && matchesDuracion;
       });
 
-      return { items, filtered, loading, error };
+      // 2. Actualizar total de registros basado en los filtrados
+      this.totalRecords = filtered.length;
+
+      // 3. Aplicar paginación client-side sobre los ejercicios filtrados
+      const startIndex = this.currentPage * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      const paged = filtered.slice(startIndex, endIndex);
+
+      return { 
+        items, 
+        filtered, 
+        paged,
+        loading, 
+        error,
+        totalRecords: filtered.length,
+        currentPage: this.currentPage,
+        pageSize: this.pageSize
+      };
     }),
     shareReplay({ bufferSize: 1, refCount: true }),
   );
@@ -118,6 +267,7 @@ export class Exercises implements OnInit {
   newExerciseVisible = false;
   dialogMode: 'create' | 'edit' | 'view' = 'create';
   selectedExercise: Exercise | null = null;
+  initialDraft: ExerciseDraft | null = null;
 
   private equipmentIndex = new Map<number, string>();
 
@@ -139,44 +289,72 @@ export class Exercises implements OnInit {
   }
 
   refresh(): void {
+    this.currentPage = 0; // Reset page when filtering
+    this.page$.next(0);
     this.refresh$.next();
+  }
+
+  onPageChange(event: any): void {
+    this.currentPage = event.page;
+    this.pageSize = event.rows;
+    this.page$.next(this.currentPage); // Solo notificar cambio de página (sin recargar backend)
   }
 
   openNewExercise() {
     this.dialogMode = 'create';
     this.selectedExercise = null;
+    this.initialDraft = null;
     this.newExerciseVisible = true;
   }
 
   openViewExercise(exercise: Exercise) {
     this.dialogMode = 'view';
     this.selectedExercise = exercise;
-    this.loadExerciseEquipmentForDialog(exercise);
+    this.initialDraft = this.toDraft(exercise);
     this.newExerciseVisible = true;
   }
 
   openEditExercise(exercise: Exercise) {
     this.dialogMode = 'edit';
     this.selectedExercise = exercise;
-    this.loadExerciseEquipmentForDialog(exercise);
-    this.newExerciseVisible = true;
-  }
-
-  copyExercise(exercise: Exercise) {
-    // Open the form with prefilled values so the user can tweak before saving.
-    this.dialogMode = 'create';
-    this.selectedExercise = {
-      ...exercise,
-      id: '',
-      nombre: `${exercise.nombre} (copia)`,
-    };
-    // Copy should also copy material selections.
-    this.selectedExercise.materialEquipo = (exercise.materialEquipo ?? []).map((x) => ({ ...x }));
+    this.initialDraft = this.toDraft(exercise);
     this.newExerciseVisible = true;
   }
 
   closeNewExercise() {
     this.newExerciseVisible = false;
+    // Reset state so next open starts fresh
+    this.selectedExercise = null;
+    this.initialDraft = null;
+    this.dialogMode = 'create';
+  }
+
+  deleteExercise() {
+    if (!this.selectedExercise?.id) return;
+    
+    const id = Number(this.selectedExercise.id);
+    const exerciseName = this.selectedExercise.nombre;
+
+    this.confirmation.confirm({
+      message: `¿Estás seguro de que quieres eliminar el ejercicio "${exerciseName}"? Esta acción no se puede deshacer.`,
+      header: 'Confirmar eliminación',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'bp-btn bp-btn-danger',
+      rejectButtonStyleClass: 'bp-btn bp-btn-secondary',
+      accept: () => {
+        this.exercisesApi.remove(id).subscribe({
+          next: () => {
+            this.closeNewExercise();
+            this.refresh();
+          },
+          error: (err: Error) => {
+            this.loadError$.next(`Error al eliminar ejercicio: ${err.message}`);
+          },
+        });
+      },
+    });
   }
 
   get dialogHeader(): string {
@@ -185,27 +363,26 @@ export class Exercises implements OnInit {
     return 'Nuevo ejercicio';
   }
 
-  get initialDraft(): ExerciseDraft | null {
-    if (!this.selectedExercise) return null;
-    return this.toDraft(this.selectedExercise);
-  }
-
   private toDraft(exercise: Exercise): ExerciseDraft {
+    // Extraer valores de dificultad del objeto
+    const dif = exercise.dificultad || {};
+    const dificultadTactica = typeof dif === 'object' && 'tactica' in dif ? (dif as any).tactica : 3;
+    const dificultadTecnica = typeof dif === 'object' && 'tecnica' in dif ? (dif as any).tecnica : 3;
+    const dificultadFisica = typeof dif === 'object' && 'fisica' in dif ? (dif as any).fisica : 3;
+    const dificultadMental = typeof dif === 'object' && 'mental' in dif ? (dif as any).mental : 3;
+    
     return {
       nombre: exercise.nombre,
       tipo: exercise.tipo,
-      duracionPredeterminada: exercise.duracion,
-      materialNecesario: exercise.material,
-      materialEquipo: exercise.materialEquipo ?? [],
+      duracionSegundos: (exercise.duracion || 15) * 60, // Convertir minutos a segundos
+      materialesNecesarios: exercise.material || [],
       estado: 'Activo',
       descripcion: '',
-      subtipo: [],
-      nivelDificultad: '',
-      intensidad: '',
-      objetivoPrincipal: '',
-      numeroJugadores: 10,
-      categoriaRecomendada: [],
-      observaciones: '',
+      dificultadTactica,
+      dificultadTecnica,
+      dificultadFisica,
+      dificultadMental,
+      etiquetas: exercise.etiquetas || [],
     };
   }
 
@@ -221,16 +398,8 @@ export class Exercises implements OnInit {
       const id = Number(this.selectedExercise.id);
       this.exercisesApi.update(id, payload).subscribe({
         next: () => {
-          this.syncExerciseEquipment(id, value.materialEquipo ?? [])
-            .then(() => {
-              this.closeNewExercise();
-              this.refresh();
-            })
-            .catch((err: unknown) => {
-              const msg = err instanceof Error ? err.message : 'Error inesperado.';
-              // Exercise was saved, equipment sync failed.
-              this.loadError$.next(`Ejercicio guardado, pero no se pudo guardar el material: ${msg}`);
-            });
+          this.closeNewExercise();
+          this.refresh();
         },
         error: (err: Error) => {
           this.loadError$.next(err.message);
@@ -240,111 +409,117 @@ export class Exercises implements OnInit {
     }
 
     this.exercisesApi.create(payload).subscribe({
-      next: (created) => {
-        const id = Number(created?.id);
-        if (!Number.isFinite(id)) {
-          this.closeNewExercise();
-          this.refresh();
-          return;
-        }
-
-        this.syncExerciseEquipment(id, value.materialEquipo ?? [])
-          .then(() => {
-            this.closeNewExercise();
-            this.refresh();
-          })
-          .catch((err: unknown) => {
-            const msg = err instanceof Error ? err.message : 'Error inesperado.';
-            this.loadError$.next(`Ejercicio creado, pero no se pudo guardar el material: ${msg}`);
-          });
+      next: () => {
+        this.closeNewExercise();
+        this.refresh();
       },
-      error: (err: Error) => {
-        this.loadError$.next(err.message);
+      error: (err: any) => {
+        // Mostrar mensaje de error más detallado
+        const errorMsg = err?.error?.message || err?.message || 'Error desconocido al crear ejercicio';
+        this.loadError$.next(errorMsg);
       },
     });
   }
 
   private fromDto(dto: ExerciseDto): Exercise {
+    // Obtener tags parseado
+    const tagsData = dto.tags as { tipo_original?: string; tags?: string[]; materiales?: string[] } | null;
+    
+    // Mapear los materiales: primero de equipmentItems (relación), luego de tags.materiales (fallback)
+    let material = (dto.equipmentItems || []).map(item => item.name);
+    if (material.length === 0 && tagsData?.materiales) {
+      material = tagsData.materiales;
+    }
+    
+    const materialEquipo = (dto.equipmentItems || []).map(item => ({
+      equipmentId: item.id,
+      name: item.name,
+    }));
+    
+    // Obtener tipo original de tags (preferido) o usar mapeo inverso como fallback
+    const tipoOriginal = tagsData?.tipo_original as UiType | undefined;
+    const tipo = tipoOriginal || this.mapApiToUiType(dto.type);
+    
     return {
       id: String(dto.id),
       nombre: dto.name,
-      duracion: dto.duration,
-      tipo: this.mapApiToUiType(dto.type),
-      // Equipment relation isn't modeled in the API schema yet; keep empty for now.
-      material: [],
-      materialEquipo: [],
+      duracion: dto.duration, // Ya está en minutos desde el backend
+      tipo,
+      material,
+      materialEquipo,
+      dificultad: dto.difficulty as any,
+      etiquetas: tagsData?.tags || [],
     };
   }
 
   private toApiPayload(value: ExerciseFormValue) {
-    const type = this.mapUiToApiType((value.tipo || 'Técnico') as UiType);
+    const tipoOriginal = (value.tipo || 'TECNICA_BOTE') as UiType;
+    const type = this.mapUiToApiType(tipoOriginal);
     return {
       name: value.nombre,
       type,
-      duration: value.duracionPredeterminada,
+      duration: Math.ceil(value.duracionSegundos / 60), // Convertir segundos a minutos
       description: value.descripcion,
-      // Keep difficulty flexible (backend expects JSON). We'll refine when the UI captures it.
+      // 4 dimensiones de dificultad
       difficulty: {
-        nivelDificultad: value.nivelDificultad,
-        intensidad: value.intensidad,
-        objetivoPrincipal: value.objetivoPrincipal,
+        tactica: value.dificultadTactica,
+        tecnica: value.dificultadTecnica,
+        fisica: value.dificultadFisica,
+        mental: value.dificultadMental,
       },
-      tags: [...(value.subtipo ?? []), ...(value.categoriaRecomendada ?? [])],
+      // Guardar tipo original de basketball y etiquetas
+      tags: {
+        tipo_original: tipoOriginal,
+        tags: value.etiquetas ?? [],
+        materiales: value.materialesNecesarios ?? [],
+      },
       active: value.estado !== 'Inactivo',
     };
   }
 
   private mapUiToApiType(ui: UiType): ExerciseType {
-    // Temporary mapping until the UI is updated to use the same taxonomy.
-    if (ui === 'Físico') return 'cardio';
-    if (ui === 'Táctico') return 'balance';
-    return 'strength';
+    // Mapeo de tipos específicos de basketball a tipos de API
+    const mapping: Record<UiType, ExerciseType> = {
+      'TECNICA_BOTE': 'tecnico',
+      'FINALIZACION_ARO': 'tiro',
+      'TIRO': 'tiro',
+      'PASE': 'tecnico',
+      'TACTICA_ATAQUE': 'ataque',
+      'TACTICA_ATAQUE_DEFENSA': 'tactico',
+      'DEFENSA_EQUIPO': 'defensa',
+      'DEFENSA_INDIVIDUAL': 'defensa',
+      'DEFENSA_FUNDAMENTOS': 'defensa',
+      'REBOTE': 'fisico',
+      'TECNICA_POSTE': 'tecnico',
+      'ATAQUE_INDIVIDUAL': 'ataque',
+      'TECNICA_PIES': 'fisico',
+      'CONDICIONAMIENTO_FISICO': 'fisico',
+      'MOVILIDAD_RECUPERACION': 'fisico',
+      'TACTICA_TRANSICION': 'tactico',
+      'ABP_SAQUES': 'tactico',
+      'JUEGO_REDUCIDO': 'tactico',
+    };
+    return mapping[ui] || 'tactico';
   }
 
   private mapApiToUiType(type: ExerciseType): UiType {
-    if (type === 'cardio') return 'Físico';
-    if (type === 'balance') return 'Táctico';
-    return 'Técnico';
-  }
-
-  private loadExerciseEquipmentForDialog(exercise: Exercise): void {
-    const exerciseId = Number(exercise.id);
-    if (!Number.isFinite(exerciseId)) return;
-
-    this.exerciseEquipmentApi.listForExercise(exerciseId).subscribe({
-      next: (rows) => {
-        const mapped = (rows ?? []).map((row) => {
-          const equipmentId = Number(row.equipmentId);
-          const fromJoin = (row as any)?.equipmentItem?.name;
-          return {
-            equipmentId,
-            name:
-              (typeof fromJoin === 'string' && fromJoin.trim().length > 0
-                ? fromJoin
-                : this.equipmentIndex.get(equipmentId)) ?? `Material #${equipmentId}`,
-            quantity: Number(row.quantity) || 1,
-          };
-        });
-
-        // Ensure selectedExercise is still the same one.
-        if (this.selectedExercise?.id === exercise.id) {
-          this.selectedExercise = {
-            ...exercise,
-            materialEquipo: mapped,
-            material: mapped.map((x) => x.name),
-          };
-        }
-      },
-      error: (err: Error) => {
-        // Honest UI: don't block opening; just show a message.
-        this.loadError$.next(`No se pudo cargar el material del ejercicio: ${err.message}`);
-      },
-    });
+    // Mapeo inverso: tipos de API a tipos específicos de basketball
+    // Como hay múltiples tipos UI que mapean al mismo API type,
+    // usamos un tipo por defecto para cada categoría
+    const mapping: Record<ExerciseType, UiType> = {
+      'tecnico': 'TECNICA_BOTE',
+      'tactico': 'TACTICA_ATAQUE',
+      'fisico': 'CONDICIONAMIENTO_FISICO',
+      'tiro': 'TIRO',
+      'defensa': 'DEFENSA_EQUIPO',
+      'ataque': 'ATAQUE_INDIVIDUAL',
+    };
+    return mapping[type] || 'TECNICA_BOTE';
   }
 
   private syncExerciseEquipment(
     exerciseId: number,
-    desired: Array<{ equipmentId: number; name: string; quantity: number }>,
+    desired: Array<{ equipmentId: number; name: string }>,
   ): Promise<void> {
     const listCurrent = () =>
       new Promise<import('../services/exercise-equipment.api').ExerciseEquipmentRowDto[]>((resolve, reject) => {
@@ -357,43 +532,31 @@ export class Exercises implements OnInit {
     const currentRowsPromise = listCurrent();
 
     return currentRowsPromise.then(async (currentRows) => {
-      const current = new Map<number, number>();
+      const current = new Set<number>();
       for (const row of currentRows ?? []) {
-        current.set(Number(row.equipmentId), Number(row.quantity) || 1);
+        current.add(Number(row.equipmentId));
       }
 
-      const wanted = new Map<number, number>();
+      const wanted = new Set<number>();
       for (const item of desired ?? []) {
         const equipmentId = Number(item.equipmentId);
         if (!Number.isFinite(equipmentId)) continue;
-        const qty = Math.max(1, Number(item.quantity) || 1);
-        wanted.set(equipmentId, qty);
+        wanted.add(equipmentId);
       }
 
-      const toCreate: Array<{ equipmentId: number; quantity: number }> = [];
-      const toUpdate: Array<{ equipmentId: number; quantity: number }> = [];
+      const toCreate: number[] = [];
       const toDelete: number[] = [];
 
-      for (const [equipmentId, quantity] of wanted.entries()) {
-        if (!current.has(equipmentId)) toCreate.push({ equipmentId, quantity });
-        else if (current.get(equipmentId) !== quantity) toUpdate.push({ equipmentId, quantity });
+      for (const equipmentId of wanted) {
+        if (!current.has(equipmentId)) toCreate.push(equipmentId);
       }
-      for (const equipmentId of current.keys()) {
+      for (const equipmentId of current) {
         if (!wanted.has(equipmentId)) toDelete.push(equipmentId);
       }
 
-      const createOne = (row: { equipmentId: number; quantity: number }) =>
+      const createOne = (equipmentId: number) =>
         new Promise<void>((resolve, reject) => {
-          this.exerciseEquipmentApi.createForExercise(exerciseId, row).subscribe({
-            next: () => resolve(),
-            error: (e: unknown) => reject(e),
-          });
-        });
-      const updateOne = (row: { equipmentId: number; quantity: number }) =>
-        new Promise<void>((resolve, reject) => {
-          this.exerciseEquipmentApi.updateForExercise(exerciseId, row.equipmentId, {
-            quantity: row.quantity,
-          }).subscribe({
+          this.exerciseEquipmentApi.createForExercise(exerciseId, { equipmentId }).subscribe({
             next: () => resolve(),
             error: (e: unknown) => reject(e),
           });
@@ -406,8 +569,7 @@ export class Exercises implements OnInit {
           });
         });
 
-      for (const row of toCreate) await createOne(row);
-      for (const row of toUpdate) await updateOne(row);
+      for (const equipmentId of toCreate) await createOne(equipmentId);
       for (const equipmentId of toDelete) await deleteOne(equipmentId);
     });
   }

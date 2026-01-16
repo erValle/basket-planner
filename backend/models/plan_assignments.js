@@ -10,6 +10,11 @@ module.exports = (sequelize, DataTypes) => {
         as: 'trainingPlan',
       });
 
+      this.belongsTo(models.TrainingPlanVersion, {
+        foreignKey: 'trainingPlanVersionId',
+        as: 'trainingPlanVersion',
+      });
+
       this.belongsTo(models.User, {
         foreignKey: 'userId',
         as: 'user',
@@ -32,6 +37,10 @@ module.exports = (sequelize, DataTypes) => {
       trainingPlanId: { 
         type: DataTypes.INTEGER, 
         allowNull: false 
+      },
+      trainingPlanVersionId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
       },
       userId: { 
         type: DataTypes.INTEGER, 

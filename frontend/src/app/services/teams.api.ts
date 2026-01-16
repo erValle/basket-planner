@@ -7,6 +7,12 @@ export interface TeamDto {
   name: string;
   category?: string | null;
   clubId?: number | null;
+  coachId?: number | null;
+  coach?: {
+    id: number;
+    name: string;
+    email: string;
+  } | null;
   playersCount?: number;
   active?: boolean;
   createdAt?: string;
@@ -15,7 +21,8 @@ export interface TeamDto {
 
 export interface TeamCreatePayload {
   name: string;
-  clubId?: number | null;
+  clubId: number; // Required: a team must belong to a club
+  coachId?: number | null;
   category?: string | null;
   active?: boolean;
 }
@@ -23,6 +30,7 @@ export interface TeamCreatePayload {
 export interface TeamUpdatePayload {
   name?: string;
   clubId?: number | null;
+  coachId?: number | null;
   category?: string | null;
   active?: boolean;
 }
@@ -43,7 +51,13 @@ export class TeamsApi {
   private readonly api = inject(ApiClient);
 
   list(params?: { search?: string; clubId?: string; category?: string }) {
-    return this.api.get<TeamDto[]>('/api/teams', { params: params ?? {} });
+    // Filtrar parámetros undefined para evitar enviar "undefined" como string
+    const filteredParams: Record<string, string> = {};
+    if (params?.search !== undefined) filteredParams['search'] = params.search;
+    if (params?.clubId !== undefined) filteredParams['clubId'] = params.clubId;
+    if (params?.category !== undefined) filteredParams['category'] = params.category;
+    
+    return this.api.get<TeamDto[]>('/api/teams', { params: filteredParams });
   }
 
   get(id: number) {

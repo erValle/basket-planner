@@ -1,4 +1,6 @@
 <app-shell title="Ejercicios" subtitle="Crea y gestiona tu biblioteca de ejercicios.">
+	<p-confirmDialog styleClass="bp-dialog"></p-confirmDialog>
+	
 	<div class="max-w-6xl mx-auto">
 		<app-page-header
 			[title]="'Ejercicios'"
@@ -67,21 +69,32 @@
 			}
 
 			<div class="border-b border-[#1f2937] px-4 py-3">
-				<div class="text-[13px] text-[#e5e7eb]">{{ (vm?.filtered?.length ?? 0) }} ejercicio(s)</div>
+				<div class="flex items-center justify-between">
+					<div class="text-[13px] text-[#e5e7eb]">
+						{{ (vm?.totalRecords ?? 0) }} ejercicio(s) encontrado(s)
+						@if (vm?.totalRecords !== vm?.items?.length) {
+							<span class="text-[#9ca3af]">(de {{ vm?.items?.length ?? 0 }} totales)</span>
+						}
+					</div>
+					<div class="text-[11px] text-[#6b7280]">
+						Mostrando {{ (vm?.currentPage ?? 0) * (vm?.pageSize ?? 12) + 1 }} - 
+						{{ Math.min(((vm?.currentPage ?? 0) + 1) * (vm?.pageSize ?? 12), (vm?.totalRecords ?? 0)) }}
+					</div>
+				</div>
 			</div>
 
 			<div class="p-4">
-				@if ((vm?.filtered?.length ?? 0) === 0) {
+				@if ((vm?.totalRecords ?? 0) === 0) {
 					<div class="py-10 text-center text-[13px] text-[#9ca3af]">No hay ejercicios con esos filtros.</div>
 				} @else {
 					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-						@for (exercise of (vm?.filtered ?? []); track exercise.id) {
+						@for (exercise of (vm?.paged ?? []); track exercise.id) {
 							<div class="bg-[#111827] rounded-lg p-5 border border-[#1f2937]">
 								<div class="flex items-start justify-between gap-3">
-									<div>
+									<div class="flex-1">
 										<div class="text-[15px] font-semibold text-[#f9fafb]">{{ exercise.nombre }}</div>
 										<div class="mt-2 flex flex-wrap items-center gap-2">
-											<p-tag [value]="exercise.tipo" severity="info" />
+											<p-tag [value]="formatType(exercise.tipo)" severity="info" />
 											<span class="inline-flex items-center rounded-full bg-[#020617] border border-[#1f2937] px-2 py-1 text-[11px] text-[#e5e7eb]">
 												{{ exercise.duracion }} min
 											</span>
@@ -92,9 +105,41 @@
 									<div class="flex shrink-0 gap-1">
 										<button type="button" pButton icon="pi pi-eye" class="bp-btn bp-btn-ghost bp-btn-sm" aria-label="Ver" (click)="openViewExercise(exercise)"></button>
 										<button type="button" pButton icon="pi pi-pencil" class="bp-btn bp-btn-ghost bp-btn-sm" aria-label="Editar" (click)="openEditExercise(exercise)"></button>
-										<button type="button" pButton icon="pi pi-copy" class="bp-btn bp-btn-ghost bp-btn-sm" aria-label="Copiar" (click)="copyExercise(exercise)"></button>
 									</div>
 								</div>
+
+								<!-- Dificultades 4D -->
+								@if (exercise.dificultad) {
+									<div class="mt-4">
+										<div class="text-[12px] text-[#9ca3af] mb-2">Dificultad</div>
+										<div class="grid grid-cols-2 gap-2">
+											@if (exercise.dificultad.tactica !== undefined) {
+												<div class="flex items-center justify-between text-[11px] bg-[#020617] border border-[#1f2937] rounded px-2 py-1.5">
+													<span class="text-[#9ca3af]">Táctica</span>
+													<span class="text-[#e5e7eb] font-medium">{{ exercise.dificultad.tactica }}/5</span>
+												</div>
+											}
+											@if (exercise.dificultad.tecnica !== undefined) {
+												<div class="flex items-center justify-between text-[11px] bg-[#020617] border border-[#1f2937] rounded px-2 py-1.5">
+													<span class="text-[#9ca3af]">Técnica</span>
+													<span class="text-[#e5e7eb] font-medium">{{ exercise.dificultad.tecnica }}/5</span>
+												</div>
+											}
+											@if (exercise.dificultad.fisica !== undefined) {
+												<div class="flex items-center justify-between text-[11px] bg-[#020617] border border-[#1f2937] rounded px-2 py-1.5">
+													<span class="text-[#9ca3af]">Física</span>
+													<span class="text-[#e5e7eb] font-medium">{{ exercise.dificultad.fisica }}/5</span>
+												</div>
+											}
+											@if (exercise.dificultad.mental !== undefined) {
+												<div class="flex items-center justify-between text-[11px] bg-[#020617] border border-[#1f2937] rounded px-2 py-1.5">
+													<span class="text-[#9ca3af]">Mental</span>
+													<span class="text-[#e5e7eb] font-medium">{{ exercise.dificultad.mental }}/5</span>
+												</div>
+											}
+										</div>
+									</div>
+								}
 
 								<div class="mt-4">
 									<div class="text-[12px] text-[#9ca3af]">Material</div>
@@ -110,26 +155,41 @@
 							</div>
 						}
 					</div>
+
+					<!-- Paginador -->
+					@if ((vm?.totalRecords ?? 0) > (vm?.pageSize ?? 12)) {
+						<div class="mt-6">
+							<p-paginator
+								[first]="(vm?.currentPage ?? 0) * (vm?.pageSize ?? 12)"
+								[rows]="vm?.pageSize ?? 12"
+								[totalRecords]="vm?.totalRecords ?? 0"
+								[rowsPerPageOptions]="[12, 24, 48, 96]"
+								(onPageChange)="onPageChange($event)"
+								styleClass="bp-paginator"
+							></p-paginator>
+						</div>
+					}
 				}
 			</div>
 		</div>
 	</div>
 
-	<p-dialog
-		styleClass="bp-dialog"
+	<bp-dialog
 		[header]="dialogHeader"
 		[(visible)]="newExerciseVisible"
-		[modal]="true"
-		[draggable]="false"
-		[resizable]="false"
-		[style]="{ width: 'min(960px, 96vw)' }"
-		(onHide)="closeNewExercise()"
+		[showConfirm]="false"
+		[showCancel]="false"
+		size="xl"
+		(closed)="closeNewExercise()"
 	>
-		<app-exercise-form
-			[mode]="dialogMode"
-			[initialValue]="initialDraft"
-			(cancel)="closeNewExercise()"
-			(save)="saveNewExercise($event)"
-		/>
-	</p-dialog>
+		@if (newExerciseVisible) {
+			<app-exercise-form
+				[mode]="dialogMode"
+				[initialValue]="initialDraft"
+				(cancel)="closeNewExercise()"
+				(save)="saveNewExercise($event)"
+				(delete)="deleteExercise()"
+			/>
+		}
+	</bp-dialog>
 </app-shell>

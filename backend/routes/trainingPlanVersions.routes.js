@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router({ mergeParams: true });
 const validate = require('../src/middlewares/validate');
-const { authenticateToken, authorizeRoles } = require('../src/middlewares/auth');
+const { requireAuth, requireAnyRole } = require('../src/middlewares/rbac');
 const {
 	createTrainingPlanVersionSchema,
 	updateTrainingPlanVersionSchema,
@@ -12,16 +12,19 @@ const { listVersions, listVersionsPaged, getVersion, createVersion, updateVersio
 const { createNewVersion } = require('../src/controllers/trainingPlanNewVersionController');
 const { setActiveVersion } = require('../src/controllers/trainingPlanActiveVersionController');
 
-router.use(authenticateToken);
+router.use(requireAuth);
 
+// CU.027: Visualización de versiones - todos autenticados
 router.get('/', listVersions);
 router.get('/paged', listVersionsPaged);
 router.get('/:id', getVersion);
-router.post('/', authorizeRoles('admin','technical_director','coach'), validate({ body: createTrainingPlanVersionSchema }), createVersion);
-router.post('/new', authorizeRoles('admin','technical_director','coach'), createNewVersion);
-router.put('/:id', authorizeRoles('admin','technical_director','coach'), validate({ body: updateTrainingPlanVersionSchema }), updateVersion);
-router.post('/:id/restore', authorizeRoles('admin','technical_director','coach'), validate({ params: idParamSchema, body: restoreTrainingPlanVersionSchema }), restoreVersion);
-router.post('/:id/activate', authorizeRoles('admin','technical_director','coach'), validate({ params: idParamSchema }), setActiveVersion);
-router.delete('/:id', authorizeRoles('admin','technical_director','coach'), deleteVersion);
+
+// CU.025: Versionado - admin, technical_director, coach
+router.post('/', requireAnyRole('admin', 'technical_director', 'coach'), validate({ body: createTrainingPlanVersionSchema }), createVersion);
+router.post('/new', requireAnyRole('admin', 'technical_director', 'coach'), createNewVersion);
+router.put('/:id', requireAnyRole('admin', 'technical_director', 'coach'), validate({ body: updateTrainingPlanVersionSchema }), updateVersion);
+router.post('/:id/restore', requireAnyRole('admin', 'technical_director', 'coach'), validate({ params: idParamSchema, body: restoreTrainingPlanVersionSchema }), restoreVersion);
+router.post('/:id/activate', requireAnyRole('admin', 'technical_director', 'coach'), validate({ params: idParamSchema }), setActiveVersion);
+router.delete('/:id', requireAnyRole('admin', 'technical_director', 'coach'), deleteVersion);
 
 module.exports = router;

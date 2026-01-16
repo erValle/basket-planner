@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
@@ -13,13 +13,13 @@ import { ToastModule } from 'primeng/toast';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { firstValueFrom } from 'rxjs';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
+import { BpDialog } from '../components/bp-dialog';
 
 import { PlanningApiService } from '../services/planning.api';
 import { ClubContextService } from '../core/context/club-context.service';
@@ -27,7 +27,7 @@ import { ClubsApi, ClubDto } from '../services/clubs.api';
 import { TeamsApi, TeamDto } from '../services/teams.api';
 import { PlanningExportEmailPayload, PlanningExportFormat, PlanningListItem, PlanningStatus } from '../models/planning';
 
-import { BehaviorSubject, combineLatest, map, shareReplay, startWith, switchMap } from 'rxjs';
+import { BehaviorSubject, combineLatest, map, shareReplay, startWith, switchMap, filter } from 'rxjs';
 
 type Option = { label: string; value: string };
 
@@ -36,7 +36,6 @@ type Option = { label: string; value: string };
   imports: [
     CommonModule,
     FormsModule,
-    RouterLink,
     ButtonModule,
     InputTextModule,
     SelectModule,
@@ -47,13 +46,13 @@ type Option = { label: string; value: string };
     ToastModule,
     ConfirmDialogModule,
     ProgressSpinnerModule,
-    DialogModule,
+    BpDialog,
     TextareaModule,
     PageHeader,
     AppShell,
   ],
   templateUrl: './planning.html',
-  styleUrl: './planning.css',
+  styleUrl: './planning.scss',
   providers: [MessageService, ConfirmationService],
 })
 export class Planning {
@@ -68,8 +67,7 @@ export class Planning {
   statusOptions: Array<{ label: string; value: PlanningStatus | 'all' }> = [
     { label: 'Todos', value: 'all' },
     { label: 'Borrador', value: 'draft' },
-    { label: 'Generada', value: 'generated' },
-    { label: 'Publicada', value: 'published' },
+    { label: 'Activa', value: 'active' },
     { label: 'Archivada', value: 'archived' },
   ];
 
@@ -118,17 +116,56 @@ export class Planning {
             // Temporary mapping: backend currently exposes training plans.
             if (Array.isArray(res)) {
               this.bootstrappedFromBackend = true;
-              return res.map((p: any) => ({
-                id: String(p.id),
-                date: (p?.createdAt ? String(p.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10)),
-                team: p?.targetType === 'group' ? 'Equipo' : 'Individual',
-                objective: p?.name ? String(p.name) : 'Plan',
-                status: (['draft', 'generated', 'published', 'archived'].includes(String(p?.status))
-                  ? String(p.status)
-                  : 'draft') as any,
-                version: p?.activeVersionId != null ? `v${p.activeVersionId}` : 'v1',
-                author: p?.createdById != null ? `user:${p.createdById}` : '-',
-              })) as PlanningListItem[];
+              const mapped = res.map((p: any) => {
+                // Determinar assignedTo basado en el tipo
+                let assignedTo = '';
+                const targetType = p?.targetType === 'group' ? 'group' : 'individual';
+                
+                if (targetType === 'individual') {
+                  // Obtener nombre del primer jugador asignado
+                  const firstAssignment = p?.assignments?.[0];
+                  if (firstAssignment?.user) {
+                    const user = firstAssignment.user;
+                    assignedTo = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Sin asignar';
+                  } else {
+                    assignedTo = 'Sin asignar';
+                  }
+                } else {
+                  // Grupal: obtener el club del primer jugador
+                  const firstAssignment = p?.assignments?.[0];
+                  const firstClub = firstAssignment?.user?.userClubs?.[0]?.club;
+                  if (firstClub) {
+                    assignedTo = `Grupal ${firstClub.name}`;
+                  } else {
+                    assignedTo = 'Grupal';
+                  }
+                }
+                
+                // Obtener nombre del autor
+                let authorName = '-';
+                if (p?.createdBy) {
+                  authorName = `${p.createdBy.firstName || ''} ${p.createdBy.lastName || ''}`.trim() || `user:${p.createdById}`;
+                } else if (p?.createdById) {
+                  authorName = `user:${p.createdById}`;
+                }
+                
+                return {
+                  id: String(p.id),
+                  date: (p?.createdAt ? String(p.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10)),
+                  name: p?.name ? String(p.name) : 'Sin nombre',
+                  targetType: targetType as 'individual' | 'group',
+                  assignedTo,
+                  status: (['draft', 'active', 'archived'].includes(String(p?.status))
+                    ? String(p.status)
+                    : 'draft') as any,
+                  version: p?.activeVersion?.versionNumber != null 
+                    ? `v${p.activeVersion.versionNumber}` 
+                    : (p?.activeVersionId != null ? `v${p.activeVersionId}` : 'v1'),
+                  author: authorName,
+                };
+              }) as PlanningListItem[];
+              
+              return mapped;
             }
 
             return [] as PlanningListItem[];
@@ -148,7 +185,6 @@ export class Planning {
       // Keep a client-side filter fallback so the screen works even when backend filtering is limited.
       const search = this.filters.search.trim().toLowerCase();
       const filtered = items.filter((p) => {
-        if (this.filters.team !== 'Todos' && p.team !== this.filters.team) return false;
         if (this.filters.status !== 'all' && p.status !== this.filters.status) return false;
 
         if (this.filters.dateRange?.[0]) {
@@ -161,7 +197,7 @@ export class Planning {
         }
 
         if (search) {
-          const haystack = `${p.team} ${p.objective} ${p.author} ${p.version} ${p.status}`.toLowerCase();
+          const haystack = `${p.name} ${p.assignedTo} ${p.targetType} ${p.author} ${p.version} ${p.status}`.toLowerCase();
           if (!haystack.includes(search)) return false;
         }
 
@@ -237,14 +273,58 @@ export class Planning {
   ngOnInit(): void {
     // Keep dropdown options aligned with the global club context.
     this.clubContext.selectedClubId$.subscribe((clubId) => {
-      // Clubs/teams selectors are currently disabled for list filtering,
-      // but we still want sensible options and defaults.
-      if (clubId != null) this.filters.club = String(clubId);
+      if (clubId != null) {
+        this.filters.club = String(clubId);
+        this.filters.team = 'Todos'; // Resetear equipo cuando cambia el club
+        
+        // Recargar equipos del nuevo club
+        this.teamsApi.list({ clubId: String(clubId) }).subscribe({
+          next: (items) => {
+            this.teams = items ?? [];
+            this.teamOptions = [
+              { label: 'Todos', value: 'Todos' },
+              ...this.teams.map((t) => ({ label: t.name, value: String(t.id) })),
+            ];
+          },
+          error: () => {
+            // keep defaults
+          },
+        });
+      } else {
+        this.filters.club = 'Todos';
+        this.filters.team = 'Todos';
+        
+        // Cargar todos los equipos
+        this.teamsApi.list().subscribe({
+          next: (items) => {
+            this.teams = items ?? [];
+            this.teamOptions = [
+              { label: 'Todos', value: 'Todos' },
+              ...this.teams.map((t) => ({ label: t.name, value: String(t.id) })),
+            ];
+          },
+          error: () => {
+            // keep defaults
+          },
+        });
+      }
+      
       this.loadFilters();
+      this.refresh();
     });
 
     this.loadFilters();
     this.refresh();
+
+    // Refresh the list when navigating back to this page
+    this.router.events
+      .pipe(
+        filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+        filter((event) => event.url === '/planning' || event.url.startsWith('/planning?'))
+      )
+      .subscribe(() => {
+        this.refresh();
+      });
   }
 
   private loadFilters(): void {
@@ -253,10 +333,8 @@ export class Planning {
     this.clubsApi.list().subscribe({
       next: (items) => {
         this.clubs = items ?? [];
-
-        // If a club is selected in the shell, keep the dropdown limited to that club.
-        const scopedClubs = clubId != null ? this.clubs.filter((c) => Number(c.id) === Number(clubId)) : this.clubs;
-        this.clubOptions = [{ label: 'Todos', value: 'Todos' }, ...scopedClubs.map((c) => ({ label: c.name, value: String(c.id) }))];
+        // Mostrar TODOS los clubes en el selector
+        this.clubOptions = [{ label: 'Todos', value: 'Todos' }, ...this.clubs.map((c) => ({ label: c.name, value: String(c.id) }))];
       },
       error: () => {
         // keep defaults
@@ -305,12 +383,12 @@ export class Planning {
     switch (s) {
       case 'draft':
         return 'Borrador';
-      case 'generated':
-        return 'Generada';
-      case 'published':
-        return 'Publicada';
+      case 'active':
+        return 'Activa';
       case 'archived':
         return 'Archivada';
+      default:
+        return 'Desconocido';
     }
   }
 
@@ -318,12 +396,12 @@ export class Planning {
     switch (s) {
       case 'draft':
         return 'warn';
-      case 'generated':
-        return 'info';
-      case 'published':
+      case 'active':
         return 'success';
       case 'archived':
         return 'danger';
+      default:
+        return 'info';
     }
   }
 

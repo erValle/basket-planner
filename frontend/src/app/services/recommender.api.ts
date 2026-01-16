@@ -8,6 +8,8 @@ import {
   RecommenderStatus,
   RecommenderTrainPayload,
   RecommenderVersionListItem,
+  SuggestGoalsRequest,
+  SuggestGoalsResponse,
 } from '../models/recommender';
 
 @Injectable({ providedIn: 'root' })
@@ -41,6 +43,12 @@ export class RecommenderApiService {
   activate(versionId: string) {
     return this.api.post<{ ok: true }>(`/api/recommender/versions/${encodeURIComponent(versionId)}/activate`, {}).pipe(
       map((res) => res ?? { ok: true as const })
+    );
+  }
+
+  suggestGoals(request: SuggestGoalsRequest = {}) {
+    return this.api.post<SuggestGoalsResponse>('/api/recommender/suggest-goals', request).pipe(
+      map((res) => res)
     );
   }
 }

@@ -18,7 +18,7 @@ export interface PlayerSelectionItem {
   standalone: true,
   imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, TagModule],
   templateUrl: './player-selection.html',
-  styleUrl: './player-selection.css',
+  styleUrl: './player-selection.scss',
 })
 export class PlayerSelection {
   @Input() title = 'Seleccionar jugadores';
@@ -28,16 +28,9 @@ export class PlayerSelection {
   @Input() selectedPlayers: string[] = [];
 
   /** List of players available to select */
-  @Input() availablePlayers: PlayerSelectionItem[] = [
-    { id: '1', nombre: 'Juan Pérez', posicion: 'Base', categoria: 'Senior' },
-    { id: '2', nombre: 'Carlos López', posicion: 'Alero', categoria: 'Senior' },
-    { id: '3', nombre: 'Miguel Ángel Ruiz', posicion: 'Escolta', categoria: 'Senior' },
-    { id: '4', nombre: 'David Martín', posicion: 'Pívot', categoria: 'Senior' },
-    { id: '5', nombre: 'Alberto Sánchez', posicion: 'Ala-Pívot', categoria: 'Senior' },
-    { id: '6', nombre: 'Javier González', posicion: 'Base', categoria: 'Junior' },
-    { id: '7', nombre: 'Pablo Fernández', posicion: 'Alero', categoria: 'Junior' },
-    { id: '8', nombre: 'Sergio Rodríguez', posicion: 'Escolta', categoria: 'Junior' },
-  ];
+  @Input() availablePlayers: PlayerSelectionItem[] = [];
+
+  @Input() loading = false;
 
   @Output() cancel = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<string[]>();
