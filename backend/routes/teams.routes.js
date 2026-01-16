@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const validate = require('../src/middlewares/validate');
 const { requireAuth, requireAnyRole } = require('../src/middlewares/rbac');
-const { createTeamSchema, updateTeamSchema } = require('../src/validation/teamSchemas');
+const { createTeamSchema, updateTeamSchema, listTeamsQuerySchema } = require('../src/validation/teamSchemas');
 const { idParamSchema } = require('../src/validation/commonSchemas');
 const { listTeams, getTeam, createTeam, updateTeam, deleteTeam } = require('../src/controllers/teamController');
 const {
@@ -22,7 +22,7 @@ const {
 router.use(requireAuth);
 
 // CU.008/009: Todos pueden listar/ver equipos
-router.get('/', listTeams);
+router.get('/', validate({ query: listTeamsQuerySchema }), listTeams);
 router.get('/:id', validate({ params: idParamSchema }), getTeam);
 
 // Players management for teams - admin, technical_director, coach

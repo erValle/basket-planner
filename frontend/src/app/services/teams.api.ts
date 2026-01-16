@@ -8,6 +8,11 @@ export interface TeamDto {
   category?: string | null;
   clubId?: number | null;
   coachId?: number | null;
+  coach?: {
+    id: number;
+    name: string;
+    email: string;
+  } | null;
   playersCount?: number;
   active?: boolean;
   createdAt?: string;
@@ -16,7 +21,7 @@ export interface TeamDto {
 
 export interface TeamCreatePayload {
   name: string;
-  clubId?: number | null;
+  clubId: number; // Required: a team must belong to a club
   coachId?: number | null;
   category?: string | null;
   active?: boolean;

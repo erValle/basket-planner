@@ -12,13 +12,15 @@ import { SelectModule } from 'primeng/select';
 
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
+import { ErrorCard } from '../components/error-card/error-card';
+import { InfoCard } from '../components/info-card/info-card';
 import { ClubsApi, ClubDto } from '../services/clubs.api';
 import { TeamsApi } from '../services/teams.api';
 import { PlayersApi, PlayerDto } from '../services/players.api';
 
 @Component({
   selector: 'app-new-team',
-  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, InputNumberModule, SelectModule, ToastModule, AppShell, PageHeader],
+  imports: [CommonModule, FormsModule, ButtonModule, InputTextModule, InputNumberModule, SelectModule, ToastModule, AppShell, PageHeader, ErrorCard, InfoCard],
   templateUrl: './new-team.html',
   styleUrl: './new-team.scss',
   providers: [MessageService],
@@ -30,6 +32,7 @@ export class NewTeam {
   };
 
   saving = false;
+  formError: string | null = null;
   clubs: ClubDto[] = [];
   selectedClubId: number | null = null;
 
@@ -156,74 +159,81 @@ export class NewTeam {
 
   save() {
     if (this.saving) return;
+    
+    // Limpiar errores previos
+    this.formError = null;
+    
     const name = this.form.name.trim();
     if (!name) {
-      this.toast.add({ severity: 'warn', summary: 'Revisa el formulario', detail: 'El nombre es obligatorio.' });
+      this.formError = 'El nombre del equipo es obligatorio.';
       return;
     }
-    if (this.selectedPlayerIds.length < 5) {
-      this.toast.add({
-        severity: 'warn',
-        summary: 'Revisa la convocatoria',
-        detail: 'Debes seleccionar al menos 5 jugadores para crear el equipo.',
-      });
+    
+    // Validar que hay un club seleccionado
+    if (!this.selectedClubId) {
+      this.formError = 'Debes seleccionar un club para crear el equipo.';
       return;
     }
 
     this.saving = true;
+    
     this.teamsApi
       .create({
         name,
-        clubId: this.selectedClubId ?? undefined,
+        clubId: this.selectedClubId,
         // Map season -> category for now (backend expects category).
         category: this.form.season?.trim() || null,
+        // No enviamos active, el backend lo crea como false por defecto
       })
       .subscribe({
         next: (created) => {
           const teamId = Number(created.id);
 
-          // Assign players in one call.
-          this.teamsApi.addPlayersBulk(teamId, [...this.selectedPlayerIds]).subscribe({
-            next: (res) => {
-              if ((res?.requested ?? this.selectedPlayerIds.length) !== (res?.created ?? this.selectedPlayerIds.length)) {
-                const requested = res?.requested ?? this.selectedPlayerIds.length;
-                const createdCount = res?.created ?? 0;
-                const skipped = res?.skipped ?? Math.max(0, requested - createdCount);
-                this.toast.add({
-                  severity: 'warn',
-                  summary: 'Equipo creado con avisos',
-                  detail: `Se asignaron ${createdCount}/${requested} jugadores (omitidos: ${skipped}).`,
-                });
-              }
-
-              // After players are assigned, activate the team.
-              this.teamsApi.update(teamId, { active: true } as any).subscribe({
-                next: () => {
-                  this.saving = false;
-                  this.toast.add({ severity: 'success', summary: 'Equipo creado', detail: `#${created.id} · ${created.name}` });
-                  this.router.navigateByUrl('/teams');
-                },
-                error: (e: unknown) => {
-                  this.saving = false;
-                  const msg = e instanceof Error ? e.message : 'El equipo se creó pero no se pudo activar.';
-                  this.toast.add({ severity: 'warn', summary: 'Atención', detail: msg });
-                  this.router.navigateByUrl('/teams');
-                },
-              });
-            },
-            error: (e: unknown) => {
-              // Honest UI: team is created but roster assignment failed.
-              this.saving = false;
-              const msg = e instanceof Error ? e.message : 'El equipo se creó, pero no se pudieron asignar los jugadores.';
-              this.toast.add({ severity: 'warn', summary: 'Atención', detail: msg });
-              this.router.navigateByUrl('/teams');
-            },
-          });
+          // Si hay jugadores seleccionados, asignarlos
+          if (this.selectedPlayerIds.length > 0) {
+            this.teamsApi.addPlayersBulk(teamId, [...this.selectedPlayerIds]).subscribe({
+              next: (res) => {
+                this.saving = false;
+                const createdCount = res?.created ?? this.selectedPlayerIds.length;
+                const skipped = res?.skipped ?? 0;
+                
+                if (skipped > 0) {
+                  this.toast.add({
+                    severity: 'warn',
+                    summary: 'Equipo creado',
+                    detail: `Se asignaron ${createdCount} jugadores. ${skipped} fueron omitidos. El equipo necesita al menos 5 jugadores para ser activado.`,
+                  });
+                } else {
+                  this.toast.add({ 
+                    severity: 'success', 
+                    summary: 'Equipo creado', 
+                    detail: `${created.name} creado correctamente. ${createdCount < 5 ? 'Necesita al menos 5 jugadores para ser activado.' : 'Ya puedes activarlo desde su detalle.'}` 
+                  });
+                }
+                this.router.navigateByUrl('/teams');
+              },
+              error: (e: unknown) => {
+                this.saving = false;
+                const msg = e instanceof Error ? e.message : 'El equipo se creó, pero no se pudieron asignar los jugadores.';
+                this.toast.add({ severity: 'warn', summary: 'Atención', detail: msg });
+                this.router.navigateByUrl('/teams');
+              },
+            });
+          } else {
+            // No hay jugadores seleccionados
+            this.saving = false;
+            this.toast.add({ 
+              severity: 'success', 
+              summary: 'Equipo creado', 
+              detail: `${created.name} creado correctamente. Añade al menos 5 jugadores para poder activarlo.` 
+            });
+            this.router.navigateByUrl('/teams');
+          }
         },
         error: (e: unknown) => {
           this.saving = false;
           const msg = e instanceof Error ? e.message : 'No se pudo crear el equipo.';
-          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+          this.formError = msg;
         },
       });
   }

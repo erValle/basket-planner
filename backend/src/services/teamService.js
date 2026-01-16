@@ -2,16 +2,17 @@ const { StatusCodes } = require('http-status-codes');
 
 const { fn, col } = require('sequelize');
 
-const { Team, TeamPlayer } = require('../../models');
+const { Team, TeamPlayer, User } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
 
 const MIN_ACTIVE_PLAYERS = 5;
 
-const listTeams = async ({ clubId } = {}) => {
+const listTeams = async ({ clubId, category } = {}) => {
   const where = {};
   if (clubId) where.clubId = clubId;
+  if (category) where.category = category;
 
-  return Team.findAll({
+  const teams = await Team.findAll({
     where,
     attributes: {
       include: [[fn('COUNT', col('teamPlayers.userId')), 'playersCount']],
@@ -27,10 +28,27 @@ const listTeams = async ({ clubId } = {}) => {
     group: ['Team.id'],
     order: [['id', 'ASC']],
   });
+
+  // Asegurar que playersCount se serializa correctamente
+  return teams.map(team => {
+    const plain = team.get({ plain: true });
+    plain.playersCount = parseInt(plain.playersCount) || 0;
+    return plain;
+  });
 };
 
 const getTeamById = async (id, { raw = false } = {}) => {
-  const team = await Team.findByPk(id);
+  const team = await Team.findByPk(id, {
+    include: [
+      {
+        model: User,
+        as: 'coach',
+        attributes: ['id', 'firstName', 'lastName', 'email'],
+        required: false,
+      },
+    ],
+  });
+  
   if (!team) {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'TEAM_NOT_FOUND', 'Team not found');
   }
@@ -44,8 +62,15 @@ const getTeamById = async (id, { raw = false } = {}) => {
     return team;
   }
 
+  const teamJson = team.toJSON();
+  
+  // Format coach name if exists
+  if (teamJson.coach) {
+    teamJson.coach.name = `${teamJson.coach.firstName || ''} ${teamJson.coach.lastName || ''}`.trim();
+  }
+
   return {
-    ...team.toJSON(),
+    ...teamJson,
     playersCount,
   };
 };
