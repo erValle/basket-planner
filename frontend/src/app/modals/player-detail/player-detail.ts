@@ -41,7 +41,6 @@ export interface PlayerDetailModel {
   currentTeam: string;
   weeklyLoad: string;
   lastFeedback: string;
-  notes: string;
 }
 
 @Component({
@@ -75,6 +74,11 @@ export class PlayerDetail {
 
   activeTabIndex = 0;
   readonly positionOptions = POSITION_OPTIONS;
+  readonly handOptions = [
+    { label: 'Derecha', value: 'Derecha' },
+    { label: 'Izquierda', value: 'Izquierda' },
+    { label: 'Ambidiestro', value: 'Ambidiestro' },
+  ];
 
   // Memberships tab state
   membershipsLoading = false;
