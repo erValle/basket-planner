@@ -1,10 +1,37 @@
 const { StatusCodes } = require('http-status-codes');
+const { Op } = require('sequelize');
 const logger = require('../middlewares/logger');
 const trainingPlanService = require('../services/trainingPlanService');
+const { UserClub } = require('../../models');
 
 const listTrainingPlans = async (req, res, next) => {
   try {
-    const rows = await trainingPlanService.listTrainingPlans(req.query);
+    const user = req.user;
+    let userClubIds = null;
+    
+    // Si el usuario no es admin, filtrar por sus clubes
+    if (user && user.role !== 'admin') {
+      // Obtener los clubes del usuario autenticado (solo membresías activas)
+      const userMemberships = await UserClub.findAll({
+        where: { 
+          userId: user.id,
+          endDate: { [Op.is]: null }
+        },
+        attributes: ['clubId']
+      });
+      
+      userClubIds = userMemberships.map(m => m.clubId);
+      
+      // Si el usuario no tiene clubes, devolver lista vacía
+      if (userClubIds.length === 0) {
+        return res.status(StatusCodes.OK).json([]);
+      }
+    }
+    
+    const rows = await trainingPlanService.listTrainingPlans({
+      ...req.query,
+      userClubIds
+    });
     return res.status(StatusCodes.OK).json(rows);
   } catch (error) {
     logger.error('Error fetching training plans:', error);

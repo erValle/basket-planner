@@ -79,12 +79,28 @@ export const POSITION_OPTIONS: SelectOption[] = [
 ];
 
 /**
+ * Opciones de posición de jugador para filtros (incluye opción sin filtro)
+ */
+export const POSITION_FILTER_OPTIONS: SelectOption[] = [
+  { label: 'Posición', value: '' },
+  ...POSITION_OPTIONS,
+];
+
+/**
  * Opciones de categoría de jugador
  */
 export const CATEGORY_OPTIONS: SelectOption[] = [
   { label: 'Senior', value: 'senior' },
   { label: 'Juvenil', value: 'juvenil' },
   { label: 'Infantil', value: 'infantil' },
+];
+
+/**
+ * Opciones de categoría de jugador para filtros (incluye opción sin filtro)
+ */
+export const CATEGORY_FILTER_OPTIONS: SelectOption[] = [
+  { label: 'Categoría', value: '' },
+  ...CATEGORY_OPTIONS,
 ];
 
 /**

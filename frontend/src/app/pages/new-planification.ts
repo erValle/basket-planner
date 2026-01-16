@@ -27,12 +27,15 @@ import { TeamsApi, TeamDto } from '../services/teams.api';
 import { ClubContextService } from '../core/context/club-context.service';
 import { EquipmentApi, EquipmentDto } from '../services/equipment.api';
 import { ClubResourcesStore } from '../core/stores/club-resources.store';
+import { ExercisesApi } from '../services/exercises.api';
 
 import {
   OBJECTIVE_OPTIONS,
   INTENSITY_OPTIONS,
   POSITION_OPTIONS,
+  POSITION_FILTER_OPTIONS,
   CATEGORY_OPTIONS,
+  CATEGORY_FILTER_OPTIONS,
   PLANNING_MODE_OPTIONS,
   NEW_PLANNING_STEPS,
   DEFAULT_PLANNING_FORM,
@@ -72,7 +75,9 @@ export class NewPlanification {
   readonly objectiveOptions = OBJECTIVE_OPTIONS;
   readonly intensityOptions = INTENSITY_OPTIONS;
   readonly positionOptions = POSITION_OPTIONS;
+  readonly positionFilterOptions = POSITION_FILTER_OPTIONS;
   readonly categoryOptions = CATEGORY_OPTIONS;
+  readonly categoryFilterOptions = CATEGORY_FILTER_OPTIONS;
   readonly modeOptions = PLANNING_MODE_OPTIONS;
 
   formData = { ...DEFAULT_PLANNING_FORM };
@@ -219,10 +224,12 @@ export class NewPlanification {
     private readonly clubContext: ClubContextService,
     private readonly equipmentApi: EquipmentApi,
     private readonly clubResources: ClubResourcesStore,
+    private readonly exercisesApi: ExercisesApi,
   ) {
 	this.loadTeams();
 	this.loadPlayers();
 	this.loadMaterials();
+	this.loadPopularTags();
 
     // Restore & keep wizard state in sync with query params.
     // This avoids a "needs one extra click" situation when landing directly on
@@ -305,6 +312,12 @@ export class NewPlanification {
   restrictionTags: string[] = [];
   tagsControl = new FormControl('');
 
+  // Etiquetas populares de ejercicios
+  popularTags: Array<{ tag: string; count: number }> = [];
+  popularTagsLoading = false;
+  showAllTags = false;
+  readonly INITIAL_TAGS_TO_SHOW = 15;
+
 	private normalizeTag(raw: string): string {
 		return raw.trim();
 	}
@@ -339,6 +352,44 @@ export class NewPlanification {
 
   removeTag(tag: string) {
     this.restrictionTags = this.restrictionTags.filter((t) => t !== tag);
+  }
+
+  // Métodos para etiquetas populares
+  togglePopularTag(tag: string): void {
+    if (this.restrictionTags.includes(tag)) {
+      this.removeTag(tag);
+    } else {
+      this.addTag(tag);
+    }
+  }
+
+  isTagSelected(tag: string): boolean {
+    return this.restrictionTags.includes(tag);
+  }
+
+  get visiblePopularTags(): Array<{ tag: string; count: number }> {
+    if (this.showAllTags) {
+      return this.popularTags;
+    }
+    return this.popularTags.slice(0, this.INITIAL_TAGS_TO_SHOW);
+  }
+
+  toggleShowAllTags(): void {
+    this.showAllTags = !this.showAllTags;
+  }
+
+  private loadPopularTags(): void {
+    this.popularTagsLoading = true;
+    this.exercisesApi.getPopularTags().subscribe({
+      next: (tags: Array<{ tag: string; count: number }>) => {
+        this.popularTags = tags ?? [];
+        this.popularTagsLoading = false;
+      },
+      error: () => {
+        this.popularTags = [];
+        this.popularTagsLoading = false;
+      },
+    });
   }
 
   isMaterialSelected(id: string): boolean {

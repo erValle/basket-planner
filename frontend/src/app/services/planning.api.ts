@@ -37,18 +37,24 @@ export class PlanningApiService {
         .map((id) => Number(id))
         .filter((n) => Number.isFinite(n) && n > 0);
 
+      const groupData: Record<string, unknown> = {
+        groupId: draft.groupId ? Number(draft.groupId) : undefined,
+        numberOfSessions: Number(draft.sessionsCount) || undefined,
+        sessionDurationMinutes: Number(draft.duration) || undefined,
+        intensity: String(draft.intensity).toLowerCase() === 'alta'
+          ? 'high'
+          : String(draft.intensity).toLowerCase() === 'baja'
+            ? 'low'
+            : 'medium',
+      };
+
+      // Solo incluir name si tiene valor
+      if (draft.name && draft.name.trim().length > 0) {
+        groupData['name'] = draft.name.trim();
+      }
+
       return this.api.post<PlanningGenerated>('/api/planning/generate/group', {
-        group: {
-          groupId: draft.groupId ? Number(draft.groupId) : undefined,
-          name: draft.name,
-          numberOfSessions: Number(draft.sessionsCount) || undefined,
-          sessionDurationMinutes: Number(draft.duration) || undefined,
-          intensity: String(draft.intensity).toLowerCase() === 'alta'
-            ? 'high'
-            : String(draft.intensity).toLowerCase() === 'baja'
-              ? 'low'
-              : 'medium',
-        },
+        group: groupData,
         profiles: athleteIds.map((athleteId) => ({ athleteId })),
         goals,
         constraints,

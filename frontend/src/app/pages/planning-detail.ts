@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, ChangeDetectorRef, inject, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -24,8 +24,6 @@ import { FeedbackSurveyAnswers, FeedbackSurveyListItem, FeedbackVersionAnswers }
 import {
   PlanningBlock,
   PlanningDetailResponse,
-  PlanningExportEmailPayload,
-  PlanningExportFormat,
   PlanningStatus,
   PlanningVersionInfo,
 } from '../models/planning';
@@ -66,18 +64,8 @@ export class PlanningDetail {
 
   downloading: 'pdf' | 'csv' | null = null;
 
-  // Email dialog
-  sendDialogOpen = false;
-  sendingEmail = false;
-  emailModel: PlanningExportEmailPayload = {
-    recipients: [],
-    subject: '',
-    message: '',
-    format: 'pdf',
-    version: undefined,
-  };
-
-  recipientDraft = '';
+  // Download dialog
+  downloadDialogOpen = false;
 
   formatOptions: Option[] = [
     { label: 'PDF', value: 'pdf' },
@@ -96,6 +84,12 @@ export class PlanningDetail {
   feedbackDialogOpen = false;
   savingFeedback = false;
   latestSurvey: FeedbackSurveyListItem | null = null;
+  
+  // All feedbacks for this planning (for admin/coach view)
+  allFeedbacks: FeedbackSurveyListItem[] = [];
+  loadingFeedbacks = false;
+  feedbacksToShow = 3; // Número inicial de feedbacks a mostrar
+  readonly FEEDBACKS_PER_PAGE = 3; // Incremento al hacer clic en "Ver más"
 
   scale1to10 = Array.from({ length: 10 }, (_, i) => ({ label: String(i + 1), value: i + 1 }));
   scale0to10 = Array.from({ length: 11 }, (_, i) => ({ label: String(i), value: i }));
@@ -110,6 +104,7 @@ export class PlanningDetail {
   };
 
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly zone = inject(NgZone);
 
   constructor(
     private readonly api: PlanningApiService,
@@ -172,12 +167,7 @@ export class PlanningDetail {
               id: String(e?.exerciseId ?? e?.id ?? `e-${Math.random().toString(16).slice(2)}`),
               name: String(e?.name ?? 'Ejercicio'),
               durationMin: e?.durationMinutes ?? e?.durationMin ?? undefined,
-              notes: [
-                e?.type ? `Tipo: ${e.type}` : null,
-                e?.phase ? `Fase: ${e.phase}` : null,
-                e?.difficulty ? `Dificultad: ${this.formatDifficultyShort(e.difficulty)}` : null,
-                e?.description ? e.description : null
-              ].filter(Boolean).join(' • '),
+              notes: e?.description || undefined,
               // Información completa para el modal de previsualización
               type: e?.type,
               phase: e?.phase,
@@ -269,33 +259,68 @@ export class PlanningDetail {
 
   loadFeedbackForVersion(versionId: string): void {
     const currentUser = this.userContext.getUserSnapshot();
+    const role = this.userContext.getRoleSnapshot();
+    
+    console.log('loadFeedbackForVersion called', { versionId, role, currentUser });
+    
     if (!currentUser?.id) {
       // Usuario no autenticado, no cargar feedback
       this.latestSurvey = null;
+      this.allFeedbacks = [];
+      this.loadingFeedbacks = false;
+      console.log('No user authenticated');
       return;
     }
 
-    // Buscar feedback para esta versión y este usuario
-    this.feedbackApi.listRecentForPlayer(String(currentUser.id), 50).subscribe({
-      next: (response) => {
-        // Buscar el feedback más reciente para esta versión específica
-        const feedbackForVersion = response.items.find(
-          (item) => item.targetType === 'version' && item.targetId === versionId
-        );
-        
-        if (feedbackForVersion) {
-          this.latestSurvey = feedbackForVersion;
-        } else {
+    // Si es JUGADOR: cargar su propio feedback
+    if (role === 'player') {
+      this.feedbackApi.listRecentForPlayer(String(currentUser.id), 50).subscribe({
+        next: (response) => {
+          // Buscar el feedback más reciente para esta versión específica
+          const feedbackForVersion = response.items.find(
+            (item) => item.targetType === 'version' && item.targetId === versionId
+          );
+          
+          if (feedbackForVersion) {
+            this.latestSurvey = feedbackForVersion;
+          } else {
+            this.latestSurvey = null;
+          }
+          console.log('Player feedback loaded:', { feedbackForVersion, latestSurvey: this.latestSurvey });
+          this.cdr.markForCheck();
+        },
+        error: (e: unknown) => {
+          console.error('Error loading player feedback:', e);
           this.latestSurvey = null;
-        }
-        this.cdr.markForCheck();
-      },
-      error: (e: unknown) => {
-        console.error('Error loading feedback:', e);
-        this.latestSurvey = null;
-        this.cdr.markForCheck();
-      },
-    });
+          this.cdr.markForCheck();
+        },
+      });
+    }
+
+    // Si es ADMIN/COACH/DT: cargar TODOS los feedbacks para visualizar
+    if (this.canViewAllFeedbacks()) {
+      console.log('Loading all feedbacks for version:', versionId);
+      this.loadingFeedbacks = true;
+      this.allFeedbacks = [];
+      this.feedbacksToShow = this.FEEDBACKS_PER_PAGE; // Resetear contador al cargar nueva versión
+      this.cdr.markForCheck();
+      
+      this.feedbackApi.listForVersion(Number(versionId)).subscribe({
+        next: (allResponse) => {
+          console.log('All feedbacks loaded:', allResponse);
+          this.allFeedbacks = allResponse.items || [];
+          console.log('All feedbacks array:', this.allFeedbacks);
+          this.loadingFeedbacks = false;
+          this.cdr.markForCheck();
+        },
+        error: (e: unknown) => {
+          console.error('Error loading all feedbacks:', e);
+          this.loadingFeedbacks = false;
+          this.allFeedbacks = [];
+          this.cdr.markForCheck();
+        },
+      });
+    }
   }
 
   saveFeedback(): void {
@@ -370,15 +395,19 @@ export class PlanningDetail {
     this.emptyState = false;
 
     if (!this.planningId) {
-      this.emptyState = true;
-      this.detail = null;
-      this.blocks = [];
-      this.cdr.markForCheck();
+      this.zone.run(() => {
+        this.emptyState = true;
+        this.detail = null;
+        this.blocks = [];
+        this.cdr.detectChanges();
+      });
       return;
     }
 
-    this.loading = true;
-    this.cdr.markForCheck();
+    this.zone.run(() => {
+      this.loading = true;
+      this.cdr.detectChanges();
+    });
 
     this.api.get(this.planningId).subscribe({
       next: (plan) => {
@@ -389,48 +418,56 @@ export class PlanningDetail {
         const resolvedVersionId = selectedVersionId ?? activeVersionId ?? (versions[0]?.id != null ? String(versions[0].id) : null);
 
         if (!resolvedVersionId) {
-          this.loading = false;
-          this.emptyState = true;
-          this.detail = null;
-          this.blocks = [];
-          this.cdr.markForCheck();
+          this.zone.run(() => {
+            this.loading = false;
+            this.emptyState = true;
+            this.detail = null;
+            this.blocks = [];
+            this.cdr.detectChanges();
+          });
           return;
         }
 
         this.api.getVersion(this.planningId!, resolvedVersionId).subscribe({
           next: (versionRow) => {
-            this.loading = false;
+            this.zone.run(() => {
+              this.loading = false;
 
-            const versionLabel = `v${versionRow?.versionNumber ?? resolvedVersionId}`;
-            const resolved = this.mapTrainingPlanToDetail(plan, versionRow, versionLabel);
+              const versionLabel = `v${versionRow?.versionNumber ?? resolvedVersionId}`;
+              const resolved = this.mapTrainingPlanToDetail(plan, versionRow, versionLabel);
 
-            this.detail = resolved;
-            this.blocks = resolved.blocks ?? [];
+              this.detail = resolved;
+              this.blocks = resolved.blocks ?? [];
 
-            // options show labels, values are real version IDs so export works
-            this.versionOptions = (resolved.versions ?? []).map((v: any) => ({ label: v.label, value: v.value }));
-            this.selectedVersion = resolvedVersionId;
-            
-            // Load feedback for this version
-            this.loadFeedbackForVersion(resolvedVersionId);
-            
-            this.cdr.markForCheck();
+              // options show labels, values are real version IDs so export works
+              this.versionOptions = (resolved.versions ?? []).map((v: any) => ({ label: v.label, value: v.value }));
+              this.selectedVersion = resolvedVersionId;
+              
+              // Load feedback for this version
+              this.loadFeedbackForVersion(resolvedVersionId);
+              
+              this.cdr.detectChanges();
+            });
           },
           error: (e: unknown) => {
-            this.loading = false;
-            const msg = e instanceof Error ? e.message : 'No se pudo cargar la versión.';
-            this.loadError = msg;
-            this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-            this.cdr.markForCheck();
+            this.zone.run(() => {
+              this.loading = false;
+              const msg = e instanceof Error ? e.message : 'No se pudo cargar la versión.';
+              this.loadError = msg;
+              this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+              this.cdr.detectChanges();
+            });
           },
         });
       },
       error: (e: unknown) => {
-        this.loading = false;
-        const msg = e instanceof Error ? e.message : 'No se pudo cargar la planificación.';
-        this.loadError = msg;
-        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-        this.cdr.markForCheck();
+        this.zone.run(() => {
+          this.loading = false;
+          const msg = e instanceof Error ? e.message : 'No se pudo cargar la planificación.';
+          this.loadError = msg;
+          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+          this.cdr.detectChanges();
+        });
       },
     });
   }
@@ -516,6 +553,30 @@ export class PlanningDetail {
     return role === 'admin' || role === 'technical_director' || role === 'coach';
   }
 
+  canViewAllFeedbacks(): boolean {
+    // Solo coaches, technical_director y admins pueden ver todos los feedbacks
+    const role = this.userContext.getRoleSnapshot();
+    const canView = role === 'admin' || role === 'technical_director' || role === 'coach';
+    console.log('canViewAllFeedbacks check:', { role, canView });
+    return canView;
+  }
+
+  getVisibleFeedbacks(): FeedbackSurveyListItem[] {
+    return this.allFeedbacks.slice(0, this.feedbacksToShow);
+  }
+
+  hasMoreFeedbacks(): boolean {
+    return this.allFeedbacks.length > this.feedbacksToShow;
+  }
+
+  showMoreFeedbacks(): void {
+    this.feedbacksToShow += this.FEEDBACKS_PER_PAGE;
+  }
+
+  showLessFeedbacks(): void {
+    this.feedbacksToShow = this.FEEDBACKS_PER_PAGE;
+  }
+
   isPlayerView(): boolean {
     const role = this.userContext.getRoleSnapshot();
     return role === 'player';
@@ -525,44 +586,8 @@ export class PlanningDetail {
     return this.isPlayerView() ? '/player' : '/planning';
   }
 
-  openSendDialog(): void {
-    if (!this.planningId) return;
-    this.emailModel = {
-      recipients: [],
-      subject: `Planificación ${this.planningId} (${this.selectedVersion ?? this.detail?.version ?? 'última'})`,
-      message: '',
-      format: 'pdf',
-      version: this.selectedVersion ?? this.detail?.version ?? undefined,
-    };
-    this.sendDialogOpen = true;
-  }
-
-  addRecipient(): void {
-    const v = this.recipientDraft.trim();
-    if (!v) return;
-    if (this.emailModel.recipients.includes(v)) {
-      this.recipientDraft = '';
-      return;
-    }
-    this.emailModel.recipients = [...this.emailModel.recipients, v];
-    this.recipientDraft = '';
-  }
-
-  removeRecipient(v: string): void {
-    this.emailModel.recipients = this.emailModel.recipients.filter((r) => r !== v);
-  }
-
-  canSendEmail(): boolean {
-    // Email export isn't implemented server-side yet.
-    return false;
-  }
-
-  sendEmail(): void {
-    this.toast.add({
-      severity: 'info',
-      summary: 'No disponible',
-      detail: 'El envío por correo aún no está implementado en el backend. Usa la exportación a PDF/CSV.',
-    });
+  openDownloadDialog(): void {
+    this.downloadDialogOpen = true;
   }
 
   exportPdf(): void {

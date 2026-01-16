@@ -33,6 +33,7 @@ export interface FeedbackSurveyListItem {
   createdAt: string; // ISO
   answers: FeedbackSurveyAnswers;
   planningName?: string; // Name of the training plan
+  playerName?: string; // Name or email of the player who submitted feedback
 }
 
 export interface FeedbackSurveyCreatePayload {

@@ -39,8 +39,9 @@ export interface PlanningGenerated {
 export interface PlanningListItem {
   id: string;
   date: string; // ISO or display-ready; backend TBD
-  team: string;
-  objective: string;
+  name: string; // Nombre de la planificación
+  targetType: 'individual' | 'group'; // Tipo: individual o grupal
+  assignedTo: string; // Jugador individual o "Grupal Club X"
   status: PlanningStatus;
   version: string;
   author: string;
@@ -122,6 +123,12 @@ export interface PlanningExerciseEditor {
   restSec: number;
   material: string[];
   notes: string;
+  difficulty?: {
+    tactica?: number;
+    tecnica?: number;
+    fisica?: number;
+    mental?: number;
+  };
 }
 
 export type PlanningExportFormat = 'pdf' | 'csv';

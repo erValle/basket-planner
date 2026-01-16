@@ -27,6 +27,11 @@ type ApiFeedbackRow = {
   comments?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+  };
   trainingPlanVersion?: {
     trainingPlan?: {
       id: number;
@@ -144,6 +149,35 @@ export class FeedbackApiService {
               notes: row.comments || undefined,
             },
           }));
+        return { items };
+      })
+    );
+  }
+
+  /**
+   * GET /api/feedbacks?trainingPlanVersionId=...
+   * 
+   * Returns all feedback surveys for a specific training plan version.
+   */
+  listForVersion(versionId: number): Observable<FeedbackSurveyListResponse> {
+    return this.api.get<ApiFeedbackRow[]>(`/api/feedbacks?trainingPlanVersionId=${versionId}`).pipe(
+      map((rows: ApiFeedbackRow[]) => {
+        const items: FeedbackSurveyListItem[] = rows.map((row: ApiFeedbackRow) => ({
+          id: String(row.id),
+          playerId: String(row.userId),
+          playerName: row.user?.name || row.user?.email || `Usuario #${row.userId}`,
+          targetType: (row.targetType || 'version') as 'version' | 'session',
+          targetId: String(row.trainingPlanVersionId),
+          createdAt: row.createdAt || new Date().toISOString(),
+          planningName: row.trainingPlanVersion?.trainingPlan?.name || undefined,
+          answers: {
+            overall: (row.rating?.overall || 5) as any,
+            physicalEffort: (row.rating?.physicalEffort || 5) as any,
+            technicalEffort: (row.rating?.technicalEffort || 5) as any,
+            mentalEffort: (row.rating?.mentalEffort || 5) as any,
+            notes: row.comments || undefined,
+          },
+        }));
         return { items };
       })
     );

@@ -219,8 +219,9 @@
         <ng-template pTemplate="header">
           <tr class="border-b border-[#1f2937]">
             <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Fecha</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Equipo</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Objetivo</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Nombre</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Tipo</th>
+            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Asignado a</th>
             <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Estado</th>
             <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Versión</th>
             <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Autor</th>
@@ -231,8 +232,14 @@
         <ng-template pTemplate="body" let-item>
           <tr class="border-b border-[#1f2937]">
             <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ item.date }}</td>
-            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ item.team }}</td>
-            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ item.objective }}</td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4 font-medium">{{ item.name }}</td>
+            <td class="py-4 pr-4">
+              <p-tag 
+                [value]="item.targetType === 'individual' ? 'Individual' : 'Grupal'" 
+                [severity]="item.targetType === 'individual' ? 'info' : 'secondary'"
+              ></p-tag>
+            </td>
+            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ item.assignedTo }}</td>
             <td class="py-4 pr-4">
               <p-tag [value]="statusLabel(item.status)" [severity]="statusSeverity(item.status)"></p-tag>
             </td>

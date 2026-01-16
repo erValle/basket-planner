@@ -1,6 +1,6 @@
 const { StatusCodes } = require('http-status-codes');
 
-const { Feedback, PlanAssignment, TrainingPlanVersion, TrainingPlan } = require('../../models');
+const { Feedback, PlanAssignment, TrainingPlanVersion, TrainingPlan, User } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
 
 const listFeedbacks = async ({ trainingPlanVersionId, userId, sessionId, targetType } = {}) => {
@@ -13,6 +13,11 @@ const listFeedbacks = async ({ trainingPlanVersionId, userId, sessionId, targetT
   return Feedback.findAll({ 
     where,
     include: [
+      {
+        model: User,
+        as: 'user',
+        attributes: ['id', 'firstName', 'lastName', 'email']
+      },
       {
         model: TrainingPlanVersion,
         as: 'trainingPlanVersion',

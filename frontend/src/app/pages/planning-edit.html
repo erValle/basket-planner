@@ -1,6 +1,6 @@
 <app-shell title="Editar planificación" subtitle="Nueva versión">
   <p-toast></p-toast>
-  <p-confirmDialog></p-confirmDialog>
+  <p-confirmDialog styleClass="bp-dialog"></p-confirmDialog>
 
   <div class="max-w-6xl mx-auto space-y-4">
     <!-- Header / actions -->
@@ -166,8 +166,7 @@
                     <div class="mt-4 flex justify-between items-center">
                       <div class="text-[12px] text-[#9ca3af]">{{ b.exercises.length }} ejercicio(s)</div>
                       <div class="flex gap-2">
-                        <button type="button" pButton label="Buscar ejercicio" icon="pi pi-search" class="p-button-text p-button-sm" (click)="openExerciseSearch(b)"></button>
-                        <button type="button" pButton label="Nuevo ejercicio" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="addExercise(b)"></button>
+                        <button type="button" pButton label="Añadir ejercicio" icon="pi pi-search" class="p-button-text p-button-sm" (click)="openExerciseSearch(b)"></button>
                       </div>
                     </div>
 
@@ -253,31 +252,30 @@
                               }
                             </div>
                             <div class="md:col-span-2">
-                              <label class="block text-[#9ca3af] text-[12px] mb-2">Intensidad</label>
-                              <p-select
-                                [options]="intensityOptions"
-                                [(ngModel)]="e.intensity"
-                                [name]="'ex-int-' + e.id"
-                                optionLabel="label"
-                                optionValue="value"
-                                styleClass="bp-select"
-                                [panelStyleClass]="'bp-select-panel'"
-                              ></p-select>
-                            </div>
-                            <div>
-                              <label class="block text-[#9ca3af] text-[12px] mb-2">Descanso (s)</label>
-                              <p-inputNumber
-                                [(ngModel)]="e.restSec"
-                                [name]="'ex-rest-' + e.id"
-                                (blur)="markTouched('e-rest-' + e.id)"
-                                [min]="0"
-                                [showButtons]="true"
-                                [inputStyleClass]="'w-full'"
-                                styleClass="w-full"
-                              ></p-inputNumber>
-                              @if (hasError('e-rest-' + e.id, e.restSec >= 0)) {
-                                <div class="mt-2 text-[12px] text-red-200">≥ 0</div>
-                              }
+                              <label class="block text-[#9ca3af] text-[12px] mb-2">Dificultad 4D</label>
+                              <div class="bg-[#1f2937] border border-[#374151] rounded-md p-2 text-[13px] text-[#e5e7eb]">
+                                @if (e.difficulty) {
+                                  <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                                    @if (e.difficulty.tactica != null) {
+                                      <span><span class="text-[#9ca3af]">Táctica:</span> {{ e.difficulty.tactica }}</span>
+                                    }
+                                    @if (e.difficulty.tecnica != null) {
+                                      <span><span class="text-[#9ca3af]">Técnica:</span> {{ e.difficulty.tecnica }}</span>
+                                    }
+                                    @if (e.difficulty.fisica != null) {
+                                      <span><span class="text-[#9ca3af]">Física:</span> {{ e.difficulty.fisica }}</span>
+                                    }
+                                    @if (e.difficulty.mental != null) {
+                                      <span><span class="text-[#9ca3af]">Mental:</span> {{ e.difficulty.mental }}</span>
+                                    }
+                                  </div>
+                                  <div class="mt-1 pt-1 border-t border-[#374151] text-[11px] text-[#9ca3af]">
+                                    Media: <span class="text-[#e5e7eb]">{{ calculateAverageDifficulty(e.difficulty) }}</span>
+                                  </div>
+                                } @else {
+                                  <span class="text-[#6b7280]">Sin datos</span>
+                                }
+                              </div>
                             </div>
                           </div>
 
