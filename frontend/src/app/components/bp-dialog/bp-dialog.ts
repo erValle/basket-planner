@@ -62,10 +62,17 @@ export class BpDialog {
   /** Usar footer personalizado */
   @Input() customFooter = false;
 
+  /** Mostrar botón de eliminar */
+  @Input() showDelete = false;
+
+  /** Texto del botón de eliminar */
+  @Input() deleteLabel = 'Eliminar';
+
   /** Eventos */
   @Output() confirm = new EventEmitter<void>();
   @Output() cancel = new EventEmitter<void>();
   @Output() closed = new EventEmitter<void>();
+  @Output() delete = new EventEmitter<void>();
 
   /** Template refs para contenido personalizado */
   @ContentChild('dialogContent') contentTemplate?: TemplateRef<unknown>;
@@ -105,6 +112,12 @@ export class BpDialog {
     if (!this.loading) {
       this.visibleChange.emit(false);
       this.cancel.emit();
+    }
+  }
+
+  onDelete(): void {
+    if (!this.loading) {
+      this.delete.emit();
     }
   }
 }

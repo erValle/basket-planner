@@ -22,6 +22,13 @@
   border-radius: $radius-xl;
 }
 
+// Global Dialog Backdrop Blur - Applies to ALL dialogs
+.p-dialog-mask {
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+}
+
 // Dialog Styles (.bp-dialog)
 .bp-dialog {
   .p-dialog {
@@ -35,12 +42,6 @@
     }
   }
 
-  .p-dialog-mask {
-    background: $bg-overlay !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-  }
-
   .p-dialog-header {
     background: $bg-card;
     border-bottom: 1px solid $border-default;
@@ -50,6 +51,32 @@
   .p-dialog-title {
     color: $text-primary;
     font-weight: $font-weight-semibold;
+  }
+
+  // Botón de cerrar (X) del diálogo
+  .p-dialog-header-icon {
+    width: 2rem;
+    height: 2rem;
+    color: $primary-400 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: $radius-lg;
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      background: rgba($primary-400, 0.1) !important;
+      color: $primary-500 !important;
+    }
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba($primary-400, 0.2) !important;
+    }
+
+    .p-icon {
+      width: 1rem;
+      height: 1rem;
+    }
   }
 
   .p-dialog-content {
@@ -141,9 +168,9 @@
 // Strong dialog variant
 .bp-dialog-strong {
   .p-dialog-mask {
-    background: $bg-overlay-strong !important;
-    backdrop-filter: blur(12px) !important;
-    -webkit-backdrop-filter: blur(12px) !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   }
 
   .p-dialog {
@@ -834,12 +861,6 @@ p-datepicker {
     border: 2px solid rgba($neutral-500, 0.6) !important;
     background: $bg-card;
     box-shadow: $shadow-dialog !important;
-  }
-
-  .p-dialog-mask {
-    background: $bg-overlay !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
   }
 
   .p-dialog-header {
