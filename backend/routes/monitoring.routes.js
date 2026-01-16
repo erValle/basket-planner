@@ -5,9 +5,10 @@ const { requireAuth, requireAnyRole } = require('../src/middlewares/rbac');
 
 const { Op } = require('sequelize');
 
-const { AuditLog } = require('../models');
+const { AuditLog, TrainingPlan, Exercise, TrainingPlanVersion } = require('../models');
 
 const { createAuditLog } = require('../src/services/auditLogService');
+const { getModelInfo, getModelConfig } = require('../src/recommender/modelManager');
 
 router.use(requireAuth);
 
@@ -150,28 +151,106 @@ router.post('/export.csv', async (req, res, next) => {
   try {
     const range = parseRange(req.body);
     const o = await computeOverview(range);
-    const from = req.body?.from ?? '';
-    const to = req.body?.to ?? '';
+    
+    // Obtener datos reales del recomendador
+    const modelInfo = getModelInfo();
+    const config = getModelConfig();
+    
+    // Estadísticas reales
+    const totalPlans = await TrainingPlan.count();
+    const totalExercises = await Exercise.count();
+    
+    // Top ejercicios
+    const versionsWithSessions = await TrainingPlanVersion.findAll({
+      where: { sessions: { [Op.ne]: null } },
+      attributes: ['id', 'sessions'],
+      limit: 100
+    });
+    
+    const exerciseCounts = {};
+    versionsWithSessions.forEach(version => {
+      const sessions = version.sessions?.sessions || [];
+      sessions.forEach(session => {
+        (session.blocks || []).forEach(block => {
+          (block.exercises || []).forEach(ex => {
+            const name = ex.name || 'Sin nombre';
+            exerciseCounts[name] = (exerciseCounts[name] || 0) + 1;
+          });
+        });
+      });
+    });
+    
+    const topExercises = Object.entries(exerciseCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => `${name} (${count})`);
+    
+    // Top objetivos
+    const plansWithGoals = await TrainingPlan.findAll({
+      where: { goal: { [Op.ne]: null } },
+      attributes: ['goal']
+    });
+    
+    const goalCounts = {};
+    plansWithGoals.forEach(plan => {
+      if (plan.goal) {
+        goalCounts[plan.goal] = (goalCounts[plan.goal] || 0) + 1;
+      }
+    });
+    
+    const topGoals = Object.entries(goalCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([goal, count]) => `${goal} (${count})`);
+    
+    // Config del modelo
+    const totalGoals = config?.goalToTags ? Object.keys(config.goalToTags).length : 0;
+    const totalWeights = config?.weights ? Object.keys(config.weights).length : 0;
+    
+    const exportDate = new Date().toISOString();
 
-  const csv = [
-    'from,to,backend_latency_ms,backend_error_rate_pct,backend_throughput_rps,recommender_active_version,recommender_last_run_at,recommender_tech_cost,recommender_cpu_pct,recommender_ram_pct,exports_per_day,exports_failures_per_day',
-    [
-      from,
-      to,
-      String(o.backend.latencyMs),
-      String(o.backend.errorRatePct),
-      String(o.backend.throughputRps),
-      o.recommender.activeVersion,
-      o.recommender.lastRunAt,
-      o.recommender.techCost,
-      String(o.recommender.cpuPct),
-      String(o.recommender.ramPct),
-      String(o.exports.exportsPerDay),
-      String(o.exports.failuresPerDay),
-    ].join(','),
-  ].join('\n');
+    // Escape CSV fields properly
+    const escapeCSV = (str) => {
+      if (str === null || str === undefined) return '';
+      const stringValue = String(str);
+      if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+        return `"${stringValue.replace(/"/g, '""')}"`;
+      }
+      return stringValue;
+    };
 
-  res.setHeader('Content-Type', 'text/csv;charset=utf-8');
+    // Remove accents and special characters
+    const removeAccents = (str) => {
+      if (!str) return '';
+      return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    };
+
+    const csv = [
+      // Header row
+      'export_date,backend_status,backend_total_actions,backend_actions_per_day,backend_error_rate_pct,recommender_active_version,recommender_description,recommender_type,recommender_tech_cost,recommender_total_goals,recommender_total_weights,statistics_created_plans,statistics_available_exercises,statistics_top_exercises,statistics_top_goals,exports_per_day,exports_failures_per_day',
+      // Data row
+      [
+        exportDate,
+        'Operational',
+        o.backend.totalActions,
+        o.backend.actionsPerDay,
+        o.backend.errorRatePct,
+        escapeCSV(modelInfo?.version || 'unknown'),
+        escapeCSV(removeAccents(modelInfo?.description || '')),
+        escapeCSV(modelInfo?.type || 'unknown'),
+        escapeCSV(modelInfo?.techCost || 'low'),
+        totalGoals,
+        totalWeights,
+        totalPlans,
+        totalExercises,
+        escapeCSV(removeAccents(topExercises.join('; '))),
+        escapeCSV(removeAccents(topGoals.join('; '))),
+        o.exports.exportsPerDay,
+        o.exports.failuresPerDay,
+      ].join(','),
+    ].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv;charset=utf-8');
     res.status(200).send(csv);
 
     // Record export event (safe no-op if DB isn't initialized)
@@ -183,6 +262,7 @@ router.post('/export.csv', async (req, res, next) => {
       metadata: { type: 'monitoring', format: 'csv' },
     });
   } catch (e) {
+    console.error('Error in /export.csv:', e);
     try {
       await createAuditLog({
         user: req.user,

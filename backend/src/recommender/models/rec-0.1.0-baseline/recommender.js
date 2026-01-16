@@ -234,6 +234,7 @@ function generateSession(allExercises, sessionParams) {
         durationMinutes: duration,
         difficulty: exercise.difficulty || exercise.dificultad,
         tags: exercise.tags || exercise.etiquetas,
+        equipment: exercise.materiales_necesarios || (exercise.tags && exercise.tags.materiales) || [],
         score: exercise.score,
         intensity
       });

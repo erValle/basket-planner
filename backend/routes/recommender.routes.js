@@ -26,17 +26,125 @@ const state = {
   jobs: {},
 };
 
-router.get('/status', (req, res) => {
-  const modelInfo = getModelInfo();
-  const active = state.versions.find((v) => v.id === state.activeVersion);
-  
-  res.json({
-    activeVersion: state.activeVersion,
-    modelInfo,
-    trainedAt: active?.trainedAt ?? null,
-    metrics: active?.metrics ?? null,
-    techCost: active?.techCost ?? 'low',
-  });
+router.get('/status', async (req, res) => {
+  try {
+    const modelInfo = getModelInfo();
+    const config = getModelConfig();
+    const { TrainingPlan, Exercise, TrainingPlanVersion, sequelize } = require('../models');
+    
+    // Obtener estadísticas reales del sistema
+    const totalPlans = await TrainingPlan.count();
+    const totalExercises = await Exercise.count();
+    
+    // Obtener versiones de planes con sesiones para análisis
+    const versionsWithSessions = await TrainingPlanVersion.findAll({
+      where: {
+        sessions: { [sequelize.Sequelize.Op.ne]: null }
+      },
+      attributes: ['id', 'sessions'],
+      limit: 100
+    });
+    
+    // Contar ejercicios por nombre en las planificaciones
+    const exerciseCounts = {};
+    versionsWithSessions.forEach(version => {
+      const sessions = version.sessions?.sessions || [];
+      sessions.forEach(session => {
+        const blocks = session.blocks || [];
+        blocks.forEach(block => {
+          const exercises = block.exercises || [];
+          exercises.forEach(ex => {
+            const name = ex.name || 'Sin nombre';
+            exerciseCounts[name] = (exerciseCounts[name] || 0) + 1;
+          });
+        });
+      });
+    });
+    
+    // Top 5 ejercicios más usados
+    const topExercises = Object.entries(exerciseCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count], index) => ({
+        id: index + 1,
+        name: name,
+        usageCount: count
+      }));
+    
+    // Obtener objetivos más populares en planificaciones
+    const plansWithGoals = await TrainingPlan.findAll({
+      where: {
+        goal: { [sequelize.Sequelize.Op.ne]: null }
+      },
+      attributes: ['goal']
+    });
+    
+    // Contar objetivos
+    const goalCounts = {};
+    plansWithGoals.forEach(plan => {
+      if (plan.goal) {
+        goalCounts[plan.goal] = (goalCounts[plan.goal] || 0) + 1;
+      }
+    });
+    
+    const topGoals = Object.entries(goalCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([goal, count]) => ({
+        goal: goal,
+        count: count
+      }));
+    
+    // Construir modelConfig de forma segura
+    let modelConfig = {
+      version: 'unknown',
+      description: 'Sin descripción',
+      createdAt: new Date().toISOString(),
+      totalGoals: 0,
+      totalTags: 0,
+    };
+    
+    if (config) {
+      modelConfig.version = config.modelVersion || 'unknown';
+      modelConfig.description = config.description || 'Sin descripción';
+      modelConfig.createdAt = config.createdAt || new Date().toISOString();
+      
+      if (config.goalToTags && typeof config.goalToTags === 'object') {
+        try {
+          modelConfig.totalGoals = Object.keys(config.goalToTags).length;
+        } catch (e) {
+          console.error('Error counting goals:', e);
+        }
+      }
+      
+      // En el config, weights tiene propiedades como tagMatch, typeMatch, etc.
+      // No hay un weights.tags, así que contamos las propiedades de weights
+      if (config.weights && typeof config.weights === 'object') {
+        try {
+          modelConfig.totalTags = Object.keys(config.weights).length;
+        } catch (e) {
+          console.error('Error counting weight properties:', e);
+        }
+      }
+    }
+    
+    res.json({
+      activeVersion: state.activeVersion,
+      modelInfo,
+      modelConfig,
+      statistics: {
+        totalPlans,
+        totalExercises,
+        topExercises: topExercises,
+        topGoals: topGoals,
+      },
+      trainedAt: new Date().toISOString(),
+      techCost: 'low',
+    });
+  } catch (error) {
+    console.error('Error getting recommender status:', error);
+    res.status(500).json({ message: 'Error al obtener estado del recomendador', error: error.message });
+  }
 });
 
 // Nuevo endpoint: obtener configuración del modelo activo
