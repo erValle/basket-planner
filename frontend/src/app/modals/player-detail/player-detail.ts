@@ -81,6 +81,15 @@ export class PlayerDetail {
   membershipsError: string | null = null;
   memberships: PlayerMembership[] = [];
 
+  // Computed properties para filtrar membresías
+  get activeMemberships(): PlayerMembership[] {
+    return this.memberships.filter(m => m.status === 'active');
+  }
+
+  get historicalMemberships(): PlayerMembership[] {
+    return this.memberships; // Muestra todas (activas y cerradas) en orden cronológico
+  }
+
   addDialogOpen = false;
   closeDialogOpen = false;
   selectedMembership: PlayerMembership | null = null;
