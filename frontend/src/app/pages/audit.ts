@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -10,7 +10,8 @@ import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 import { BehaviorSubject, switchMap, map, catchError, of, startWith, shareReplay } from 'rxjs';
 
@@ -46,10 +47,11 @@ interface AuditVm {
     DatePickerModule,
     PageHeader,
     AppShell,
+    ConfirmDialogModule,
   ],
   templateUrl: './audit.html',
   styleUrl: './audit.scss',
-  providers: [MessageService],
+  providers: [MessageService, ConfirmationService],
 })
 export class AuditPage {
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
@@ -126,7 +128,13 @@ export class AuditPage {
   detailError: string | null = null;
   selected: AuditLogDetail | null = null;
 
-  constructor(private readonly api: AuditApiService, private readonly toast: MessageService) {}
+  constructor(
+    private readonly api: AuditApiService,
+    private readonly toast: MessageService,
+    private readonly confirmationService: ConfirmationService,
+    private readonly zone: NgZone,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
 
   ngOnInit(): void {
     this.load();
@@ -164,19 +172,28 @@ export class AuditPage {
   }
 
   openDetail(row: AuditLogListItem): void {
-    this.detailDialogOpen = true;
-    this.detailLoading = true;
-    this.detailError = null;
+    this.zone.run(() => {
+      this.detailDialogOpen = true;
+      this.detailLoading = true;
+      this.detailError = null;
+      this.cdr.detectChanges();
+    });
 
     this.api.get(row.id).subscribe({
       next: (res) => {
-        this.detailLoading = false;
-        if (res?.item) this.selected = res.item;
+        this.zone.run(() => {
+          this.detailLoading = false;
+          if (res?.item) this.selected = res.item;
+          this.cdr.detectChanges();
+        });
       },
       error: (e: unknown) => {
-        this.detailLoading = false;
-        this.detailError = e instanceof Error ? e.message : 'No se pudo cargar el detalle.';
-        this.toast.add({ severity: 'error', summary: 'Error', detail: this.detailError });
+        this.zone.run(() => {
+          this.detailLoading = false;
+          this.detailError = e instanceof Error ? e.message : 'No se pudo cargar el detalle.';
+          this.toast.add({ severity: 'error', summary: 'Error', detail: this.detailError });
+          this.cdr.detectChanges();
+        });
       },
     });
   }
@@ -187,5 +204,64 @@ export class AuditPage {
     } catch {
       return String(v);
     }
+  }
+
+  exportCsv(): void {
+    this.api.exportCsv({
+      entity: this.filters.entity || undefined,
+      action: this.filters.action || undefined,
+      userId: this.filters.user ? Number(this.filters.user) : undefined,
+      entityId: this.filters.entityId || undefined,
+      requestId: this.filters.requestId || undefined,
+      from: this.toIsoDate(this.filters.from),
+      to: this.toIsoDate(this.filters.to),
+    }).subscribe({
+      next: (csv) => {
+        const blob = new Blob([csv as string], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.toast.add({ severity: 'success', summary: 'Éxito', detail: 'CSV exportado correctamente' });
+      },
+      error: (e: unknown) => {
+        const error = e instanceof Error ? e.message : 'No se pudo exportar el CSV.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: error });
+      },
+    });
+  }
+
+  confirmDeleteAll(): void {
+    this.confirmationService.confirm({
+      header: 'Confirmar eliminación',
+      message: '¿Estás seguro de que quieres eliminar TODOS los registros de auditoría? Esta acción no se puede deshacer.',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Sí, eliminar todos',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'bp-btn bp-btn-danger',
+      rejectButtonStyleClass: 'bp-btn bp-btn-ghost',
+      accept: () => {
+        this.deleteAll();
+      },
+    });
+  }
+
+  deleteAll(): void {
+    this.api.deleteAll().subscribe({
+      next: (result) => {
+        this.toast.add({ 
+          severity: 'success', 
+          summary: 'Éxito', 
+          detail: `${result.deleted} registros eliminados` 
+        });
+        this.load();
+      },
+      error: (e: unknown) => {
+        const error = e instanceof Error ? e.message : 'No se pudieron eliminar los logs.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: error });
+      },
+    });
   }
 }

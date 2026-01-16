@@ -1,5 +1,6 @@
 <app-shell title="Administración" subtitle="Audit log">
   <p-toast></p-toast>
+  <p-confirmDialog></p-confirmDialog>
 
   <bp-dialog
     header="Detalle de auditoría"
@@ -77,9 +78,28 @@
   <div class="max-w-7xl mx-auto">
     <app-page-header
       [title]="'Audit log'"
-      [subtitle]="'Actividades relevantes del sistema (solo ADMIN).'
-      "
+      [subtitle]="'Actividades relevantes del sistema (solo ADMIN).'"
     ></app-page-header>
+
+    <!-- Action buttons -->
+    <div class="flex justify-end gap-2 mb-4">
+      <button 
+        type="button" 
+        pButton 
+        icon="pi pi-download" 
+        label="Exportar CSV" 
+        class="bp-btn bp-btn-secondary bp-btn-sm" 
+        (click)="exportCsv()"
+      ></button>
+      <button 
+        type="button" 
+        pButton 
+        icon="pi pi-trash" 
+        label="Eliminar todos" 
+        class="bp-btn bp-btn-danger bp-btn-sm" 
+        (click)="confirmDeleteAll()"
+      ></button>
+    </div>
 
     <!-- Filters -->
     <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
@@ -141,8 +161,8 @@
         </div>
 
         <div class="col-span-6 flex items-end justify-end gap-2">
-          <button type="button" pButton label="Aplicar" class="p-button-sm" (click)="first = 0; load()"></button>
-          <button type="button" pButton label="Limpiar" class="p-button-text p-button-sm" (click)="clearFilters()"></button>
+          <button type="button" pButton label="Aplicar" class="bp-btn bp-btn-primary bp-btn-sm" (click)="first = 0; load()"></button>
+          <button type="button" pButton label="Limpiar" class="bp-btn bp-btn-ghost bp-btn-sm" (click)="clearFilters()"></button>
         </div>
       </div>
     </div>
@@ -213,7 +233,7 @@
                   type="button"
                   pButton
                   icon="pi pi-eye"
-                  class="p-button-text p-button-sm"
+                  class="bp-btn bp-btn-ghost bp-btn-sm"
                   aria-label="Ver detalle"
                   (click)="openDetail(r)"
                 ></button>
