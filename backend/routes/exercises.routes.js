@@ -4,9 +4,12 @@ const validate = require('../src/middlewares/validate');
 const { requireAuth, requireAnyRole } = require('../src/middlewares/rbac');
 const { createExerciseSchema, updateExerciseSchema } = require('../src/validation/exerciseSchemas');
 const { idParamSchema } = require('../src/validation/commonSchemas');
-const { listExercises, getExercise, createExercise, updateExercise, deleteExercise } = require('../src/controllers/exerciseController');
+const { listExercises, getExercise, createExercise, updateExercise, deleteExercise, getPopularTags } = require('../src/controllers/exerciseController');
 
 router.use(requireAuth);
+
+// Obtener etiquetas populares (debe ir ANTES de /:id para evitar conflictos)
+router.get('/tags/popular', getPopularTags);
 
 // CU.016: Catálogo de ejercicios - todos pueden consultar (incluido player)
 router.get('/', listExercises);

@@ -1,4 +1,6 @@
 <app-shell title="Ejercicios" subtitle="Crea y gestiona tu biblioteca de ejercicios.">
+	<p-confirmDialog styleClass="bp-dialog"></p-confirmDialog>
+	
 	<div class="max-w-6xl mx-auto">
 		<app-page-header
 			[title]="'Ejercicios'"
@@ -92,7 +94,7 @@
 									<div class="flex-1">
 										<div class="text-[15px] font-semibold text-[#f9fafb]">{{ exercise.nombre }}</div>
 										<div class="mt-2 flex flex-wrap items-center gap-2">
-											<p-tag [value]="exercise.tipo" severity="info" />
+											<p-tag [value]="formatType(exercise.tipo)" severity="info" />
 											<span class="inline-flex items-center rounded-full bg-[#020617] border border-[#1f2937] px-2 py-1 text-[11px] text-[#e5e7eb]">
 												{{ exercise.duracion }} min
 											</span>
@@ -103,7 +105,6 @@
 									<div class="flex shrink-0 gap-1">
 										<button type="button" pButton icon="pi pi-eye" class="bp-btn bp-btn-ghost bp-btn-sm" aria-label="Ver" (click)="openViewExercise(exercise)"></button>
 										<button type="button" pButton icon="pi pi-pencil" class="bp-btn bp-btn-ghost bp-btn-sm" aria-label="Editar" (click)="openEditExercise(exercise)"></button>
-										<button type="button" pButton icon="pi pi-copy" class="bp-btn bp-btn-ghost bp-btn-sm" aria-label="Copiar" (click)="copyExercise(exercise)"></button>
 									</div>
 								</div>
 
@@ -181,11 +182,14 @@
 		size="xl"
 		(closed)="closeNewExercise()"
 	>
-		<app-exercise-form
-			[mode]="dialogMode"
-			[initialValue]="initialDraft"
-			(cancel)="closeNewExercise()"
-			(save)="saveNewExercise($event)"
-		/>
+		@if (newExerciseVisible) {
+			<app-exercise-form
+				[mode]="dialogMode"
+				[initialValue]="initialDraft"
+				(cancel)="closeNewExercise()"
+				(save)="saveNewExercise($event)"
+				(delete)="deleteExercise()"
+			/>
+		}
 	</bp-dialog>
 </app-shell>

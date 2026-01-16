@@ -93,4 +93,11 @@ export class ExercisesApi {
   remove(id: number) {
     return this.api.delete<void>(`/api/exercises/${id}`);
   }
+
+  /**
+   * Obtiene las etiquetas más usadas en los ejercicios
+   */
+  getPopularTags() {
+    return this.api.get<Array<{ tag: string; count: number }>>('/api/exercises/tags/popular');
+  }
 }
