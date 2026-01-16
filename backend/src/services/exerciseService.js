@@ -4,6 +4,7 @@ const path = require('path');
 
 const { Exercise, Equipment } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
+const { normalizeMaterialName } = require('./equipmentService');
 // El archivo está en el root del proyecto, no en backend
 const exercisesJSON = require(path.join(__dirname, '../../../db_ejercicios.json'));
 
@@ -52,13 +53,82 @@ const getExerciseById = async (id) => {
   return ex;
 };
 
-const createExercise = async (payload) => Exercise.create(payload);
+const createExercise = async (payload) => {
+  // Verificar si el ejercicio tiene todos los materiales necesarios disponibles
+  if (payload.clubId && payload.characteristics?.requiredEquipment) {
+    const requiredMaterials = payload.characteristics.requiredEquipment;
+    
+    if (requiredMaterials.length > 0) {
+      // Obtener materiales disponibles del club
+      const availableEquipment = await Equipment.findAll({
+        where: {
+          clubId: payload.clubId,
+          status: 'available'
+        }
+      });
+      
+      const availableMaterials = availableEquipment.map(e => normalizeMaterialName(e.name));
+      
+      // Verificar si todos los materiales están disponibles
+      const hasAllMaterials = requiredMaterials.every(required => {
+        const normalizedRequired = normalizeMaterialName(required);
+        return availableMaterials.some(available => 
+          available === normalizedRequired || 
+          available.includes(normalizedRequired) || 
+          normalizedRequired.includes(available)
+        );
+      });
+      
+      // Si no tiene todos los materiales, marcar como inactivo
+      if (!hasAllMaterials) {
+        payload.active = false;
+      }
+    }
+  }
+  
+  return Exercise.create(payload);
+};
 
 const updateExercise = async (id, payload) => {
   const ex = await Exercise.findByPk(id);
   if (!ex) {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'EXERCISE_NOT_FOUND', 'Exercise not found');
   }
+  
+  // Si se está actualizando el material requerido, verificar disponibilidad
+  if (ex.clubId && payload.characteristics?.requiredEquipment) {
+    const requiredMaterials = payload.characteristics.requiredEquipment;
+    
+    if (requiredMaterials.length > 0) {
+      // Obtener materiales disponibles del club
+      const availableEquipment = await Equipment.findAll({
+        where: {
+          clubId: ex.clubId,
+          status: 'available'
+        }
+      });
+      
+      const availableMaterials = availableEquipment.map(e => normalizeMaterialName(e.name));
+      
+      // Verificar si todos los materiales están disponibles
+      const hasAllMaterials = requiredMaterials.every(required => {
+        const normalizedRequired = normalizeMaterialName(required);
+        return availableMaterials.some(available => 
+          available === normalizedRequired || 
+          available.includes(normalizedRequired) || 
+          normalizedRequired.includes(available)
+        );
+      });
+      
+      // Si no tiene todos los materiales, marcar como inactivo (a menos que se especifique lo contrario)
+      if (!hasAllMaterials && payload.active !== false) {
+        payload.active = false;
+      } else if (hasAllMaterials && payload.active === undefined) {
+        payload.active = true;
+      }
+    }
+  }
+  
   await ex.update(payload);
   return ex;
 };

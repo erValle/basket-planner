@@ -6,21 +6,35 @@ const config = require('./config');
 
 /**
  * Normaliza un nombre de material para comparación
+ * - Elimina acentos y diacríticos
+ * - Convierte a minúsculas
+ * - Elimina espacios extra
  * @param {string} material - Nombre del material
  * @returns {string} Material normalizado
  */
 function normalizeMaterial(material) {
   if (!material) return '';
-  const lower = material.toLowerCase().trim();
+  
+  // Convertir a minúsculas y eliminar espacios extra
+  let normalized = material.toLowerCase().trim();
+  
+  // Eliminar acentos usando NFD (Normalization Form Canonical Decomposition)
+  normalized = normalized.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   
   // Buscar en el mapeo de normalización
-  for (const [normalized, variants] of Object.entries(config.materialNormalization)) {
-    if (variants.some(v => lower.includes(v.toLowerCase()) || v.toLowerCase().includes(lower))) {
-      return normalized;
+  for (const [standardName, variants] of Object.entries(config.materialNormalization)) {
+    const normalizedVariants = variants.map(v => 
+      v.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    );
+    
+    // Coincidencia exacta o parcial
+    if (normalizedVariants.includes(normalized) || 
+        normalizedVariants.some(v => normalized.includes(v) || v.includes(normalized))) {
+      return standardName;
     }
   }
   
-  return lower;
+  return normalized;
 }
 
 /**
