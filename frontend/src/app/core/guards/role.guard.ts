@@ -15,7 +15,7 @@ import { resolveAllowedRolesFromUrl } from '../auth/permissions';
 export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const auth = inject(AuthService);
   const router = inject(Router);
-    const toast = inject(MessageService);
+  const toast = inject(MessageService);
 
   const fromMatrix = resolveAllowedRolesFromUrl(router.url);
   const fromRouteData = (route.data?.['roles'] ?? []) as Role[];
@@ -23,9 +23,9 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   if (!required || required.length === 0) return true;
 
   const current = auth.getRoleSnapshot();
-    if (hasRole(current, required)) return true;
+  if (hasRole(current, required)) return true;
 
-    toast.add({ severity: 'warn', summary: 'Acceso denegado', detail: 'No tienes permisos para acceder a esta sección.' });
-    router.navigateByUrl('/forbidden');
+  toast.add({ severity: 'warn', summary: 'Acceso denegado', detail: 'No tienes permisos para acceder a esta sección.' });
+  router.navigateByUrl('/forbidden');
   return false;
 };

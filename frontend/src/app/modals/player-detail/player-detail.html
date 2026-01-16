@@ -1,5 +1,5 @@
 <p-toast></p-toast>
-<p-confirmDialog></p-confirmDialog>
+<p-confirmDialog styleClass="bp-dialog"></p-confirmDialog>
 
 <div class="p-6">
 	<div class="flex items-center justify-between mb-2">
@@ -108,26 +108,17 @@
 								</div>
 								<div>
 									<label class="block text-[#e5e7eb] text-[13px] mb-2">Mano dominante</label>
-									<input
-										pInputText
+									<p-select
 										[(ngModel)]="player.dominantHand"
-										name="dominantHand"
-										class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937]"
-									/>
+										[options]="handOptions"
+										optionLabel="label"
+										optionValue="value"
+										placeholder="Selecciona la mano"
+										styleClass="w-full bp-select"
+										panelStyleClass="bp-select-panel"
+									></p-select>
 								</div>
 							</div>
-						</div>
-
-						<div>
-							<label class="block text-[#e5e7eb] text-[13px] mb-2">Notas del entrenador</label>
-							<textarea
-								pTextarea
-								[(ngModel)]="player.notes"
-								name="notes"
-								rows="4"
-								placeholder="Anota observaciones relevantes..."
-								class="w-full bg-[#111827] text-[#f9fafb] px-3 py-[9px] rounded-lg border border-[#1f2937] resize-none"
-							></textarea>
 						</div>
 					</div>
 
@@ -181,11 +172,11 @@
 					</div>
 				} @else if (membershipsError) {
 					<div class="mt-4 text-[13px] text-red-200 bg-red-950/30 border border-red-900/50 rounded-lg p-3">{{ membershipsError }}</div>
-				} @else if (!memberships.length) {
-					<div class="mt-4 text-[13px] text-[#9ca3af]">No hay pertenencias registradas.</div>
+				} @else if (!activeMemberships.length) {
+					<div class="mt-4 text-[13px] text-[#9ca3af]">No hay pertenencias activas.</div>
 				} @else {
 					<div class="mt-4">
-						<p-table [value]="memberships" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,20]" styleClass="bp-table p-datatable-sm">
+						<p-table [value]="activeMemberships" [paginator]="true" [rows]="5" [rowsPerPageOptions]="[5,10,20]" styleClass="bp-table p-datatable-sm">
 							<ng-template pTemplate="header">
 								<tr>
 									<th>Club</th>
@@ -217,7 +208,12 @@
 										</td>
 										<td>
 											<div class="flex justify-end gap-2">
-												<p-button label="Principal" (click)="markPrimary(m)" [disabled]="savingMembership || m.isPrimary || m.status !== 'active'" styleClass="bp-btn bp-btn-ghost bp-btn-sm"></p-button>
+												<p-button 
+													[label]="m.isPrimary ? 'Es principal' : 'Marcar principal'" 
+													(click)="markPrimary(m)" 
+													[disabled]="savingMembership || m.status !== 'active'" 
+													[styleClass]="m.isPrimary ? 'bp-btn bp-btn-primary bp-btn-sm' : 'bp-btn bp-btn-ghost bp-btn-sm'"
+												></p-button>
 												<p-button label="Cerrar" (click)="openClose(m)" [disabled]="savingMembership || m.status !== 'active'" styleClass="bp-btn bp-btn-danger bp-btn-sm"></p-button>
 											</div>
 										</td>
@@ -234,11 +230,11 @@
 				<h3 class="text-[16px] text-[#f9fafb] mb-1">Histórico</h3>
 				<p class="text-[12px] text-[#9ca3af]">Pertenencias por orden cronológico.</p>
 
-				@if (!memberships.length) {
+				@if (!historicalMemberships.length) {
 					<div class="mt-4 text-[13px] text-[#9ca3af]">No hay datos todavía.</div>
 				} @else {
 					<div class="mt-4">
-						<p-table [value]="memberships" [paginator]="true" [rows]="5" styleClass="bp-table p-datatable-sm">
+						<p-table [value]="historicalMemberships" [paginator]="true" [rows]="5" styleClass="bp-table p-datatable-sm">
 							<ng-template pTemplate="header">
 								<tr>
 										<th>Inicio</th>
@@ -253,8 +249,10 @@
 										<td class="text-[13px] text-[#f9fafb]">{{ m.clubName || ('#' + m.clubId) }}</td>
 										<td class="text-[13px] text-[#9ca3af]">{{ m.endDate || '—' }}</td>
 										<td>
-											@if (m.isPrimary) {
+											@if (m.isPrimary && m.status === 'active') {
 												<p-tag severity="success" value="Principal"></p-tag>
+											} @else {
+												<span class="text-[12px] text-[#6b7280]">—</span>
 											}
 										</td>
 									</tr>
@@ -266,11 +264,6 @@
 			</p-tabpanel>
 		</p-tabpanels>
 	</p-tabs>
-
-	<div class="mt-6 flex justify-between items-center">
-		<p-button label="Cancelar" (click)="onCancel()" styleClass="bp-btn bp-btn-secondary"></p-button>
-		<p-button label="Guardar cambios" (click)="onSave()" styleClass="bp-btn bp-btn-primary"></p-button>
-	</div>
 </div>
 
 <bp-dialog [(visible)]="addDialogOpen" header="Añadir pertenencia" size="md" [loading]="savingMembership" confirmLabel="Añadir" cancelLabel="Cancelar" (confirm)="confirmAdd()" (cancel)="addDialogOpen = false">
@@ -334,11 +327,37 @@
 		<div class="flex justify-between items-center w-full">
 			<span class="text-[12px] text-[#9ca3af]">Se aplicarán cambios en el club del jugador.</span>
 			<div class="flex gap-2">
-				<p-button label="Atrás" (click)="prevTransfer()" [disabled]="savingMembership || transferStep === 0" styleClass="bp-btn bp-btn-secondary"></p-button>
+				<button 
+					type="button"
+					class="bp-btn bp-btn-secondary" 
+					(click)="prevTransfer()" 
+					[disabled]="savingMembership || transferStep === 0"
+				>
+					Atrás
+				</button>
 				@if (transferStep === 0) {
-					<p-button label="Siguiente" (click)="nextTransfer()" [disabled]="savingMembership" styleClass="bp-btn bp-btn-primary"></p-button>
+					<button 
+						type="button"
+						class="bp-btn bp-btn-primary" 
+						(click)="nextTransfer()" 
+						[disabled]="savingMembership"
+					>
+						Siguiente
+					</button>
 				} @else {
-					<p-button label="Confirmar" (click)="confirmTransfer()" [disabled]="savingMembership" styleClass="bp-btn bp-btn-primary"></p-button>
+					<button 
+						type="button"
+						class="bp-btn bp-btn-primary" 
+						(click)="confirmTransfer()" 
+						[disabled]="savingMembership"
+					>
+						@if (savingMembership) {
+							<i class="pi pi-spin pi-spinner mr-2"></i>
+							Confirmando...
+						} @else {
+							Confirmar
+						}
+					</button>
 				}
 			</div>
 		</div>

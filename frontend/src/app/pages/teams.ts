@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -33,6 +33,8 @@ export class Teams {
   private readonly usersApi = inject(UsersApiService);
   private readonly toast = inject(MessageService);
   private readonly clubContext = inject(ClubContextService);
+  private readonly zone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
   private readonly loading$ = new BehaviorSubject<boolean>(true);
@@ -61,14 +63,27 @@ export class Teams {
 
   teams$ = this.refresh$.pipe(
     switchMap(() => {
-      this.loading$.next(true);
+      this.zone.run(() => {
+        this.loading$.next(true);
+        this.cdr.detectChanges();
+      });
       const clubId = this.filters.club !== 'all' ? String(this.filters.club) : undefined;
       const category = this.filters.category !== 'all' ? String(this.filters.category) : undefined;
       return this.api.list({ clubId, category }).pipe(
         map((items) => (items ?? []).map((t) => this.toUiTeam(t))),
+        tap(() => {
+          this.zone.run(() => {
+            this.loading$.next(false);
+            this.cdr.detectChanges();
+          });
+        }),
         catchError((e: unknown) => {
-          const msg = e instanceof Error ? e.message : 'No se pudieron cargar los equipos.';
-          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+          this.zone.run(() => {
+            const msg = e instanceof Error ? e.message : 'No se pudieron cargar los equipos.';
+            this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+            this.loading$.next(false);
+            this.cdr.detectChanges();
+          });
           return of([] as Array<{ id: number; name: string; clubId: number | null; clubName: string; category: string; status: 'active' | 'inactive'; players: number }>);
         }),
       );
@@ -230,9 +245,15 @@ export class Teams {
 
     const clubId = this.draft.clubId ? Number(this.draft.clubId) : null;
     const coachId = this.draft.coachId ? Number(this.draft.coachId) : null;
-    const payload = { name, clubId, coachId, category: this.draft.category || null, active: this.draft.status === 'active' };
 
     if (this.dialogMode === 'create') {
+      // Para crear un equipo, clubId es obligatorio
+      if (!clubId) {
+        this.toast.add({ severity: 'warn', summary: 'Atención', detail: 'Debes seleccionar un club.' });
+        return;
+      }
+
+      const payload = { name, clubId, coachId, category: this.draft.category || null, active: this.draft.status === 'active' };
       this.api.create(payload).subscribe({
         next: () => {
           this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Equipo creado.' });
@@ -247,6 +268,8 @@ export class Teams {
       return;
     }
 
+    // Para actualizar, clubId puede ser null (opcional)
+    const payload = { name, clubId, coachId, category: this.draft.category || null, active: this.draft.status === 'active' };
     this.api.update(this.draft.id, payload).subscribe({
       next: () => {
         this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Equipo actualizado.' });

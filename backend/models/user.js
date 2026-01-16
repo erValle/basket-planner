@@ -54,6 +54,12 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      name: {
+        type: DataTypes.VIRTUAL,
+        get() {
+          return `${this.firstName} ${this.lastName}`.trim();
+        },
+      },
       email: {
         type: DataTypes.STRING,
         allowNull: false,
@@ -65,15 +71,13 @@ module.exports = (sequelize, DataTypes) => {
       },
       role: {
         type: 'enum_users_role',
-        // Business rule: an admin can register a user without assigning any role yet.
-        // Such users will appear in the "Añadir jugadores" flow to be enrolled later.
-        allowNull: true,
-        defaultValue: null,
+        allowNull: false,
+        defaultValue: 'user',
       },
       status: {
         type: 'enum_users_status',
         allowNull: false,
-        defaultValue: 'pending',
+        defaultValue: 'active',
       },
       dateOfBirth: {
         type: DataTypes.DATE,

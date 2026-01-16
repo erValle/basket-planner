@@ -38,6 +38,14 @@
       <div class="bp-dialog-footer">
         @if (footerHint) {
           <span class="bp-dialog-footer-hint">{{ footerHint }}</span>
+        } @else if (showDelete) {
+          <p-button 
+            [label]="deleteLabel" 
+            icon="pi pi-trash"
+            (click)="onDelete()" 
+            [disabled]="loading"
+            styleClass="bp-btn bp-btn-danger"
+          ></p-button>
         } @else {
           <span></span>
         }

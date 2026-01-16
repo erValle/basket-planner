@@ -64,8 +64,7 @@ export class AdminUsers {
   statusOptions: Option<AdminUserStatus>[] = [
     { label: 'Todos', value: 'all' },
     { label: 'Activo', value: 'active' },
-    { label: 'Bloqueado', value: 'blocked' },
-    { label: 'Pendiente', value: 'pending' },
+    { label: 'Inactivo', value: 'inactive' },
   ];
 
   filters = {
@@ -101,7 +100,7 @@ export class AdminUsers {
               name: (u.name ?? '').toString(),
               email: (u.email ?? '').toString(),
               role: (u.role ?? 'player') as AdminUserRole,
-              status: (u.status ?? 'pending') as AdminUserStatus,
+              status: (u.status ?? 'active') as AdminUserStatus,
               createdAt: u.createdAt ? String(u.createdAt).slice(0, 19).replace('T', ' ') : '',
             })) as AdminUserListItem[];
 
@@ -113,6 +112,10 @@ export class AdminUsers {
           }),
           startWith({ items: [], pageItems: [], loading: true, error: null, total: 0 } as AdminUsersVm),
           catchError((e: unknown) => {
+            // No mostrar errores de validación (400), solo errores de servidor
+            if (e && typeof e === 'object' && 'status' in e && (e as any).status === 400) {
+              return of({ items: [], pageItems: [], loading: false, error: null, total: 0 } as AdminUsersVm);
+            }
             const error = e instanceof Error ? e.message : 'No se pudieron cargar los usuarios.';
             return of({ items: [], pageItems: [], loading: false, error, total: 0 } as AdminUsersVm);
           }),
@@ -170,10 +173,10 @@ export class AdminUsers {
     switch (status) {
       case 'active':
         return 'Activo';
-      case 'blocked':
-        return 'Bloqueado';
-      case 'pending':
-        return 'Pendiente';
+      case 'inactive':
+        return 'Inactivo';
+      default:
+        return 'Activo';
     }
   }
 
@@ -181,10 +184,10 @@ export class AdminUsers {
     switch (status) {
       case 'active':
         return 'success';
-      case 'pending':
-        return 'warn';
-      case 'blocked':
+      case 'inactive':
         return 'danger';
+      default:
+        return 'success';
     }
   }
 
@@ -198,8 +201,8 @@ export class AdminUsers {
 
   toggleBlock(user: AdminUserListItem): void {
     if (this.mutatingId) return;
-    const shouldBlock = user.status !== 'blocked';
-    const actionLabel = shouldBlock ? 'Bloquear' : 'Desbloquear';
+    const shouldBlock = user.status !== 'inactive';
+    const actionLabel = shouldBlock ? 'Desactivar' : 'Activar';
 
     this.confirmation.confirm({
       header: `${actionLabel} usuario`,
@@ -214,7 +217,7 @@ export class AdminUsers {
           next: () => {
             this.mutatingId = null;
             this.refresh();
-            this.toast.add({ severity: 'success', summary: 'Actualizado', detail: `Usuario ${actionLabel.toLowerCase()}ado.` });
+            this.toast.add({ severity: 'success', summary: 'Actualizado', detail: `Usuario ${actionLabel.toLowerCase()}do.` });
           },
           error: (e: unknown) => {
             this.mutatingId = null;

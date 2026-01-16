@@ -28,16 +28,9 @@ export class PlayerSelection {
   @Input() selectedPlayers: string[] = [];
 
   /** List of players available to select */
-  @Input() availablePlayers: PlayerSelectionItem[] = [
-    { id: '1', nombre: 'Juan Pérez', posicion: 'Base', categoria: 'Senior' },
-    { id: '2', nombre: 'Carlos López', posicion: 'Alero', categoria: 'Senior' },
-    { id: '3', nombre: 'Miguel Ángel Ruiz', posicion: 'Escolta', categoria: 'Senior' },
-    { id: '4', nombre: 'David Martín', posicion: 'Pívot', categoria: 'Senior' },
-    { id: '5', nombre: 'Alberto Sánchez', posicion: 'Ala-Pívot', categoria: 'Senior' },
-    { id: '6', nombre: 'Javier González', posicion: 'Base', categoria: 'Juvenil' },
-    { id: '7', nombre: 'Pablo Fernández', posicion: 'Alero', categoria: 'Juvenil' },
-    { id: '8', nombre: 'Sergio Rodríguez', posicion: 'Escolta', categoria: 'Juvenil' },
-  ];
+  @Input() availablePlayers: PlayerSelectionItem[] = [];
+
+  @Input() loading = false;
 
   @Output() cancel = new EventEmitter<void>();
   @Output() confirm = new EventEmitter<string[]>();

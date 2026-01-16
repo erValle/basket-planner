@@ -28,7 +28,9 @@ module.exports = {
   },
   
   // Mapeo de objetivos a etiquetas relevantes
+  // Incluye tanto claves en inglés como en español para mejor compatibilidad
   goalToTags: {
+    // Claves en inglés
     'shooting': ['tiro', 'catch_and_shoot', 'pull_up', 'tiro_libre', 'form_shooting', 'mecanica'],
     'ball_handling': ['bote', 'control', 'mano_dominante', 'mano_no_dominante', 'crossover', 'hesitation'],
     'finishing': ['finalizacion', 'bandeja', 'aro', 'eurostep', 'reverso', 'floater', 'runner'],
@@ -40,11 +42,28 @@ module.exports = {
     'rebounding': ['rebote', 'box_out', 'contacto', 'posicion', 'segunda_oportunidad'],
     'post_play': ['poste', 'footwork', 'drop_step', 'up_and_under', 'spin_move'],
     'transition': ['transicion', 'contraataque', 'carriles', 'velocidad'],
-    'fundamentals': ['fundamentos', 'mecanica', 'repeticion', 'control']
+    'fundamentals': ['fundamentos', 'mecanica', 'repeticion', 'control'],
+    // Claves en español (alias)
+    'tiro': ['tiro', 'catch_and_shoot', 'pull_up', 'tiro_libre', 'form_shooting', 'mecanica'],
+    'bote': ['bote', 'control', 'mano_dominante', 'mano_no_dominante', 'crossover', 'hesitation'],
+    'manejo': ['bote', 'control', 'mano_dominante', 'mano_no_dominante', 'crossover', 'hesitation'],
+    'finalizacion': ['finalizacion', 'bandeja', 'aro', 'eurostep', 'reverso', 'floater', 'runner'],
+    'pase': ['pase', 'pecho', 'picado', 'beisbol', 'skip_pass', 'vision', 'precision'],
+    'defensa': ['defensa', '1v1', 'closeout', 'lateralidad', 'posicionamiento', 'comunicacion'],
+    'bloqueo': ['pick_and_roll', 'bloqueo_directo', 'lecturas', 'coberturas'],
+    'fisico': ['fisico', 'anaerobico', 'resistencia', 'condicionamiento', 'intensidad'],
+    'condicionamiento': ['fisico', 'anaerobico', 'resistencia', 'condicionamiento', 'intensidad'],
+    'tactica': ['tactica', 'spacing', 'cortes', 'ataque', 'lecturas'],
+    'rebote': ['rebote', 'box_out', 'contacto', 'posicion', 'segunda_oportunidad'],
+    'poste': ['poste', 'footwork', 'drop_step', 'up_and_under', 'spin_move'],
+    'transicion': ['transicion', 'contraataque', 'carriles', 'velocidad'],
+    'contraataque': ['transicion', 'contraataque', 'carriles', 'velocidad']
   },
   
   // Mapeo de objetivos a tipos de ejercicio preferidos
+  // Incluye tanto claves en inglés como en español para mejor compatibilidad
   goalToTypes: {
+    // Claves en inglés
     'shooting': ['TIRO'],
     'ball_handling': ['TECNICA_BOTE'],
     'finishing': ['FINALIZACION_ARO'],
@@ -56,7 +75,22 @@ module.exports = {
     'rebounding': ['REBOTE'],
     'post_play': ['TECNICA_POSTE'],
     'transition': ['TACTICA_TRANSICION'],
-    'fundamentals': ['TECNICA_BOTE', 'TECNICA_PIES', 'PASE']
+    'fundamentals': ['TECNICA_BOTE', 'TECNICA_PIES', 'PASE'],
+    // Claves en español (alias)
+    'tiro': ['TIRO'],
+    'bote': ['TECNICA_BOTE'],
+    'manejo': ['TECNICA_BOTE'],
+    'finalizacion': ['FINALIZACION_ARO'],
+    'pase': ['PASE'],
+    'defensa': ['DEFENSA_INDIVIDUAL', 'DEFENSA_EQUIPO', 'DEFENSA_FUNDAMENTOS'],
+    'bloqueo': ['TACTICA_ATAQUE', 'TACTICA_ATAQUE_DEFENSA'],
+    'fisico': ['CONDICIONAMIENTO_FISICO'],
+    'condicionamiento': ['CONDICIONAMIENTO_FISICO'],
+    'tactica': ['TACTICA_ATAQUE', 'TACTICA_ATAQUE_DEFENSA', 'TACTICA_TRANSICION'],
+    'rebote': ['REBOTE'],
+    'poste': ['TECNICA_POSTE'],
+    'transicion': ['TACTICA_TRANSICION'],
+    'contraataque': ['TACTICA_TRANSICION']
   },
   
   // Distribución recomendada de tipos de ejercicio por sesión (porcentajes)
@@ -113,7 +147,9 @@ module.exports = {
   
   // Ponderación de dimensiones de dificultad según el objetivo de la sesión
   // Cada objetivo tiene pesos para: táctica, técnica, física, mental (suman 1.0)
+  // Incluye tanto claves en inglés como en español para mejor compatibilidad
   objectiveToDimensionWeights: {
+    // Claves en inglés
     'shooting': { tactica: 0.1, tecnica: 0.5, fisica: 0.2, mental: 0.2 },
     'ball_handling': { tactica: 0.1, tecnica: 0.6, fisica: 0.2, mental: 0.1 },
     'finishing': { tactica: 0.15, tecnica: 0.5, fisica: 0.25, mental: 0.1 },
@@ -126,6 +162,21 @@ module.exports = {
     'post_play': { tactica: 0.25, tecnica: 0.45, fisica: 0.2, mental: 0.1 },
     'transition': { tactica: 0.3, tecnica: 0.2, fisica: 0.35, mental: 0.15 },
     'fundamentals': { tactica: 0.1, tecnica: 0.5, fisica: 0.2, mental: 0.2 },
+    // Claves en español (alias)
+    'tiro': { tactica: 0.1, tecnica: 0.5, fisica: 0.2, mental: 0.2 },
+    'bote': { tactica: 0.1, tecnica: 0.6, fisica: 0.2, mental: 0.1 },
+    'manejo': { tactica: 0.1, tecnica: 0.6, fisica: 0.2, mental: 0.1 },
+    'finalizacion': { tactica: 0.15, tecnica: 0.5, fisica: 0.25, mental: 0.1 },
+    'pase': { tactica: 0.2, tecnica: 0.4, fisica: 0.1, mental: 0.3 },
+    'defensa': { tactica: 0.25, tecnica: 0.25, fisica: 0.3, mental: 0.2 },
+    'bloqueo': { tactica: 0.5, tecnica: 0.2, fisica: 0.15, mental: 0.15 },
+    'fisico': { tactica: 0.05, tecnica: 0.1, fisica: 0.7, mental: 0.15 },
+    'condicionamiento': { tactica: 0.05, tecnica: 0.1, fisica: 0.7, mental: 0.15 },
+    'tactica': { tactica: 0.6, tecnica: 0.15, fisica: 0.1, mental: 0.15 },
+    'rebote': { tactica: 0.2, tecnica: 0.2, fisica: 0.4, mental: 0.2 },
+    'poste': { tactica: 0.25, tecnica: 0.45, fisica: 0.2, mental: 0.1 },
+    'transicion': { tactica: 0.3, tecnica: 0.2, fisica: 0.35, mental: 0.15 },
+    'contraataque': { tactica: 0.3, tecnica: 0.2, fisica: 0.35, mental: 0.15 },
     // Peso por defecto si no hay objetivo específico
     'default': { tactica: 0.25, tecnica: 0.25, fisica: 0.25, mental: 0.25 }
   },

@@ -1,6 +1,6 @@
 const { StatusCodes } = require('http-status-codes');
 
-const { Feedback, PlanAssignment, TrainingPlanVersion, TrainingPlan } = require('../../models');
+const { Feedback, PlanAssignment, TrainingPlanVersion, TrainingPlan, User } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
 
 const listFeedbacks = async ({ trainingPlanVersionId, userId, sessionId, targetType } = {}) => {
@@ -9,7 +9,29 @@ const listFeedbacks = async ({ trainingPlanVersionId, userId, sessionId, targetT
   if (userId) where.userId = userId;
   if (sessionId) where.sessionId = sessionId;
   if (targetType) where.targetType = targetType;
-  return Feedback.findAll({ where });
+  
+  return Feedback.findAll({ 
+    where,
+    include: [
+      {
+        model: User,
+        as: 'user',
+        attributes: ['id', 'firstName', 'lastName', 'email']
+      },
+      {
+        model: TrainingPlanVersion,
+        as: 'trainingPlanVersion',
+        include: [
+          {
+            model: TrainingPlan,
+            as: 'trainingPlan',
+            attributes: ['id', 'name']
+          }
+        ]
+      }
+    ],
+    order: [['createdAt', 'DESC']]
+  });
 };
 
 const getFeedbackById = async (id) => {

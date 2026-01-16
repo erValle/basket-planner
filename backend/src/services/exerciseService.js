@@ -215,6 +215,52 @@ const listExercisesPaginated = async (query = {}) => {
   };
 };
 
+/**
+ * Obtiene las etiquetas más usadas en los ejercicios
+ * @returns {Promise<Array<{tag: string, count: number}>>} Lista de etiquetas ordenadas por frecuencia
+ */
+const getPopularTags = async () => {
+  // Obtener todos los ejercicios activos
+  const exercises = await Exercise.findAll({
+    where: { active: true },
+    attributes: ['tags'],
+  });
+  
+  // Contar frecuencia de cada etiqueta
+  const tagCounts = {};
+  
+  for (const exercise of exercises) {
+    let tags = [];
+    
+    // Las tags pueden estar en diferentes formatos:
+    // 1. Array directo: ['tag1', 'tag2']
+    // 2. Objeto con propiedad tags: { tags: ['tag1', 'tag2'] }
+    if (Array.isArray(exercise.tags)) {
+      tags = exercise.tags;
+    } else if (exercise.tags && typeof exercise.tags === 'object') {
+      if (Array.isArray(exercise.tags.tags)) {
+        tags = exercise.tags.tags;
+      }
+    }
+    
+    for (const tag of tags) {
+      if (tag && typeof tag === 'string') {
+        const normalizedTag = tag.toLowerCase().trim();
+        if (normalizedTag) {
+          tagCounts[normalizedTag] = (tagCounts[normalizedTag] || 0) + 1;
+        }
+      }
+    }
+  }
+  
+  // Convertir a array y ordenar por frecuencia
+  const sortedTags = Object.entries(tagCounts)
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count);
+  
+  return sortedTags;
+};
+
 module.exports = {
   listExercises,
   listExercisesPaginated,
@@ -224,4 +270,5 @@ module.exports = {
   deleteExercise,
   getAllExercisesFromJSON,
   getAllExercisesForRecommender,
+  getPopularTags,
 };

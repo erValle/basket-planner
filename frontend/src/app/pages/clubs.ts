@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -14,7 +14,7 @@ import { BpDialog } from '../components/bp-dialog/bp-dialog';
 import { AppShell } from '../layout/app-shell/app-shell';
 import { ClubsApi, ClubDto } from '../services/clubs.api';
 import { BehaviorSubject, combineLatest, of } from 'rxjs';
-import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operators';
+import { catchError, map, shareReplay, startWith, switchMap, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-clubs',
@@ -37,6 +37,8 @@ import { catchError, map, shareReplay, startWith, switchMap } from 'rxjs/operato
 export class Clubs {
   private readonly api = inject(ClubsApi);
   private readonly toast = inject(MessageService);
+  private readonly zone = inject(NgZone);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
   private readonly loading$ = new BehaviorSubject<boolean>(true);
@@ -54,12 +56,25 @@ export class Clubs {
 
   clubs$ = this.refresh$.pipe(
     switchMap(() => {
-      this.loading$.next(true);
+      this.zone.run(() => {
+        this.loading$.next(true);
+        this.cdr.detectChanges();
+      });
       return this.api.list().pipe(
         map((items) => (items ?? []).map((c) => this.toUiClub(c))),
+        tap(() => {
+          this.zone.run(() => {
+            this.loading$.next(false);
+            this.cdr.detectChanges();
+          });
+        }),
         catchError((e: unknown) => {
-          const msg = e instanceof Error ? e.message : 'No se pudieron cargar los clubes.';
-          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+          this.zone.run(() => {
+            const msg = e instanceof Error ? e.message : 'No se pudieron cargar los clubes.';
+            this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+            this.loading$.next(false);
+            this.cdr.detectChanges();
+          });
           return of([] as Array<{ id: number; name: string; city: string; status: 'active' | 'inactive'; teams: number }>);
         }),
       );

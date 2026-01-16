@@ -72,10 +72,16 @@ export class Material {
     status: 'all',
   };
 
-  items$ = this.refresh$.pipe(
-    switchMap(() => {
+  items$ = combineLatest([
+    this.refresh$,
+    this.clubContext.selectedClubId$,
+  ]).pipe(
+    switchMap(([, clubId]) => {
       this.loading$.next(true);
-      return this.api.list({ search: this.filters.search || undefined }).pipe(
+      return this.api.list({ 
+        search: this.filters.search || undefined,
+        clubId: clubId ? String(clubId) : undefined,
+      }).pipe(
         map((items) => (items ?? []).map((e) => this.toUiItem(e))),
         catchError((e: unknown) => {
           const msg = e instanceof Error ? e.message : 'No se pudo cargar el material.';
@@ -208,6 +214,26 @@ export class Material {
       },
       error: (e: unknown) => {
         const msg = e instanceof Error ? e.message : 'No se pudo actualizar el material.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+      },
+    });
+  }
+
+  deleteDialog(): void {
+    if (!this.draft.id) return;
+
+    if (!confirm('¿Estás seguro de que quieres eliminar este material? Esta acción no se puede deshacer.')) {
+      return;
+    }
+
+    this.api.remove(this.draft.id).subscribe({
+      next: () => {
+        this.toast.add({ severity: 'success', summary: 'Ok', detail: 'Material eliminado.' });
+        this.closeDialog();
+        this.refresh();
+      },
+      error: (e: unknown) => {
+        const msg = e instanceof Error ? e.message : 'No se pudo eliminar el material.';
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
       },
     });

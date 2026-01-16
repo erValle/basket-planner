@@ -1,7 +1,9 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { Subscription } from 'rxjs';
 
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -20,9 +22,12 @@ import { UserContextService } from '../core/auth/user-context.service';
   templateUrl: './player-dashboard.html',
   styleUrl: './player-dashboard.scss',
 })
-export class PlayerDashboard {
-  readonly playerName = 'Jugador';
+export class PlayerDashboard implements OnInit, OnDestroy {
   readonly playerSubtitle = 'Resumen';
+
+  get playerName(): string {
+    return this.userContext.getUserSnapshot()?.name ?? 'Jugador';
+  }
 
   feedbackLoading = false;
   feedbackError: string | null = null;
@@ -34,15 +39,35 @@ export class PlayerDashboard {
   assignmentsError: string | null = null;
   assignments: PlanAssignment[] = [];
 
+  private routerSubscription?: Subscription;
+
   constructor(
     private readonly feedbackApi: FeedbackApiService,
     private readonly planAssignmentsApi: PlanAssignmentsApiService,
     private readonly userContext: UserContextService,
     private readonly cdr: ChangeDetectorRef,
+    private readonly router: Router,
   ) {}
 
   ngOnInit(): void {
     this.loadAssignments();
+    this.loadFeedback();
+
+    // Subscribe to router events to reload data when navigating back to this page
+    this.routerSubscription = this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event: any) => {
+        if (event.urlAfterRedirects === '/player/dashboard') {
+          this.loadAssignments();
+          this.loadFeedback();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    if (this.routerSubscription) {
+      this.routerSubscription.unsubscribe();
+    }
   }
 
   loadAssignments(): void {
@@ -69,7 +94,7 @@ export class PlayerDashboard {
         }
         
         // Force change detection
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (e: unknown) => {
         this.assignmentsLoading = false;
@@ -79,15 +104,43 @@ export class PlayerDashboard {
                             'No se pudieron cargar las planificaciones asignadas.';
         this.assignmentsError = errorMessage;
         this.assignments = [];
+        this.cdr.markForCheck();
       },
     });
   }
 
   loadFeedback(): void {
-    this.feedbackLoading = false;
+    const user = this.userContext.getUserSnapshot();
+    
+    if (!user?.id) {
+      this.feedbackError = 'No se pudo obtener el ID del usuario actual.';
+      return;
+    }
+
+    this.feedbackLoading = true;
+    this.feedbackError = null;
     this.recentSurveys = [];
     this.weeklyAggregates = [];
-    this.feedbackError = 'Aún no disponible: falta endpoint para resolver el jugador actual.';
+
+    this.feedbackApi.listRecentForPlayer(String(user.id), 10).subscribe({
+      next: (response) => {
+        this.feedbackLoading = false;
+        this.recentSurveys = response.items || [];
+        this.weeklyAggregates = this.computeWeeklyAggregates(this.recentSurveys);
+        this.cdr.markForCheck();
+      },
+      error: (e: unknown) => {
+        this.feedbackLoading = false;
+        const errorMessage = e instanceof Error ? e.message : 
+                            (e as any)?.error?.message || 
+                            (e as any)?.message || 
+                            'No se pudo cargar el historial de feedback.';
+        this.feedbackError = errorMessage;
+        this.recentSurveys = [];
+        this.weeklyAggregates = [];
+        this.cdr.markForCheck();
+      },
+    });
   }
 
   private weekKey(d: Date): string {
@@ -113,12 +166,10 @@ export class PlayerDashboard {
       out.push({
         week,
         count,
-        avgRpe: avg(list.map((x) => x.answers.rpe)),
-        avgFatigue: avg(list.map((x) => x.answers.fatigue)),
-        avgPain: avg(list.map((x) => x.answers.pain)),
-        avgSleep: avg(list.map((x) => x.answers.sleep)),
-        avgStress: avg(list.map((x) => x.answers.stress)),
-        avgMood: avg(list.map((x) => x.answers.mood)),
+        avgOverall: avg(list.map((x) => (x.answers as any).overall)),
+        avgPhysicalEffort: avg(list.map((x) => (x.answers as any).physicalEffort)),
+        avgTechnicalEffort: avg(list.map((x) => (x.answers as any).technicalEffort)),
+        avgMentalEffort: avg(list.map((x) => (x.answers as any).mentalEffort)),
       });
     }
     return out.sort((a, b) => (a.week < b.week ? 1 : -1));

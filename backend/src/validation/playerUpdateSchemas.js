@@ -4,7 +4,7 @@ const Joi = require('joi');
 const updatePlayerProfileSchema = Joi.object({
   firstName: Joi.string().max(100).optional(),
   lastName: Joi.string().max(100).optional(),
-  status: Joi.string().valid('pending', 'active', 'blocked').optional(),
+  status: Joi.string().valid('active', 'inactive').optional(),
   position: Joi.string().allow('', null).max(50).optional(),
   category: Joi.string().allow('', null).max(50).optional(),
   maxCategory: Joi.string().allow('', null).max(50).optional(),

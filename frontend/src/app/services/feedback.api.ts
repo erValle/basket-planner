@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { of, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 import { ApiClient } from './api-client';
-import { FeedbackSurveyCreatePayload, FeedbackSurveyListResponse } from '../models/feedback-survey';
+import { FeedbackSurveyCreatePayload, FeedbackSurveyListResponse, FeedbackSurveyListItem } from '../models/feedback-survey';
 
 type ApiFeedbackRow = {
   id: number;
@@ -26,6 +27,17 @@ type ApiFeedbackRow = {
   comments?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  user?: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  trainingPlanVersion?: {
+    trainingPlan?: {
+      id: number;
+      name: string;
+    };
+  };
 };
 
 type CanProvideFeedbackResponse = {
@@ -61,19 +73,19 @@ export class FeedbackApiService {
     const rating: any = {};
     
     if (targetType === 'session') {
-      // Session-level feedback uses RPE-based scales
-      rating.rpe = payload.answers?.rpe;
-      rating.fatigue = payload.answers?.fatigue;
-      rating.pain = payload.answers?.pain;
-      rating.sleep = payload.answers?.sleep;
-      rating.stress = payload.answers?.stress;
-      rating.mood = payload.answers?.mood;
+      // Session-level feedback uses effort-based scales
+      const sessionAnswers = payload.answers as any;
+      rating.overall = sessionAnswers.overall;
+      rating.physicalEffort = sessionAnswers.physicalEffort;
+      rating.technicalEffort = sessionAnswers.technicalEffort;
+      rating.mentalEffort = sessionAnswers.mentalEffort;
     } else {
       // Version-level feedback uses effort-based scales
-      rating.overall = payload.answers?.rpe || 5;
-      rating.physicalEffort = payload.answers?.fatigue || 5;
-      rating.mentalEffort = payload.answers?.stress || 3;
-      rating.technicalEffort = payload.answers?.mood || 3;
+      const versionAnswers = payload.answers as any;
+      rating.overall = versionAnswers.overall;
+      rating.physicalEffort = versionAnswers.physicalEffort;
+      rating.mentalEffort = versionAnswers.mentalEffort;
+      rating.technicalEffort = versionAnswers.technicalEffort;
     }
 
     const body: any = {
@@ -112,15 +124,62 @@ export class FeedbackApiService {
   }
 
   /**
-   * Real backend: GET /api/feedbacks?trainingPlanVersionId=...&userId=...
+   * Real backend: GET /api/feedbacks?userId=...
    * 
-   * Note: the backend currently returns raw Feedback rows and doesn't include player identity.
-   * We return a compatible empty list response to keep the dashboard UI stable.
+   * Returns the list of feedback surveys for a specific player.
    */
-  listRecentForPlayer(_playerId: string, _limit = 5) {
-    // Until we have a backend endpoint that returns per-player surveys (and mapping logic),
-    // keep the UI stable by returning an empty list.
-    const empty: FeedbackSurveyListResponse = { items: [] };
-    return of(empty);
+  listRecentForPlayer(playerId: string, limit = 5): Observable<FeedbackSurveyListResponse> {
+    return this.api.get<ApiFeedbackRow[]>(`/api/feedbacks?userId=${playerId}`).pipe(
+      map((rows: ApiFeedbackRow[]) => {
+        // Transform backend rows to FeedbackSurveyListItem format
+        const items: FeedbackSurveyListItem[] = rows
+          .slice(0, limit)
+          .map((row: ApiFeedbackRow) => ({
+            id: String(row.id),
+            playerId: String(row.userId),
+            targetType: (row.targetType || 'version') as 'version' | 'session',
+            targetId: String(row.trainingPlanVersionId),
+            createdAt: row.createdAt || new Date().toISOString(),
+            planningName: row.trainingPlanVersion?.trainingPlan?.name || undefined,
+            answers: {
+              overall: (row.rating?.overall || 5) as any,
+              physicalEffort: (row.rating?.physicalEffort || 5) as any,
+              technicalEffort: (row.rating?.technicalEffort || 5) as any,
+              mentalEffort: (row.rating?.mentalEffort || 5) as any,
+              notes: row.comments || undefined,
+            },
+          }));
+        return { items };
+      })
+    );
+  }
+
+  /**
+   * GET /api/feedbacks?trainingPlanVersionId=...
+   * 
+   * Returns all feedback surveys for a specific training plan version.
+   */
+  listForVersion(versionId: number): Observable<FeedbackSurveyListResponse> {
+    return this.api.get<ApiFeedbackRow[]>(`/api/feedbacks?trainingPlanVersionId=${versionId}`).pipe(
+      map((rows: ApiFeedbackRow[]) => {
+        const items: FeedbackSurveyListItem[] = rows.map((row: ApiFeedbackRow) => ({
+          id: String(row.id),
+          playerId: String(row.userId),
+          playerName: row.user?.name || row.user?.email || `Usuario #${row.userId}`,
+          targetType: (row.targetType || 'version') as 'version' | 'session',
+          targetId: String(row.trainingPlanVersionId),
+          createdAt: row.createdAt || new Date().toISOString(),
+          planningName: row.trainingPlanVersion?.trainingPlan?.name || undefined,
+          answers: {
+            overall: (row.rating?.overall || 5) as any,
+            physicalEffort: (row.rating?.physicalEffort || 5) as any,
+            technicalEffort: (row.rating?.technicalEffort || 5) as any,
+            mentalEffort: (row.rating?.mentalEffort || 5) as any,
+            notes: row.comments || undefined,
+          },
+        }));
+        return { items };
+      })
+    );
   }
 }

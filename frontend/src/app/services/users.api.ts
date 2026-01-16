@@ -49,7 +49,7 @@ export class UsersApiService {
   block(id: string) {
     // Backend does not expose /block|/unblock endpoints yet.
     // Use PUT /api/users/:id with status change instead.
-    return this.update(id, { status: 'blocked' } as any);
+    return this.update(id, { status: 'inactive' } as any);
   }
 
   unblock(id: string) {
@@ -58,5 +58,9 @@ export class UsersApiService {
 
   remove(id: string) {
     return this.api.delete<{ ok: boolean }>(`/api/users/${encodeURIComponent(id)}`);
+  }
+
+  assignToClub(userIds: number[], clubId: number) {
+    return this.api.post<{ ok: boolean }>('/api/users/assign-to-club', { userIds, clubId });
   }
 }

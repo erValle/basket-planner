@@ -20,6 +20,12 @@ export interface PlanningExercise {
   restSec: number;
   material: string[];
   notes: string;
+  difficulty?: {
+    tactica?: number;
+    tecnica?: number;
+    fisica?: number;
+    mental?: number;
+  };
 }
 
 type Option = { label: string; value: string };
@@ -109,5 +115,31 @@ export class PlanningExerciseCard {
 
   emitChange(): void {
     this.change.emit(this.exercise);
+  }
+
+  // Formatea la dificultad 4D para mostrarla
+  formatDifficulty4D(): string {
+    const d = this.exercise.difficulty;
+    if (!d) return 'N/A';
+    
+    const parts: string[] = [];
+    if (d.tactica != null) parts.push(`Tác: ${d.tactica}`);
+    if (d.tecnica != null) parts.push(`Téc: ${d.tecnica}`);
+    if (d.fisica != null) parts.push(`Fís: ${d.fisica}`);
+    if (d.mental != null) parts.push(`Men: ${d.mental}`);
+    
+    return parts.length > 0 ? parts.join(' | ') : 'N/A';
+  }
+
+  // Calcula la media de las 4 dimensiones
+  getAverageDifficulty(): number {
+    const d = this.exercise.difficulty;
+    if (!d) return 0;
+    
+    const values = [d.tactica, d.tecnica, d.fisica, d.mental]
+      .filter((v): v is number => typeof v === 'number');
+    
+    if (values.length === 0) return 0;
+    return Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 10) / 10;
   }
 }

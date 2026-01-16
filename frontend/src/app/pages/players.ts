@@ -7,6 +7,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 import { BpDialog } from '../components/bp-dialog';
 import { PlayerDetail, PlayerDetailModel } from '../modals/player-detail/player-detail';
@@ -42,7 +44,6 @@ interface Player {
   currentTeam: string;
   weeklyLoad: string;
   lastFeedback: string;
-  notes: string;
 }
 
 type Option = { label: string; value: string };
@@ -58,6 +59,7 @@ type Option = { label: string; value: string };
     TableModule,
     BpDialog,
     TagModule,
+    ToastModule,
     PlayerDetail,
     PlayerSelection,
 		PageHeader,
@@ -65,6 +67,7 @@ type Option = { label: string; value: string };
   ],
   templateUrl: './players.html',
   styleUrl: './players.scss',
+  providers: [MessageService],
 })
 export class Players {
   private readonly playersApi = inject(PlayersApi);
@@ -72,12 +75,14 @@ export class Players {
   private readonly teamsApi = inject(TeamsApi);
   private readonly usersApi = inject(UsersApiService);
   private readonly clubContext = inject(ClubContextService);
+  private readonly toast = inject(MessageService);
 
   selectedPlayer: PlayerDetailModel | null = null;
   playerDetailVisible = false;
 
   playerSelectionVisible = false;
   selectedPlayerIds: string[] = [];
+  savingPlayerSelection = false;
 
   availablePlayersForSelection: PlayerSelectionItem[] = [];
   selectionLoading = false;
@@ -153,7 +158,48 @@ export class Players {
 
   constructor() {
     this.loadFilters();
-    this.refresh();
+    
+    // Suscribirse a cambios de club desde la sidebar
+    this.clubContext.selectedClubId$.subscribe((clubId) => {
+      if (clubId != null) {
+        this.filters.club = String(clubId);
+        this.filters.team = 'all'; // Resetear equipo cuando cambia el club
+        this.refresh();
+        
+        // Recargar equipos del nuevo club
+        this.teamsApi.list({ clubId: String(clubId) }).subscribe({
+          next: (items) => {
+            this.teams = items ?? [];
+            this.teamOptions = [
+              { label: 'Todos', value: 'all' },
+              ...this.teams.map((t) => ({ label: t.name, value: String(t.id) })),
+            ];
+          },
+          error: () => {
+            // keep defaults
+          },
+        });
+      } else {
+        // Si no hay club seleccionado, mostrar todos
+        this.filters.club = 'all';
+        this.filters.team = 'all';
+        this.refresh();
+        
+        // Cargar todos los equipos
+        this.teamsApi.list().subscribe({
+          next: (items) => {
+            this.teams = items ?? [];
+            this.teamOptions = [
+              { label: 'Todos', value: 'all' },
+              ...this.teams.map((t) => ({ label: t.name, value: String(t.id) })),
+            ];
+          },
+          error: () => {
+            // keep defaults
+          },
+        });
+      }
+    });
   }
 
   private toSelectionItem(u: any): PlayerSelectionItem {
@@ -162,7 +208,7 @@ export class Players {
       id: String(u?.id),
       nombre: name,
       posicion: '—',
-      categoria: 'Sin rol',
+      categoria: 'Usuario',
     };
   }
 
@@ -170,15 +216,15 @@ export class Players {
     this.selectionLoading = true;
     this.selectionError = null;
 
-    this.usersApi.list({ role: 'none', page: 1, pageSize: 200 } as any).subscribe({
+    this.usersApi.list({ role: 'user', page: 1, pageSize: 200 } as any).subscribe({
       next: (res: any) => {
         this.selectionLoading = false;
-        const items = Array.isArray(res?.items) ? res.items : [];
+        const items = Array.isArray(res?.items) ? res.items : Array.isArray(res) ? res : [];
         this.availablePlayersForSelection = items.map((u: any) => this.toSelectionItem(u));
       },
       error: (e: unknown) => {
         this.selectionLoading = false;
-        this.selectionError = e instanceof Error ? e.message : 'No se pudieron cargar usuarios sin rol.';
+        this.selectionError = e instanceof Error ? e.message : 'No se pudieron cargar usuarios.';
         this.availablePlayersForSelection = [];
       },
     });
@@ -193,9 +239,8 @@ export class Players {
     this.clubsApi.list().subscribe({
       next: (items) => {
         this.clubs = items ?? [];
-
-        const scopedClubs = selectedClubId != null ? this.clubs.filter((c) => Number(c.id) === Number(selectedClubId)) : this.clubs;
-        this.clubOptions = [{ label: 'Todos', value: 'all' }, ...scopedClubs.map((c) => ({ label: c.name, value: String(c.id) }))];
+        // Mostrar TODOS los clubes, no filtrar
+        this.clubOptions = [{ label: 'Todos', value: 'all' }, ...this.clubs.map((c) => ({ label: c.name, value: String(c.id) }))];
       },
       error: () => {
         // keep defaults
@@ -225,7 +270,16 @@ export class Players {
     const [firstName, ...rest] = name.split(' ').filter(Boolean);
     const lastName = rest.join(' ');
 
-    const firstTeam = Array.isArray(p.teams) && p.teams.length ? p.teams[0] : null;
+    // Filtrar equipos según el club seleccionado
+    const selectedClubId = this.filters.club !== 'all' ? Number(this.filters.club) : null;
+    let filteredTeams = Array.isArray(p.teams) ? p.teams : [];
+    
+    if (selectedClubId != null) {
+      // Si hay un club seleccionado, filtrar equipos de ese club
+      filteredTeams = filteredTeams.filter(t => t.clubId === selectedClubId);
+    }
+    
+    const firstTeam = filteredTeams.length > 0 ? filteredTeams[0] : null;
     const firstClub = Array.isArray(p.clubs) && p.clubs.length ? p.clubs[0] : null;
 
     // Parse dateOfBirth to a display format (YYYY-MM-DD or empty)
@@ -255,7 +309,6 @@ export class Players {
       currentTeam: firstTeam ? `${firstTeam.name}${firstTeam.category ? ` - ${firstTeam.category}` : ''}` : '',
       weeklyLoad: '',
       lastFeedback: '',
-      notes: '',
     };
   }
 
@@ -276,37 +329,89 @@ export class Players {
   closePlayer() {
     this.playerDetailVisible = false;
     this.selectedPlayer = null;
+    this.refresh(); // Refresh list when closing player detail
   }
 
   // ---- Selection flow (kept imperative; UI renders from simple fields) ----
   openPlayerSelection() {
-    this.playerSelectionVisible = true;
     this.selectedPlayerIds = [];
+    this.availablePlayersForSelection = [];
+    this.savingPlayerSelection = false;
+    this.playerSelectionVisible = true;
     this.loadUnassignedUsers();
   }
 
   closePlayerSelection() {
     this.playerSelectionVisible = false;
+    this.selectedPlayerIds = [];
+    this.availablePlayersForSelection = [];
+    this.savingPlayerSelection = false;
+    this.refresh(); // Refresh list when closing selection dialog
   }
 
   async confirmPlayerSelection(selectedIds: string[]) {
-    // This feature is currently best-effort: we just close and refresh the list.
-    // (Assigning users to teams/clubs depends on backend capabilities.)
-    this.selectedPlayerIds = selectedIds ?? [];
-    this.playerSelectionVisible = false;
-    this.refresh();
+    if (!selectedIds || selectedIds.length === 0) {
+      this.closePlayerSelection();
+      return;
+    }
+
+    if (this.savingPlayerSelection) {
+      return; // Prevent double submission
+    }
+
+    const selectedClubId = this.clubContext.getSelectedClubIdSnapshot();
+    if (!selectedClubId) {
+      this.toast.add({ 
+        severity: 'error', 
+        summary: 'Error', 
+        detail: 'Debes tener un club seleccionado para añadir jugadores.' 
+      });
+      this.closePlayerSelection();
+      return;
+    }
+
+    // Convert string IDs to numbers
+    const userIds = selectedIds.map(id => Number(id));
+
+    this.savingPlayerSelection = true;
+
+    this.usersApi.assignToClub(userIds, selectedClubId).subscribe({
+      next: () => {
+        this.toast.add({ 
+          severity: 'success', 
+          summary: 'Jugadores añadidos', 
+          detail: `${userIds.length} ${userIds.length === 1 ? 'usuario ha sido añadido' : 'usuarios han sido añadidos'} como jugadores del club.` 
+        });
+        this.closePlayerSelection();
+      },
+      error: (e: unknown) => {
+        this.savingPlayerSelection = false;
+        const msg = e instanceof Error ? e.message : 'No se pudieron añadir los jugadores.';
+        this.toast.add({ 
+          severity: 'error', 
+          summary: 'Error', 
+          detail: msg 
+        });
+      }
+    });
   }
 
   savePlayer(updated: PlayerDetailModel) {
+    if (!updated) return;
+    
     // Use the dedicated player profile API for sports-specific fields
     const payload: {
+      firstName?: string;
+      lastName?: string;
       status?: string;
       position?: string | null;
       category?: string | null;
       height?: number | null;
       dateOfBirth?: string | null;
     } = {
-      status: updated.status === 'active' ? 'active' : 'pending',
+      firstName: updated.firstName || undefined,
+      lastName: updated.lastName || undefined,
+      status: updated.status === 'active' ? 'active' : 'inactive',
       position: updated.position || null,
       category: updated.category || null,
       height: updated.height || null,
@@ -319,14 +424,22 @@ export class Players {
     this.playersApi.updateProfile(updated.id, payload).subscribe({
       next: () => {
         this.savingPlayer = false;
+        this.toast.add({ 
+          severity: 'success', 
+          summary: 'Guardado', 
+          detail: 'Los cambios se han guardado correctamente.' 
+        });
         this.closePlayer();
-        this.refresh();
       },
       error: (e: unknown) => {
         this.savingPlayer = false;
         this.saveError = e instanceof Error ? e.message : 'No se pudo guardar el jugador.';
+        this.toast.add({ 
+          severity: 'error', 
+          summary: 'Error', 
+          detail: this.saveError 
+        });
         console.error('[players] savePlayer error', this.saveError);
-        // Keep modal open so user can retry
       },
     });
   }

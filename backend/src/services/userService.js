@@ -7,12 +7,20 @@ const { ENCRYPTION_CONST } = require('../../config/constants');
 const errorUtils = require('../libs/errorHelper');
 const auditLogService = require('./auditLogService');
 
-const listUsers = async ({ email, role, status }) => {
+const listUsers = async ({ email, search, role, status }) => {
   const where = {};
 
-  if (email) where.email = { [Op.iLike]: `%${email}%` };
-  if (role === 'none') where.role = { [Op.is]: null };
-  else if (role) where.role = role;
+  // Búsqueda genérica en email, firstName y lastName
+  const searchTerm = search || email; // Usar 'search' o 'email' (legacy)
+  if (searchTerm) {
+    where[Op.or] = [
+      { email: { [Op.iLike]: `%${searchTerm}%` } },
+      { firstName: { [Op.iLike]: `%${searchTerm}%` } },
+      { lastName: { [Op.iLike]: `%${searchTerm}%` } }
+    ];
+  }
+  
+  if (role) where.role = role;
   if (status) where.status = status;
 
   return User.findAll({ where });
@@ -87,7 +95,10 @@ const updateUser = async (id, { email, name, firstName, lastName, password, role
     finalLastName = nameParts.slice(1).join(' ') || undefined;
   }
 
-  const updates = { email, role, status };
+  const updates = {};
+  if (email !== undefined) updates.email = email;
+  if (role !== undefined) updates.role = role;
+  if (status !== undefined) updates.status = status;
   if (finalFirstName !== undefined) updates.firstName = finalFirstName;
   if (finalLastName !== undefined) updates.lastName = finalLastName;
   if (password) {
@@ -127,10 +138,65 @@ const deleteUser = async (id) => {
   await user.destroy();
 };
 
+const assignUsersToClub = async (userIds, clubId, auditCtx = {}) => {
+  const { UserClub, Club } = require('../../models');
+  
+  // Validate club exists
+  const club = await Club.findByPk(clubId);
+  if (!club) {
+    throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'CLUB_NOT_FOUND', 'Club not found');
+  }
+
+  // Validate all users exist and have role 'user'
+  const users = await User.findAll({
+    where: {
+      id: userIds,
+      role: 'user'
+    }
+  });
+
+  if (users.length !== userIds.length) {
+    throw errorUtils.httpError(
+      StatusCodes.BAD_REQUEST, 
+      'INVALID_USERS', 
+      'Some users not found or do not have role "user"'
+    );
+  }
+
+  // Assign users to club and change their role to 'player'
+  for (const user of users) {
+    // Check if user is already assigned to this club
+    const existingAssignment = await UserClub.findOne({
+      where: { userId: user.id, clubId }
+    });
+
+    if (!existingAssignment) {
+      await UserClub.create({ userId: user.id, clubId });
+    }
+
+    // Change role to 'player'
+    const before = { role: user.role };
+    await user.update({ role: 'player' });
+    const after = { role: user.role };
+
+    await auditLogService.createAuditLog({
+      user: auditCtx.user,
+      requestId: auditCtx.requestId,
+      action: 'user.assigned_to_club_as_player',
+      entity: 'User',
+      entityId: user.id,
+      metadata: { before, after, clubId },
+    });
+  }
+
+  return { ok: true };
+};
+
 module.exports = {
   listUsers,
   getUserById,
   createUser,
   updateUser,
   deleteUser,
+  assignUsersToClub,
 };

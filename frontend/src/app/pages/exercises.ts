@@ -7,6 +7,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TagModule } from 'primeng/tag';
 import { PaginatorModule } from 'primeng/paginator';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ConfirmationService } from 'primeng/api';
 
 import { ExerciseDraft, ExerciseForm, ExerciseFormValue } from '../components/exercise-form/exercise-form';
 import { BpDialog } from '../components/bp-dialog/bp-dialog';
@@ -33,6 +35,7 @@ interface Exercise {
     fisica?: number;
     mental?: number;
   };
+  etiquetas?: string[];
 }
 
 // Tipos específicos de basketball que ahora usa el formulario
@@ -43,6 +46,49 @@ type UiType =
   | 'REBOTE' | 'TECNICA_POSTE' | 'ATAQUE_INDIVIDUAL' | 'TECNICA_PIES'
   | 'CONDICIONAMIENTO_FISICO' | 'MOVILIDAD_RECUPERACION'
   | 'TACTICA_TRANSICION' | 'ABP_SAQUES' | 'JUEGO_REDUCIDO';
+
+// Mapeo de categorías de filtro a tipos específicos de ejercicios
+const CATEGORY_TO_TYPES: Record<string, string[]> = {
+  'Técnica Individual': [
+    'TECNICA_BOTE', 'TECNICA_PIES', 'TECNICA_POSTE', 
+    'TIRO', 'FINALIZACION_ARO', 'PASE'
+  ],
+  'Táctica': [
+    'TACTICA_ATAQUE', 'TACTICA_ATAQUE_DEFENSA', 
+    'TACTICA_TRANSICION', 'JUEGO_REDUCIDO', 'ABP_SAQUES'
+  ],
+  'Defensa': [
+    'DEFENSA_INDIVIDUAL', 'DEFENSA_EQUIPO', 'DEFENSA_FUNDAMENTOS'
+  ],
+  'Físico / Recuperación': [
+    'CONDICIONAMIENTO_FISICO', 'MOVILIDAD_RECUPERACION'
+  ],
+  'Otros': [
+    'REBOTE', 'ATAQUE_INDIVIDUAL'
+  ],
+};
+
+// Mapeo de tipos técnicos a etiquetas legibles para la UI
+const TYPE_LABELS: Record<string, string> = {
+  'TECNICA_BOTE': 'Bote',
+  'TECNICA_PIES': 'Pies',
+  'TECNICA_POSTE': 'Poste',
+  'TIRO': 'Tiro',
+  'FINALIZACION_ARO': 'Finalización',
+  'PASE': 'Pase',
+  'TACTICA_ATAQUE': 'Ataque',
+  'TACTICA_ATAQUE_DEFENSA': 'Ataque/Defensa',
+  'TACTICA_TRANSICION': 'Transición',
+  'JUEGO_REDUCIDO': 'Juego Reducido',
+  'ABP_SAQUES': 'Saques',
+  'DEFENSA_INDIVIDUAL': 'Def. Individual',
+  'DEFENSA_EQUIPO': 'Def. Equipo',
+  'DEFENSA_FUNDAMENTOS': 'Def. Fundamentos',
+  'CONDICIONAMIENTO_FISICO': 'Físico',
+  'MOVILIDAD_RECUPERACION': 'Recuperación',
+  'REBOTE': 'Rebote',
+  'ATAQUE_INDIVIDUAL': 'Ataque Individual',
+};
 
 
 @Component({
@@ -59,7 +105,9 @@ type UiType =
     ExerciseForm,
 		AppShell,
 		PageHeader,
+		ConfirmDialogModule,
   ],
+  providers: [ConfirmationService],
   templateUrl: './exercises.html',
   styleUrl: './exercises.scss',
 })
@@ -67,21 +115,32 @@ export class Exercises implements OnInit {
   private readonly exercisesApi = inject(ExercisesApi);
   private readonly equipmentApi = inject(EquipmentApi);
   private readonly exerciseEquipmentApi = inject(ExerciseEquipmentApi);
+  private readonly confirmation = inject(ConfirmationService);
 
   // Make Math available in template
   Math = Math;
 
+  // Método para formatear el tipo de ejercicio de forma legible
+  formatType(type: string): string {
+    return TYPE_LABELS[type] ?? type;
+  }
+
   tipoOptions: Option[] = [
     { label: 'Todos', value: 'Todos' },
-    { label: 'Técnico', value: 'Técnico' },
-    { label: 'Táctico', value: 'Táctico' },
-    { label: 'Físico', value: 'Físico' },
+    { label: 'Técnica Individual', value: 'Técnica Individual' },
+    { label: 'Táctica', value: 'Táctica' },
+    { label: 'Defensa', value: 'Defensa' },
+    { label: 'Físico / Recuperación', value: 'Físico / Recuperación' },
+    { label: 'Otros', value: 'Otros' },
   ];
 
   duracionOptions: Option[] = [
     { label: 'Cualquiera', value: 'Cualquiera' },
+    { label: 'Menos de 5 min', value: '<5' },
+    { label: '5-10 min', value: '5-10' },
     { label: '10-15 min', value: '10-15' },
     { label: '15-20 min', value: '15-20' },
+    { label: 'Más de 20 min', value: '>20' },
   ];
 
   filters = {
@@ -96,18 +155,21 @@ export class Exercises implements OnInit {
   totalRecords = 0;
 
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
+  private readonly page$ = new BehaviorSubject<number>(0);
   readonly loading$ = new BehaviorSubject<boolean>(false);
   readonly loadError$ = new BehaviorSubject<string | null>(null);
+
+  // Almacenar todos los ejercicios para filtrado client-side
+  private allExercises: Exercise[] = [];
 
   private readonly exercises$ = this.refresh$.pipe(
     switchMap(() => {
       this.loading$.next(true);
       this.loadError$.next(null);
       
-      // Enviar parámetros de paginación al backend
+      // Obtener TODOS los ejercicios (sin paginación backend)
+      // El filtrado y paginación se hará client-side
       const params = {
-        page: this.currentPage + 1, // PrimeNG usa 0-indexed, backend usa 1-indexed
-        pageSize: this.pageSize,
         search: this.filters.search || undefined,
       };
       
@@ -117,13 +179,11 @@ export class Exercises implements OnInit {
           
           // Si backend devuelve { exercises, pagination }
           if (response && typeof response === 'object' && 'exercises' in response && 'pagination' in response) {
-            this.totalRecords = response.pagination.total;
             return (response.exercises ?? []).map((dto) => this.fromDto(dto));
           }
           
           // Fallback: backend devolvió array directo (sin paginación)
           const items = Array.isArray(response) ? response : [];
-          this.totalRecords = items.length;
           return items.map((dto) => this.fromDto(dto));
         }),
       );
@@ -136,28 +196,67 @@ export class Exercises implements OnInit {
     loading: this.loading$.pipe(startWith(false)),
     error: this.loadError$.pipe(startWith(null)),
     tick: this.refresh$.pipe(startWith(undefined)),
+    page: this.page$.pipe(startWith(0)),
   }).pipe(
-    map(({ items, loading, error }) => {
-      // Aplicar filtros client-side (tipo y duración)
-      // La búsqueda ya se hace en backend
+    map(({ items, loading, error, page }) => {
+      // Guardar todos los ejercicios
+      this.allExercises = items;
+      
+      // 1. Aplicar filtros client-side (búsqueda, tipo y duración)
+      const searchTerm = this.filters.search?.toLowerCase().trim() || '';
+      
       const filtered = items.filter((exercise) => {
-        const matchesTipo = this.filters.tipo === 'Todos' || exercise.tipo === this.filters.tipo;
-        const matchesDuracion =
-          this.filters.duracion === 'Cualquiera' ||
-          (this.filters.duracion === '10-15' && exercise.duracion >= 10 && exercise.duracion <= 15) ||
-          (this.filters.duracion === '15-20' && exercise.duracion >= 15 && exercise.duracion <= 20);
+        // Filtro por búsqueda de texto
+        let matchesSearch = true;
+        if (searchTerm) {
+          const nombre = exercise.nombre?.toLowerCase() || '';
+          const tipo = exercise.tipo?.toLowerCase() || '';
+          const materiales = (exercise.material || []).join(' ').toLowerCase();
+          const etiquetas = (exercise.etiquetas || []).join(' ').toLowerCase();
+          matchesSearch = nombre.includes(searchTerm) || 
+                         tipo.includes(searchTerm) || 
+                         materiales.includes(searchTerm) ||
+                         etiquetas.includes(searchTerm);
+        }
+        
+        // Filtro por categoría de tipo
+        let matchesTipo = this.filters.tipo === 'Todos';
+        if (!matchesTipo && this.filters.tipo in CATEGORY_TO_TYPES) {
+          const typesInCategory = CATEGORY_TO_TYPES[this.filters.tipo];
+          matchesTipo = typesInCategory.includes(exercise.tipo);
+        }
+        
+        // Filtro por duración
+        let matchesDuracion = this.filters.duracion === 'Cualquiera';
+        if (!matchesDuracion) {
+          const dur = exercise.duracion;
+          switch (this.filters.duracion) {
+            case '<5': matchesDuracion = dur < 5; break;
+            case '5-10': matchesDuracion = dur >= 5 && dur < 10; break;
+            case '10-15': matchesDuracion = dur >= 10 && dur < 15; break;
+            case '15-20': matchesDuracion = dur >= 15 && dur <= 20; break;
+            case '>20': matchesDuracion = dur > 20; break;
+          }
+        }
 
-        return matchesTipo && matchesDuracion;
+        return matchesSearch && matchesTipo && matchesDuracion;
       });
 
-      // Los items ya vienen paginados del backend, no necesitamos paginar client-side
+      // 2. Actualizar total de registros basado en los filtrados
+      this.totalRecords = filtered.length;
+
+      // 3. Aplicar paginación client-side sobre los ejercicios filtrados
+      const startIndex = this.currentPage * this.pageSize;
+      const endIndex = startIndex + this.pageSize;
+      const paged = filtered.slice(startIndex, endIndex);
+
       return { 
         items, 
         filtered, 
-        paged: filtered, // Ya están paginados
+        paged,
         loading, 
         error,
-        totalRecords: this.totalRecords,
+        totalRecords: filtered.length,
         currentPage: this.currentPage,
         pageSize: this.pageSize
       };
@@ -168,6 +267,7 @@ export class Exercises implements OnInit {
   newExerciseVisible = false;
   dialogMode: 'create' | 'edit' | 'view' = 'create';
   selectedExercise: Exercise | null = null;
+  initialDraft: ExerciseDraft | null = null;
 
   private equipmentIndex = new Map<number, string>();
 
@@ -190,61 +290,77 @@ export class Exercises implements OnInit {
 
   refresh(): void {
     this.currentPage = 0; // Reset page when filtering
+    this.page$.next(0);
     this.refresh$.next();
   }
 
   onPageChange(event: any): void {
     this.currentPage = event.page;
     this.pageSize = event.rows;
-    this.refresh$.next(); // Recargar con nuevos parámetros de paginación
+    this.page$.next(this.currentPage); // Solo notificar cambio de página (sin recargar backend)
   }
 
   openNewExercise() {
     this.dialogMode = 'create';
     this.selectedExercise = null;
+    this.initialDraft = null;
     this.newExerciseVisible = true;
   }
 
   openViewExercise(exercise: Exercise) {
     this.dialogMode = 'view';
     this.selectedExercise = exercise;
-    this.loadExerciseEquipmentForDialog(exercise);
+    this.initialDraft = this.toDraft(exercise);
     this.newExerciseVisible = true;
   }
 
   openEditExercise(exercise: Exercise) {
     this.dialogMode = 'edit';
     this.selectedExercise = exercise;
-    this.loadExerciseEquipmentForDialog(exercise);
-    this.newExerciseVisible = true;
-  }
-
-  copyExercise(exercise: Exercise) {
-    // Open the form with prefilled values so the user can tweak before saving.
-    this.dialogMode = 'create';
-    this.selectedExercise = {
-      ...exercise,
-      id: '',
-      nombre: `${exercise.nombre} (copia)`,
-    };
-    // Copy should also copy material selections.
-    this.selectedExercise.materialEquipo = (exercise.materialEquipo ?? []).map((x) => ({ ...x }));
+    this.initialDraft = this.toDraft(exercise);
     this.newExerciseVisible = true;
   }
 
   closeNewExercise() {
     this.newExerciseVisible = false;
+    // Reset state so next open starts fresh
+    this.selectedExercise = null;
+    this.initialDraft = null;
+    this.dialogMode = 'create';
+  }
+
+  deleteExercise() {
+    if (!this.selectedExercise?.id) return;
+    
+    const id = Number(this.selectedExercise.id);
+    const exerciseName = this.selectedExercise.nombre;
+
+    this.confirmation.confirm({
+      message: `¿Estás seguro de que quieres eliminar el ejercicio "${exerciseName}"? Esta acción no se puede deshacer.`,
+      header: 'Confirmar eliminación',
+      icon: 'pi pi-exclamation-triangle',
+      acceptLabel: 'Eliminar',
+      rejectLabel: 'Cancelar',
+      acceptButtonStyleClass: 'bp-btn bp-btn-danger',
+      rejectButtonStyleClass: 'bp-btn bp-btn-secondary',
+      accept: () => {
+        this.exercisesApi.remove(id).subscribe({
+          next: () => {
+            this.closeNewExercise();
+            this.refresh();
+          },
+          error: (err: Error) => {
+            this.loadError$.next(`Error al eliminar ejercicio: ${err.message}`);
+          },
+        });
+      },
+    });
   }
 
   get dialogHeader(): string {
     if (this.dialogMode === 'edit') return 'Editar ejercicio';
     if (this.dialogMode === 'view') return 'Ver ejercicio';
     return 'Nuevo ejercicio';
-  }
-
-  get initialDraft(): ExerciseDraft | null {
-    if (!this.selectedExercise) return null;
-    return this.toDraft(this.selectedExercise);
   }
 
   private toDraft(exercise: Exercise): ExerciseDraft {
@@ -266,8 +382,7 @@ export class Exercises implements OnInit {
       dificultadTecnica,
       dificultadFisica,
       dificultadMental,
-      etiquetas: [], // Las etiquetas son diferentes de los materiales
-      observaciones: '',
+      etiquetas: exercise.etiquetas || [],
     };
   }
 
@@ -298,33 +413,42 @@ export class Exercises implements OnInit {
         this.closeNewExercise();
         this.refresh();
       },
-      error: (err: Error) => {
-        this.loadError$.next(err.message);
+      error: (err: any) => {
+        // Mostrar mensaje de error más detallado
+        const errorMsg = err?.error?.message || err?.message || 'Error desconocido al crear ejercicio';
+        this.loadError$.next(errorMsg);
       },
     });
   }
 
   private fromDto(dto: ExerciseDto): Exercise {
-    // Mapear los materiales desde equipmentItems
-    const material = (dto.equipmentItems || []).map(item => item.name);
+    // Obtener tags parseado
+    const tagsData = dto.tags as { tipo_original?: string; tags?: string[]; materiales?: string[] } | null;
+    
+    // Mapear los materiales: primero de equipmentItems (relación), luego de tags.materiales (fallback)
+    let material = (dto.equipmentItems || []).map(item => item.name);
+    if (material.length === 0 && tagsData?.materiales) {
+      material = tagsData.materiales;
+    }
+    
     const materialEquipo = (dto.equipmentItems || []).map(item => ({
       equipmentId: item.id,
       name: item.name,
     }));
     
     // Obtener tipo original de tags (preferido) o usar mapeo inverso como fallback
-    const tags = dto.tags as { tipo_original?: string; tags?: string[]; materiales?: string[] } | null;
-    const tipoOriginal = tags?.tipo_original as UiType | undefined;
+    const tipoOriginal = tagsData?.tipo_original as UiType | undefined;
     const tipo = tipoOriginal || this.mapApiToUiType(dto.type);
     
     return {
       id: String(dto.id),
       nombre: dto.name,
-      duracion: Math.ceil(dto.duration / 60), // Convertir segundos a minutos si es necesario
+      duracion: dto.duration, // Ya está en minutos desde el backend
       tipo,
       material,
       materialEquipo,
       dificultad: dto.difficulty as any,
+      etiquetas: tagsData?.tags || [],
     };
   }
 
@@ -391,40 +515,6 @@ export class Exercises implements OnInit {
       'ataque': 'ATAQUE_INDIVIDUAL',
     };
     return mapping[type] || 'TECNICA_BOTE';
-  }
-
-  private loadExerciseEquipmentForDialog(exercise: Exercise): void {
-    const exerciseId = Number(exercise.id);
-    if (!Number.isFinite(exerciseId)) return;
-
-    this.exerciseEquipmentApi.listForExercise(exerciseId).subscribe({
-      next: (rows) => {
-        const mapped = (rows ?? []).map((row) => {
-          const equipmentId = Number(row.equipmentId);
-          const fromJoin = (row as any)?.equipmentItem?.name;
-          return {
-            equipmentId,
-            name:
-              (typeof fromJoin === 'string' && fromJoin.trim().length > 0
-                ? fromJoin
-                : this.equipmentIndex.get(equipmentId)) ?? `Material #${equipmentId}`,
-          };
-        });
-
-        // Ensure selectedExercise is still the same one.
-        if (this.selectedExercise?.id === exercise.id) {
-          this.selectedExercise = {
-            ...exercise,
-            materialEquipo: mapped,
-            material: mapped.map((x) => x.name),
-          };
-        }
-      },
-      error: (err: Error) => {
-        // Honest UI: don't block opening; just show a message.
-        this.loadError$.next(`No se pudo cargar el material del ejercicio: ${err.message}`);
-      },
-    });
   }
 
   private syncExerciseEquipment(

@@ -55,6 +55,8 @@ export class PlayersApi {
   updateProfile(
     userId: string,
     payload: {
+      firstName?: string;
+      lastName?: string;
       status?: string;
       position?: string | null;
       category?: string | null;

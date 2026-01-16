@@ -9,7 +9,7 @@ const listClubs = async ({ name } = {}) => {
   const where = {};
   if (name) where.name = name;
 
-  return Club.findAll({
+  const clubs = await Club.findAll({
     where,
     attributes: {
       include: [[fn('COUNT', col('teams.id')), 'teamsCount']],
@@ -23,14 +23,23 @@ const listClubs = async ({ name } = {}) => {
       },
     ],
     group: ['Club.id'],
-    // Fix for some dialects demanding full group-by on all club columns
-    // (sequelize adds them automatically in many cases, but being explicit is safer)
     order: [['id', 'ASC']],
+    raw: false,
+  });
+
+  // Convert to plain JSON and ensure teamsCount is a number
+  return clubs.map(club => {
+    const plainClub = club.get({ plain: true });
+    return {
+      ...plainClub,
+      teamsCount: parseInt(plainClub.teamsCount, 10) || 0,
+    };
   });
 };
 
 const getClubById = async (id) => {
-  const club = await Club.findByPk(id, {
+  const club = await Club.findOne({
+    where: { id },
     attributes: {
       include: [[fn('COUNT', col('teams.id')), 'teamsCount']],
     },
@@ -44,10 +53,17 @@ const getClubById = async (id) => {
     ],
     group: ['Club.id'],
   });
+  
   if (!club) {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'CLUB_NOT_FOUND', 'Club not found');
   }
-  return club;
+  
+  // Convert to plain JSON and ensure teamsCount is a number
+  const plainClub = club.get({ plain: true });
+  return {
+    ...plainClub,
+    teamsCount: parseInt(plainClub.teamsCount, 10) || 0,
+  };
 };
 
 const createClub = async (payload) => {

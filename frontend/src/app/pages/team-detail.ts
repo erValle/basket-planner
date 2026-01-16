@@ -12,6 +12,7 @@ import { MessageService } from 'primeng/api';
 import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 import { BpDialog } from '../components/bp-dialog/bp-dialog';
+import { ErrorCard } from '../components/error-card/error-card';
 import { TeamsApi, TeamDto, TeamPlayerDto } from '../services/teams.api';
 import { PlayersApi, PlayerDto } from '../services/players.api';
 import { AuthService } from '../core/auth/auth.service';
@@ -30,6 +31,7 @@ import { hasRole } from '../core/auth/roles';
     BpDialog,
     AppShell,
     PageHeader,
+    ErrorCard,
   ],
   templateUrl: './team-detail.html',
   styleUrl: './team-detail.scss',
@@ -40,6 +42,8 @@ export class TeamDetail {
 
   loading = signal(false);
   saving = signal(false);
+  activationError = signal<string | null>(null);
+  deleteDialogOpen = signal(false);
 
   team = signal<TeamDto | null>(null);
   players = signal<TeamPlayerDto[]>([]);
@@ -75,6 +79,7 @@ export class TeamDetail {
     }
 
     this.loading.set(true);
+    
     this.teamsApi.get(this.teamId).subscribe({
       next: (t: TeamDto) => {
         this.team.set(t);
@@ -112,8 +117,21 @@ export class TeamDetail {
     const currentTeam = this.team();
     if (!currentTeam || this.saving()) return;
 
-    this.saving.set(true);
     const nextActive = currentTeam.active === false;
+    const playersCount = this.players().length;
+    
+    // Limpiar error previo
+    this.activationError.set(null);
+    
+    // Validar antes de activar: necesita al menos 5 jugadores
+    if (nextActive && playersCount < 5) {
+      this.activationError.set(
+        `El equipo necesita al menos 5 jugadores para ser activado. Actualmente tiene ${playersCount} jugador${playersCount !== 1 ? 'es' : ''}.`
+      );
+      return;
+    }
+
+    this.saving.set(true);
     this.teamsApi.update(this.teamId, { active: nextActive }).subscribe({
       next: () => {
         this.saving.set(false);
@@ -122,12 +140,25 @@ export class TeamDetail {
       },
       error: (e: any) => {
         this.saving.set(false);
-        const msg = e?.message || (e instanceof Error ? e.message : null) || 'No se pudo actualizar el estado.';
-        this.toast.add({
-          severity: 'warn',
-          summary: 'No se pudo activar',
-          detail: msg + ' (Si intentas activar: necesitas al menos 5 jugadores asignados.)',
-        });
+        
+        // Detectar el error específico de jugadores insuficientes
+        const errorCode = e?.error?.code || e?.code;
+        const errorMessage = e?.error?.message || e?.message;
+        
+        if (errorCode === 'TEAM_ACTIVE_REQUIRES_MIN_PLAYERS' || errorMessage?.includes('at least 5 players')) {
+          this.toast.add({
+            severity: 'warn',
+            summary: 'No se puede activar',
+            detail: `El equipo necesita al menos 5 jugadores para ser activado. Actualmente tiene ${this.players().length} jugador${this.players().length !== 1 ? 'es' : ''}.`,
+          });
+        } else {
+          const msg = errorMessage || 'No se pudo actualizar el estado del equipo.';
+          this.toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: msg,
+          });
+        }
       },
     });
   }
@@ -211,6 +242,8 @@ export class TeamDetail {
 
         if (created > 0) {
           this.toast.add({ severity: 'success', summary: 'Ok', detail: `Se añadieron ${created} jugador(es).` });
+          // Limpiar error de activación si existía
+          this.activationError.set(null);
         }
         if (skipped > 0) {
           this.toast.add({ severity: 'warn', summary: 'Aviso', detail: `Se omitieron ${skipped} jugador(es) (ya estaban o no válidos).` });
@@ -271,5 +304,37 @@ export class TeamDetail {
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
       },
     });
+  }
+
+  openDeleteDialog(): void {
+    this.deleteDialogOpen.set(true);
+  }
+
+  closeDeleteDialog(): void {
+    this.deleteDialogOpen.set(false);
+  }
+
+  confirmDelete(): void {
+    if (this.saving()) return;
+
+    this.saving.set(true);
+    this.teamsApi.remove(this.teamId).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.toast.add({ severity: 'success', summary: 'Equipo eliminado', detail: 'El equipo ha sido eliminado correctamente.' });
+        this.router.navigateByUrl('/teams');
+      },
+      error: (e: unknown) => {
+        this.saving.set(false);
+        const msg = e instanceof Error ? e.message : 'No se pudo eliminar el equipo.';
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        this.closeDeleteDialog();
+      },
+    });
+  }
+
+  canDeleteTeam(): boolean {
+    const userRole = this.auth.getRoleSnapshot();
+    return hasRole(userRole, ['admin']);
   }
 }

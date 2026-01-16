@@ -260,9 +260,99 @@ const getAuditLogById = async (id) => {
   };
 };
 
+/**
+ * Delete all audit logs (admin only)
+ */
+const deleteAllAuditLogs = async () => {
+  if (!AuditLog) return { deleted: 0 };
+  
+  const count = await AuditLog.destroy({
+    where: {},
+    truncate: true,
+  });
+  
+  return { deleted: count };
+};
+
+/**
+ * Export audit logs as CSV
+ */
+const exportAuditLogsAsCsv = async (filters = {}) => {
+  if (!AuditLog) return '';
+
+  const { User } = require('../../models');
+
+  const where = {};
+
+  // Apply filters (same as listAuditLogsPaged)
+  if (filters.entity) where.entity = filters.entity;
+  if (filters.action) where.action = filters.action;
+  if (filters.userId) where.userId = filters.userId;
+  if (filters.entityId) where.entityId = filters.entityId;
+  if (filters.requestId) where.requestId = { [Op.like]: `%${filters.requestId}%` };
+  
+  if (filters.from || filters.to) {
+    where.createdAt = {};
+    if (filters.from) where.createdAt[Op.gte] = new Date(filters.from);
+    if (filters.to) {
+      const toDate = new Date(filters.to);
+      toDate.setHours(23, 59, 59, 999);
+      where.createdAt[Op.lte] = toDate;
+    }
+  }
+
+  const rows = await AuditLog.findAll({
+    where,
+    include: User
+      ? [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['id', 'email', 'firstName', 'lastName'],
+          },
+        ]
+      : [],
+    order: [['createdAt', 'DESC']],
+    limit: 10000, // Limit to prevent memory issues
+  });
+
+  // Build CSV
+  const headers = ['ID', 'Created At', 'User ID', 'User Name', 'User Email', 'Action', 'Entity', 'Entity ID', 'Request ID', 'Summary'];
+  const csvRows = [headers.join(',')];
+
+  for (const row of rows) {
+    const json = row.toJSON ? row.toJSON() : row;
+    const user = json.user;
+    const actorName =
+      user?.name ||
+      [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
+      user?.email ||
+      `User ${json.userId ?? 'unknown'}`;
+
+    const csvRow = [
+      json.id,
+      json.createdAt,
+      json.userId ?? '',
+      actorName.replace(/,/g, ';'), // Escape commas
+      user?.email ?? '',
+      json.action,
+      json.entity,
+      json.entityId ?? '',
+      json.requestId ?? '',
+      `${json.action} ${json.entity}${json.entityId ? ` #${json.entityId}` : ''}`.replace(/,/g, ';'),
+    ];
+
+    csvRows.push(csvRow.join(','));
+  }
+
+  return csvRows.join('\n');
+};
+
 module.exports = {
   createAuditLog,
   listAuditLogsPaged,
   getAuditLogById,
+  deleteAllAuditLogs,
+  exportAuditLogsAsCsv,
   ALLOWED_AUDIT_ACTIONS, // Exportar para consulta y testing
 };

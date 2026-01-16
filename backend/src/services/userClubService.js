@@ -32,7 +32,32 @@ const createUserClub = async (payload) => {
 
 const updateUserClub = async (id, payload) => {
   const row = await getUserClubById(id);
-  await row.update(payload);
+  
+  // Si se está marcando como principal, quitar el flag de los demás
+  if (payload.isPrimary === true) {
+    await sequelize.transaction(async (t) => {
+      // Quitar isPrimary de todas las demás membresías activas del usuario
+      await UserClub.update(
+        { isPrimary: false },
+        {
+          where: {
+            userId: row.userId,
+            id: { [Op.ne]: id }, // Excluir el registro actual
+            isPrimary: true,
+            endDate: { [Op.is]: null }, // Solo activas
+          },
+          transaction: t,
+        }
+      );
+      
+      // Actualizar el registro actual
+      await row.update(payload, { transaction: t });
+    });
+  } else {
+    // Si no es isPrimary, actualizar normalmente
+    await row.update(payload);
+  }
+  
   return row;
 };
 

@@ -2,12 +2,32 @@ export type RecommenderTechCost = 'low' | 'medium' | 'high';
 
 export type RecommenderStatus = {
   activeVersion: string;
-  trainedAt: string; // ISO
-  metrics: {
-    accuracy: number; // 0..1
-    coverage: number; // 0..1
-    latencyMs: number;
+  modelInfo?: {
+    version: string;
+    type: string;
+    description: string;
   };
+  modelConfig?: {
+    version: string;
+    description: string;
+    createdAt: string;
+    totalGoals: number;
+    totalTags: number;
+  };
+  statistics?: {
+    totalPlans: number;
+    totalExercises: number;
+    topExercises: Array<{
+      id: number;
+      name: string;
+      usageCount: number;
+    }>;
+    topGoals: Array<{
+      goal: string;
+      count: number;
+    }>;
+  };
+  trainedAt: string; // ISO
   techCost: RecommenderTechCost;
 };
 

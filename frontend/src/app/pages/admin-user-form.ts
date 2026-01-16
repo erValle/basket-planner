@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -48,24 +48,22 @@ export class AdminUserForm {
   saving = false;
 
   roleOptions: Option[] = [
-    { label: 'Sin rol', value: null },
+    { label: 'Usuario', value: 'user' },
     { label: 'Admin', value: 'admin' },
     { label: 'Director Técnico', value: 'technical_director' },
     { label: 'Entrenador', value: 'coach' },
     { label: 'Jugador', value: 'player' },
-    { label: 'Usuario', value: 'user' },
   ];
 
   statusOptions: Option[] = [
     { label: 'Activo', value: 'active' },
-    { label: 'Bloqueado', value: 'blocked' },
-    { label: 'Pendiente', value: 'pending' },
+    { label: 'Inactivo', value: 'inactive' },
   ];
 
   form: AdminUserUpsertPayload = {
     name: '',
     email: '',
-    role: null,
+    role: 'user',
     status: 'active',
   };
 
@@ -81,6 +79,8 @@ export class AdminUserForm {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly toast: MessageService,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly zone: NgZone,
   ) {}
 
   private generatePassword(length = 12): string {
@@ -115,31 +115,42 @@ export class AdminUserForm {
   }
 
   get canSave(): boolean {
-    // Role is optional: admin can create user without role and later assign it.
-    return this.nameValid && this.emailValid && !!this.form.status;
+    return this.nameValid && this.emailValid && !!this.form.status && !!this.form.role;
   }
 
   load(): void {
     if (!this.userId) return;
-    this.loading = true;
-    this.loadError = null;
+    
+    this.zone.run(() => {
+      this.loading = true;
+      this.loadError = null;
+      this.cdr.detectChanges();
+    });
+    
     this.api.get(this.userId).subscribe({
       next: (u) => {
-        this.loading = false;
-        if (u?.id) {
-          this.form = {
-            name: u.name,
-            email: u.email,
-            role: (u.role as AdminUserRole | null) ?? null,
-            status: u.status as AdminUserStatus,
-          };
-        }
+        // Ejecutar dentro de la zona de Angular para asegurar detección de cambios
+        this.zone.run(() => {
+          this.loading = false;
+          if (u?.id) {
+            this.form = {
+              name: u.name,
+              email: u.email,
+              role: u.role as AdminUserRole,
+              status: u.status as AdminUserStatus,
+            };
+          }
+          this.cdr.detectChanges();
+        });
       },
       error: (e: unknown) => {
-        this.loading = false;
-        const msg = e instanceof Error ? e.message : 'No se pudo cargar el usuario.';
-        this.loadError = msg;
-        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        this.zone.run(() => {
+          this.loading = false;
+          const msg = e instanceof Error ? e.message : 'No se pudo cargar el usuario.';
+          this.loadError = msg;
+          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+          this.cdr.detectChanges();
+        });
       },
     });
   }
@@ -203,7 +214,6 @@ export class AdminUserForm {
 
     const payload: AdminUserUpsertPayload = {
       ...this.form,
-      role: this.form.role ? this.form.role : null,
     };
 
     const req$: Observable<unknown> =
@@ -213,9 +223,7 @@ export class AdminUserForm {
       next: (res) => {
         this.saving = false;
         this.toast.add({ severity: 'success', summary: 'Guardado', detail: 'Usuario guardado.' });
-
-        const id = this.userId ?? (res as { id?: string } | null | undefined)?.id;
-        this.router.navigate(['/admin/users', id ?? '']);
+        this.router.navigate(['/admin/users']);
       },
       error: (e: unknown) => {
         this.saving = false;

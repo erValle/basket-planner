@@ -1,5 +1,10 @@
 <div class="space-y-6">
-  <!-- Header + Steps -->
+  <!-- Error Card -->
+  @if (formError) {
+    <app-error-card [message]="formError" (dismiss)="dismissError()" />
+  }
+
+  <!-- Header -->
   <div class="rounded-xl border border-zinc-800 bg-zinc-950/40 p-4">
     <div class="flex items-start justify-between gap-4">
       <div>
@@ -20,479 +25,457 @@
           }
         </div>
       </div>
-      <p-tag [value]="steps[stepIndex].title" severity="info" />
-    </div>
-
-    <!-- Step indicators -->
-    <div class="mt-5 pt-4 border-t border-zinc-800/60">
-      <div class="text-xs text-zinc-500 mb-2">Navegación por pasos</div>
-      <div class="grid grid-cols-1 gap-2 md:grid-cols-4">
-        @for (step of steps; track step.id; let idx = $index) {
-          <button
-            type="button"
-            pButton
-            (click)="goToStep(idx)"
-            styleClass="w-full rounded-lg border px-3 py-2 text-left text-xs transition-colors"
-            [class.border-sky-400]="isStepActive(idx)"
-            [class.bg-sky-400]="isStepActive(idx)"
-            [class.text-slate-950]="isStepActive(idx)"
-            [class.border-zinc-800]="!isStepActive(idx)"
-            [class.bg-zinc-950/20]="!isStepActive(idx)"
-            [class.text-zinc-200]="!isStepActive(idx)"
-          >
-            <div class="font-semibold">Paso {{ idx + 1 }}</div>
-            <div class="opacity-90">{{ step.title }}</div>
-          </button>
-        }
-      </div>
     </div>
   </div>
 
   <form class="space-y-6" (ngSubmit)="onSubmit()" [formGroup]="form">
-    <!-- Step 1: Información básica -->
-    @if (stepIndex === 0) {
-      <div class="rounded-xl border border-zinc-800 bg-zinc-950/40 p-6">
-        <h2 class="text-base font-semibold text-zinc-100 mb-4">Información básica</h2>
+    <!-- Información básica -->
+    <div class="rounded-xl border border-zinc-800 bg-zinc-950/40 p-6">
+      <h2 class="text-base font-semibold text-zinc-100 mb-4">Información básica</h2>
 
-        <div class="space-y-4">
-          <div>
-            <label class="mb-2 block text-sm text-zinc-200">Nombre del ejercicio @if (!isViewMode) { * }</label>
-            @if (isViewMode) {
-              <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100">
-                {{ form.controls.nombre.value || 'Sin nombre' }}
-              </div>
-            } @else {
-              <input
-                pInputText
-                class="w-full"
-                type="text"
-                formControlName="nombre"
-                placeholder="Ej: Bote con cambio de mano, Tiro en movimiento, Pick & Roll 2c2"
-              />
-              @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
-                <div class="mt-2 text-xs text-red-400">El nombre es obligatorio.</div>
-              }
-            }
-          </div>
-
-          <div>
-            <label class="mb-2 block text-sm text-zinc-200">Descripción</label>
-            @if (isViewMode) {
-              <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100 min-h-[100px]">
-                {{ form.controls.descripcion.value || 'Sin descripción' }}
-              </div>
-            } @else {
-              <textarea
-                pTextarea
-                class="w-full"
-                rows="4"
-                formControlName="descripcion"
-                placeholder="Descripción detallada del ejercicio, su desarrollo y objetivos..."
-              ></textarea>
-            }
-          </div>
-
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label class="mb-2 block text-sm text-zinc-200">Tipo de ejercicio @if (!isViewMode) { * }</label>
-              @if (isViewMode) {
-                <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3">
-                  <p-tag 
-                    [value]="getTipoLabel(form.controls.tipo.value)" 
-                    severity="info" 
-                  />
-                </div>
-              } @else {
-                <p-select
-                  [options]="tipoOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  formControlName="tipo"
-                  styleClass="w-full"
-                  placeholder="Selecciona un tipo"
-                />
-                @if (form.controls.tipo.touched && form.controls.tipo.invalid) {
-                  <div class="mt-2 text-xs text-red-400">El tipo es obligatorio.</div>
-                }
-              }
-            </div>
-
-            <div>
-              <label class="mb-2 block text-sm text-zinc-200">Estado</label>
-              @if (isViewMode) {
-                <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3">
-                  <p-tag 
-                    [value]="form.controls.estado.value" 
-                    [severity]="form.controls.estado.value === 'Activo' ? 'success' : 'secondary'" 
-                  />
-                </div>
-              } @else {
-                <p-select
-                  [options]="estadoOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  formControlName="estado"
-                  styleClass="w-full"
-                />
-              }
-            </div>
-          </div>
-
-          <div>
-            <label class="mb-2 block text-sm text-zinc-200">Duración @if (!isViewMode) { * }</label>
-            @if (isViewMode) {
-              <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100">
-                {{ Math.ceil((form.controls.duracionSegundos.value || 0) / 60) }} minutos 
-                <span class="text-zinc-500 text-sm">({{ form.controls.duracionSegundos.value || 0 }} segundos)</span>
-              </div>
-            } @else {
-              <div class="flex items-center gap-2 mb-2">
-                <span class="text-xs text-zinc-400">≈ {{ duracionEnMinutos }} minutos</span>
-              </div>
-              <p-inputNumber
-                formControlName="duracionSegundos"
-                [min]="30"
-                [max]="3600"
-                [step]="30"
-                suffix=" seg"
-                styleClass="w-full"
-              />
-              @if (form.controls.duracionSegundos.touched && form.controls.duracionSegundos.invalid) {
-                <div class="mt-2 text-xs text-red-400">La duración debe ser al menos 30 segundos.</div>
-              }
-            }
-          </div>
-        </div>
-      </div>
-    }
-
-    <!-- Step 2: Niveles de dificultad -->
-    @if (stepIndex === 1) {
-      <div class="rounded-xl border border-zinc-800 bg-zinc-950/40 p-6">
-        <h2 class="text-base font-semibold text-zinc-100 mb-2">Niveles de dificultad</h2>
-        <p class="text-sm text-zinc-400 mb-6">
+      <div class="space-y-4">
+        <div>
+          <label class="mb-2 block text-sm text-zinc-200">Nombre del ejercicio @if (!isViewMode) { * }</label>
           @if (isViewMode) {
-            Calificación en cada dimensión del ejercicio (escala 1-5).
+            <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100">
+              {{ form.controls.nombre.value || 'Sin nombre' }}
+            </div>
           } @else {
-            Califica cada dimensión del ejercicio en una escala del 1 (muy fácil) al 5 (muy difícil).
-          }
-        </p>
-
-        <div class="space-y-6">
-          <!-- Dificultad Táctica -->
-          <div>
-            <div class="flex justify-between items-center mb-3">
-              <label class="text-sm text-zinc-200 font-medium">Dificultad Táctica</label>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-zinc-400">Nivel:</span>
-                <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadTactica.value }}</span>
-              </div>
-            </div>
-            @if (isViewMode) {
-              <!-- Vista de solo lectura con indicadores visuales -->
-              <div class="flex gap-2 mb-2">
-                @for (i of [1,2,3,4,5]; track i) {
-                  <div 
-                    class="flex-1 h-8 rounded flex items-center justify-center text-sm font-semibold transition-colors"
-                    [class.bg-sky-500]="i <= form.controls.dificultadTactica.value"
-                    [class.bg-zinc-800]="i > form.controls.dificultadTactica.value"
-                    [class.text-white]="i <= form.controls.dificultadTactica.value"
-                    [class.text-zinc-600]="i > form.controls.dificultadTactica.value"
-                  >
-                    {{ i }}
-                  </div>
-                }
-              </div>
-            } @else {
-              <p-slider 
-                formControlName="dificultadTactica" 
-                [min]="1" 
-                [max]="5" 
-                [step]="1"
-                styleClass="w-full"
-              />
+            <input
+              pInputText
+              class="w-full"
+              type="text"
+              formControlName="nombre"
+              placeholder="Ej: Bote con cambio de mano, Tiro en movimiento, Pick & Roll 2c2"
+            />
+            @if (form.controls.nombre.touched && form.controls.nombre.invalid) {
+              <div class="mt-2 text-xs text-red-400">El nombre es obligatorio.</div>
             }
-            <div class="mt-2 text-xs text-zinc-500">
-              Comprensión de conceptos tácticos, lecturas de juego, toma de decisiones
-            </div>
-          </div>
-
-          <!-- Dificultad Técnica -->
-          <div>
-            <div class="flex justify-between items-center mb-3">
-              <label class="text-sm text-zinc-200 font-medium">Dificultad Técnica</label>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-zinc-400">Nivel:</span>
-                <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadTecnica.value }}</span>
-              </div>
-            </div>
-            @if (isViewMode) {
-              <div class="flex gap-2 mb-2">
-                @for (i of [1,2,3,4,5]; track i) {
-                  <div 
-                    class="flex-1 h-8 rounded flex items-center justify-center text-sm font-semibold transition-colors"
-                    [class.bg-sky-500]="i <= form.controls.dificultadTecnica.value"
-                    [class.bg-zinc-800]="i > form.controls.dificultadTecnica.value"
-                    [class.text-white]="i <= form.controls.dificultadTecnica.value"
-                    [class.text-zinc-600]="i > form.controls.dificultadTecnica.value"
-                  >
-                    {{ i }}
-                  </div>
-                }
-              </div>
-            } @else {
-              <p-slider 
-                formControlName="dificultadTecnica" 
-                [min]="1" 
-                [max]="5" 
-                [step]="1"
-                styleClass="w-full"
-              />
-            }
-            <div class="mt-2 text-xs text-zinc-500">
-              Habilidad técnica requerida, mecánica, coordinación, precisión
-            </div>
-          </div>
-
-          <!-- Dificultad Física -->
-          <div>
-            <div class="flex justify-between items-center mb-3">
-              <label class="text-sm text-zinc-200 font-medium">Dificultad Física</label>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-zinc-400">Nivel:</span>
-                <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadFisica.value }}</span>
-              </div>
-            </div>
-            @if (isViewMode) {
-              <div class="flex gap-2 mb-2">
-                @for (i of [1,2,3,4,5]; track i) {
-                  <div 
-                    class="flex-1 h-8 rounded flex items-center justify-center text-sm font-semibold transition-colors"
-                    [class.bg-sky-500]="i <= form.controls.dificultadFisica.value"
-                    [class.bg-zinc-800]="i > form.controls.dificultadFisica.value"
-                    [class.text-white]="i <= form.controls.dificultadFisica.value"
-                    [class.text-zinc-600]="i > form.controls.dificultadFisica.value"
-                  >
-                    {{ i }}
-                  </div>
-                }
-              </div>
-            } @else {
-              <p-slider 
-                formControlName="dificultadFisica" 
-                [min]="1" 
-                [max]="5" 
-                [step]="1"
-                styleClass="w-full"
-              />
-            }
-            <div class="mt-2 text-xs text-zinc-500">
-              Exigencia física, resistencia, fuerza, velocidad, intensidad
-            </div>
-          </div>
-
-          <!-- Dificultad Mental -->
-          <div>
-            <div class="flex justify-between items-center mb-3">
-              <label class="text-sm text-zinc-200 font-medium">Dificultad Mental</label>
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-zinc-400">Nivel:</span>
-                <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadMental.value }}</span>
-              </div>
-            </div>
-            @if (isViewMode) {
-              <div class="flex gap-2 mb-2">
-                @for (i of [1,2,3,4,5]; track i) {
-                  <div 
-                    class="flex-1 h-8 rounded flex items-center justify-center text-sm font-semibold transition-colors"
-                    [class.bg-sky-500]="i <= form.controls.dificultadMental.value"
-                    [class.bg-zinc-800]="i > form.controls.dificultadMental.value"
-                    [class.text-white]="i <= form.controls.dificultadMental.value"
-                    [class.text-zinc-600]="i > form.controls.dificultadMental.value"
-                  >
-                    {{ i }}
-                  </div>
-                }
-              </div>
-            } @else {
-              <p-slider 
-                formControlName="dificultadMental" 
-                [min]="1" 
-                [max]="5" 
-                [step]="1"
-                styleClass="w-full"
-              />
-            }
-            <div class="mt-2 text-xs text-zinc-500">
-              Concentración, presión, gestión emocional, toma de decisiones bajo estrés
-            </div>
-          </div>
-
-          <!-- Promedio de dificultad -->
-          @if (isViewMode) {
-            <div class="mt-6 pt-6 border-t border-zinc-800">
-              <div class="flex items-center justify-between p-4 rounded-lg bg-zinc-900/50">
-                <span class="text-sm font-medium text-zinc-200">Dificultad Promedio</span>
-                <span class="text-2xl font-bold text-sky-400">
-                  {{ ((form.controls.dificultadTactica.value + form.controls.dificultadTecnica.value + form.controls.dificultadFisica.value + form.controls.dificultadMental.value) / 4).toFixed(1) }} / 5.0
-                </span>
-              </div>
-            </div>
           }
         </div>
-      </div>
-    }
-
-    <!-- Step 3: Etiquetas y materiales -->
-    @if (stepIndex === 2) {
-      <div class="rounded-xl border border-zinc-800 bg-zinc-950/40 p-6">
-        <h2 class="text-base font-semibold text-zinc-100 mb-4">Etiquetas y materiales</h2>
-
-        <div class="space-y-6">
-          <!-- Etiquetas -->
-          <div>
-            <label class="mb-2 block text-sm text-zinc-200">Etiquetas</label>
-            @if (!isViewMode) {
-              <p class="text-xs text-zinc-400 mb-3">
-                Las etiquetas ayudan al sistema de recomendación a encontrar ejercicios relevantes.
-              </p>
-              
-              <p-autoComplete
-                [(ngModel)]="selectedTag"
-                [ngModelOptions]="{standalone: true}"
-                [suggestions]="filteredTags"
-                (completeMethod)="searchTags($event)"
-                (onSelect)="addTag($event)"
-                placeholder="Escribe para buscar o añadir etiqueta..."
-                styleClass="w-full"
-                [dropdown]="true"
-              />
-            }
-
-            @if (form.controls.etiquetas.value.length > 0) {
-              <div class="mt-3 flex flex-wrap gap-2">
-                @for (tag of form.controls.etiquetas.value; track tag) {
-                  <p-chip 
-                    [label]="tag" 
-                    [removable]="!isViewMode" 
-                    (onRemove)="removeTag(tag)"
-                    styleClass="bg-sky-500/20 text-sky-300"
-                  />
-                }
-              </div>
-            } @else {
-              <div class="mt-3 text-xs text-zinc-500 italic">
-                @if (isViewMode) {
-                  No tiene etiquetas asignadas.
-                } @else {
-                  No hay etiquetas. Usa el autocompletado para añadir.
-                }
-              </div>
-            }
-          </div>
-
-          <!-- Materiales necesarios -->
-          <div>
-            <label class="mb-2 block text-sm text-zinc-200">Materiales necesarios</label>
-            @if (!isViewMode) {
-              <p class="text-xs text-zinc-400 mb-3">
-                Especifica qué material se necesita para realizar este ejercicio.
-              </p>
-              
-              <p-autoComplete
-                [(ngModel)]="selectedMaterial"
-                [ngModelOptions]="{standalone: true}"
-                [suggestions]="filteredMaterials"
-                (completeMethod)="searchMaterials($event)"
-                (onSelect)="addMaterial($event)"
-                placeholder="Escribe para buscar o añadir material..."
-                styleClass="w-full"
-                [dropdown]="true"
-              />
-            }
-
-            @if (form.controls.materialesNecesarios.value.length > 0) {
-              <div class="mt-3 flex flex-wrap gap-2">
-                @for (material of form.controls.materialesNecesarios.value; track material) {
-                  <p-chip 
-                    [label]="material" 
-                    [removable]="!isViewMode" 
-                    (onRemove)="removeMaterial(material)"
-                    styleClass="bg-emerald-500/20 text-emerald-300"
-                  />
-                }
-              </div>
-            } @else {
-              <div class="mt-3 text-xs text-zinc-500 italic">
-                @if (isViewMode) {
-                  No requiere materiales específicos.
-                } @else {
-                  No hay materiales especificados.
-                }
-              </div>
-            }
-          </div>
-        </div>
-      </div>
-    }
-
-    <!-- Step 4: Observaciones -->
-    @if (stepIndex === 3) {
-      <div class="rounded-xl border border-zinc-800 bg-zinc-950/40 p-6">
-        <h2 class="text-base font-semibold text-zinc-100 mb-4">Observaciones</h2>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-200">Observaciones adicionales</label>
+          <label class="mb-2 block text-sm text-zinc-200">Descripción</label>
           @if (isViewMode) {
-            <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100 min-h-[150px]">
-              {{ form.controls.observaciones.value || 'Sin observaciones adicionales' }}
+            <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100 min-h-[100px]">
+              {{ form.controls.descripcion.value || 'Sin descripción' }}
             </div>
           } @else {
             <textarea
               pTextarea
               class="w-full"
-              rows="6"
-              formControlName="observaciones"
-              placeholder="Notas adicionales, variantes del ejercicio, recomendaciones especiales..."
+              rows="4"
+              formControlName="descripcion"
+              placeholder="Descripción detallada del ejercicio, su desarrollo y objetivos..."
             ></textarea>
-            <div class="mt-2 text-xs text-zinc-400">
-              Información complementaria que pueda ser útil para los entrenadores.
+          }
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div>
+            <label class="mb-2 block text-sm text-zinc-200">Tipo de ejercicio @if (!isViewMode) { * }</label>
+            @if (isViewMode) {
+              <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3">
+                <p-tag 
+                  [value]="getTipoLabel(form.controls.tipo.value)" 
+                  severity="info" 
+                />
+              </div>
+            } @else {
+              <p-select
+                [options]="tipoOptions"
+                optionLabel="label"
+                optionValue="value"
+                formControlName="tipo"
+                styleClass="bp-select w-full"
+                [panelStyleClass]="'bp-select-panel'"
+                placeholder="Selecciona un tipo"
+              />
+              @if (form.controls.tipo.touched && form.controls.tipo.invalid) {
+                <div class="mt-2 text-xs text-red-400">El tipo es obligatorio.</div>
+              }
+            }
+          </div>
+
+          <div>
+            <label class="mb-2 block text-sm text-zinc-200">Estado</label>
+            @if (isViewMode) {
+              <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3">
+                <p-tag 
+                  [value]="form.controls.estado.value" 
+                  [severity]="form.controls.estado.value === 'Activo' ? 'success' : 'secondary'" 
+                />
+              </div>
+            } @else {
+              <p-select
+                [options]="estadoOptions"
+                optionLabel="label"
+                optionValue="value"
+                formControlName="estado"
+                styleClass="bp-select w-full"
+                [panelStyleClass]="'bp-select-panel'"
+              />
+            }
+          </div>
+        </div>
+
+        <div>
+          <label class="mb-2 block text-sm text-zinc-200">Duración @if (!isViewMode) { * }</label>
+          @if (isViewMode) {
+            <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100">
+              {{ Math.ceil((form.controls.duracionSegundos.value || 0) / 60) }} minutos 
+              <span class="text-zinc-500 text-sm">({{ form.controls.duracionSegundos.value || 0 }} segundos)</span>
             </div>
+          } @else {
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xs text-zinc-400">≈ {{ duracionEnMinutos }} minutos</span>
+            </div>
+            <p-inputNumber
+              formControlName="duracionSegundos"
+              [min]="30"
+              [max]="3600"
+              [step]="30"
+              suffix=" seg"
+              styleClass="w-full"
+            />
+            @if (form.controls.duracionSegundos.touched && form.controls.duracionSegundos.invalid) {
+              <div class="mt-2 text-xs text-red-400">La duración debe ser al menos 30 segundos.</div>
+            }
           }
         </div>
       </div>
-    }
+    </div>
 
-    <!-- Navigation and actions -->
-    <div class="flex flex-col gap-3 sm:flex-row sm:justify-between">
-      <div class="flex gap-2">
-        <button
-          type="button"
-          pButton
-          label="Anterior"
-          icon="pi pi-chevron-left"
-          severity="secondary"
-          [disabled]="!canGoPrev()"
-          (click)="goPrev()"
-        ></button>
-        <button
-          type="button"
-          pButton
-          label="Siguiente"
-          icon="pi pi-chevron-right"
-          iconPos="right"
-          severity="secondary"
-          [disabled]="!canGoNext()"
-          (click)="goNext()"
-        ></button>
+    <!-- Niveles de dificultad -->
+    <div class="rounded-xl border border-zinc-800 bg-zinc-950/40 p-6">
+      <h2 class="text-base font-semibold text-zinc-100 mb-2">Niveles de dificultad</h2>
+      <p class="text-sm text-zinc-400 mb-6">
+        @if (isViewMode) {
+          Calificación en cada dimensión del ejercicio (escala 1-5).
+        } @else {
+          Haz clic en el número para establecer la dificultad (1 = muy fácil, 5 = muy difícil).
+        }
+      </p>
+
+      <div class="space-y-6">
+        <!-- Dificultad Táctica -->
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <label class="text-sm text-zinc-200 font-medium">Dificultad Táctica</label>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-zinc-400">Nivel:</span>
+              <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadTactica.value }}</span>
+            </div>
+          </div>
+          <div class="flex gap-2 mb-2">
+            @for (i of difficultyLevels; track i) {
+              <button 
+                type="button"
+                (click)="setDifficulty('dificultadTactica', i)"
+                class="flex-1 h-10 rounded flex items-center justify-center text-sm font-semibold transition-all cursor-pointer hover:scale-105"
+                [class.bg-sky-500]="i <= form.controls.dificultadTactica.value"
+                [class.bg-zinc-800]="i > form.controls.dificultadTactica.value"
+                [class.text-white]="i <= form.controls.dificultadTactica.value"
+                [class.text-zinc-500]="i > form.controls.dificultadTactica.value"
+                [class.hover:bg-sky-400]="!isViewMode"
+                [disabled]="isViewMode"
+              >
+                {{ i }}
+              </button>
+            }
+          </div>
+          <div class="text-xs text-zinc-500">
+            Comprensión de conceptos tácticos, lecturas de juego, toma de decisiones
+          </div>
+        </div>
+
+        <!-- Dificultad Técnica -->
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <label class="text-sm text-zinc-200 font-medium">Dificultad Técnica</label>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-zinc-400">Nivel:</span>
+              <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadTecnica.value }}</span>
+            </div>
+          </div>
+          <div class="flex gap-2 mb-2">
+            @for (i of difficultyLevels; track i) {
+              <button 
+                type="button"
+                (click)="setDifficulty('dificultadTecnica', i)"
+                class="flex-1 h-10 rounded flex items-center justify-center text-sm font-semibold transition-all cursor-pointer hover:scale-105"
+                [class.bg-sky-500]="i <= form.controls.dificultadTecnica.value"
+                [class.bg-zinc-800]="i > form.controls.dificultadTecnica.value"
+                [class.text-white]="i <= form.controls.dificultadTecnica.value"
+                [class.text-zinc-500]="i > form.controls.dificultadTecnica.value"
+                [class.hover:bg-sky-400]="!isViewMode"
+                [disabled]="isViewMode"
+              >
+                {{ i }}
+              </button>
+            }
+          </div>
+          <div class="text-xs text-zinc-500">
+            Habilidad técnica requerida, mecánica, coordinación, precisión
+          </div>
+        </div>
+
+        <!-- Dificultad Física -->
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <label class="text-sm text-zinc-200 font-medium">Dificultad Física</label>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-zinc-400">Nivel:</span>
+              <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadFisica.value }}</span>
+            </div>
+          </div>
+          <div class="flex gap-2 mb-2">
+            @for (i of difficultyLevels; track i) {
+              <button 
+                type="button"
+                (click)="setDifficulty('dificultadFisica', i)"
+                class="flex-1 h-10 rounded flex items-center justify-center text-sm font-semibold transition-all cursor-pointer hover:scale-105"
+                [class.bg-sky-500]="i <= form.controls.dificultadFisica.value"
+                [class.bg-zinc-800]="i > form.controls.dificultadFisica.value"
+                [class.text-white]="i <= form.controls.dificultadFisica.value"
+                [class.text-zinc-500]="i > form.controls.dificultadFisica.value"
+                [class.hover:bg-sky-400]="!isViewMode"
+                [disabled]="isViewMode"
+              >
+                {{ i }}
+              </button>
+            }
+          </div>
+          <div class="text-xs text-zinc-500">
+            Exigencia física, resistencia, fuerza, velocidad, intensidad
+          </div>
+        </div>
+
+        <!-- Dificultad Mental -->
+        <div>
+          <div class="flex justify-between items-center mb-3">
+            <label class="text-sm text-zinc-200 font-medium">Dificultad Mental</label>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-zinc-400">Nivel:</span>
+              <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadMental.value }}</span>
+            </div>
+          </div>
+          <div class="flex gap-2 mb-2">
+            @for (i of difficultyLevels; track i) {
+              <button 
+                type="button"
+                (click)="setDifficulty('dificultadMental', i)"
+                class="flex-1 h-10 rounded flex items-center justify-center text-sm font-semibold transition-all cursor-pointer hover:scale-105"
+                [class.bg-sky-500]="i <= form.controls.dificultadMental.value"
+                [class.bg-zinc-800]="i > form.controls.dificultadMental.value"
+                [class.text-white]="i <= form.controls.dificultadMental.value"
+                [class.text-zinc-500]="i > form.controls.dificultadMental.value"
+                [class.hover:bg-sky-400]="!isViewMode"
+                [disabled]="isViewMode"
+              >
+                {{ i }}
+              </button>
+            }
+          </div>
+          <div class="text-xs text-zinc-500">
+            Concentración, presión, gestión emocional, toma de decisiones bajo estrés
+          </div>
+        </div>
+
+        <!-- Promedio de dificultad -->
+        @if (isViewMode) {
+          <div class="mt-6 pt-6 border-t border-zinc-800">
+            <div class="flex items-center justify-between p-4 rounded-lg bg-zinc-900/50">
+              <span class="text-sm font-medium text-zinc-200">Dificultad Promedio</span>
+              <span class="text-2xl font-bold text-sky-400">
+                {{ ((form.controls.dificultadTactica.value + form.controls.dificultadTecnica.value + form.controls.dificultadFisica.value + form.controls.dificultadMental.value) / 4).toFixed(1) }} / 5.0
+              </span>
+            </div>
+          </div>
+        }
       </div>
+    </div>
 
+    <!-- Etiquetas -->
+    <div class="rounded-xl border border-zinc-800 bg-zinc-950/40 p-6">
+      <h2 class="text-base font-semibold text-zinc-100 mb-4">Etiquetas</h2>
+
+      <div class="space-y-4">
+        @if (!isViewMode) {
+          <p class="text-xs text-zinc-400">
+            Las etiquetas ayudan al sistema de recomendación a encontrar ejercicios relevantes. Haz clic para añadir o quitar.
+          </p>
+          
+          <!-- Popular tags -->
+          @if (popularTagsLoading) {
+            <div class="text-xs text-zinc-500">Cargando etiquetas populares...</div>
+          } @else if (popularTags.length > 0) {
+            <div class="flex flex-wrap gap-2">
+              @for (item of visibleTags; track item.tag) {
+                <button
+                  type="button"
+                  (click)="toggleTag(item.tag)"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer"
+                  [class.bg-sky-500]="isTagSelected(item.tag)"
+                  [class.text-white]="isTagSelected(item.tag)"
+                  [class.bg-zinc-800]="!isTagSelected(item.tag)"
+                  [class.text-zinc-300]="!isTagSelected(item.tag)"
+                  [class.hover:bg-sky-400]="!isTagSelected(item.tag)"
+                >
+                  {{ item.tag }}
+                  <span class="px-1.5 py-0.5 rounded-full text-[10px]"
+                    [class.bg-sky-600]="isTagSelected(item.tag)"
+                    [class.bg-zinc-700]="!isTagSelected(item.tag)"
+                  >
+                    {{ item.count }}
+                  </span>
+                </button>
+              }
+            </div>
+            
+            @if (popularTags.length > INITIAL_ITEMS_TO_SHOW) {
+              <button
+                type="button"
+                (click)="showAllTags = !showAllTags"
+                class="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1"
+              >
+                @if (showAllTags) {
+                  <i class="pi pi-chevron-up text-[10px]"></i>
+                  Ver menos
+                } @else {
+                  <i class="pi pi-chevron-down text-[10px]"></i>
+                  Ver todas ({{ popularTags.length }})
+                }
+              </button>
+            }
+          }
+        }
+
+        <!-- Selected tags -->
+        @if (form.controls.etiquetas.value.length > 0) {
+          <div class="mt-3">
+            <div class="text-xs text-zinc-500 mb-2">Etiquetas seleccionadas:</div>
+            <div class="flex flex-wrap gap-2">
+              @for (tag of form.controls.etiquetas.value; track tag) {
+                <p-chip 
+                  [label]="tag" 
+                  [removable]="!isViewMode" 
+                  (onRemove)="removeTag(tag)"
+                  styleClass="bg-sky-500/20 text-sky-300"
+                />
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="mt-3 text-xs text-zinc-500 italic">
+            @if (isViewMode) {
+              No tiene etiquetas asignadas.
+            } @else {
+              No hay etiquetas seleccionadas.
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Materiales necesarios -->
+    <div class="rounded-xl border border-zinc-800 bg-zinc-950/40 p-6">
+      <h2 class="text-base font-semibold text-zinc-100 mb-4">Materiales necesarios</h2>
+
+      <div class="space-y-4">
+        @if (!isViewMode) {
+          <p class="text-xs text-zinc-400">
+            Selecciona el material necesario del inventario disponible.
+          </p>
+          
+          <!-- Equipment from DB -->
+          @if (equipmentLoading) {
+            <div class="text-xs text-zinc-500">Cargando materiales...</div>
+          } @else if (equipmentItems.length > 0) {
+            <div class="flex flex-wrap gap-2">
+              @for (item of visibleMaterials; track item.id) {
+                <button
+                  type="button"
+                  (click)="toggleMaterial(item.name)"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer"
+                  [class.bg-emerald-500]="isMaterialSelected(item.name)"
+                  [class.text-white]="isMaterialSelected(item.name)"
+                  [class.bg-zinc-800]="!isMaterialSelected(item.name)"
+                  [class.text-zinc-300]="!isMaterialSelected(item.name)"
+                  [class.hover:bg-emerald-400]="!isMaterialSelected(item.name)"
+                >
+                  {{ item.name }}
+                </button>
+              }
+            </div>
+            
+            @if (equipmentItems.length > INITIAL_ITEMS_TO_SHOW) {
+              <button
+                type="button"
+                (click)="showAllMaterials = !showAllMaterials"
+                class="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1"
+              >
+                @if (showAllMaterials) {
+                  <i class="pi pi-chevron-up text-[10px]"></i>
+                  Ver menos
+                } @else {
+                  <i class="pi pi-chevron-down text-[10px]"></i>
+                  Ver todos ({{ equipmentItems.length }})
+                }
+              </button>
+            }
+          } @else {
+            <div class="text-xs text-zinc-500 italic">No hay materiales en el inventario.</div>
+          }
+        }
+
+        <!-- Selected materials -->
+        @if (form.controls.materialesNecesarios.value.length > 0) {
+          <div class="mt-3">
+            <div class="text-xs text-zinc-500 mb-2">Materiales seleccionados:</div>
+            <div class="flex flex-wrap gap-2">
+              @for (material of form.controls.materialesNecesarios.value; track material) {
+                <p-chip 
+                  [label]="material" 
+                  [removable]="!isViewMode" 
+                  (onRemove)="removeMaterial(material)"
+                  styleClass="bg-emerald-500/20 text-emerald-300"
+                />
+              }
+            </div>
+          </div>
+        } @else {
+          <div class="mt-3 text-xs text-zinc-500 italic">
+            @if (isViewMode) {
+              No requiere materiales específicos.
+            } @else {
+              No hay materiales seleccionados.
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-between gap-2">
+      <div>
+        @if (mode === 'edit') {
+          <button
+            type="button"
+            pButton
+            label="Eliminar"
+            icon="pi pi-trash"
+            class="bp-btn bp-btn-danger"
+            (click)="onDelete()"
+          ></button>
+        }
+      </div>
       <div class="flex gap-2">
         <button
           type="button"
           pButton
           label="Cancelar"
-          severity="secondary"
+          class="bp-btn bp-btn-secondary"
           (click)="onCancel()"
         ></button>
         <button
@@ -500,7 +483,8 @@
           pButton
           [label]="titleForSave()"
           icon="pi pi-check"
-          [disabled]="isViewMode"
+          class="bp-btn bp-btn-primary"
+          (click)="onSubmit()"
         ></button>
       </div>
     </div>

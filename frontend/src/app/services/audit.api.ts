@@ -22,4 +22,18 @@ export class AuditApiService {
     // Keep method for future.
     return this.api.get<AuditGetResponse>(`/api/audit-logs/${encodeURIComponent(id)}`);
   }
+
+  exportCsv(params: AuditListParams = {}) {
+    const cleanParams = Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v !== undefined && v !== '' && v !== null)
+    );
+    return this.api.get(`/api/audit-logs/export.csv`, { 
+      params: cleanParams,
+      responseType: 'text'
+    });
+  }
+
+  deleteAll() {
+    return this.api.delete<{ deleted: number }>(`/api/audit-logs`);
+  }
 }

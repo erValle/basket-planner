@@ -1,4 +1,6 @@
 <app-shell title="Jugadores" subtitle="Gestión de jugadores">
+	<p-toast></p-toast>
+	
 	<div class="max-w-7xl mx-auto">
 		<app-page-header
 			[title]="'Jugadores'"
@@ -141,29 +143,33 @@
 		header="Detalle de jugador"
 		[(visible)]="playerDetailVisible"
 		size="full"
-		[customFooter]="true"
+		[showCancel]="true"
+		[showConfirm]="true"
+		cancelLabel="Cancelar"
+		confirmLabel="Confirmar"
+		confirmIcon="pi pi-check"
+		(cancel)="closePlayer()"
+		(confirm)="savePlayer(selectedPlayer!)"
 	>
 		@if (selectedPlayer) {
 			<app-player-detail
 				[player]="selectedPlayer"
-				(cancel)="closePlayer()"
-				(save)="savePlayer($event)"
 			></app-player-detail>
 		}
 	</bp-dialog>
 
 	<!-- Player Selection (Dialog) -->
 	<bp-dialog
-		header="Seleccionar jugadores"
+		header="Añadir jugadores al club"
+		subtitle="Selecciona usuarios para convertirlos en jugadores. Se asignarán al club seleccionado actualmente."
 		[(visible)]="playerSelectionVisible"
 		size="xl"
 		[customFooter]="true"
 	>
 		<app-player-selection
-			[title]="'Seleccionar jugadores'"
-			[subtitle]="'Añade jugadores al equipo'"
 			[availablePlayers]="availablePlayersForSelection"
 			[selectedPlayers]="selectedPlayerIds"
+			[loading]="savingPlayerSelection"
 			(cancel)="closePlayerSelection()"
 			(confirm)="confirmPlayerSelection($event)"
 		></app-player-selection>

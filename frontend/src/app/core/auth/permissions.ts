@@ -21,8 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
 	{ key: 'teams', label: 'Equipos', route: '/teams', roles: ['admin', 'technical_director', 'coach'], icon: 'pi pi-sitemap', group: 'general' },
 	{ key: 'material', label: 'Material', route: '/material', roles: ['admin', 'technical_director', 'coach'], icon: 'pi pi-box', group: 'general' },
 
-	{ key: 'recommender', label: 'Recomendador', route: '/recommender', roles: ['admin'], icon: 'pi pi-sparkles', group: 'control' },
-	{ key: 'monitoring', label: 'Monitorización', route: '/monitoring', roles: ['admin'], icon: 'pi pi-wrench', group: 'control' },
+	{ key: 'monitoring', label: 'Monitorización', route: '/monitoring', roles: ['admin'], icon: 'pi pi-sparkles', group: 'control' },
 	{ key: 'admin-users', label: 'Admin / Usuarios', route: '/admin/users', roles: ['admin'], icon: 'pi pi-users', group: 'control' },
 	{ key: 'audit', label: 'Auditoría', route: '/audit', roles: ['admin'], icon: 'pi pi-shield', group: 'control' },
 ];
@@ -53,7 +52,6 @@ export const ROUTE_PERMISSIONS: Record<string, Role[]> = {
 	'/material': ['admin', 'technical_director', 'coach'],
 	'/material/new': ['admin', 'technical_director', 'coach'],
 
-	'/recommender': ['admin'],
 	'/monitoring': ['admin'],
 	'/audit': ['admin'],
 	'/admin/users': ['admin'],

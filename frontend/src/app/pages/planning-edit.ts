@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -114,6 +114,8 @@ export class PlanningEdit {
     private readonly router: Router,
     private readonly toast: MessageService,
     private readonly confirmation: ConfirmationService,
+    private readonly zone: NgZone,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -200,26 +202,32 @@ export class PlanningEdit {
     // Cargar planificación desde el backend
     this.api.get(this.planningId, this.fromVersion || undefined).subscribe({
       next: (plan: any) => {
-        // Obtener las sesiones desde la versión activa o la especificada
-        const version = this.fromVersion 
-          ? plan.versions?.find((v: any) => String(v.id) === this.fromVersion)
-          : plan.activeVersion;
-        
-        const sessionsData = version?.sessions || plan.activeVersion?.sessions || [];
-        
-        // Mapear sesiones a la estructura del editor
-        this.sessions.set(this.mapSessionsToEditor(sessionsData));
-        this.pageLoading.set(false);
+        this.zone.run(() => {
+          // Obtener las sesiones desde la versión activa o la especificada
+          const version = this.fromVersion 
+            ? plan.versions?.find((v: any) => String(v.id) === this.fromVersion)
+            : plan.activeVersion;
+          
+          const sessionsData = version?.sessions || plan.activeVersion?.sessions || [];
+          
+          // Mapear sesiones a la estructura del editor
+          this.sessions.set(this.mapSessionsToEditor(sessionsData));
+          this.pageLoading.set(false);
+          this.cdr.detectChanges();
+        });
       },
       error: (e: unknown) => {
-        console.error('Error loading plan:', e);
-        this.toast.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: e instanceof Error ? e.message : 'No se pudo cargar la planificación.',
+        this.zone.run(() => {
+          console.error('Error loading plan:', e);
+          this.toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: e instanceof Error ? e.message : 'No se pudo cargar la planificación.',
+          });
+          this.sessions.set([]);
+          this.pageLoading.set(false);
+          this.cdr.detectChanges();
         });
-        this.sessions.set([]);
-        this.pageLoading.set(false);
       },
     });
   }
@@ -394,7 +402,9 @@ export class PlanningEdit {
     if (!block) return;
 
     const durationMin = exercise.duration ? Math.ceil(exercise.duration / 60) : 10;
-    const difficulty = String(exercise.difficulty || '');
+    
+    // Extraer dificultad 4D
+    const diff = exercise.difficulty as { tactica?: number; tecnica?: number; fisica?: number; mental?: number } | undefined;
 
     block.exercises = [
       ...block.exercises,
@@ -404,10 +414,11 @@ export class PlanningEdit {
         series: 3,
         reps: 8,
         durationMin,
-        intensity: difficulty === 'advanced' ? 'Alta' : difficulty === 'beginner' ? 'Baja' : 'Media',
+        intensity: 'Media',
         restSec: 60,
         material: [],
         notes: exercise.description || '',
+        difficulty: diff,
       },
     ];
 
@@ -557,13 +568,13 @@ export class PlanningEdit {
   }
 
   openExercisePreviewFromBlock(exercise: PlanningExerciseEditor): void {
-    // Crear un objeto ExerciseDto temporal con los datos que tenemos del ejercicio en el bloque
+    // Usar los datos del ejercicio en el bloque incluyendo dificultad 4D
     this.selectedExerciseForPreview.set({
       id: 0,
       name: exercise.name,
       description: exercise.notes || '',
       type: 'general' as any,
-      difficulty: {},
+      difficulty: exercise.difficulty || {},
       duration: exercise.durationMin * 60, // Convertir minutos a segundos
       tags: {},
       active: true,
