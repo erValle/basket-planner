@@ -54,7 +54,9 @@ export class AppShell implements OnInit {
 	}
 
 	get generalNav() {
-		return this.navItems.filter((i) => i.group === 'general' && this.hasAccess(i));
+		const items = this.navItems.filter((i) => i.group === 'general' && this.hasAccess(i));
+		console.log('[AppShell] generalNav items:', items.map(i => i.route), 'role:', this.auth.getRoleSnapshot());
+		return items;
 	}
 
 	get controlNav() {
@@ -101,7 +103,13 @@ export class AppShell implements OnInit {
 	}
 
 	ngOnInit(): void {
-		// Component initialization
+		// Cargar clubs disponibles
+		this.clubContext.refresh();
+		
+		// Suscribirse a cambios de club para mantener el select sincronizado
+		this.clubContext.selectedClubId$.subscribe((clubId) => {
+			this.selectedClubId = clubId;
+		});
 	}
 
 	getPanelLabel(): string {
