@@ -64,16 +64,47 @@ export class Dashboard {
   }
 
   private toUiPlanning(p: any): PlanningListItem {
+    const targetType = p?.targetType === 'group' ? 'group' : 'individual';
+    
+    // Determinar assignedTo basado en el tipo
+    let assignedTo = '';
+    if (targetType === 'individual') {
+      const firstAssignment = p?.assignments?.[0];
+      if (firstAssignment?.user) {
+        const user = firstAssignment.user;
+        assignedTo = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Sin asignar';
+      } else {
+        assignedTo = 'Sin asignar';
+      }
+    } else {
+      const firstAssignment = p?.assignments?.[0];
+      const firstClub = firstAssignment?.user?.userClubs?.[0]?.club;
+      if (firstClub) {
+        assignedTo = `Grupal ${firstClub.name}`;
+      } else {
+        assignedTo = 'Grupal';
+      }
+    }
+    
+    // Obtener nombre del autor
+    let authorName = '-';
+    if (p?.createdBy) {
+      authorName = `${p.createdBy.firstName || ''} ${p.createdBy.lastName || ''}`.trim() || `user:${p.createdById}`;
+    } else if (p?.createdById) {
+      authorName = `user:${p.createdById}`;
+    }
+    
     return {
       id: String(p?.id ?? ''),
       date: (p?.createdAt ? String(p.createdAt).slice(0, 10) : new Date().toISOString().slice(0, 10)),
-      team: p?.targetType === 'group' ? 'Equipo' : 'Individual',
-      objective: p?.name ? String(p.name) : 'Plan',
-      status: ((['draft', 'generated', 'published', 'archived'] as string[]).includes(String(p?.status))
+      name: p?.name ? String(p.name) : 'Sin nombre',
+      targetType,
+      assignedTo,
+      status: ((['draft', 'active', 'archived'] as string[]).includes(String(p?.status))
         ? String(p.status)
         : 'draft') as PlanningStatus,
       version: p?.activeVersionId != null ? `v${p.activeVersionId}` : 'v1',
-      author: p?.createdById != null ? `user:${p.createdById}` : '-',
+      author: authorName,
     };
   }
 

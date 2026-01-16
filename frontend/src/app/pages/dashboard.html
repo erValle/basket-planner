@@ -61,7 +61,6 @@
 			<div class="text-[16px] text-[#f9fafb] mb-1">Planificaciones recientes</div>
 			<div class="text-[13px] text-[#9ca3af] mb-4">
 				Últimas planificaciones creadas.
-				<span class="text-[#6b7280]"> (la API aún no soporta “próximas por fecha”)</span>
 			</div>
 
 			@let vm = (planningsVm$ | async);
@@ -80,8 +79,9 @@
 						<thead>
 							<tr class="border-b border-[#1f2937]">
 								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Fecha</th>
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Nombre</th>
 								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Tipo</th>
-								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Objetivo</th>
+								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Asignado a</th>
 								<th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4">Estado</th>
 								<th class="text-left text-[12px] text-[#9ca3af] pb-3"></th>
 							</tr>
@@ -90,8 +90,13 @@
 							@for (p of (vm?.latest ?? []); track p.id) {
 								<tr class="border-b border-[#1f2937]">
 									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ p.date }}</td>
-									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ p.team }}</td>
-									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ p.objective }}</td>
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ p.name }}</td>
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">
+										<span [class]="p.targetType === 'individual' ? 'text-blue-400' : 'text-green-400'">
+											{{ p.targetType === 'individual' ? 'Individual' : 'Grupal' }}
+										</span>
+									</td>
+									<td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ p.assignedTo }}</td>
 									<td class="py-4 pr-4">
 										<span class="inline-block text-[11px] px-2 py-1 rounded bg-[#111827] text-[#e5e7eb]">
 											{{ statusLabel(p.status) }}

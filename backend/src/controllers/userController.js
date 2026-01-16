@@ -56,10 +56,22 @@ const deleteUser = async (req, res, next) => {
     }
 };
 
+const assignUsersToClub = async (req, res, next) => {
+    try {
+        const { userIds, clubId } = req.body;
+        await userService.assignUsersToClub(userIds, clubId, { user: req.user, requestId: req.requestId });
+        return res.status(StatusCodes.OK).json({ ok: true });
+    } catch (error) {
+        logger.error('Error assigning users to club:', error);
+        return next(error);
+    }
+};
+
 module.exports = {
     getAllUsers,
     getUserById,
     createUser,
     updateUser,
     deleteUser,
+    assignUsersToClub,
 };

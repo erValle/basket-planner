@@ -17,13 +17,18 @@ export class ApiClient {
     if (err instanceof HttpErrorResponse) {
       // Try to extract the error message from various possible structures
       const errorMessage = 
+        err.error?.message ||          // Backend format: { error: 'CODE', message: '...' }
         err.error?.error?.message ||  // Structured error: { error: { message: ... } }
-        err.error?.message ||          // Simple error: { message: ... }
         err.message ||                 // HTTP error message
-        'Unknown API error';
-      return throwError(() => new Error(errorMessage));
+        'Error desconocido';
+      
+      // Create an enhanced error object with status code
+      const error = new Error(errorMessage);
+      (error as any).status = err.status;
+      (error as any).code = err.error?.error;
+      return throwError(() => error);
     }
-    return throwError(() => (err instanceof Error ? err : new Error('Unknown API error')));
+    return throwError(() => (err instanceof Error ? err : new Error('Error desconocido')));
   }
 
   /**

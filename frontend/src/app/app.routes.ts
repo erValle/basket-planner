@@ -32,12 +32,6 @@ export const routes: Routes = [
 				data: { roles: ROUTE_PERMISSIONS['/monitoring'] },
 				loadComponent: () => import('./pages/monitoring').then((m) => m.Monitoring),
 			},
-			{
-				path: 'recommender',
-				canActivate: [roleGuard],
-				data: { roles: ROUTE_PERMISSIONS['/recommender'] },
-				loadComponent: () => import('./pages/recommender').then((m) => m.RecommenderPage),
-			},
 			{ path: 'exercises', canActivate: [roleGuard], data: { roles: ROUTE_PERMISSIONS['/exercises'] }, loadComponent: () => import('./pages/exercises').then((m) => m.Exercises) },
 			{ path: 'exercises/new', canActivate: [roleGuard], data: { roles: ROUTE_PERMISSIONS['/exercises/new'] }, loadComponent: () => import('./pages/new-exercise').then((m) => m.NewExercise) },
 			{ path: 'clubs', canActivate: [roleGuard], data: { roles: ROUTE_PERMISSIONS['/clubs'] }, loadComponent: () => import('./pages/clubs').then((m) => m.Clubs) },
