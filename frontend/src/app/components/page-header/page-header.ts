@@ -1,11 +1,13 @@
 import { Component, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 import { ButtonModule } from 'primeng/button';
+import { HasPermissionDirective } from '../../core/auth/has-permission.directive';
 
 @Component({
 	selector: 'app-page-header',
 	standalone: true,
-	imports: [ButtonModule],
+	imports: [CommonModule, ButtonModule, HasPermissionDirective],
 	templateUrl: './page-header.html',
 })
 export class PageHeader {
@@ -19,6 +21,7 @@ export class PageHeader {
 	@Input() actionOutlined = false;
 	@Input() actionDisabled = false;
 	@Input() actionAriaLabel?: string;
+	@Input() actionPermission?: string; // e.g., 'clubs.create'
 
 	/** Callback assigned from parent without re-emitting events. */
 	@Input() action?: () => void;

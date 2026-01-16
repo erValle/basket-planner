@@ -5,7 +5,7 @@ const { StatusCodes } = require('http-status-codes');
 const { User, UserClub, Club, Team } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
 
-const listPlayers = async ({ search, clubId, teamId, withoutTeam, limit } = {}) => {
+const listPlayers = async ({ search, clubId, teamId, withoutTeam, limit, userClubIds } = {}) => {
   const where = { role: 'player' };
 
   if (search) {
@@ -25,8 +25,12 @@ const listPlayers = async ({ search, clubId, teamId, withoutTeam, limit } = {}) 
     {
       model: UserClub,
       as: 'userClubs',
-      required: Boolean(clubId),
-      where: clubId ? { clubId } : undefined,
+      required: Boolean(clubId) || Boolean(userClubIds),
+      where: clubId 
+        ? { clubId } 
+        : userClubIds 
+          ? { clubId: { [Op.in]: userClubIds } }
+          : undefined,
       attributes: ['clubId'],
       include: [
         {

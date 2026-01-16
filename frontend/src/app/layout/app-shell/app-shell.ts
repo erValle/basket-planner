@@ -72,7 +72,9 @@ export class AppShell implements OnInit {
 
 	get showClubSelector(): boolean {
 		const role = this.auth.getRoleSnapshot();
-		return role === 'admin' || role === 'coach';
+		// Solo admin y technical_director pueden gestionar múltiples clubes
+		// Coach tiene un solo club asignado y no necesita selector
+		return role === 'admin' || role === 'technical_director';
 	}
 
 	onClubChange(value: number | null): void {

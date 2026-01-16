@@ -1,15 +1,14 @@
 <app-shell title="Clubes" subtitle="Gestión de clubes">
 	<p-toast></p-toast>
 	<div class="max-w-7xl mx-auto">
-				<app-page-header
-					[title]="'Clubes'"
-					[subtitle]="'Gestión de clubes y estructura base del sistema.'"
-					[actionLabel]="'Nuevo club'"
-					[actionIcon]="'pi pi-plus'"
-					[action]="openCreate.bind(this)"
-				></app-page-header>
-
-				<!-- Filters -->
+		<app-page-header
+			[title]="'Clubes'"
+			[subtitle]="'Gestión de clubes y estructura base del sistema.'"
+			[actionLabel]="'Nuevo club'"
+			[actionIcon]="'pi pi-plus'"
+			[actionPermission]="'clubs.create'"
+			[action]="openCreate.bind(this)"
+		></app-page-header>				<!-- Filters -->
 				<div
 					class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6"
 					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"

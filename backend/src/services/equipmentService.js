@@ -76,9 +76,19 @@ async function checkAndReactivateExercises(materialName, clubId) {
   }
 }
 
-const listEquipment = async ({ clubId } = {}) => {
+const listEquipment = async ({ clubId, userClubIds } = {}) => {
   const where = {};
-  if (clubId) where.clubId = clubId;
+  
+  // Si se especifica un clubId específico, usarlo
+  if (clubId) {
+    where.clubId = clubId;
+  } 
+  // Si se especifican userClubIds (para filtrar por clubes del usuario), usarlos
+  else if (userClubIds && userClubIds.length > 0) {
+    const { Op } = require('sequelize');
+    where.clubId = { [Op.in]: userClubIds };
+  }
+  
   return Equipment.findAll({ where });
 };
 

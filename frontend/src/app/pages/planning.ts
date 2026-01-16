@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, NavigationEnd } from '@angular/router';
@@ -245,6 +245,7 @@ export class Planning {
     private readonly router: Router,
     private readonly toast: MessageService,
     private readonly confirmation: ConfirmationService,
+    private readonly cdr: ChangeDetectorRef,
   ) {
     this.selectedClubId = this.clubContext.getSelectedClubIdSnapshot();
 
@@ -281,10 +282,13 @@ export class Planning {
         this.teamsApi.list({ clubId: String(clubId) }).subscribe({
           next: (items) => {
             this.teams = items ?? [];
-            this.teamOptions = [
-              { label: 'Todos', value: 'Todos' },
-              ...this.teams.map((t) => ({ label: t.name, value: String(t.id) })),
-            ];
+            setTimeout(() => {
+              this.teamOptions = [
+                { label: 'Todos', value: 'Todos' },
+                ...this.teams.map((t) => ({ label: t.name, value: String(t.id) })),
+              ];
+              this.cdr.markForCheck();
+            });
           },
           error: () => {
             // keep defaults
@@ -298,10 +302,13 @@ export class Planning {
         this.teamsApi.list().subscribe({
           next: (items) => {
             this.teams = items ?? [];
-            this.teamOptions = [
-              { label: 'Todos', value: 'Todos' },
-              ...this.teams.map((t) => ({ label: t.name, value: String(t.id) })),
-            ];
+            setTimeout(() => {
+              this.teamOptions = [
+                { label: 'Todos', value: 'Todos' },
+                ...this.teams.map((t) => ({ label: t.name, value: String(t.id) })),
+              ];
+              this.cdr.markForCheck();
+            });
           },
           error: () => {
             // keep defaults
@@ -333,8 +340,11 @@ export class Planning {
     this.clubsApi.list().subscribe({
       next: (items) => {
         this.clubs = items ?? [];
-        // Mostrar TODOS los clubes en el selector
-        this.clubOptions = [{ label: 'Todos', value: 'Todos' }, ...this.clubs.map((c) => ({ label: c.name, value: String(c.id) }))];
+        // Usar setTimeout para evitar NG0100
+        setTimeout(() => {
+          this.clubOptions = [{ label: 'Todos', value: 'Todos' }, ...this.clubs.map((c) => ({ label: c.name, value: String(c.id) }))];
+          this.cdr.markForCheck();
+        });
       },
       error: () => {
         // keep defaults
@@ -344,10 +354,13 @@ export class Planning {
     this.teamsApi.list({ clubId: clubId != null ? String(clubId) : undefined }).subscribe({
       next: (items) => {
         this.teams = items ?? [];
-        this.teamOptions = [
-          { label: 'Todos', value: 'Todos' },
-          ...this.teams.map((t) => ({ label: t.name, value: String(t.id) })),
-        ];
+        setTimeout(() => {
+          this.teamOptions = [
+            { label: 'Todos', value: 'Todos' },
+            ...this.teams.map((t) => ({ label: t.name, value: String(t.id) })),
+          ];
+          this.cdr.markForCheck();
+        });
       },
       error: () => {
         // keep defaults
