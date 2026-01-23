@@ -94,7 +94,10 @@ export class SessionDetail {
     notes: '',
   };
 
-  constructor(private readonly feedbackApi: FeedbackApiService, private readonly toast: MessageService) {}
+  constructor(
+    private readonly feedbackApi: FeedbackApiService,
+    private readonly toast: MessageService,
+  ) {}
 
   ngOnInit(): void {
     // Check if user can provide feedback for this session
@@ -163,13 +166,18 @@ export class SessionDetail {
 
     this.feedbackApi.createSurvey(payload).subscribe({
       next: (result) => {
+        this.savingFeedback = false;
+        
+        // Usar setTimeout para evitar ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+          this.feedbackDialogVisible = false;
+        });
+        
         this.toast.add({
           severity: 'success',
           summary: 'Guardado',
           detail: 'Tu feedback ha sido registrado correctamente.',
         });
-        this.savingFeedback = false;
-        this.feedbackDialogVisible = false;
         
         // Update the latest survey with the newly created feedback
         this.latestSurvey = {
@@ -191,13 +199,13 @@ export class SessionDetail {
         };
       },
       error: (err) => {
+        this.savingFeedback = false;
         console.error('Error saving feedback:', err);
         this.toast.add({
           severity: 'error',
           summary: 'Error',
           detail: err.error?.message || 'No se pudo guardar el feedback. Inténtalo de nuevo.',
         });
-        this.savingFeedback = false;
       },
     });
   }

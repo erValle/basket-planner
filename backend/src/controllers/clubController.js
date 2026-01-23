@@ -7,7 +7,34 @@ const clubService = require('../services/clubService');
  * @desc List all clubs with optional filters
  */
 const listClubs = asyncHandler(async (req, res) => {
-  const clubs = await clubService.listClubs(req.query);
+  const user = req.user;
+  let filteredQuery = { ...req.query };
+  
+  // Si el usuario no es admin, filtrar por sus clubes asociados
+  if (user && user.role !== 'admin') {
+    const { Op } = require('sequelize');
+    const { UserClub } = require('../../models');
+    
+    // Obtener los clubes del usuario autenticado (solo membresías activas)
+    const userMemberships = await UserClub.findAll({
+      where: { 
+        userId: user.id,
+        endDate: { [Op.is]: null }
+      },
+      attributes: ['clubId']
+    });
+    
+    const userClubIds = userMemberships.map(m => m.clubId);
+    
+    // Si el usuario no tiene clubes, devolver lista vacía
+    if (userClubIds.length === 0) {
+      return res.status(StatusCodes.OK).json([]);
+    }
+    
+    filteredQuery.userClubIds = userClubIds;
+  }
+  
+  const clubs = await clubService.listClubs(filteredQuery);
   return res.status(StatusCodes.OK).json(clubs);
 });
 

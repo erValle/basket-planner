@@ -17,7 +17,7 @@ export const NAV_ITEMS: NavItem[] = [
 	{ key: 'planning-new', label: 'Nueva planificación', route: '/planning/new', roles: ['admin', 'technical_director', 'coach'], icon: 'pi pi-plus', group: 'general' },
 	{ key: 'players', label: 'Jugadores', route: '/players', roles: ['admin', 'technical_director', 'coach'], icon: 'pi pi-users', group: 'general' },
 	{ key: 'exercises', label: 'Ejercicios', route: '/exercises', roles: ['admin', 'technical_director', 'coach'], icon: 'pi pi-book', group: 'general' },
-	{ key: 'clubs', label: 'Clubes', route: '/clubs', roles: ['admin', 'technical_director', 'coach'], icon: 'pi pi-building', group: 'general' },
+	{ key: 'clubs', label: 'Clubes', route: '/clubs', roles: ['admin', 'technical_director'], icon: 'pi pi-building', group: 'general' },
 	{ key: 'teams', label: 'Equipos', route: '/teams', roles: ['admin', 'technical_director', 'coach'], icon: 'pi pi-sitemap', group: 'general' },
 	{ key: 'material', label: 'Material', route: '/material', roles: ['admin', 'technical_director', 'coach'], icon: 'pi pi-box', group: 'general' },
 
@@ -45,7 +45,7 @@ export const ROUTE_PERMISSIONS: Record<string, Role[]> = {
 	'/players': ['admin', 'technical_director', 'coach'],
 	'/exercises': ['admin', 'technical_director', 'coach'],
 	'/exercises/new': ['admin', 'technical_director', 'coach'],
-	'/clubs': ['admin', 'technical_director', 'coach'],
+	'/clubs': ['admin', 'technical_director'],
 	'/clubs/new': ['admin'],
 	'/teams': ['admin', 'technical_director', 'coach'],
 	'/teams/new': ['admin', 'technical_director', 'coach'],

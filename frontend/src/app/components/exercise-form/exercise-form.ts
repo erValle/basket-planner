@@ -189,10 +189,12 @@ export class ExerciseForm implements OnChanges, OnInit {
 
   private loadEquipment(): void {
     this.equipmentLoading = true;
+    // Solo cargar material con status 'available'
     this.equipmentApi.list({ limit: 200 } as any).subscribe({
       next: (items) => {
         this.equipmentLoading = false;
-        this.equipmentItems = items ?? [];
+        // Filtrar solo material disponible
+        this.equipmentItems = (items ?? []).filter(item => item.status === 'available');
       },
       error: () => {
         this.equipmentLoading = false;

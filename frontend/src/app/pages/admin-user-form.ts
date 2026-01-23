@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -79,8 +79,6 @@ export class AdminUserForm {
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly toast: MessageService,
-    private readonly cdr: ChangeDetectorRef,
-    private readonly zone: NgZone,
   ) {}
 
   private generatePassword(length = 12): string {
@@ -121,36 +119,26 @@ export class AdminUserForm {
   load(): void {
     if (!this.userId) return;
     
-    this.zone.run(() => {
-      this.loading = true;
-      this.loadError = null;
-      this.cdr.detectChanges();
-    });
+    this.loading = true;
+    this.loadError = null;
     
     this.api.get(this.userId).subscribe({
       next: (u) => {
-        // Ejecutar dentro de la zona de Angular para asegurar detección de cambios
-        this.zone.run(() => {
-          this.loading = false;
-          if (u?.id) {
-            this.form = {
-              name: u.name,
-              email: u.email,
-              role: u.role as AdminUserRole,
-              status: u.status as AdminUserStatus,
-            };
-          }
-          this.cdr.detectChanges();
-        });
+        this.loading = false;
+        if (u?.id) {
+          this.form = {
+            name: u.name,
+            email: u.email,
+            role: u.role as AdminUserRole,
+            status: u.status as AdminUserStatus,
+          };
+        }
       },
       error: (e: unknown) => {
-        this.zone.run(() => {
-          this.loading = false;
-          const msg = e instanceof Error ? e.message : 'No se pudo cargar el usuario.';
-          this.loadError = msg;
-          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-          this.cdr.detectChanges();
-        });
+        this.loading = false;
+        const msg = e instanceof Error ? e.message : 'No se pudo cargar el usuario.';
+        this.loadError = msg;
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
       },
     });
   }
@@ -189,7 +177,12 @@ export class AdminUserForm {
     this.api.setPassword(this.userId, this.newPassword).subscribe({
       next: () => {
         this.resettingPassword = false;
-        this.passwordResetOpen = false;
+        
+        // Usar setTimeout para evitar ExpressionChangedAfterItHasBeenCheckedError
+        setTimeout(() => {
+          this.passwordResetOpen = false;
+        });
+        
         this.toast.add({
           severity: 'success',
           summary: 'Contraseña actualizada',

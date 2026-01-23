@@ -5,9 +5,15 @@ const { fn, col } = require('sequelize');
 const { Club, Team } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
 
-const listClubs = async ({ name } = {}) => {
+const listClubs = async ({ name, userClubIds } = {}) => {
   const where = {};
   if (name) where.name = name;
+  
+  // Si se especifican userClubIds, filtrar por ellos
+  if (userClubIds && userClubIds.length > 0) {
+    const { Op } = require('sequelize');
+    where.id = { [Op.in]: userClubIds };
+  }
 
   const clubs = await Club.findAll({
     where,

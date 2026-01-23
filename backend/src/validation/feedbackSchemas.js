@@ -19,10 +19,10 @@ const ratingSchema = Joi.object({
 const createFeedbackSchema = Joi.object({
   trainingPlanVersionId: Joi.number().integer().positive().required(),
   targetType: Joi.string().valid('version', 'session').default('version'),
-  sessionId: Joi.string().when('targetType', {
+  sessionId: Joi.alternatives().conditional('targetType', {
     is: 'session',
-    then: Joi.required(),
-    otherwise: Joi.forbidden(),
+    then: Joi.string().required(),
+    otherwise: Joi.string().allow(null).optional(),
   }),
   rating: ratingSchema.required(),
   comments: Joi.string().allow('', null).optional()

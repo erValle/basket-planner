@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, inject, NgZone } from '@angular/core';
+import { Component, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -104,7 +104,6 @@ export class PlanningDetail {
   };
 
   private readonly cdr = inject(ChangeDetectorRef);
-  private readonly zone = inject(NgZone);
 
   constructor(
     private readonly api: PlanningApiService,
@@ -269,6 +268,7 @@ export class PlanningDetail {
       this.allFeedbacks = [];
       this.loadingFeedbacks = false;
       console.log('No user authenticated');
+      this.cdr.markForCheck();
       return;
     }
 
@@ -303,7 +303,6 @@ export class PlanningDetail {
       this.loadingFeedbacks = true;
       this.allFeedbacks = [];
       this.feedbacksToShow = this.FEEDBACKS_PER_PAGE; // Resetear contador al cargar nueva versión
-      this.cdr.markForCheck();
       
       this.feedbackApi.listForVersion(Number(versionId)).subscribe({
         next: (allResponse) => {
@@ -356,7 +355,7 @@ export class PlanningDetail {
       .subscribe({
         next: (res) => {
           this.savingFeedback = false;
-          this.feedbackDialogOpen = false;
+          
           this.latestSurvey = {
             id: (res?.id != null ? String(res.id) : `fp-${Math.random().toString(16).slice(2)}`),
             playerId: String(currentUser.id),
@@ -366,11 +365,18 @@ export class PlanningDetail {
             answers: { ...this.draftSurvey },
           };
           this.toast.add({ severity: 'success', summary: 'Guardado', detail: 'Encuesta registrada.' });
+          
+          // Usar setTimeout para evitar ExpressionChangedAfterItHasBeenCheckedError
+          setTimeout(() => {
+            this.feedbackDialogOpen = false;
+            this.cdr.markForCheck();
+          });
         },
         error: (e: unknown) => {
           this.savingFeedback = false;
           const msg = e instanceof Error ? e.message : 'No se pudo guardar el feedback.';
           this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+          this.cdr.markForCheck();
         },
         complete: () => {
           // Ensure loading state is always cleared
@@ -395,19 +401,14 @@ export class PlanningDetail {
     this.emptyState = false;
 
     if (!this.planningId) {
-      this.zone.run(() => {
-        this.emptyState = true;
-        this.detail = null;
-        this.blocks = [];
-        this.cdr.detectChanges();
-      });
+      this.emptyState = true;
+      this.detail = null;
+      this.blocks = [];
+      this.cdr.markForCheck();
       return;
     }
 
-    this.zone.run(() => {
-      this.loading = true;
-      this.cdr.detectChanges();
-    });
+    this.loading = true;
 
     this.api.get(this.planningId).subscribe({
       next: (plan) => {
@@ -418,56 +419,49 @@ export class PlanningDetail {
         const resolvedVersionId = selectedVersionId ?? activeVersionId ?? (versions[0]?.id != null ? String(versions[0].id) : null);
 
         if (!resolvedVersionId) {
-          this.zone.run(() => {
-            this.loading = false;
-            this.emptyState = true;
-            this.detail = null;
-            this.blocks = [];
-            this.cdr.detectChanges();
-          });
+          this.loading = false;
+          this.emptyState = true;
+          this.detail = null;
+          this.blocks = [];
+          this.cdr.markForCheck();
           return;
         }
 
         this.api.getVersion(this.planningId!, resolvedVersionId).subscribe({
           next: (versionRow) => {
-            this.zone.run(() => {
-              this.loading = false;
+            this.loading = false;
 
-              const versionLabel = `v${versionRow?.versionNumber ?? resolvedVersionId}`;
-              const resolved = this.mapTrainingPlanToDetail(plan, versionRow, versionLabel);
+            const versionLabel = `v${versionRow?.versionNumber ?? resolvedVersionId}`;
+            const resolved = this.mapTrainingPlanToDetail(plan, versionRow, versionLabel);
 
-              this.detail = resolved;
-              this.blocks = resolved.blocks ?? [];
+            this.detail = resolved;
+            this.blocks = resolved.blocks ?? [];
 
-              // options show labels, values are real version IDs so export works
-              this.versionOptions = (resolved.versions ?? []).map((v: any) => ({ label: v.label, value: v.value }));
-              this.selectedVersion = resolvedVersionId;
-              
-              // Load feedback for this version
-              this.loadFeedbackForVersion(resolvedVersionId);
-              
-              this.cdr.detectChanges();
-            });
+            // options show labels, values are real version IDs so export works
+            this.versionOptions = (resolved.versions ?? []).map((v: any) => ({ label: v.label, value: v.value }));
+            this.selectedVersion = resolvedVersionId;
+            
+            // Load feedback for this version
+            this.loadFeedbackForVersion(resolvedVersionId);
+            
+            // Forzar detección de cambios
+            this.cdr.markForCheck();
           },
           error: (e: unknown) => {
-            this.zone.run(() => {
-              this.loading = false;
-              const msg = e instanceof Error ? e.message : 'No se pudo cargar la versión.';
-              this.loadError = msg;
-              this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-              this.cdr.detectChanges();
-            });
+            this.loading = false;
+            const msg = e instanceof Error ? e.message : 'No se pudo cargar la versión.';
+            this.loadError = msg;
+            this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+            this.cdr.markForCheck();
           },
         });
       },
       error: (e: unknown) => {
-        this.zone.run(() => {
-          this.loading = false;
-          const msg = e instanceof Error ? e.message : 'No se pudo cargar la planificación.';
-          this.loadError = msg;
-          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-          this.cdr.detectChanges();
-        });
+        this.loading = false;
+        const msg = e instanceof Error ? e.message : 'No se pudo cargar la planificación.';
+        this.loadError = msg;
+        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        this.cdr.markForCheck();
       },
     });
   }
@@ -605,7 +599,6 @@ export class PlanningDetail {
       detail: 'Descargando PDF…',
       key: 'download-toast'
     });
-    this.cdr.markForCheck();
     
     this.api.exportPdf(this.planningId, this.selectedVersion).subscribe({
       next: (blob) => {
@@ -619,14 +612,12 @@ export class PlanningDetail {
           detail: 'PDF descargado correctamente',
           life: 3000
         });
-        this.cdr.markForCheck();
       },
       error: (e: unknown) => {
         this.downloading = null;
         this.toast.clear('download-toast');
         const msg = e instanceof Error ? e.message : 'No se pudo exportar PDF.';
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-        this.cdr.markForCheck();
       },
     });
   }
@@ -646,7 +637,6 @@ export class PlanningDetail {
       detail: 'Descargando CSV…',
       key: 'download-toast'
     });
-    this.cdr.markForCheck();
     
     this.api.exportCsv(this.planningId, this.selectedVersion).subscribe({
       next: (blob) => {
@@ -660,14 +650,12 @@ export class PlanningDetail {
           detail: 'CSV descargado correctamente',
           life: 3000
         });
-        this.cdr.markForCheck();
       },
       error: (e: unknown) => {
         this.downloading = null;
         this.toast.clear('download-toast');
         const msg = e instanceof Error ? e.message : 'No se pudo exportar CSV.';
         this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
-        this.cdr.markForCheck();
       },
     });
   }

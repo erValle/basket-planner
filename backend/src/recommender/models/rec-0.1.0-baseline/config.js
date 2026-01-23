@@ -76,7 +76,7 @@ module.exports = {
     'post_play': ['TECNICA_POSTE'],
     'transition': ['TACTICA_TRANSICION'],
     'fundamentals': ['TECNICA_BOTE', 'TECNICA_PIES', 'PASE'],
-    // Claves en español (alias)
+    // Claves en español
     'tiro': ['TIRO'],
     'bote': ['TECNICA_BOTE'],
     'manejo': ['TECNICA_BOTE'],
@@ -93,7 +93,7 @@ module.exports = {
     'contraataque': ['TACTICA_TRANSICION']
   },
   
-  // Distribución recomendada de tipos de ejercicio por sesión (porcentajes)
+  // Distribución de tiempo recomendada tipos de ejercicio por sesión
   sessionTypeDistribution: {
     warmup: 0.15,        // 15% calentamiento/movilidad
     technical: 0.35,     // 35% técnica individual
@@ -162,7 +162,7 @@ module.exports = {
     'post_play': { tactica: 0.25, tecnica: 0.45, fisica: 0.2, mental: 0.1 },
     'transition': { tactica: 0.3, tecnica: 0.2, fisica: 0.35, mental: 0.15 },
     'fundamentals': { tactica: 0.1, tecnica: 0.5, fisica: 0.2, mental: 0.2 },
-    // Claves en español (alias)
+    // Claves en español
     'tiro': { tactica: 0.1, tecnica: 0.5, fisica: 0.2, mental: 0.2 },
     'bote': { tactica: 0.1, tecnica: 0.6, fisica: 0.2, mental: 0.1 },
     'manejo': { tactica: 0.1, tecnica: 0.6, fisica: 0.2, mental: 0.1 },
