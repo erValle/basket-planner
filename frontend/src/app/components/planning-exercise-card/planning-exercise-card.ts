@@ -13,11 +13,8 @@ import { TooltipModule } from 'primeng/tooltip';
 export interface PlanningExercise {
   id: string;
   name: string;
-  series: number;
-  reps: number;
   durationMin: number;
   intensity: string;
-  restSec: number;
   material: string[];
   notes: string;
   difficulty?: {

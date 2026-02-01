@@ -1,0 +1,51 @@
+{
+  "trainedAt": "2026-01-26T01:09:23.304Z",
+  "samples": 5000,
+  "epochs": 6,
+  "finalLoss": 0.005700426176190376,
+  "finalValLoss": 0.003969293553382158,
+  "scoringVersion": "3.0",
+  "scoringRules": {
+    "tagMatch": {
+      "base": 0.5,
+      "bonusPerMatch": 0.05
+    },
+    "typeMatch": {
+      "base": 0.5,
+      "bonusIfMatch": 0.15
+    },
+    "difficultyFit": {
+      "base": 0.5,
+      "penaltyPerLevel": 0.05
+    },
+    "sessionPhaseFit": {
+      "base": 0.5,
+      "typeMatchBonus": 0.3,
+      "typeMismatchPenalty": 0.1
+    },
+    "variety": {
+      "scale": [
+        1,
+        0.75,
+        0.5,
+        0.25,
+        0
+      ]
+    },
+    "uniqueness": {
+      "scale": [
+        1,
+        0.5,
+        0
+      ]
+    }
+  },
+  "weights": {
+    "tagMatch": 0.3,
+    "typeMatch": 0.2,
+    "difficultyFit": 0.15,
+    "sessionPhaseFit": 0.2,
+    "typeVariety": 0.1,
+    "uniqueness": 0.05
+  }
+}

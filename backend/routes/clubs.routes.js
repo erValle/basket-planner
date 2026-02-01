@@ -8,17 +8,18 @@ const { listClubs, getClub, createClub, updateClub, deleteClub } = require('../s
 
 router.use(requireAuth);
 
-// CU.005: Todos pueden listar/ver clubes
+// ==================== /clubs ====================
+// GET  /clubs - CU.005: Todos pueden listar clubes
 router.get('/', listClubs);
-router.get('/:id', validate({ params: idParamSchema }), getClub);
-
-// CU.005: Solo admin puede crear clubes
+// POST /clubs - CU.005: Solo admin puede crear clubes
 router.post('/', requireAnyRole('admin'), validate({ body: createClubSchema }), createClub);
 
-// CU.006: Admin global, technical_director solo su club
+// ==================== /clubs/:id ====================
+// GET    /clubs/:id - CU.005: Ver club
+router.get('/:id', validate({ params: idParamSchema }), getClub);
+// PUT    /clubs/:id - CU.006: Admin global, technical_director solo su club
 router.put('/:id', requireAnyRole('admin', 'technical_director'), validate({ params: idParamSchema, body: updateClubSchema }), updateClub);
-
-// CU.007: Solo admin puede eliminar clubes
+// DELETE /clubs/:id - CU.007: Solo admin puede eliminar clubes
 router.delete('/:id', requireAnyRole('admin'), validate({ params: idParamSchema }), deleteClub);
 
 module.exports = router;

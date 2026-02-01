@@ -118,6 +118,50 @@
             [panelStyleClass]="'bp-select-panel'"
           ></p-select>
         </div>
+
+        @if (form.role !== 'player' && canAssignClubs) {
+          <div class="md:col-span-2">
+            <label class="block text-[#9ca3af] text-[12px] mb-2">
+              {{ isMultiClubRole ? 'Clubs' : 'Club' }}
+            </label>
+            
+            @if (isMultiClubRole) {
+              <!-- Multi-select para directores técnicos -->
+              <p-multiselect
+                [options]="clubOptions"
+                [(ngModel)]="selectedClubIds"
+                name="clubIds"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="bp-select"
+                [panelStyleClass]="'bp-select-panel'"
+                [loading]="loadingClubs"
+                placeholder="Selecciona uno o más clubs"
+                [showClear]="true"
+              ></p-multiselect>
+              <div class="mt-1 text-[11px] text-[#6b7280]">
+                Los directores técnicos pueden gestionar múltiples clubs.
+              </div>
+            } @else {
+              <!-- Single select para entrenadores y otros -->
+              <p-select
+                [options]="clubOptions"
+                [(ngModel)]="selectedClubId"
+                name="clubId"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="bp-select"
+                [panelStyleClass]="'bp-select-panel'"
+                [loading]="loadingClubs"
+                placeholder="Selecciona un club"
+                [showClear]="true"
+              ></p-select>
+              <div class="mt-1 text-[11px] text-[#6b7280]">
+                Asigna al usuario a un club. Los jugadores se gestionan desde equipos.
+              </div>
+            }
+          </div>
+        }
       </div>
 
       <div class="mt-8 flex items-center justify-end gap-2">

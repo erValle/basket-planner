@@ -18,58 +18,51 @@ async function ejemploUso() {
   console.log(`Ejercicios disponibles: ${exercises.length}\n`);
   
   // ========================================
-  // EJEMPLO 1: Jugador principiante - fundamentos
+  // EJEMPLO 1: Fundamentos con intensidad baja
   // ========================================
-  console.log('📝 EJEMPLO 1: Jugador principiante trabajando fundamentos');
+  console.log('📝 EJEMPLO 1: Trabajando fundamentos - intensidad baja');
   console.log('-'.repeat(60));
   
   const plan1 = model.generatePlan(exercises, {
     goals: ['fundamentals', 'ball_handling'],
     constraints: {
-      equipment: ['balon', 'canasta', 'conos'],
-      injuries: []
+      equipment: ['balon', 'canasta', 'conos']
     },
     profile: {
-      level: 'beginner',
       intensity: 'low',
       sessionDurationMinutes: 60
     },
-    numberOfSessions: 2,
-    days: ['tue', 'thu']
+    numberOfSessions: 2
   });
   
   console.log(`✅ Generadas ${plan1.sessions.length} sesiones`);
   console.log(`   Duración total: ${plan1.summary.totalDurationMinutes} minutos`);
-  console.log(`   Ejercicios: ${plan1.summary.totalExercises}`);
-  console.log(`   Días: ${plan1.summary.days.join(', ')}\n`);
+  console.log(`   Ejercicios: ${plan1.summary.totalExercises}\n`);
   
   // Mostrar ejemplo de sesión
   const session1 = plan1.sessions[0];
-  console.log(`   Sesión 1 (${session1.day}):`);
+  console.log(`   Sesión 1:`);
   session1.exercises.slice(0, 5).forEach((ex, i) => {
     console.log(`      ${i + 1}. ${ex.name} (${ex.phase}) - ${ex.durationMinutes}min`);
   });
   console.log(`      ... y ${session1.exercises.length - 5} ejercicios más\n`);
   
   // ========================================
-  // EJEMPLO 2: Jugador avanzado - tiro especializado
+  // EJEMPLO 2: Tiro especializado - intensidad alta
   // ========================================
-  console.log('📝 EJEMPLO 2: Jugador avanzado - entrenamiento especializado de tiro');
+  console.log('📝 EJEMPLO 2: Entrenamiento especializado de tiro - intensidad alta');
   console.log('-'.repeat(60));
   
   const plan2 = model.generatePlan(exercises, {
     goals: ['shooting', 'conditioning'],
     constraints: {
-      equipment: ['balon', 'canasta', 'conos', 'rebotador_o_companero'],
-      injuries: []
+      equipment: ['balon', 'canasta', 'conos', 'rebotador_o_companero']
     },
     profile: {
-      level: 'advanced',
       intensity: 'high',
       sessionDurationMinutes: 120
     },
-    numberOfSessions: 4,
-    days: ['mon', 'tue', 'thu', 'fri']
+    numberOfSessions: 4
   });
   
   console.log(`✅ Generadas ${plan2.sessions.length} sesiones`);
@@ -82,40 +75,26 @@ async function ejemploUso() {
   console.log(`   Ejercicios de tiro: ${shootingExercises.length}\n`);
   
   // ========================================
-  // EJEMPLO 3: Jugador con lesión de tobillo
+  // EJEMPLO 3: Planificación con equipamiento limitado
   // ========================================
-  console.log('📝 EJEMPLO 3: Jugador intermedio con lesión de tobillo');
+  console.log('📝 EJEMPLO 3: Equipamiento mínimo - solo balón y canasta');
   console.log('-'.repeat(60));
   
   const plan3 = model.generatePlan(exercises, {
     goals: ['shooting', 'passing'],
     constraints: {
-      equipment: ['balon', 'canasta'],
-      injuries: ['tobillo'] // Evitará ejercicios de salto y pliometría
+      equipment: ['balon', 'canasta']
     },
     profile: {
-      level: 'intermediate',
       intensity: 'low',
       sessionDurationMinutes: 75
     },
-    numberOfSessions: 3,
-    days: ['mon', 'wed', 'fri']
+    numberOfSessions: 3
   });
   
   console.log(`✅ Generadas ${plan3.sessions.length} sesiones`);
-  console.log(`   Adaptadas a lesión de tobillo`);
-  
-  // Verificar que no hay ejercicios de alto impacto
-  const highImpact = plan3.sessions.flatMap(s => s.exercises)
-    .filter(ex => 
-      ex.tags?.some(t => 
-        t.includes('salto') || 
-        t.includes('pliometria') || 
-        t.includes('agilidad')
-      )
-    );
-  console.log(`   Ejercicios de alto impacto: ${highImpact.length} (debería ser 0)`);
-  console.log(`   ✅ Planificación segura para recuperación\n`);
+  console.log(`   Total ejercicios: ${plan3.summary.totalExercises}`);
+  console.log(`   Variedad: ${plan3.summary.exerciseVariety}\n`);
   
   // ========================================
   // EJEMPLO 4: Equipo completo - Pick & Roll
@@ -126,16 +105,13 @@ async function ejemploUso() {
   const plan4 = model.generatePlan(exercises, {
     goals: ['pick_and_roll', 'tactics', 'defense'],
     constraints: {
-      equipment: ['balon', 'canasta', 'conos', 'petos'],
-      injuries: []
+      equipment: ['balon', 'canasta', 'conos', 'petos']
     },
     profile: {
-      level: 'intermediate',
       intensity: 'medium',
       sessionDurationMinutes: 90
     },
-    numberOfSessions: 3,
-    days: ['mon', 'wed', 'fri']
+    numberOfSessions: 3
   });
   
   console.log(`✅ Generadas ${plan4.sessions.length} sesiones`);

@@ -127,8 +127,8 @@ export const NEW_PLANNING_STEPS = [
 export const DEFAULT_PLANNING_FORM = {
   name: '',
   duration: 90, // Duración por sesión en minutos
-  sessionsCount: 4, // Número de sesiones
+  sessionsCount: 3, // Número de sesiones (por defecto 3, máximo 7)
   summary: '',
-  objective: 'Mejora del tiro exterior' as string,
+  objectives: [] as string[], // Objetivos múltiples
   intensity: 'Media' as string,
 };

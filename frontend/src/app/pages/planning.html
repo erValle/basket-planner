@@ -106,24 +106,7 @@
       class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6"
       style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
     >
-      <div class="grid grid-cols-6 gap-4">
-        <div>
-          <label class="block text-[#9ca3af] text-[12px] mb-2">Club</label>
-          <p-select
-            [options]="clubOptions"
-            [(ngModel)]="filters.club"
-            name="club"
-            optionLabel="label"
-            optionValue="value"
-            styleClass="bp-select"
-            [panelStyleClass]="'bp-select-panel'"
-            [disabled]="filtersNotSupportedYet"
-          ></p-select>
-          @if (filtersNotSupportedYet) {
-            <div class="mt-2 text-[12px] text-[#6b7280]">Filtro por club pendiente de soporte en API.</div>
-          }
-        </div>
-
+      <div class="grid grid-cols-5 gap-4">
         <div>
           <label class="block text-[#9ca3af] text-[12px] mb-2">Equipo</label>
           <p-select
@@ -134,11 +117,8 @@
             optionValue="value"
             styleClass="bp-select"
             [panelStyleClass]="'bp-select-panel'"
-            [disabled]="filtersNotSupportedYet"
+            (onChange)="applyFilters()"
           ></p-select>
-          @if (filtersNotSupportedYet) {
-            <div class="mt-2 text-[12px] text-[#6b7280]">Filtro por equipo pendiente de soporte en API.</div>
-          }
         </div>
 
         <div class="col-span-2">
@@ -269,14 +249,16 @@
                   </div>
                 }
 
-                <button
-                  type="button"
-                  pButton
-                  icon="pi pi-trash"
-                  class="p-button-text p-button-sm"
-                  aria-label="Eliminar"
-                  (click)="confirmDelete(item)"
-                ></button>
+                @if (canDelete) {
+                  <button
+                    type="button"
+                    pButton
+                    icon="pi pi-trash"
+                    class="p-button-text p-button-sm"
+                    aria-label="Eliminar"
+                    (click)="confirmDelete(item)"
+                  ></button>
+                }
               </div>
             </td>
           </tr>

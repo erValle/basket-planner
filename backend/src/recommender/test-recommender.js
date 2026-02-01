@@ -23,19 +23,16 @@ async function testRecommender() {
     
     // 3. Prueba 1: Planificación individual enfocada en tiro
     console.log('📋 Prueba 1: Planificación individual - Foco en tiro');
-    const plan1 = model.generatePlan(exercises, {
+    const plan1 = await model.generatePlan(exercises, {
       goals: ['shooting', 'ball_handling'],
       constraints: {
-        equipment: ['balon', 'canasta', 'conos'],
-        injuries: []
+        equipment: ['balon', 'canasta', 'conos']
       },
       profile: {
-        level: 'intermediate',
         intensity: 'medium',
         sessionDurationMinutes: 90
       },
-      numberOfSessions: 3,
-      days: ['mon', 'wed', 'fri']
+      numberOfSessions: 3
     });
     
     console.log('   Sesiones generadas:', plan1.sessions.length);
@@ -44,7 +41,7 @@ async function testRecommender() {
     
     // Mostrar primera sesión
     const session1 = plan1.sessions[0];
-    console.log('\n   Primera sesión (' + session1.day + '):');
+    console.log('\n   Primera sesión (Sesión ' + session1.sessionIndex + '):');
     session1.exercises.forEach((ex, idx) => {
       console.log(`     ${idx + 1}. [${ex.phase}] ${ex.name} - ${ex.durationMinutes}min (score: ${ex.score?.toFixed(2)})`);
     });
@@ -52,19 +49,16 @@ async function testRecommender() {
     
     // 4. Prueba 2: Planificación enfocada en defensa
     console.log('📋 Prueba 2: Planificación individual - Foco en defensa');
-    const plan2 = model.generatePlan(exercises, {
+    const plan2 = await model.generatePlan(exercises, {
       goals: ['defense', 'conditioning'],
       constraints: {
-        equipment: ['balon', 'canasta', 'conos', 'petos'],
-        injuries: []
+        equipment: ['balon', 'canasta', 'conos', 'petos']
       },
       profile: {
-        level: 'advanced',
         intensity: 'high',
         sessionDurationMinutes: 120
       },
-      numberOfSessions: 2,
-      days: ['tue', 'thu']
+      numberOfSessions: 2
     });
     
     console.log('   Sesiones generadas:', plan2.sessions.length);
@@ -72,33 +66,23 @@ async function testRecommender() {
     console.log('   Duración total:', plan2.summary.totalDurationMinutes, 'minutos');
     console.log('');
     
-    // 5. Prueba 3: Verificar filtrado por lesiones
-    console.log('📋 Prueba 3: Planificación con restricciones por lesión');
-    const plan3 = model.generatePlan(exercises, {
+    // 5. Prueba 3: Planificación con equipamiento limitado
+    console.log('📋 Prueba 3: Planificación con equipamiento limitado');
+    const plan3 = await model.generatePlan(exercises, {
       goals: ['fundamentals'],
       constraints: {
-        equipment: ['balon', 'canasta'],
-        injuries: ['tobillo']
+        equipment: ['balon', 'canasta']
       },
       profile: {
-        level: 'beginner',
         intensity: 'low',
         sessionDurationMinutes: 60
       },
-      numberOfSessions: 2,
-      days: ['mon', 'wed']
+      numberOfSessions: 2
     });
     
     console.log('   Sesiones generadas:', plan3.sessions.length);
     console.log('   Total ejercicios:', plan3.summary.totalExercises);
-    
-    // Verificar que no hay ejercicios de alto impacto
-    const hasHighImpact = plan3.sessions.some(s => 
-      s.exercises.some(ex => 
-        ex.tags?.some(t => t.includes('salto') || t.includes('pliometria'))
-      )
-    );
-    console.log('   ¿Contiene ejercicios de alto impacto?:', hasHighImpact ? '❌ Sí (error)' : '✅ No (correcto)');
+    console.log('   Variedad de ejercicios:', plan3.summary.exerciseVariety);
     console.log('');
     
     // 6. Probar derivación de etiquetas

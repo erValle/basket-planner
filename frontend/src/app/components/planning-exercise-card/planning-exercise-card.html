@@ -14,43 +14,7 @@
         ></button>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <!-- Series -->
-        <div>
-          <label class="block text-[#9ca3af] text-[11px] mb-1">Series</label>
-          <p-inputNumber
-            [(ngModel)]="exercise.series"
-            [name]="'ex-series-' + exercise.id"
-            (blur)="markTouched('ex-series-' + exercise.id)"
-            (ngModelChange)="emitChange()"
-            [min]="1"
-            [showButtons]="true"
-            styleClass="w-full"
-            [inputStyleClass]="'w-full text-[13px]'"
-          ></p-inputNumber>
-          @if (hasError('ex-series-' + exercise.id, exercise.series > 0)) {
-            <div class="mt-1 text-[11px] text-red-300">Mín. 1</div>
-          }
-        </div>
-
-        <!-- Repeticiones -->
-        <div>
-          <label class="block text-[#9ca3af] text-[11px] mb-1">Reps</label>
-          <p-inputNumber
-            [(ngModel)]="exercise.reps"
-            [name]="'ex-reps-' + exercise.id"
-            (blur)="markTouched('ex-reps-' + exercise.id)"
-            (ngModelChange)="emitChange()"
-            [min]="1"
-            [showButtons]="true"
-            styleClass="w-full"
-            [inputStyleClass]="'w-full text-[13px]'"
-          ></p-inputNumber>
-          @if (hasError('ex-reps-' + exercise.id, exercise.reps > 0)) {
-            <div class="mt-1 text-[11px] text-red-300">Mín. 1</div>
-          }
-        </div>
-
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
         <!-- Duración -->
         <div>
           <label class="block text-[#9ca3af] text-[11px] mb-1">Duración (min)</label>
@@ -67,6 +31,21 @@
           @if (hasError('ex-dur-' + exercise.id, exercise.durationMin > 0)) {
             <div class="mt-1 text-[11px] text-red-300">Mín. 1</div>
           }
+        </div>
+
+        <!-- Intensidad -->
+        <div>
+          <label class="block text-[#9ca3af] text-[11px] mb-1">Intensidad</label>
+          <p-select
+            [(ngModel)]="exercise.intensity"
+            [name]="'ex-intensity-' + exercise.id"
+            [options]="intensityOptions"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select w-full"
+            [panelStyleClass]="'bp-select-panel'"
+            (onChange)="emitChange()"
+          ></p-select>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Script de prueba del Motor de Recomendación
+ * Script de prueba del Motor de Recomendación TFRS
  * 
  * Simula una petición real de generación de planificación con parámetros típicos
  * de un flujo de uso normal.
@@ -11,7 +11,7 @@
 
 require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
 
-const { generatePlan } = require('../src/recommender/models/rec-0.1.0-baseline/recommender');
+const { generatePlan } = require('../src/recommender');
 const { getAllExercisesForRecommender } = require('../src/services/exerciseService');
 
 // Colores para terminal
@@ -85,20 +85,16 @@ async function testRecommender() {
         excludeExerciseIds: []
       },
       profile: {
-        level: 'intermediate',
         intensity: 'medium',
         sessionDurationMinutes: 90,
         maxDurationMinutes: 120
       },
-      numberOfSessions: 3,
-      days: ['mon', 'wed', 'fri']
+      numberOfSessions: 3
     };
 
     console.log(colors.bright + '\n  🎯 Configuración de la planificación:' + colors.reset);
     printInfo('Número de sesiones', planParams.numberOfSessions);
-    printInfo('Días', planParams.days.join(', '));
     printInfo('Objetivos', planParams.goals.join(', '));
-    printInfo('Nivel jugadores', planParams.profile.level);
     printInfo('Intensidad', planParams.profile.intensity);
     printInfo('Duración objetivo por sesión', `${planParams.profile.sessionDurationMinutes} min`);
     printInfo('Duración máxima por sesión', `${planParams.profile.maxDurationMinutes} min`);
@@ -122,14 +118,13 @@ async function testRecommender() {
     printInfo('  Duración total', `${plan.summary.totalDurationMinutes} minutos`);
     printInfo('  Total de ejercicios', plan.summary.totalExercises);
     printInfo('  Objetivos', plan.summary.goals.join(', '));
-    printInfo('  Días', plan.summary.days.join(', '));
     printInfo('  MaxDuration respetado', plan.summary.maxDurationRespected ? '✅ Sí' : '❌ No');
     
     // 5. Detalles de cada sesión
     printSection('5. Detalle de Sesiones Generadas');
     
     plan.sessions.forEach((session, sessionIdx) => {
-      console.log('\n' + colors.bright + colors.magenta + `  🏃 SESIÓN ${sessionIdx + 1} - ${session.day.toUpperCase()}` + colors.reset);
+      console.log('\n' + colors.bright + colors.magenta + `  🏃 SESIÓN ${sessionIdx + 1}` + colors.reset);
       console.log(colors.magenta + '  ' + '-'.repeat(78) + colors.reset);
       
       printInfo('  ID Sesión', session.sessionId);

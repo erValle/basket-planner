@@ -76,6 +76,19 @@ export class PlanningDetail {
   detail: PlanningDetailResponse | null = null;
   blocks: PlanningBlock[] = [];
 
+  // Estado de colapso para cada sesión
+  collapsedSessions: Record<string, boolean> = {};
+
+  // Método para alternar el estado de colapso de una sesión
+  toggleSession(sessionId: string): void {
+    this.collapsedSessions[sessionId] = !this.collapsedSessions[sessionId];
+  }
+
+  // Método para verificar si una sesión está colapsada
+  isSessionCollapsed(sessionId: string): boolean {
+    return !!this.collapsedSessions[sessionId];
+  }
+
   // Exercise preview modal
   exercisePreviewDialogOpen = false;
   selectedExercise: any = null;
@@ -157,10 +170,10 @@ export class PlanningDetail {
       
       blocks.push({
         id: String(s?.sessionId ?? s?.id ?? `s-${Math.random().toString(16).slice(2)}`),
-        name: `Sesión ${s?.sessionId || s?.day || ''}`.trim(),
+        name: `Sesión ${s?.sessionId || ''}`.trim(),
         durationMin: Number(sessionDuration) || 0,
         focus: s?.goals?.join(', ') || undefined,
-        notes: s?.metadata ? `Día: ${s.day || 'N/A'}` : undefined,
+        notes: undefined,
         exercises: exs.length
           ? exs.map((e: any) => ({
               id: String(e?.exerciseId ?? e?.id ?? `e-${Math.random().toString(16).slice(2)}`),
@@ -185,7 +198,6 @@ export class PlanningDetail {
     const totalDurationMin = blocks.reduce((acc, b) => acc + (Number(b.durationMin) || 0), 0);
     return {
       totalDurationMin,
-      estimatedLoad: undefined,
     };
   }
 
@@ -218,6 +230,14 @@ export class PlanningDetail {
     const blocks = this.buildUiBlocksFromItems(sessionsData);
     const metrics = this.computeMetrics(blocks);
 
+    // Mapear intensidad del plan (low/medium/high) a español
+    const intensityMap: Record<string, string> = {
+      low: 'Baja',
+      medium: 'Media',
+      high: 'Alta',
+    };
+    const planIntensity = plan?.intensity ? intensityMap[plan.intensity] || plan.intensity : undefined;
+
     const versions: PlanningVersionInfo[] = (Array.isArray(plan?.versions) ? plan.versions : [])
       .slice()
       .sort((a: any, b: any) => Number(b?.versionNumber ?? 0) - Number(a?.versionNumber ?? 0))
@@ -242,7 +262,7 @@ export class PlanningDetail {
       versions,
       metrics: {
         totalDurationMin: metrics.totalDurationMin,
-        estimatedLoad: metrics.estimatedLoad,
+        intensity: planIntensity,
       } as any,
       blocks,
     };

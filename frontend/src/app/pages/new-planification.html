@@ -84,7 +84,7 @@
                   [inputStyleClass]="'w-full'"
                   [styleClass]="'w-full'"
                   [min]="1"
-                  [max]="20"
+                  [max]="7"
                   [showButtons]="true"
                 ></p-inputNumber>
               </div>
@@ -104,18 +104,23 @@
             </div>
 
             <div>
-              <label class="block text-[#e5e7eb] text-[13px] mb-2">Objetivo principal</label>
-              <p-select
+              <label class="block text-[#e5e7eb] text-[13px] mb-2">Objetivos (máx. 2)</label>
+              <p-multiselect
                 [options]="objectiveOptions"
-                [(ngModel)]="formData.objective"
-                name="objective"
+                [(ngModel)]="formData.objectives"
+                name="objectives"
                 optionLabel="label"
                 optionValue="value"
                 optionDisabled="disabled"
                 styleClass="bp-select"
                 [panelStyleClass]="'bp-select-panel'"
-                [showClear]="false"
-              ></p-select>
+                [showClear]="true"
+                placeholder="Selecciona hasta 2 objetivos"
+                [maxSelectedLabels]="2"
+                [selectionLimit]="2"
+                selectedItemsLabel="{0} objetivos seleccionados"
+              ></p-multiselect>
+              <small class="text-[11px] text-[#9ca3af] mt-1 block">Máximo 2 objetivos para mejor precisión</small>
             </div>
 
             <div class="col-span-2">
@@ -377,13 +382,16 @@
 
             <div class="col-span-2">
               <label class="block text-[#e5e7eb] text-[13px] mb-2">Etiquetas / contexto (opcional)</label>
-              <p class="text-[12px] text-[#94a3b8] mb-3">Selecciona etiquetas populares o añade las tuyas para mejorar la calidad de la recomendación.</p>
+              <p class="text-[12px] text-[#94a3b8] mb-3">Selecciona hasta 5 etiquetas para mejorar la calidad de la recomendación.</p>
 
               <!-- Etiquetas populares -->
               <div class="mb-4">
                 <div class="text-[12px] text-[#64748b] mb-2 flex items-center gap-2">
                   <i class="pi pi-tag text-[10px]"></i>
                   Etiquetas más usadas en ejercicios
+                  @if (isTagLimitReached()) {
+                    <span class="text-[#f59e0b] text-[11px]">(máximo alcanzado)</span>
+                  }
                 </div>
                 @if (popularTagsLoading) {
                   <div class="text-[12px] text-[#64748b]">Cargando etiquetas...</div>
@@ -395,9 +403,12 @@
                       <button
                         type="button"
                         (click)="togglePopularTag(tagItem.tag)"
+                        [disabled]="!isTagSelected(tagItem.tag) && isTagLimitReached()"
                         [class]="isTagSelected(tagItem.tag) 
                           ? 'px-3 py-1.5 rounded-full text-[12px] font-medium transition-all bg-[#3b82f6] text-white border border-[#3b82f6] hover:bg-[#2563eb]' 
-                          : 'px-3 py-1.5 rounded-full text-[12px] font-medium transition-all bg-[#0b1220] text-[#94a3b8] border border-[#1f2937] hover:border-[#3b82f6] hover:text-[#e5e7eb]'"
+                          : (!isTagLimitReached() 
+                            ? 'px-3 py-1.5 rounded-full text-[12px] font-medium transition-all bg-[#0b1220] text-[#94a3b8] border border-[#1f2937] hover:border-[#3b82f6] hover:text-[#e5e7eb]'
+                            : 'px-3 py-1.5 rounded-full text-[12px] font-medium transition-all bg-[#0b1220] text-[#4b5563] border border-[#1f2937] cursor-not-allowed opacity-50')"
                       >
                         {{ tagItem.tag }}
                         <span class="ml-1 text-[10px] opacity-60">({{ tagItem.count }})</span>
@@ -414,18 +425,6 @@
                     </button>
                   }
                 }
-              </div>
-
-              <!-- Input para etiquetas personalizadas -->
-              <div class="flex gap-2 items-center">
-                <input
-                  pInputText
-                  [formControl]="tagsControl"
-                  (keydown.enter)="addTagFromInput($event)"
-                  placeholder="O escribe una etiqueta personalizada y pulsa Enter"
-                  class="w-full"
-                />
-                <p-button type="button" label="Añadir" (click)="addTagManually()" styleClass="bp-btn bp-btn-secondary bp-btn-sm"></p-button>
               </div>
 
               <!-- Etiquetas seleccionadas -->
@@ -451,7 +450,7 @@
           <div class="grid grid-cols-2 gap-6">
             <div class="col-span-2">
               <h3 class="text-[#e5e7eb] font-semibold mb-2">Revisión</h3>
-              <p class="text-[12px] text-[#94a3b8]">Confirma que los datos son correctos antes de generar la sesión.</p>
+              <p class="text-[12px] text-[#94a3b8]">Confirma que los datos son correctos antes de generar la planificación.</p>
             </div>
 
             <div class="col-span-2 grid grid-cols-2 gap-4">
@@ -476,8 +475,14 @@
               </div>
 
               <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
-                <div class="text-[12px] text-[#94a3b8]">Objetivo</div>
-                <div class="text-[14px] text-[#e5e7eb] mt-1">{{ formData.objective }}</div>
+                <div class="text-[12px] text-[#94a3b8]">Objetivos</div>
+                <div class="text-[14px] text-[#e5e7eb] mt-1">
+                  @if (formData.objectives && formData.objectives.length > 0) {
+                    {{ formData.objectives.join(', ') }}
+                  } @else {
+                    <span class="text-[#6b7280]">Sin objetivos seleccionados</span>
+                  }
+                </div>
               </div>
 
               <div class="p-4 rounded-lg border border-[#1f2937] bg-[#0b1220]">
@@ -556,9 +561,10 @@
               (click)="next()"
               [disabled]="!canGoNext()"
               type="button"
-			  styleClass="bp-btn bp-btn-primary"
+              styleClass="bp-btn bp-btn-primary"
             ></p-button>
-          } @else {
+          }
+          @if (currentStep >= steps.length) {
             <p-button
               label="Confirmar"
               icon="pi pi-check"
@@ -566,7 +572,7 @@
               [loading]="saving"
               [disabled]="saving"
               type="button"
-			  styleClass="bp-btn bp-btn-primary"
+              styleClass="bp-btn bp-btn-primary"
             ></p-button>
           }
         </div>
@@ -575,7 +581,7 @@
   </div>
 
   <bp-dialog
-    header="Sesión generada"
+    header="Planificación generada"
     [(visible)]="completedDialogVisible"
     size="lg"
     [showConfirm]="true"
@@ -586,7 +592,7 @@
     (confirm)="goToPlanifications()"
   >
     <div class="text-[13px] text-[#e5e7eb]">
-      Ya tienes una propuesta de sesión lista para revisar.
+      Ya tienes una propuesta de planificación lista para revisar.
     </div>
     @if (generatedResultId) {
       <div class="mt-3 text-[12px] text-[#94a3b8]">Referencia: <span class="text-[#e5e7eb]">{{ generatedResultId }}</span></div>

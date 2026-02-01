@@ -21,7 +21,7 @@ export class PlanningApiService {
 
   /**
    * Generate a new planning (individual or group).
-   * Backend: POST /api/planning/generate/individual or /api/planning/generate/group
+   * Backend: POST /api/training-plans/generate/individual or /api/training-plans/generate/group
    */
   generate(draft: PlanningDraft) {
     const mode = draft.mode;
@@ -30,10 +30,15 @@ export class PlanningApiService {
       equipment: draft.materialNames ?? [],
     };
 
-    const goals = (draft.tags ?? []).map((t) => String(t));
+    // Combinar los objetivos con los tags adicionales
+    // El backend normaliza automáticamente los textos del frontend a goals del modelo
+    const goals = [
+      ...(draft.objectives ?? []),  // Objetivos múltiples del formulario
+      ...(draft.tags ?? [])         // Tags adicionales (restricciones)
+    ].filter(Boolean).map((t) => String(t));
 
     if (mode === 'group') {
-      const athleteIds = (draft.playerIds ?? [])
+      const playerIds = (draft.playerIds ?? [])
         .map((id) => Number(id))
         .filter((n) => Number.isFinite(n) && n > 0);
 
@@ -53,19 +58,19 @@ export class PlanningApiService {
         groupData['name'] = draft.name.trim();
       }
 
-      return this.api.post<PlanningGenerated>('/api/planning/generate/group', {
+      return this.api.post<PlanningGenerated>('/api/training-plans/generate/group', {
         group: groupData,
-        profiles: athleteIds.map((athleteId) => ({ athleteId })),
+        profiles: playerIds.map((playerId) => ({ playerId })),
         goals,
         constraints,
       } as any);
     }
 
     // Individual
-    const athleteId = draft.playerId ? Number(draft.playerId) : NaN;
-    return this.api.post<PlanningGenerated>('/api/planning/generate/individual', {
+    const playerId = draft.playerId ? Number(draft.playerId) : NaN;
+    return this.api.post<PlanningGenerated>('/api/training-plans/generate/individual', {
       profile: {
-        athleteId,
+        playerId,
         numberOfSessions: Number(draft.sessionsCount) || undefined,
         sessionDurationMinutes: Number(draft.duration) || undefined,
         intensity: String(draft.intensity).toLowerCase() === 'alta'
@@ -118,20 +123,20 @@ export class PlanningApiService {
 
   /**
    * Export a planning version.
-   * Backend: GET /api/planning/:id/versions/:versionId/export?format=pdf
+   * Backend: GET /api/training-plans/:id/versions/:versionId/export?format=pdf
    */
   exportPdf(id: string, versionId: string) {
-    return this.http.get(`/api/planning/${encodeURIComponent(id)}/versions/${encodeURIComponent(versionId)}/export`, {
+    return this.http.get(`/api/training-plans/${encodeURIComponent(id)}/versions/${encodeURIComponent(versionId)}/export`, {
       params: { format: 'pdf' },
       responseType: 'blob',
     });
   }
 
   /**
-   * Backend: GET /api/planning/:id/versions/:versionId/export?format=csv
+   * Backend: GET /api/training-plans/:id/versions/:versionId/export?format=csv
    */
   exportCsv(id: string, versionId: string) {
-    return this.http.get(`/api/planning/${encodeURIComponent(id)}/versions/${encodeURIComponent(versionId)}/export`, {
+    return this.http.get(`/api/training-plans/${encodeURIComponent(id)}/versions/${encodeURIComponent(versionId)}/export`, {
       params: { format: 'csv' },
       responseType: 'blob',
     });
@@ -177,7 +182,7 @@ export class PlanningApiService {
    */
   sendExportEmail(id: string, payload: PlanningExportEmailPayload) {
     return this.api.post<PlanningExportEmailResponse>(
-      `/api/planning/${encodeURIComponent(id)}/export/email`,
+      `/api/training-plans/${encodeURIComponent(id)}/export/email`,
       payload,
     );
   }

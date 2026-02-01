@@ -1,0 +1,921 @@
+[
+  {
+    "nombre": "Bote estacionario alterno (altura baja/media)",
+    "descripcion": "Bote con ambas manos alternando altura (bajo y medio) sin desplazamiento. Enfatiza control, muñeca activa y postura atlética.",
+    "dificultad": { "tactica": 1, "tecnica": 2, "fisica": 2, "mental": 2 },
+    "tipo": "TECNICA_BOTE",
+    "duracion_segundos": 90,
+    "etiquetas": ["bote", "control", "mano_dominante", "mano_no_dominante", "postura", "fundamentos"],
+    "materiales_necesarios": ["balon"]
+  },
+  {
+    "nombre": "Bote estacionario con dos balones",
+    "descripcion": "Bote simultáneo de dos balones (mismo ritmo y luego alterno). Mejora coordinación intermanual y control de balón bajo presión.",
+    "dificultad": { "tactica": 1, "tecnica": 4, "fisica": 3, "mental": 4 },
+    "tipo": "TECNICA_BOTE",
+    "duracion_segundos": 75,
+    "etiquetas": ["bote", "dos_balones", "coordinacion", "control", "presion", "ritmo"],
+    "materiales_necesarios": ["2_balones"]
+  },
+  {
+    "nombre": "Bote en zigzag con cambios de mano",
+    "descripcion": "Desplazamiento en zigzag entre conos con cambios de mano (crossover, entre piernas o detrás). Enfoca velocidad con control.",
+    "dificultad": { "tactica": 2, "tecnica": 3, "fisica": 3, "mental": 3 },
+    "tipo": "TECNICA_BOTE",
+    "duracion_segundos": 120,
+    "etiquetas": ["bote", "cambio_de_mano", "zigzag", "crossover", "desplazamiento", "agilidad"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Bote de protección con contacto (1v0)",
+    "descripcion": "Bote lateral con cadera baja protegiendo el balón. El entrenador aplica contacto ligero con foam/colchoneta para simular defensa.",
+    "dificultad": { "tactica": 2, "tecnica": 3, "fisica": 3, "mental": 3 },
+    "tipo": "TECNICA_BOTE",
+    "duracion_segundos": 90,
+    "etiquetas": ["bote", "proteccion", "contacto", "cadera_baja", "fuerza", "control"],
+    "materiales_necesarios": ["balon", "foam_pad"]
+  },
+  {
+    "nombre": "Finalización en bandeja con ambas manos",
+    "descripcion": "Serie de bandejas alternando mano de finalización desde ambos lados. Prioriza pasos correctos y uso del tablero.",
+    "dificultad": { "tactica": 1, "tecnica": 2, "fisica": 3, "mental": 2 },
+    "tipo": "FINALIZACION_ARO",
+    "duracion_segundos": 180,
+    "etiquetas": ["bandeja", "finalizacion", "tablero", "mano_no_dominante", "pasos", "aro"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Eurostep progresivo (1v0)",
+    "descripcion": "Entradas con eurostep enfatizando cambio de dirección y control del cuerpo. Incrementa velocidad en cada repetición.",
+    "dificultad": { "tactica": 1, "tecnica": 4, "fisica": 4, "mental": 3 },
+    "tipo": "FINALIZACION_ARO",
+    "duracion_segundos": 150,
+    "etiquetas": ["eurostep", "finalizacion", "footwork", "cambio_direccion", "equilibrio", "aro"],
+    "materiales_necesarios": ["balon", "canasta", "conos"]
+  },
+  {
+    "nombre": "Finalización con contacto (1v0)",
+    "descripcion": "Entradas donde el entrenador aplica contacto lateral controlado al elevar. Enfatiza absorción de contacto y finalización.",
+    "dificultad": { "tactica": 2, "tecnica": 3, "fisica": 4, "mental": 4 },
+    "tipo": "FINALIZACION_ARO",
+    "duracion_segundos": 150,
+    "etiquetas": ["finalizacion", "contacto", "absorcion", "fuerza", "equilibrio", "aro"],
+    "materiales_necesarios": ["balon", "canasta", "foam_pad"]
+  },
+  {
+    "nombre": "Tiros a tabla (corto) desde 45°",
+    "descripcion": "Serie de tiros cortos usando tablero desde ambos 45°. Enfocado a ángulos, toque suave y repetición de mecánica.",
+    "dificultad": { "tactica": 1, "tecnica": 2, "fisica": 2, "mental": 2 },
+    "tipo": "TIRO",
+    "duracion_segundos": 240,
+    "etiquetas": ["tiro", "tablero", "mecanica", "toque", "repeticion", "fundamentos"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Catch & Shoot desde esquinas (5 spots)",
+    "descripcion": "Recepción y tiro inmediato desde dos esquinas y tres spots perimetrales. Trabaja pies, alineación y ritmo.",
+    "dificultad": { "tactica": 2, "tecnica": 3, "fisica": 3, "mental": 3 },
+    "tipo": "TIRO",
+    "duracion_segundos": 300,
+    "etiquetas": ["tiro", "catch_and_shoot", "pies", "ritmo", "perimetro", "esquinas"],
+    "materiales_necesarios": ["balon", "canasta", "rebotador_o_companero"]
+  },
+  {
+    "nombre": "Tiro tras bote (pull-up) en transición",
+    "descripcion": "Salida en velocidad, 1-2 botes y parada para pull-up desde media distancia. Enfoca freno, equilibrio y elevación.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 4, "mental": 3 },
+    "tipo": "TIRO",
+    "duracion_segundos": 240,
+    "etiquetas": ["tiro", "pull_up", "transicion", "parada", "equilibrio", "media_distancia"],
+    "materiales_necesarios": ["balon", "canasta", "conos"]
+  },
+  {
+    "nombre": "Tiro libre con fatiga (rutina + respiración)",
+    "descripcion": "Bloques de tiros libres tras un sprint corto. Refuerza rutina, control respiratorio y foco bajo fatiga.",
+    "dificultad": { "tactica": 1, "tecnica": 3, "fisica": 4, "mental": 4 },
+    "tipo": "TIRO",
+    "duracion_segundos": 240,
+    "etiquetas": ["tiro_libre", "fatiga", "rutina", "respiracion", "concentracion", "consistencia"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Pase pecho y picado en pareja (distancia variable)",
+    "descripcion": "Pases en pareja alternando pecho y picado, ajustando distancia y velocidad. Enfoca precisión y recepción segura.",
+    "dificultad": { "tactica": 2, "tecnica": 2, "fisica": 2, "mental": 2 },
+    "tipo": "PASE",
+    "duracion_segundos": 180,
+    "etiquetas": ["pase", "pecho", "picado", "precision", "recepcion", "fundamentos"],
+    "materiales_necesarios": ["balon"]
+  },
+  {
+    "nombre": "Pase a una mano (beisbol) en contraataque (1v0)",
+    "descripcion": "Simulación de contraataque: bote, levantar cabeza y pase largo a objetivo. Trabaja visión y fuerza de pase.",
+    "dificultad": { "tactica": 3, "tecnica": 3, "fisica": 3, "mental": 3 },
+    "tipo": "PASE",
+    "duracion_segundos": 180,
+    "etiquetas": ["pase_largo", "beisbol", "contraataque", "vision", "decision", "preciso"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Pase y corte (Give & Go) 2v0",
+    "descripcion": "Secuencia: pase al compañero, corte a canasta y devolución para finalizar. Enfatiza timing y ángulo de pase.",
+    "dificultad": { "tactica": 3, "tecnica": 3, "fisica": 3, "mental": 3 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 240,
+    "etiquetas": ["give_and_go", "corte", "timing", "pase", "finalizacion", "sin_defensa"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Lectura de bloqueo directo 2v0 (base-pívot)",
+    "descripcion": "Repetición de situaciones PnR sin defensa: ángulos de bloqueo, salida del manejador y rol del bloqueador.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 3, "mental": 4 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 300,
+    "etiquetas": ["pick_and_roll", "bloqueo_directo", "lecturas", "espaciado", "base_pivot", "timing"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Pick & Roll 2v2 (defensa pasiva a activa)",
+    "descripcion": "PnR con defensa inicialmente pasiva (solo posicionamiento) y progresión a defensa activa con distintos 'coverages'.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE_DEFENSA",
+    "duracion_segundos": 360,
+    "etiquetas": ["pick_and_roll", "2v2", "lecturas", "coberturas", "comunicacion", "decision"],
+    "materiales_necesarios": ["balon", "conos", "canasta"]
+  },
+  {
+    "nombre": "Spacing 4-out 1-in (movimientos básicos) 5v0",
+    "descripcion": "Ataque 5v0 trabajando ocupación de esquinas, 45°, slot y poste; cortes básicos y reposicionamientos tras pase.",
+    "dificultad": { "tactica": 4, "tecnica": 2, "fisica": 2, "mental": 4 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 420,
+    "etiquetas": ["spacing", "4out1in", "5v0", "cortes", "posicionamiento", "ataque"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Shell drill 4v4 (principios defensivos)",
+    "descripcion": "Ejercicio clásico defensivo: ayudas, línea de balón, closeout, rotaciones y comunicación en media pista.",
+    "dificultad": { "tactica": 5, "tecnica": 3, "fisica": 4, "mental": 5 },
+    "tipo": "DEFENSA_EQUIPO",
+    "duracion_segundos": 420,
+    "etiquetas": ["defensa", "shell", "ayudas", "rotaciones", "comunicacion", "media_pista"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Closeout + 1v1 desde perímetro",
+    "descripcion": "Defensor parte desde ayuda y realiza closeout controlado; atacante juega 1v1. Enfatiza frenar, manos activas y ángulo.",
+    "dificultad": { "tactica": 4, "tecnica": 4, "fisica": 4, "mental": 4 },
+    "tipo": "DEFENSA_INDIVIDUAL",
+    "duracion_segundos": 300,
+    "etiquetas": ["closeout", "1v1", "defensa", "angulo", "manos_activas", "perimetro"],
+    "materiales_necesarios": ["balon", "canasta", "conos"]
+  },
+  {
+    "nombre": "Defensa 1v1 desde poste bajo",
+    "descripcion": "Situaciones 1v1 en poste: negar línea de pase, trabajo de pies, mantener verticalidad y contestar sin falta.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 4, "mental": 4 },
+    "tipo": "DEFENSA_INDIVIDUAL",
+    "duracion_segundos": 300,
+    "etiquetas": ["poste_bajo", "1v1", "defensa", "verticalidad", "contacto", "pies"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Rebote: box-out 2v2",
+    "descripcion": "Tiro a canasta y lucha por rebote: énfasis en contacto inicial, sellado (box-out) y captura con dos manos.",
+    "dificultad": { "tactica": 3, "tecnica": 3, "fisica": 5, "mental": 4 },
+    "tipo": "REBOTE",
+    "duracion_segundos": 300,
+    "etiquetas": ["rebote", "box_out", "contacto", "posicion", "agresividad", "segunda_oportunidad"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Salida de presión: press breaker 5v0",
+    "descripcion": "Estructura de salida ante presión a toda pista sin defensa: alineaciones, cortes, pases de seguridad y avance.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 3, "mental": 4 },
+    "tipo": "TACTICA_TRANSICION",
+    "duracion_segundos": 360,
+    "etiquetas": ["press_break", "salida", "toda_pista", "pases_seguridad", "estructura", "timing"],
+    "materiales_necesarios": ["balon"]
+  },
+  {
+    "nombre": "Contraataque 3 carriles (3v0)",
+    "descripcion": "Contraataque organizado por carriles: avance, pase extra y finalización. Mejora velocidad de balón y ocupación.",
+    "dificultad": { "tactica": 3, "tecnica": 3, "fisica": 4, "mental": 3 },
+    "tipo": "TACTICA_TRANSICION",
+    "duracion_segundos": 240,
+    "etiquetas": ["contraataque", "3_carriles", "transicion", "pase_extra", "finalizacion", "velocidad"],
+    "materiales_necesarios": ["balon", "conos", "canasta"]
+  },
+  {
+    "nombre": "Transición defensa-ataque 3v2 + 2v1",
+    "descripcion": "Secuencia clásica: 3 atacan contra 2, tras tiro o pérdida vuelven 2 defensores y se juega 2v1 al otro aro.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 5, "mental": 5 },
+    "tipo": "TACTICA_TRANSICION",
+    "duracion_segundos": 420,
+    "etiquetas": ["3v2", "2v1", "transicion", "decision", "ventaja", "recuperacion_defensiva"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Rueda de tiro (5 spots) con pase extra",
+    "descripcion": "Circuito continuo: pase al tirador, tiro, rebote y rotación. Incluye pase extra para mejorar lectura y ritmo colectivo.",
+    "dificultad": { "tactica": 3, "tecnica": 3, "fisica": 3, "mental": 3 },
+    "tipo": "TIRO",
+    "duracion_segundos": 420,
+    "etiquetas": ["rueda", "tiro", "pase_extra", "rotacion", "ritmo", "equipo"],
+    "materiales_necesarios": ["2_balones", "canasta"]
+  },
+  {
+    "nombre": "Tiro tras salida de bloqueo indirecto (pin-down) 2v0",
+    "descripcion": "Uso de bloqueo indirecto para liberar tirador: lectura de hombros, salida, recepción y tiro en equilibrio.",
+    "dificultad": { "tactica": 4, "tecnica": 4, "fisica": 3, "mental": 4 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 360,
+    "etiquetas": ["bloqueo_indirecto", "pin_down", "tirador", "recepcion", "tiro", "timing"],
+    "materiales_necesarios": ["balon", "conos", "canasta"]
+  },
+  {
+    "nombre": "Footwork en poste: drop step + up and under",
+    "descripcion": "Trabajo técnico en poste: drop step, finta y up-and-under. Enfatiza pivotes legales y uso del cuerpo.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 4, "mental": 3 },
+    "tipo": "TECNICA_POSTE",
+    "duracion_segundos": 300,
+    "etiquetas": ["poste", "footwork", "drop_step", "up_and_under", "pivotes", "finalizacion"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Lecturas en poste: pasar fuera vs atacar (2v2)",
+    "descripcion": "Juego desde poste con defensor y ayuda. El poste decide: atacar, rebotear o pasar al perímetro según la ayuda.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE_DEFENSA",
+    "duracion_segundos": 360,
+    "etiquetas": ["poste", "lecturas", "ayudas", "pase_fuera", "decision", "2v2"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "1v1 desde triple amenaza (jab series)",
+    "descripcion": "Atacante en triple amenaza trabaja jab step, shot fake y salida. Defensor reacciona. Enfoca creación de ventaja.",
+    "dificultad": { "tactica": 4, "tecnica": 4, "fisica": 4, "mental": 4 },
+    "tipo": "ATAQUE_INDIVIDUAL",
+    "duracion_segundos": 300,
+    "etiquetas": ["1v1", "triple_amenaza", "jab_step", "finta", "creacion_ventaja", "lectura_defensor"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Finalización: floater y runner en pintura",
+    "descripcion": "Serie de floaters y runners desde la zona de la línea de tiros libres hacia el aro. Enfoca toque, arco y control.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 3, "mental": 3 },
+    "tipo": "FINALIZACION_ARO",
+    "duracion_segundos": 240,
+    "etiquetas": ["floater", "runner", "pintura", "toque", "control", "finalizacion"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Defensa: desplazamientos laterales con reacción a señal",
+    "descripcion": "Desplazamientos laterales defensivos respondiendo a señal visual/sonora. Enfatiza pies rápidos, cadera baja y control.",
+    "dificultad": { "tactica": 2, "tecnica": 3, "fisica": 4, "mental": 3 },
+    "tipo": "DEFENSA_FUNDAMENTOS",
+    "duracion_segundos": 180,
+    "etiquetas": ["defensa", "lateralidad", "reaccion", "pies", "cadera_baja", "agilidad"],
+    "materiales_necesarios": ["conos", "silbato_o_app_senal"]
+  },
+  {
+    "nombre": "Defensa: negar línea de pase (deny) 2v2",
+    "descripcion": "Trabajo de deny y backdoor: el atacante intenta recibir, el defensor niega y ajusta. Mejora posicionamiento y anticipación.",
+    "dificultad": { "tactica": 5, "tecnica": 3, "fisica": 4, "mental": 5 },
+    "tipo": "DEFENSA_EQUIPO",
+    "duracion_segundos": 360,
+    "etiquetas": ["deny", "linea_de_pase", "backdoor", "anticipacion", "posicionamiento", "2v2"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Ataque: cortes backdoor vs overplay (3v3)",
+    "descripcion": "Juego reducido donde el ataque busca backdoor cuando hay sobrepresión en línea de pase. Enfoca lectura y timing.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE_DEFENSA",
+    "duracion_segundos": 420,
+    "etiquetas": ["backdoor", "overplay", "cortes", "lectura", "timing", "3v3"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Condicionamiento: suicidios (líneas) con pausas controladas",
+    "descripcion": "Series de 'suicides' (líneas) con tiempos objetivo y recuperación fija. Enfoca capacidad anaeróbica y tolerancia al esfuerzo.",
+    "dificultad": { "tactica": 1, "tecnica": 2, "fisica": 5, "mental": 4 },
+    "tipo": "CONDICIONAMIENTO_FISICO",
+    "duracion_segundos": 300,
+    "etiquetas": ["fisico", "anaerobico", "suicides", "resistencia", "intensidad", "condicionamiento"],
+    "materiales_necesarios": ["cronometro_o_app"]
+  },
+  {
+    "nombre": "Pliometría: saltos al cajón + aterrizaje estable",
+    "descripcion": "Saltos al cajón con énfasis en aterrizaje controlado, rodillas alineadas y estabilidad. Prevención y potencia.",
+    "dificultad": { "tactica": 1, "tecnica": 3, "fisica": 4, "mental": 3 },
+    "tipo": "CONDICIONAMIENTO_FISICO",
+    "duracion_segundos": 240,
+    "etiquetas": ["pliometria", "potencia", "salto", "aterrizaje", "estabilidad", "prevencion"],
+    "materiales_necesarios": ["cajon_pliometria"]
+  },
+  {
+    "nombre": "Prevención: movilidad de tobillo, cadera y T-spine",
+    "descripcion": "Circuito de movilidad enfocado a tobillo, cadera y columna torácica. Útil para calentamiento o vuelta a la calma.",
+    "dificultad": { "tactica": 1, "tecnica": 2, "fisica": 2, "mental": 2 },
+    "tipo": "MOVILIDAD_RECUPERACION",
+    "duracion_segundos": 420,
+    "etiquetas": ["movilidad", "tobillo", "cadera", "columna_toracica", "prevencion", "recuperacion"],
+    "materiales_necesarios": ["colchoneta", "banda_elastica"]
+  },
+  {
+    "nombre": "Ritmo ofensivo: 5-out motion (pasar, cortar, reemplazar) 5v0",
+    "descripcion": "Ataque 5v0 con reglas de motion: pasar y cortar, reemplazar espacios y mantener spacing 5-out.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 3, "mental": 4 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 420,
+    "etiquetas": ["5out", "motion", "spacing", "cortes", "reemplazo", "ataque"],
+    "materiales_necesarios": ["balon"]
+  },
+  {
+    "nombre": "Situaciones especiales: SLOB/BLOB (saque de banda/fondo) 5v0",
+    "descripcion": "Repaso de sistemas de saque (banda y fondo) sin defensa: posiciones, opciones primarias y secundarias, timing de bloqueos.",
+    "dificultad": { "tactica": 5, "tecnica": 2, "fisica": 2, "mental": 4 },
+    "tipo": "ABP_SAQUES",
+    "duracion_segundos": 480,
+    "etiquetas": ["slob", "blob", "saque", "sistema", "timing", "bloqueos"],
+    "materiales_necesarios": ["balon", "pizarra_tactica"]
+  },
+  {
+    "nombre": "2v1 continuo (ventaja y decisión rápida)",
+    "descripcion": "Ejercicio continuo en media pista: 2 atacantes contra 1 defensor. Enfoca pase extra, finalización y lectura del defensor.",
+    "dificultad": { "tactica": 4, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "JUEGO_REDUCIDO",
+    "duracion_segundos": 360,
+    "etiquetas": ["2v1", "ventaja", "decision", "pase_extra", "finalizacion", "lecturas"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "3v3 a media pista con regla de 1 pase extra obligatorio",
+    "descripcion": "Partido 3v3 donde cada posesión debe incluir al menos un pase extra antes del tiro. Mejora circulación y selección de tiro.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "JUEGO_REDUCIDO",
+    "duracion_segundos": 600,
+    "etiquetas": ["3v3", "pase_extra", "spacing", "seleccion_tiro", "ataque", "lecturas"],
+    "materiales_necesarios": ["balon", "canasta", "petos"]
+  },
+  {
+    "nombre": "Tiro de ventaja: drive & kick (3v0 -> 3v3)",
+    "descripcion": "Progresión: primero 3v0 (penetración y descarga) y luego 3v3 para finalizar con tiro abierto. Foco en lectura y timing.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE_DEFENSA",
+    "duracion_segundos": 540,
+    "etiquetas": ["drive_and_kick", "penetracion", "descarga", "tiro_abierto", "timing", "lecturas"],
+    "materiales_necesarios": ["balon", "canasta", "petos"]
+  },
+  {
+    "nombre": "Defensa: trap en esquina + rotaciones (4v4)",
+    "descripcion": "Simulación de trap en esquina y rotaciones defensivas para cubrir pase de salida y lado débil. Enfatiza comunicación y ángulos.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 5, "mental": 5 },
+    "tipo": "DEFENSA_EQUIPO",
+    "duracion_segundos": 480,
+    "etiquetas": ["trap", "esquina", "rotaciones", "comunicacion", "presion", "defensa"],
+    "materiales_necesarios": ["balon", "canasta", "petos"]
+  },
+  {
+    "nombre": "Lectura de mano dominante del atacante (1v1)",
+    "descripcion": "El defensor fuerza al atacante a su mano débil y ajusta ángulo según scouting. Trabaja disciplina, pies y anticipación.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "DEFENSA_INDIVIDUAL",
+    "duracion_segundos": 360,
+    "etiquetas": ["1v1", "scouting", "mano_debil", "angulo", "disciplina", "defensa"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Circuito de finalización: reverso + protegido + power layup",
+    "descripcion": "Secuencia en aro: reverso, finalización protegida y bandeja fuerte (power). Mejora variabilidad y control bajo contacto.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 4, "mental": 4 },
+    "tipo": "FINALIZACION_ARO",
+    "duracion_segundos": 360,
+    "etiquetas": ["finalizacion", "reverso", "power_layup", "proteccion", "contacto", "aro"],
+    "materiales_necesarios": ["balon", "canasta", "foam_pad"]
+  },
+  {
+    "nombre": "Ritmo de pies: paradas (jump stop y 1-2) con tiro corto",
+    "descripcion": "Trabajo de paradas legales (jump stop y 1-2) tras bote, finalizando con tiro corto. Enfoca control y equilibrio.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 3, "mental": 3 },
+    "tipo": "TECNICA_PIES",
+    "duracion_segundos": 300,
+    "etiquetas": ["footwork", "paradas", "jump_stop", "1_2", "equilibrio", "tiro_corto"],
+    "materiales_necesarios": ["balon", "canasta", "conos"]
+  },
+  {
+    "nombre": "Pick & Pop (2v2) con lectura de closeout",
+    "descripcion": "Bloqueo directo con bloqueador abriéndose (pop). Tras recepción, lectura de closeout para tirar, pasar o atacar.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE_DEFENSA",
+    "duracion_segundos": 420,
+    "etiquetas": ["pick_and_pop", "2v2", "closeout", "lecturas", "tiro", "ataque"],
+    "materiales_necesarios": ["balon", "canasta", "conos"]
+  },
+  {
+    "nombre": "Aceleración y frenada: sprint 10m + deceleración controlada",
+    "descripcion": "Series cortas de aceleración y frenada con foco en mecánica y deceleración segura (rodilla alineada, cadera estable).",
+    "dificultad": { "tactica": 1, "tecnica": 3, "fisica": 4, "mental": 3 },
+    "tipo": "CONDICIONAMIENTO_FISICO",
+    "duracion_segundos": 240,
+    "etiquetas": ["aceleracion", "deceleracion", "mecanica", "prevencion", "velocidad", "control"],
+    "materiales_necesarios": ["conos", "cronometro_o_app"]
+  },
+  {
+    "nombre": "Vuelta a la calma guiada (respiración + estiramientos)",
+    "descripcion": "Bloque final con respiración diafragmática y estiramientos básicos de tren inferior y superior para recuperación.",
+    "dificultad": { "tactica": 1, "tecnica": 1, "fisica": 1, "mental": 2 },
+    "tipo": "MOVILIDAD_RECUPERACION",
+    "duracion_segundos": 600,
+    "etiquetas": ["vuelta_calma", "respiracion", "estiramientos", "recuperacion", "movilidad", "relajacion"],
+    "materiales_necesarios": ["colchoneta"]
+  },
+  {
+    "nombre": "Bote con cambio de ritmo (hesitation) 1v0",
+    "descripcion": "Series de bote avanzando con cambios de ritmo (hesitation) para simular creación de ventaja sin defensa.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 3, "mental": 3 },
+    "tipo": "TECNICA_BOTE",
+    "duracion_segundos": 150,
+    "etiquetas": ["bote", "hesitation", "cambio_ritmo", "creacion_ventaja", "control", "fundamentos"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Bote: in-and-out + crossover en cono",
+    "descripcion": "Secuencia técnica en cada cono: in-and-out seguido de crossover y aceleración al siguiente cono.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 4, "mental": 4 },
+    "tipo": "TECNICA_BOTE",
+    "duracion_segundos": 180,
+    "etiquetas": ["bote", "in_and_out", "crossover", "agilidad", "aceleracion", "control"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Bote: detrás de la espalda en desplazamiento",
+    "descripcion": "Desplazamiento de línea a línea ejecutando bote detrás de la espalda en puntos marcados.",
+    "dificultad": { "tactica": 1, "tecnica": 4, "fisica": 3, "mental": 3 },
+    "tipo": "TECNICA_BOTE",
+    "duracion_segundos": 180,
+    "etiquetas": ["bote", "detras_espalda", "coordinacion", "control", "desplazamiento"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Bote: cambio entre piernas con aceleración",
+    "descripcion": "Cambios entre piernas con aceleración inmediata tras el cambio para simular ataque a la cadera del defensor.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 4, "mental": 3 },
+    "tipo": "TECNICA_BOTE",
+    "duracion_segundos": 150,
+    "etiquetas": ["bote", "entre_piernas", "aceleracion", "cambio_direccion", "control"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Bote bajo presión temporal (countdown)",
+    "descripcion": "Bote estacionario y desplazamientos cortos con cuenta atrás del entrenador, buscando mantener control bajo estrés.",
+    "dificultad": { "tactica": 2, "tecnica": 3, "fisica": 3, "mental": 4 },
+    "tipo": "TECNICA_BOTE",
+    "duracion_segundos": 120,
+    "etiquetas": ["bote", "presion", "estres", "control", "toma_decision", "ritmo"],
+    "materiales_necesarios": ["balon", "cronometro_o_app"]
+  },
+  {
+    "nombre": "Pies: pivotes (front y reverse) en triple amenaza",
+    "descripcion": "Trabajo de pivote frontal y reverso desde triple amenaza manteniendo balón protegido y visión del campo.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 2, "mental": 3 },
+    "tipo": "TECNICA_PIES",
+    "duracion_segundos": 180,
+    "etiquetas": ["footwork", "pivote", "triple_amenaza", "proteccion", "vision", "fundamentos"],
+    "materiales_necesarios": ["balon"]
+  },
+  {
+    "nombre": "Pies: finta de tiro + salida (shot fake & go)",
+    "descripcion": "Desde triple amenaza: finta de tiro y salida explosiva a un bote para finalizar o parar y tirar corto.",
+    "dificultad": { "tactica": 3, "tecnica": 4, "fisica": 4, "mental": 4 },
+    "tipo": "ATAQUE_INDIVIDUAL",
+    "duracion_segundos": 240,
+    "etiquetas": ["triple_amenaza", "shot_fake", "salida", "creacion_ventaja", "1_bote", "finalizacion"],
+    "materiales_necesarios": ["balon", "canasta", "conos"]
+  },
+  {
+    "nombre": "Paradas en transición: 1-2 + pase extra",
+    "descripcion": "Ataque en transición: parada 1-2, fijar defensor imaginario y pase extra al tirador en spot.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 4, "mental": 4 },
+    "tipo": "TACTICA_TRANSICION",
+    "duracion_segundos": 300,
+    "etiquetas": ["transicion", "parada", "1_2", "pase_extra", "vision", "decision"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Pase: lectura de mano exterior (one-hand) a objetivo",
+    "descripcion": "Pases a una mano usando mano exterior para evitar defensor imaginario. Trabaja fuerza, precisión y ángulo.",
+    "dificultad": { "tactica": 3, "tecnica": 4, "fisica": 3, "mental": 3 },
+    "tipo": "PASE",
+    "duracion_segundos": 180,
+    "etiquetas": ["pase", "una_mano", "angulo", "precision", "lectura", "seguridad"],
+    "materiales_necesarios": ["balon"]
+  },
+  {
+    "nombre": "Pase: skip pass desde lado fuerte a lado débil (2v0)",
+    "descripcion": "Simulación de ayuda: el jugador ataca un lado y realiza skip pass al lado débil para tiro abierto.",
+    "dificultad": { "tactica": 4, "tecnica": 4, "fisica": 3, "mental": 4 },
+    "tipo": "PASE",
+    "duracion_segundos": 240,
+    "etiquetas": ["pase", "skip_pass", "lado_debil", "drive_and_kick", "vision", "precision"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Recepción: salida rápida tras catch (0.5 decision)",
+    "descripcion": "Recepción y decisión en 0.5s: tirar, pasar o atacar. Se refuerza velocidad mental y ejecución inmediata.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 3, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 360,
+    "etiquetas": ["recepcion", "0_5", "decision", "ataque", "tiro", "pase"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Tiro: form shooting (cerca) con foco en alineación",
+    "descripcion": "Tiros muy cercanos (1-2m) para automatizar mecánica: alineación, muñeca, arco y seguimiento.",
+    "dificultad": { "tactica": 1, "tecnica": 2, "fisica": 2, "mental": 2 },
+    "tipo": "TIRO",
+    "duracion_segundos": 300,
+    "etiquetas": ["tiro", "mecanica", "form_shooting", "alineacion", "repeticion", "fundamentos"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Tiro: 1-2 step-in desde línea de tres",
+    "descripcion": "Trabajo de pies para entrar en tiro desde pase: 1-2 step-in con orientación al aro y equilibrio.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 3, "mental": 3 },
+    "tipo": "TIRO",
+    "duracion_segundos": 360,
+    "etiquetas": ["tiro", "pies", "1_2", "step_in", "equilibrio", "perimetro"],
+    "materiales_necesarios": ["balon", "canasta", "rebotador_o_companero"]
+  },
+  {
+    "nombre": "Tiro: flare screen (2v0) para tirador",
+    "descripcion": "Simulación de bloqueo flare: el tirador se abre a la línea de tres para catch & shoot tras el bloqueo.",
+    "dificultad": { "tactica": 4, "tecnica": 4, "fisica": 3, "mental": 4 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 360,
+    "etiquetas": ["bloqueo_indirecto", "flare", "tirador", "catch_and_shoot", "timing", "espaciado"],
+    "materiales_necesarios": ["balon", "canasta", "conos"]
+  },
+  {
+    "nombre": "Tiro: salida de mano (hand-off) + tiro",
+    "descripcion": "Secuencia de dribble hand-off: recepción en movimiento y tiro. Enfatiza ángulo de entrega y pies del tirador.",
+    "dificultad": { "tactica": 4, "tecnica": 4, "fisica": 3, "mental": 4 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 360,
+    "etiquetas": ["hand_off", "tiro", "recepcion", "pies", "timing", "ataque"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Tiro: relocate tras penetración (drive & relocate) 3v0",
+    "descripcion": "Tras penetración, el jugador perimetral reubica (relocate) para recibir y tirar. Refuerza hábito de moverse sin balón.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 3, "mental": 4 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 420,
+    "etiquetas": ["relocate", "drive_and_kick", "tiro", "movimiento_sin_balon", "spacing", "pase_extra"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Finalización: reverso (reverse layup) ambos lados",
+    "descripcion": "Entradas por debajo del aro con finalización reversa usando tablero. Se alternan lados y mano finalizadora.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 4, "mental": 3 },
+    "tipo": "FINALIZACION_ARO",
+    "duracion_segundos": 240,
+    "etiquetas": ["reverso", "bandeja", "tablero", "finalizacion", "aro", "coordinacion"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Finalización: drop-off pass + bandeja (2v0)",
+    "descripcion": "Penetración y pase corto (drop-off) al interior para finalización. Trabaja timing y ángulos en la pintura.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 3, "mental": 4 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 300,
+    "etiquetas": ["drop_off", "penetracion", "pintura", "finalizacion", "timing", "pase"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Finalización: lectura del protector de aro (1v1 guiado)",
+    "descripcion": "Atacante decide entre bandeja, floater o parada según posición del defensor (protector de aro).",
+    "dificultad": { "tactica": 4, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "ATAQUE_INDIVIDUAL",
+    "duracion_segundos": 360,
+    "etiquetas": ["finalizacion", "lectura", "protector_aro", "decision", "floater", "bandeja"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Poste: sellar (seal) + recepción y finalización",
+    "descripcion": "Trabajo de sellado en poste: ganar posición, pedir balón, recibir y finalizar fuerte con control del cuerpo.",
+    "dificultad": { "tactica": 3, "tecnica": 3, "fisica": 4, "mental": 4 },
+    "tipo": "TECNICA_POSTE",
+    "duracion_segundos": 300,
+    "etiquetas": ["poste", "sellar", "posicion", "recepcion", "finalizacion", "contacto"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Poste: spin move + finalización",
+    "descripcion": "Movimiento de poste con giro (spin) para crear ángulo de tiro. Se trabaja control de pivote y equilibrio.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 4, "mental": 3 },
+    "tipo": "TECNICA_POSTE",
+    "duracion_segundos": 300,
+    "etiquetas": ["poste", "spin_move", "footwork", "equilibrio", "finalizacion", "pivote"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Poste alto: high-low (3v0)",
+    "descripcion": "Juego high-low sin defensa: pase al poste alto y lectura para alimentar al poste bajo (high-low).",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 3, "mental": 4 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 360,
+    "etiquetas": ["high_low", "poste_alto", "poste_bajo", "pase", "timing", "spacing"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Bloqueo indirecto: curl, fade o backdoor (2v0)",
+    "descripcion": "Lecturas del tirador tras bloqueo: curl hacia el aro, fade hacia fuera o backdoor según posición del defensor imaginario.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 3, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 420,
+    "etiquetas": ["bloqueo_indirecto", "curl", "fade", "backdoor", "lecturas", "timing"],
+    "materiales_necesarios": ["balon", "canasta", "conos"]
+  },
+  {
+    "nombre": "Ataque: split action desde poste alto (3v0)",
+    "descripcion": "Pase al poste alto y split action: dos exteriores cortan (uno hacia aro, otro se abre) para generar tiro o corte.",
+    "dificultad": { "tactica": 5, "tecnica": 3, "fisica": 3, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 420,
+    "etiquetas": ["split_action", "poste_alto", "cortes", "lecturas", "spacing", "ataque"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Defensa: closeout con recuperación (x-out) 3v3",
+    "descripcion": "Rotaciones defensivas con closeouts múltiples (x-out) tras pase al lado débil. Enfoca comunicación y timing defensivo.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 5, "mental": 5 },
+    "tipo": "DEFENSA_EQUIPO",
+    "duracion_segundos": 480,
+    "etiquetas": ["x_out", "rotaciones", "closeout", "comunicacion", "lado_debil", "defensa"],
+    "materiales_necesarios": ["balon", "conos", "petos"]
+  },
+  {
+    "nombre": "Defensa: contener penetración (drive containment) 1v1",
+    "descripcion": "Trabajo de contención: defensor guía al atacante hacia ayuda imaginaria sin ser superado. Enfatiza ángulo y equilibrio.",
+    "dificultad": { "tactica": 4, "tecnica": 4, "fisica": 4, "mental": 4 },
+    "tipo": "DEFENSA_INDIVIDUAL",
+    "duracion_segundos": 300,
+    "etiquetas": ["defensa", "1v1", "contencion", "angulo", "equilibrio", "sin_falta"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Defensa: trabajo de manos (deflections) en línea de pase",
+    "descripcion": "Drill de anticipación y desvíos en línea de pase. Se alternan posiciones y se busca tocar el mayor número de balones.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 3, "mental": 4 },
+    "tipo": "DEFENSA_FUNDAMENTOS",
+    "duracion_segundos": 240,
+    "etiquetas": ["defensa", "deflections", "anticipacion", "linea_pase", "manos_rapidas", "agresividad"],
+    "materiales_necesarios": ["balon", "conos"]
+  },
+  {
+    "nombre": "Defensa PnR: ICE (negar centro) 2v2",
+    "descripcion": "Pick and roll lateral con cobertura ICE: defensor del balón fuerza hacia línea de fondo, interior contiene y protege pintura.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE_DEFENSA",
+    "duracion_segundos": 420,
+    "etiquetas": ["pick_and_roll", "defensa", "ice", "coberturas", "comunicacion", "lateral"],
+    "materiales_necesarios": ["balon", "canasta", "conos"]
+  },
+  {
+    "nombre": "Defensa PnR: hedge & recover 2v2",
+    "descripcion": "Cobertura con 'hedge' del interior para frenar al manejador y recuperación rápida al roll. Enfoca comunicación y ángulos.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 5, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE_DEFENSA",
+    "duracion_segundos": 420,
+    "etiquetas": ["pick_and_roll", "hedge", "recover", "coberturas", "comunicacion", "rotacion"],
+    "materiales_necesarios": ["balon", "canasta", "conos"]
+  },
+  {
+    "nombre": "Defensa PnR: drop (protección de pintura) 2v2",
+    "descripcion": "Cobertura drop: interior se hunde protegiendo aro y media distancia; exterior pelea por encima del bloqueo. Lecturas defensivas.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE_DEFENSA",
+    "duracion_segundos": 420,
+    "etiquetas": ["pick_and_roll", "drop", "proteccion_aro", "coberturas", "comunicacion", "lecturas"],
+    "materiales_necesarios": ["balon", "canasta", "conos"]
+  },
+  {
+    "nombre": "Rebote ofensivo: crash & kick-out (3v3)",
+    "descripcion": "Tras tiro, un jugador carga rebote ofensivo y dos se abren para tiro tras pase fuera. Enfoca segundas oportunidades.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 5, "mental": 4 },
+    "tipo": "REBOTE",
+    "duracion_segundos": 420,
+    "etiquetas": ["rebote_ofensivo", "segunda_oportunidad", "kick_out", "tiro_abierto", "agresividad", "posicion"],
+    "materiales_necesarios": ["balon", "canasta", "petos"]
+  },
+  {
+    "nombre": "Rebote defensivo: hit-find-get (3v3)",
+    "descripcion": "Principio defensivo: contacto (hit), localizar (find) y capturar (get). Se trabaja box-out y salida rápida.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 5, "mental": 4 },
+    "tipo": "REBOTE",
+    "duracion_segundos": 420,
+    "etiquetas": ["rebote_defensivo", "box_out", "hit_find_get", "contacto", "salida_rapida", "transicion"],
+    "materiales_necesarios": ["balon", "canasta", "petos"]
+  },
+  {
+    "nombre": "Transición: 2v1 a toda pista (continuo)",
+    "descripcion": "Situación continua 2v1 a toda pista. Enfoca pase al tiempo, ocupación de carriles y finalización en ventaja.",
+    "dificultad": { "tactica": 4, "tecnica": 4, "fisica": 5, "mental": 4 },
+    "tipo": "TACTICA_TRANSICION",
+    "duracion_segundos": 420,
+    "etiquetas": ["2v1", "toda_pista", "transicion", "ventaja", "pase", "finalizacion"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Transición: sprint back + stop ball (3v3)",
+    "descripcion": "Tras pérdida simulada, defensa sprinta atrás y prioriza parar balón y proteger aro. Enfoca roles y comunicación.",
+    "dificultad": { "tactica": 5, "tecnica": 3, "fisica": 5, "mental": 5 },
+    "tipo": "TACTICA_TRANSICION",
+    "duracion_segundos": 480,
+    "etiquetas": ["transicion_defensiva", "sprint_back", "stop_ball", "proteccion_aro", "roles", "comunicacion"],
+    "materiales_necesarios": ["balon", "canasta", "petos"]
+  },
+  {
+    "nombre": "Salida de presión: 1-4 press break (5v0)",
+    "descripcion": "Estructura 1-4 para salida de presión: colocación, cortes y pases de seguridad. Sin defensa para automatizar.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 3, "mental": 4 },
+    "tipo": "TACTICA_TRANSICION",
+    "duracion_segundos": 420,
+    "etiquetas": ["press_break", "1_4", "salida_presion", "pases_seguridad", "estructura", "timing"],
+    "materiales_necesarios": ["balon", "pizarra_tactica"]
+  },
+  {
+    "nombre": "Salida de presión: diamond press break (5v0)",
+    "descripcion": "Estructura diamond para salida de presión: roles claros, pases cortos y avance por centro o lateral.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 3, "mental": 4 },
+    "tipo": "TACTICA_TRANSICION",
+    "duracion_segundos": 420,
+    "etiquetas": ["press_break", "diamond", "salida_presion", "estructura", "pases", "avance"],
+    "materiales_necesarios": ["balon", "pizarra_tactica"]
+  },
+  {
+    "nombre": "ABP: BLOB para tirador en esquina (5v0)",
+    "descripcion": "Saque de fondo diseñado para liberar tirador en esquina mediante bloqueos escalonados. Se repite timing y opciones.",
+    "dificultad": { "tactica": 5, "tecnica": 2, "fisica": 2, "mental": 4 },
+    "tipo": "ABP_SAQUES",
+    "duracion_segundos": 420,
+    "etiquetas": ["blob", "saque_fondo", "tirador", "esquina", "bloqueos", "timing"],
+    "materiales_necesarios": ["balon", "pizarra_tactica"]
+  },
+  {
+    "nombre": "ABP: SLOB para alley o layup (5v0)",
+    "descripcion": "Saque de banda con opción de alley o bandeja tras bloqueo. Enfoca lectura de defensa imaginaria y timing.",
+    "dificultad": { "tactica": 5, "tecnica": 3, "fisica": 3, "mental": 4 },
+    "tipo": "ABP_SAQUES",
+    "duracion_segundos": 420,
+    "etiquetas": ["slob", "saque_banda", "alley", "finalizacion", "bloqueos", "timing"],
+    "materiales_necesarios": ["balon", "pizarra_tactica", "canasta"]
+  },
+  {
+    "nombre": "Juego reducido: 4v4 con restricción de 2 botes",
+    "descripcion": "Partido 4v4 en media pista donde cada jugador tiene máximo 2 botes por recepción. Fomenta pase, cortes y decisión rápida.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "JUEGO_REDUCIDO",
+    "duracion_segundos": 600,
+    "etiquetas": ["4v4", "restriccion_botes", "decision", "pase", "cortes", "spacing"],
+    "materiales_necesarios": ["balon", "canasta", "petos"]
+  },
+  {
+    "nombre": "Juego reducido: 3v3 con bonus por paint touch",
+    "descripcion": "3v3 donde cada posesión debe tocar pintura (penetración o pase interior) antes de tirar. Mejora agresividad y colapsar defensa.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "JUEGO_REDUCIDO",
+    "duracion_segundos": 600,
+    "etiquetas": ["3v3", "paint_touch", "penetracion", "pase_interior", "seleccion_tiro", "ataque"],
+    "materiales_necesarios": ["balon", "canasta", "petos"]
+  },
+  {
+    "nombre": "Juego reducido: 2v2 no middle (defensa fuerza banda)",
+    "descripcion": "2v2 en media pista donde la defensa debe negar centro (no middle). Enfatiza ángulos, contención y ayudas cortas.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE_DEFENSA",
+    "duracion_segundos": 480,
+    "etiquetas": ["2v2", "no_middle", "defensa", "angulo", "ayudas", "contencion"],
+    "materiales_necesarios": ["balon", "canasta"]
+  },
+  {
+    "nombre": "Condicionamiento: intervalos 15\"/15\" a toda pista",
+    "descripcion": "Intervalos: 15s trabajo (carrera y cambios) + 15s descanso, repetidos. Enfoca capacidad anaeróbica específica.",
+    "dificultad": { "tactica": 1, "tecnica": 2, "fisica": 5, "mental": 4 },
+    "tipo": "CONDICIONAMIENTO_FISICO",
+    "duracion_segundos": 480,
+    "etiquetas": ["fisico", "intervalos", "anaerobico", "cambios_direccion", "toda_pista", "fatiga"],
+    "materiales_necesarios": ["cronometro_o_app", "conos"]
+  },
+  {
+    "nombre": "Condicionamiento: desplazamientos defensivos en 'T' (agilidad)",
+    "descripcion": "Circuito en forma de T con desplazamientos defensivos, sprint corto y backpedal. Enfoca agilidad y control corporal.",
+    "dificultad": { "tactica": 1, "tecnica": 3, "fisica": 4, "mental": 3 },
+    "tipo": "CONDICIONAMIENTO_FISICO",
+    "duracion_segundos": 300,
+    "etiquetas": ["agilidad", "t_test", "defensa", "lateralidad", "aceleracion", "control"],
+    "materiales_necesarios": ["conos", "cronometro_o_app"]
+  },
+  {
+    "nombre": "Movilidad: activación de glúteo + estabilidad de rodilla",
+    "descripcion": "Serie de activación (puentes, monster walks) y control de alineación de rodilla para prevenir lesiones y mejorar frenadas.",
+    "dificultad": { "tactica": 1, "tecnica": 2, "fisica": 3, "mental": 2 },
+    "tipo": "MOVILIDAD_RECUPERACION",
+    "duracion_segundos": 480,
+    "etiquetas": ["prevencion", "gluteo", "rodilla", "estabilidad", "activacion", "movilidad"],
+    "materiales_necesarios": ["banda_elastica", "colchoneta"]
+  },
+  {
+    "nombre": "Recuperación: liberación miofascial (foam roller) tren inferior",
+    "descripcion": "Trabajo de foam roller en cuádriceps, isquios, gemelos y glúteos, seguido de estiramientos suaves.",
+    "dificultad": { "tactica": 1, "tecnica": 1, "fisica": 2, "mental": 2 },
+    "tipo": "MOVILIDAD_RECUPERACION",
+    "duracion_segundos": 600,
+    "etiquetas": ["recuperacion", "foam_roller", "miofascial", "tren_inferior", "estiramientos", "bienestar"],
+    "materiales_necesarios": ["foam_roller", "colchoneta"]
+  },
+  {
+    "nombre": "Tiro: series de 3 consecutivos por spot (presión)",
+    "descripcion": "En cada spot, el jugador debe anotar 3 consecutivos antes de rotar. Refuerza concentración y consistencia bajo presión.",
+    "dificultad": { "tactica": 2, "tecnica": 4, "fisica": 3, "mental": 5 },
+    "tipo": "TIRO",
+    "duracion_segundos": 600,
+    "etiquetas": ["tiro", "presion", "consistencia", "consecutivos", "concentracion", "perimetro"],
+    "materiales_necesarios": ["balon", "canasta", "rebotador_o_companero"]
+  },
+  {
+    "nombre": "Tiro: toma de decisiones con señal de color (rojo/verde)",
+    "descripcion": "El entrenador muestra color: verde=tiro, rojo=ataque a un bote y pull-up. Mejora lectura, reacción y ejecución.",
+    "dificultad": { "tactica": 4, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "TIRO",
+    "duracion_segundos": 420,
+    "etiquetas": ["tiro", "decision", "reaccion", "pull_up", "ataque", "señal"],
+    "materiales_necesarios": ["balon", "canasta", "tarjetas_colores"]
+  },
+  {
+    "nombre": "Defensa: cargar falta ofensiva (posición) 1v1 guiado",
+    "descripcion": "Trabajo de colocación defensiva para provocar falta en ataque. Se enfatiza ángulo, estabilidad y seguridad.",
+    "dificultad": { "tactica": 4, "tecnica": 3, "fisica": 4, "mental": 4 },
+    "tipo": "DEFENSA_FUNDAMENTOS",
+    "duracion_segundos": 300,
+    "etiquetas": ["defensa", "falta_ofensiva", "posicion", "angulo", "seguridad", "disciplina"],
+    "materiales_necesarios": ["conos", "petos"]
+  },
+  {
+    "nombre": "Ataque: lectura de closeout (shoot/drive/extra pass) 3v3",
+    "descripcion": "Juego 3v3 donde el receptor debe decidir: tiro, penetración o pase extra según closeout. Enfoca lectura y spacing.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE_DEFENSA",
+    "duracion_segundos": 600,
+    "etiquetas": ["closeout", "lectura", "pase_extra", "penetracion", "tiro", "decision"],
+    "materiales_necesarios": ["balon", "canasta", "petos"]
+  },
+  {
+    "nombre": "Ataque: Spain PnR (3v0) conceptos",
+    "descripcion": "Concepto Spain pick and roll sin defensa: PnR central con bloqueo ciego al defensor del roll y salida del bloqueador al triple.",
+    "dificultad": { "tactica": 5, "tecnica": 3, "fisica": 3, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 480,
+    "etiquetas": ["spain_pnr", "pick_and_roll", "bloqueo_ciego", "conceptos", "spacing", "timing"],
+    "materiales_necesarios": ["balon", "canasta", "conos", "pizarra_tactica"]
+  },
+  {
+    "nombre": "Ataque: Spain PnR 3v3 (defensa progresiva)",
+    "descripcion": "Spain PnR con defensa: progresión de pasiva a activa, enfatizando lecturas del manejador, roller y tirador.",
+    "dificultad": { "tactica": 5, "tecnica": 4, "fisica": 4, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE_DEFENSA",
+    "duracion_segundos": 600,
+    "etiquetas": ["spain_pnr", "3v3", "lecturas", "coberturas", "decision", "comunicacion"],
+    "materiales_necesarios": ["balon", "canasta", "conos", "petos"]
+  },
+  {
+    "nombre": "Defensa: zona 2-3 (posicionamiento y rotaciones) 5v0",
+    "descripcion": "Trabajo de zona 2-3 sin ataque real: posiciones base, desplazamientos según balón y rotaciones a esquinas y poste alto.",
+    "dificultad": { "tactica": 5, "tecnica": 2, "fisica": 3, "mental": 5 },
+    "tipo": "DEFENSA_EQUIPO",
+    "duracion_segundos": 480,
+    "etiquetas": ["zona_2_3", "rotaciones", "posicionamiento", "comunicacion", "defensa", "principios"],
+    "materiales_necesarios": ["balon", "pizarra_tactica", "conos"]
+  },
+  {
+    "nombre": "Ataque vs zona 2-3: overload y short corner 5v0",
+    "descripcion": "Ataque 5v0 contra zona 2-3: sobrecarga (overload), ocupación de short corner y pase al poste alto.",
+    "dificultad": { "tactica": 5, "tecnica": 3, "fisica": 2, "mental": 5 },
+    "tipo": "TACTICA_ATAQUE",
+    "duracion_segundos": 480,
+    "etiquetas": ["zona_2_3", "ataque_zona", "overload", "short_corner", "poste_alto", "spacing"],
+    "materiales_necesarios": ["balon", "pizarra_tactica", "canasta"]
+  },
+  {
+    "nombre": "Vuelta a la calma: respiración box breathing 4-4-4-4",
+    "descripcion": "Ejercicio de respiración guiada (box breathing) para bajar pulsaciones y mejorar recuperación mental y física.",
+    "dificultad": { "tactica": 1, "tecnica": 1, "fisica": 1, "mental": 2 },
+    "tipo": "MOVILIDAD_RECUPERACION",
+    "duracion_segundos": 300,
+    "etiquetas": ["recuperacion", "respiracion", "box_breathing", "relajacion", "vuelta_calma", "foco"],
+    "materiales_necesarios": ["cronometro_o_app", "colchoneta"]
+  }
+]
+

@@ -8,10 +8,18 @@ const { listAuditLogs, getAuditLog, deleteAllAuditLogs, exportAuditLogsCsv } = r
 
 router.use(requireAuth);
 
-// Admin-only audit log access
+// ==================== /audit-logs ====================
+// GET    /audit-logs - Listar registros de auditoría - admin
 router.get('/', requireAnyRole('admin'), validate({ query: auditLogListQuerySchema }), listAuditLogs);
-router.get('/export.csv', requireAnyRole('admin'), exportAuditLogsCsv);
+// DELETE /audit-logs - Eliminar todos los registros - admin
 router.delete('/', requireAnyRole('admin'), deleteAllAuditLogs);
+
+// ==================== /audit-logs/export.csv ====================
+// GET /audit-logs/export.csv - Exportar auditoría a CSV - admin
+router.get('/export.csv', requireAnyRole('admin'), exportAuditLogsCsv);
+
+// ==================== /audit-logs/:id ====================
+// GET /audit-logs/:id - Ver registro por ID - admin
 router.get('/:id', requireAnyRole('admin'), getAuditLog);
 
 module.exports = router;
