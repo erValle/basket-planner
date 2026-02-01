@@ -25,6 +25,7 @@ import { PlanningApiService } from '../services/planning.api';
 import { ClubContextService } from '../core/context/club-context.service';
 import { ClubsApi, ClubDto } from '../services/clubs.api';
 import { TeamsApi, TeamDto } from '../services/teams.api';
+import { AuthService } from '../core/auth/auth.service';
 import { PlanningExportEmailPayload, PlanningExportFormat, PlanningListItem, PlanningStatus } from '../models/planning';
 
 import { BehaviorSubject, combineLatest, map, shareReplay, startWith, switchMap, filter } from 'rxjs';
@@ -81,6 +82,12 @@ export class Planning {
 
   // Backend list endpoint currently ignores club/team filters.
   filtersNotSupportedYet = true;
+
+  // Roles que pueden eliminar planificaciones
+  get canDelete(): boolean {
+    const role = this.authService.getRoleSnapshot();
+    return ['admin', 'technical_director', 'coach'].includes(role || '');
+  }
 
   private readonly refresh$ = new BehaviorSubject<void>(undefined);
   readonly loading$ = new BehaviorSubject<boolean>(false);
@@ -242,6 +249,7 @@ export class Planning {
     private readonly clubContext: ClubContextService,
     private readonly clubsApi: ClubsApi,
     private readonly teamsApi: TeamsApi,
+    private readonly authService: AuthService,
     private readonly router: Router,
     private readonly toast: MessageService,
     private readonly confirmation: ConfirmationService,
@@ -370,6 +378,11 @@ export class Planning {
 
   clearFilters(): void {
     this.filters = { club: 'Todos', team: 'Todos', status: 'all', search: '', dateRange: null };
+    this.first = 0;
+    this.refresh();
+  }
+
+  applyFilters(): void {
     this.first = 0;
     this.refresh();
   }

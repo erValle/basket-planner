@@ -77,73 +77,6 @@
         </div>
       </div>
 
-      <!-- Información del Recomendador (datos reales) -->
-      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-        <div>
-          <div class="text-sm font-semibold">Información del Modelo</div>
-          <div class="text-[13px] text-[#9ca3af]">Versión activa y configuración</div>
-        </div>
-
-        @if (recommenderLoading) {
-          <div class="mt-4 text-[13px] text-[#9ca3af] flex items-center gap-2">
-            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
-            Cargando información del modelo…
-          </div>
-        }
-
-        @if (recommenderError) {
-          <div class="mt-4 border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200">
-            <div class="font-semibold mb-1">Error al cargar información del modelo</div>
-            <div>{{ recommenderError }}</div>
-            <div class="mt-3">
-              <button 
-                pButton 
-                type="button" 
-                label="Reintentar" 
-                icon="pi pi-refresh" 
-                class="p-button-sm p-button-danger"
-                (click)="loadRecommenderStatus()"
-              ></button>
-            </div>
-          </div>
-        }
-
-        @if (!recommenderLoading && recommenderStatus) {
-          <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
-              <div class="text-xs text-zinc-400">Versión del modelo</div>
-              <div class="mt-1 flex items-center justify-between gap-2">
-                <div class="text-lg font-semibold">{{ recommenderStatus.activeVersion }}</div>
-                <p-tag value="ACTIVO" severity="success"></p-tag>
-              </div>
-              @if (recommenderStatus.modelInfo) {
-                <div class="mt-2 text-xs text-zinc-500">{{ recommenderStatus.modelInfo.description }}</div>
-              }
-            </div>
-            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
-              <div class="text-xs text-zinc-400">Configuración</div>
-              @if (recommenderStatus.modelConfig) {
-                <div class="mt-2 space-y-1 text-sm">
-                  <div class="flex justify-between"><span class="text-zinc-400">Objetivos</span><span class="font-medium">{{ recommenderStatus.modelConfig.totalGoals }}</span></div>
-                  <div class="flex justify-between"><span class="text-zinc-400">Etiquetas</span><span class="font-medium">{{ recommenderStatus.modelConfig.totalTags }}</span></div>
-                  <div class="text-xs text-zinc-500 mt-2">Creado: {{ recommenderStatus.modelConfig.createdAt }}</div>
-                </div>
-              }
-            </div>
-            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
-              <div class="text-xs text-zinc-400">Tipo de modelo</div>
-              <div class="mt-1 flex items-center gap-2">
-                <p-tag [value]="recommenderStatus.techCost" [severity]="techCostSeverity(recommenderStatus.techCost)"></p-tag>
-                <div class="text-xs text-zinc-500">Coste técnico</div>
-              </div>
-              @if (recommenderStatus.modelInfo) {
-                <div class="mt-2 text-xs text-zinc-400">{{ recommenderStatus.modelInfo.type }}</div>
-              }
-            </div>
-          </div>
-        }
-      </div>
-
       <!-- Estadísticas de Uso del Recomendador -->
       @if (!recommenderLoading && recommenderStatus && recommenderStatus.statistics) {
         @let stats = recommenderStatus.statistics;
@@ -201,6 +134,219 @@
               } @else {
                 <div class="text-sm text-zinc-500">No hay datos disponibles</div>
               }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Estadísticas de Entrenamiento del Modelo -->
+      @if (!recommenderLoading && recommenderStatus && recommenderStatus.training) {
+        @let training = recommenderStatus.training;
+        <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+          <div>
+            <div class="text-sm font-semibold">Entrenamiento del Modelo</div>
+            <div class="text-[13px] text-[#9ca3af]">Datos del último entrenamiento del modelo neuronal</div>
+          </div>
+
+          <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <!-- Información general -->
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <div class="text-xs text-zinc-400 mb-3">Información General</div>
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Tipo</span>
+                  <span class="text-sm font-medium text-cyan-400">{{ training.trainingType }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Fecha</span>
+                  <span class="text-sm font-medium text-zinc-200">{{ training.trainedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Versión</span>
+                  <span class="text-sm font-medium text-zinc-200">{{ training.modelVersion }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Parámetros de entrenamiento -->
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <div class="text-xs text-zinc-400 mb-3">Parámetros</div>
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Muestras</span>
+                  <span class="text-sm font-medium text-cyan-400">{{ training.samples | number }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Épocas</span>
+                  <span class="text-sm font-medium text-zinc-200">{{ training.epochs }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Ejercicios</span>
+                  <span class="text-sm font-medium text-zinc-200">{{ training.exerciseCount }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Duración</span>
+                  <span class="text-sm font-medium text-zinc-200">{{ training.durationSeconds | number:'1.1-1' }}s</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Métricas de pérdida -->
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <div class="text-xs text-zinc-400 mb-3">Métricas de Pérdida</div>
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Loss Final</span>
+                  <span class="text-sm font-medium" [ngClass]="training.finalLoss < 0.05 ? 'text-green-400' : training.finalLoss < 0.1 ? 'text-yellow-400' : 'text-red-400'">{{ training.finalLoss | number:'1.4-4' }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Val Loss Final</span>
+                  <span class="text-sm font-medium" [ngClass]="training.finalValLoss < 0.05 ? 'text-green-400' : training.finalValLoss < 0.1 ? 'text-yellow-400' : 'text-red-400'">{{ training.finalValLoss | number:'1.4-4' }}</span>
+                </div>
+                <div class="mt-3">
+                  @if (training.finalLoss < 0.05 && training.finalValLoss < 0.05) {
+                    <p-tag value="EXCELENTE" severity="success"></p-tag>
+                  } @else if (training.finalLoss < 0.1) {
+                    <p-tag value="BUENO" severity="info"></p-tag>
+                  } @else {
+                    <p-tag value="NECESITA MEJORA" severity="warn"></p-tag>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Estado del modelo -->
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4 md:col-span-3">
+              <div class="text-xs text-zinc-400 mb-3">Estado del Modelo</div>
+              <div class="flex items-center gap-4">
+                @if (recommenderStatus.modelInfo?.isTrained) {
+                  <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
+                    <span class="text-sm text-green-400 font-medium">Modelo Entrenado y Activo</span>
+                  </div>
+                  <p-tag value="HÍBRIDO 70/30" severity="success"></p-tag>
+                  <span class="text-xs text-zinc-500">70% Neural + 30% Heurístico</span>
+                } @else {
+                  <div class="flex items-center gap-2">
+                    <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                    <span class="text-sm text-yellow-400 font-medium">Solo Heurístico</span>
+                  </div>
+                  <p-tag value="FALLBACK" severity="warn"></p-tag>
+                  <span class="text-xs text-zinc-500">Ejecute entrenamiento para activar modelo neuronal</span>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Monitorización de Recursos del Modelo -->
+      @if (!recommenderLoading && recommenderStatus && recommenderStatus.monitoring) {
+        @let mon = recommenderStatus.monitoring;
+        <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+          <div>
+            <div class="text-sm font-semibold">Monitorización de Recursos</div>
+            <div class="text-[13px] text-[#9ca3af]">Metadatos y consumo del motor de recomendación</div>
+          </div>
+
+          <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <!-- Uso de memoria -->
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <div class="text-xs text-zinc-400 mb-3">Uso de Memoria</div>
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Heap Usado</span>
+                  <span class="text-sm font-medium text-cyan-400">{{ mon.memoryUsage.heapUsed }} MB</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Heap Total</span>
+                  <span class="text-sm font-medium text-zinc-200">{{ mon.memoryUsage.heapTotal }} MB</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">RSS</span>
+                  <span class="text-sm font-medium text-zinc-200">{{ mon.memoryUsage.rss }} MB</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rendimiento -->
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <div class="text-xs text-zinc-400 mb-3">Rendimiento</div>
+              <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Latencia consulta</span>
+                  <span class="text-sm font-medium" [ngClass]="mon.queryLatencyMs < 500 ? 'text-green-400' : mon.queryLatencyMs < 1000 ? 'text-yellow-400' : 'text-red-400'">{{ mon.queryLatencyMs }} ms</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Uptime</span>
+                  <span class="text-sm font-medium text-zinc-200">{{ mon.uptime }} s</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-zinc-300">Node.js</span>
+                  <span class="text-sm font-medium text-zinc-200">{{ mon.nodeVersion }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Arquitectura del modelo -->
+            @if (mon.architecture) {
+              <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+                <div class="text-xs text-zinc-400 mb-3">Arquitectura TFRS</div>
+                <div class="space-y-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-zinc-300">Embedding Dim</span>
+                    <span class="text-sm font-medium text-cyan-400">{{ mon.architecture.embeddingDim }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-zinc-300">Activación</span>
+                    <span class="text-sm font-medium text-zinc-200">{{ mon.architecture.activation }}</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-zinc-300">Dropout</span>
+                    <span class="text-sm font-medium text-zinc-200">{{ mon.architecture.dropoutRate }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Pesos del modelo -->
+            @if (mon.weights) {
+              <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4 md:col-span-2">
+                <div class="text-xs text-zinc-400 mb-3">Pesos del Scoring Híbrido</div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-zinc-300">Neural</span>
+                    <span class="text-sm font-medium text-cyan-400">{{ (mon.weights.neuralWeight * 100).toFixed(0) }}%</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-zinc-300">Heurístico</span>
+                    <span class="text-sm font-medium text-orange-400">{{ (mon.weights.heuristicWeight * 100).toFixed(0) }}%</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-zinc-300">Tag Match</span>
+                    <span class="text-sm font-medium text-zinc-200">{{ (mon.weights.tagMatch * 100).toFixed(0) }}%</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-zinc-300">Type Match</span>
+                    <span class="text-sm font-medium text-zinc-200">{{ (mon.weights.typeMatch * 100).toFixed(0) }}%</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-zinc-300">Difficulty Fit</span>
+                    <span class="text-sm font-medium text-zinc-200">{{ (mon.weights.difficultyFit * 100).toFixed(0) }}%</span>
+                  </div>
+                  <div class="flex justify-between items-center">
+                    <span class="text-sm text-zinc-300">Variedad</span>
+                    <span class="text-sm font-medium text-zinc-200">{{ (mon.weights.typeVariety * 100).toFixed(0) }}%</span>
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Script de entrenamiento -->
+            <div class="rounded-xl border border-white/10 bg-zinc-950/40 p-4">
+              <div class="text-xs text-zinc-400 mb-3">Entrenamiento</div>
+              <div class="text-xs text-zinc-500 break-all font-mono bg-zinc-900/60 p-2 rounded">{{ mon.trainScript }}</div>
+              <div class="mt-2 text-xs text-zinc-500">El entrenamiento se realiza manualmente</div>
             </div>
           </div>
         </div>

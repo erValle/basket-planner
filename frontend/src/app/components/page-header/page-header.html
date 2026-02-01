@@ -6,23 +6,23 @@
 		}
 	</div>
 
-	@if (actionLabel && !actionPermission) {
-		<!-- No permission check - always show -->
-		<p-button
-			[label]="actionLabel"
-			[icon]="actionIcon"
-			[severity]="actionSeverity"
-			[outlined]="actionOutlined"
-			[disabled]="actionDisabled"
-			[ariaLabel]="actionAriaLabel || actionLabel"
-			(click)="onActionClick()"
-			styleClass="bp-btn bp-btn-primary"
-		></p-button>
-	}
-
-	@if (actionLabel && actionPermission) {
-		<!-- With permission check -->
-		<ng-container *hasPermission="actionPermission">
+	@if (actionLabel) {
+		@if (actionPermission) {
+			<!-- With permission check -->
+			<ng-container *hasPermission="actionPermission">
+				<p-button
+					[label]="actionLabel"
+					[icon]="actionIcon"
+					[severity]="actionSeverity"
+					[outlined]="actionOutlined"
+					[disabled]="actionDisabled"
+					[ariaLabel]="actionAriaLabel || actionLabel"
+					(click)="onActionClick()"
+					styleClass="bp-btn bp-btn-primary"
+				></p-button>
+			</ng-container>
+		} @else {
+			<!-- No permission check - always show -->
 			<p-button
 				[label]="actionLabel"
 				[icon]="actionIcon"
@@ -33,6 +33,6 @@
 				(click)="onActionClick()"
 				styleClass="bp-btn bp-btn-primary"
 			></p-button>
-		</ng-container>
+		}
 	}
 </div>

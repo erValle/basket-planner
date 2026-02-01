@@ -1,18 +1,48 @@
 {
   "name": "basket-planner",
   "version": "2.0.0",
+  "description": "Sistema de planificación de entrenamientos de baloncesto con motor de recomendación TFRS",
   "private": true,
   "scripts": {
-    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ..",
-    "start": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue.bold,green.bold\" \"npm run start:backend\" \"npm run start:frontend\"",
+    "start": "concurrently -n \"backend,frontend\" -c \"blue,green\" \"npm run start:backend\" \"npm run start:frontend\"",
     "start:backend": "cd backend && npm start",
     "start:frontend": "cd frontend && npm start",
-    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"blue.bold,green.bold\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev": "concurrently -n \"backend,frontend\" -c \"blue,green\" \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm start",
-    "postinstall": "echo '\\n✅ Dependencias del root instaladas. Ejecuta npm run install:all para instalar todo el proyecto.\\n'"
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "test": "npm run test:backend && npm run test:frontend",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "lint": "npm run lint:backend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:fix": "cd backend && npm run lint:fix",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "setup": "npm run install:all && npm run db:setup",
+    "setup:full": "npm run install:all && npm run db:reset && npm run train:model",
+    "db:migrate": "cd backend && npm run migrate",
+    "db:seed": "cd backend && npm run seed",
+    "db:setup": "cd backend && npm run migrate && npm run seed",
+    "db:reset": "cd backend && npx sequelize db:migrate:undo:all && npm run migrate && npm run seed",
+    "testdb:setup": "cd backend && npm run testdb:setup",
+    "testdb:reset": "cd backend && npm run testdb:reset",
+    "train:model": "cd backend && node scripts/train-tfrs-model.js --warm-start --samples 500",
+    "train:model:full": "cd backend && node scripts/train-tfrs-model.js --warm-start --samples 1000",
+    "clean": "rm -rf node_modules backend/node_modules frontend/node_modules",
+    "clean:install": "npm run clean && npm run install:all"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2"
-  }
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/erValle/basket-planner.git"
+  },
+  "author": "erValle",
+  "license": "MIT"
 }

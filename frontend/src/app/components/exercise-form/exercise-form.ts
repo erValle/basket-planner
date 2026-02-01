@@ -23,7 +23,7 @@ export interface ExerciseFormValue {
   dificultadTecnica: number;
   dificultadFisica: number;
   dificultadMental: number;
-  duracionSegundos: number;
+  duracionMinutos: number;
   etiquetas: string[];
   materialesNecesarios: string[];
 }
@@ -114,7 +114,7 @@ export class ExerciseForm implements OnChanges, OnInit {
     descripcion: this.fb.nonNullable.control(''),
     tipo: this.fb.nonNullable.control('', [Validators.required]),
     estado: this.fb.nonNullable.control<'Activo' | 'Inactivo'>('Activo'),
-    duracionSegundos: this.fb.nonNullable.control(300, [Validators.required, Validators.min(30)]),
+    duracionMinutos: this.fb.nonNullable.control(5, [Validators.required, Validators.min(1), Validators.max(60)]),
     dificultadTactica: this.fb.nonNullable.control(3, [Validators.required, Validators.min(1), Validators.max(5)]),
     dificultadTecnica: this.fb.nonNullable.control(3, [Validators.required, Validators.min(1), Validators.max(5)]),
     dificultadFisica: this.fb.nonNullable.control(3, [Validators.required, Validators.min(1), Validators.max(5)]),
@@ -146,7 +146,7 @@ export class ExerciseForm implements OnChanges, OnInit {
         descripcion: this.initialValue.descripcion ?? '',
         tipo: this.initialValue.tipo ?? '',
         estado: (this.initialValue.estado as 'Activo' | 'Inactivo') ?? 'Activo',
-        duracionSegundos: this.initialValue.duracionSegundos ?? 300,
+        duracionMinutos: this.initialValue.duracionMinutos ?? 5,
         dificultadTactica: this.initialValue.dificultadTactica ?? 3,
         dificultadTecnica: this.initialValue.dificultadTecnica ?? 3,
         dificultadFisica: this.initialValue.dificultadFisica ?? 3,
@@ -176,7 +176,7 @@ export class ExerciseForm implements OnChanges, OnInit {
     this.form.controls.descripcion.setValue('');
     this.form.controls.tipo.setValue('');
     this.form.controls.estado.setValue('Activo');
-    this.form.controls.duracionSegundos.setValue(300);
+    this.form.controls.duracionMinutos.setValue(5);
     this.form.controls.dificultadTactica.setValue(3);
     this.form.controls.dificultadTecnica.setValue(3);
     this.form.controls.dificultadFisica.setValue(3);
@@ -272,10 +272,6 @@ export class ExerciseForm implements OnChanges, OnInit {
     this.form.controls.materialesNecesarios.setValue(current.filter((m: string) => m !== material));
   }
 
-  get duracionEnMinutos(): number {
-    return Math.round(this.form.controls.duracionSegundos.value / 60);
-  }
-
   getTipoLabel(value: string): string {
     const option = this.tipoOptions.find(opt => opt.value === value);
     return option?.label || value;
@@ -316,7 +312,7 @@ export class ExerciseForm implements OnChanges, OnInit {
       const errors: string[] = [];
       if (this.form.controls.nombre.invalid) errors.push('Nombre del ejercicio');
       if (this.form.controls.tipo.invalid) errors.push('Tipo de ejercicio');
-      if (this.form.controls.duracionSegundos.invalid) errors.push('Duración');
+      if (this.form.controls.duracionMinutos.invalid) errors.push('Duración');
       
       this.formError = `Por favor, completa los campos obligatorios: ${errors.join(', ')}.`;
       console.log('[ExerciseForm] Form invalid, showing error:', this.formError);

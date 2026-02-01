@@ -270,7 +270,8 @@
 // Select / Dropdown (.bp-select)
 .bp-select {
   &.p-select,
-  &.p-dropdown {
+  &.p-dropdown,
+  &.p-multiselect {
     width: 100%;
     border-radius: $radius-xl;
     border: 1px solid $neutral-800;
@@ -290,34 +291,58 @@
   }
 
   .p-select-label,
-  .p-dropdown-label {
+  .p-dropdown-label,
+  .p-multiselect-label {
     color: $neutral-50;
     font-size: $font-size-sm;
     padding: $spacing-2 $spacing-3;
   }
 
   .p-select-trigger,
-  .p-dropdown-trigger {
+  .p-dropdown-trigger,
+  .p-multiselect-trigger {
     color: $neutral-400;
     width: 2.5rem;
+  }
+
+  // Chips dentro del multiselect
+  .p-multiselect-chip {
+    background: rgba($primary-500, 0.2);
+    color: $neutral-200;
+    border-radius: $radius-lg;
+    padding: $spacing-1 $spacing-2;
+    font-size: $font-size-xs;
+    margin: 2px;
+  }
+
+  .p-multiselect-token-icon {
+    color: $neutral-400;
+    margin-left: $spacing-1;
+
+    &:hover {
+      color: $neutral-200;
+    }
   }
 }
 
 .bp-select-panel {
   &.p-select-overlay,
-  &.p-dropdown-panel {
+  &.p-dropdown-panel,
+  &.p-multiselect-overlay {
     @include dark-panel;
     margin-top: $spacing-1;
   }
 
   .p-select-items-wrapper,
-  .p-dropdown-items-wrapper {
+  .p-dropdown-items-wrapper,
+  .p-multiselect-items-wrapper {
     background: transparent;
     max-height: 280px;
   }
 
   .p-select-option,
-  .p-dropdown-item {
+  .p-dropdown-item,
+  .p-multiselect-option {
     border-radius: $radius-lg;
     color: $neutral-200;
     font-size: $font-size-sm;
@@ -329,6 +354,54 @@
     &.p-highlight {
       background: rgba($primary-500, 0.25);
       color: $neutral-200;
+    }
+  }
+
+  // Checkbox dentro del multiselect
+  .p-multiselect-option .p-checkbox {
+    margin-right: $spacing-2;
+
+    .p-checkbox-box {
+      background: $neutral-800;
+      border: 1px solid $neutral-600;
+      border-radius: $radius-md;
+      width: 18px;
+      height: 18px;
+
+      &.p-highlight {
+        background: $primary-500;
+        border-color: $primary-500;
+      }
+    }
+  }
+
+  // Header del multiselect (filtro, select all)
+  .p-multiselect-header {
+    background: $neutral-950;
+    border-bottom: 1px solid $neutral-800;
+    padding: $spacing-2;
+
+    .p-multiselect-filter-container {
+      .p-multiselect-filter {
+        background: $neutral-900;
+        border: 1px solid $neutral-700;
+        color: $neutral-200;
+        border-radius: $radius-lg;
+        padding: $spacing-2;
+        font-size: $font-size-sm;
+
+        &:focus {
+          border-color: $primary-400;
+        }
+      }
+    }
+
+    .p-multiselect-close {
+      color: $neutral-400;
+
+      &:hover {
+        color: $neutral-200;
+      }
     }
   }
 }

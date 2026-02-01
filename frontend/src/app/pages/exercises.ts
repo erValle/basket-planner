@@ -374,7 +374,7 @@ export class Exercises implements OnInit {
     return {
       nombre: exercise.nombre,
       tipo: exercise.tipo,
-      duracionSegundos: (exercise.duracion || 15) * 60, // Convertir minutos a segundos
+      duracionMinutos: exercise.duracion || 5,
       materialesNecesarios: exercise.material || [],
       estado: 'Activo',
       descripcion: '',
@@ -458,7 +458,7 @@ export class Exercises implements OnInit {
     return {
       name: value.nombre,
       type,
-      duration: Math.ceil(value.duracionSegundos / 60), // Convertir segundos a minutos
+      duration: value.duracionMinutos, // Ya está en minutos
       description: value.descripcion,
       // 4 dimensiones de dificultad
       difficulty: {

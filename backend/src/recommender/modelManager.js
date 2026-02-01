@@ -1,53 +1,52 @@
 /**
- * Gestor de modelos de recomendación
- * Permite cambiar entre diferentes versiones de modelos
+ * Gestor del Motor de Recomendación
+ * 
+ * Provee acceso al modelo TFRS de recomendación.
  */
 
-// Modelos disponibles
-const baselineModel = require('./models/rec-0.1.0-baseline');
-
-// Configuración del modelo activo
-let activeModel = baselineModel;
+const recommender = require('./recommender');
+const config = require('./config');
 
 /**
  * Obtiene el modelo activo
- * @returns {Object} Modelo de recomendación activo
+ * @returns {Object} Motor de recomendación
  */
 function getActiveModel() {
-  return activeModel;
+  return recommender;
 }
 
 /**
- * Obtiene la información del modelo activo
+ * Obtiene la información del modelo
  * @returns {Object} Información del modelo
  */
 function getModelInfo() {
-  return {
-    version: activeModel.config.modelVersion,
-    description: activeModel.config.description,
-    createdAt: activeModel.config.createdAt
-  };
+  return recommender.getModelInfo();
 }
 
 /**
- * Obtiene la configuración del modelo activo
+ * Obtiene la configuración del modelo
  * @returns {Object} Configuración completa
  */
 function getModelConfig() {
-  return activeModel.config;
+  return config;
 }
 
 /**
- * Lista todos los modelos disponibles
- * @returns {Array<Object>} Lista de modelos con su información
+ * Lista los modelos disponibles
+ * @returns {Array<Object>} Lista de modelos (solo TFRS)
  */
 function listAvailableModels() {
+  const info = recommender.getModelInfo();
   return [
     {
-      version: baselineModel.config.modelVersion,
-      description: baselineModel.config.description,
-      createdAt: baselineModel.config.createdAt,
-      isActive: activeModel === baselineModel
+      key: config.modelVersion,
+      version: config.modelVersion,
+      description: config.description,
+      createdAt: config.createdAt,
+      isActive: true,
+      type: 'tensorflow-hybrid',
+      isTrained: info.isTrained,
+      isInitialized: info.isInitialized
     }
   ];
 }

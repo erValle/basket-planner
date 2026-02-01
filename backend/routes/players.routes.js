@@ -12,10 +12,12 @@ const playersController = require('../src/controllers/playersController');
 
 router.use(requireAuth);
 
-// CU.011: Listado de jugadores - admin, technical_director, coach
+// ==================== /players ====================
+// GET /players - CU.011: Listado de jugadores - admin, technical_director, coach
 router.get('/', requireAnyRole('admin', 'technical_director', 'coach'), validate({ query: playerQuerySchema }), playersController.listPlayers);
 
-// CU.011: Enroll player - admin, technical_director, coach
+// ==================== /players/enroll ====================
+// POST /players/enroll - CU.011: Enroll player - admin, technical_director, coach
 router.post(
 	'/enroll',
 	requireAnyRole('admin', 'technical_director', 'coach'),
@@ -23,7 +25,17 @@ router.post(
 	playersController.enrollPlayer
 );
 
-// CU.015: Historial de jugador - admin, technical_director, coach, player (propio)
+// ==================== /players/:id ====================
+// PUT /players/:id - CU.012: Edición de perfil jugador - admin, technical_director, coach
+router.put(
+	'/:id',
+	requireAnyRole('admin', 'technical_director', 'coach'),
+	validate({ params: idParamSchema, body: updatePlayerProfileSchema }),
+	playersController.updatePlayerProfile
+);
+
+// ==================== /players/:id/history ====================
+// GET /players/:id/history - CU.015: Historial de jugador - admin, technical_director, coach, player (propio)
 router.get(
 	'/:id/history',
 	requireAnyRole('admin', 'technical_director', 'coach', 'player'),
@@ -31,15 +43,8 @@ router.get(
 	playersController.getPlayerHistory
 );
 
-// CU.012: Edición de perfil jugador - admin, technical_director, coach
-router.put(
-  '/:id',
-  requireAnyRole('admin', 'technical_director', 'coach'),
-  validate({ params: idParamSchema, body: updatePlayerProfileSchema }),
-  playersController.updatePlayerProfile
-);
-
-// CU.014: Transferir jugador - admin, technical_director (su club), coach (su club)
+// ==================== /players/:id/transfer ====================
+// POST /players/:id/transfer - CU.014: Transferir jugador - admin, technical_director (su club), coach (su club)
 router.post(
 	'/:id/transfer',
 	requireAnyRole('admin', 'technical_director', 'coach'),

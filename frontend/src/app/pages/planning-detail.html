@@ -205,8 +205,8 @@
               <div class="text-[13px] text-[#e5e7eb]">{{ detail.metrics.totalDurationMin }} min</div>
             </div>
             <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-              <div class="text-[11px] text-[#9ca3af]">Carga estimada</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ detail.metrics.estimatedLoad || '—' }}</div>
+              <div class="text-[11px] text-[#9ca3af]">Intensidad</div>
+              <div class="text-[13px] text-[#e5e7eb]">{{ detail.metrics.intensity || '—' }}</div>
             </div>
           </div>
         </div>
@@ -340,62 +340,83 @@
         }
       }
 
-      <!-- Blocks (session-detail pattern) -->
-      <div class="space-y-3">
-        @for (b of blocks; track b.id) {
-          <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-            <div class="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div class="text-[14px] font-semibold text-[#f9fafb]">{{ b.name }}</div>
-                @if (b.focus) {
-                  <div class="mt-1 text-[13px] text-[#e5e7eb]">{{ b.focus }}</div>
-                }
-                @if (b.notes) {
-                  <div class="mt-1 text-[12px] text-[#9ca3af]">{{ b.notes }}</div>
-                }
-              </div>
-              <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2 text-[13px] text-[#e5e7eb]">
-                {{ b.durationMin }} min
-              </div>
-            </div>
-
-            @if (b.exercises && b.exercises.length > 0) {
-              <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
-                @for (ex of b.exercises; track ex.id) {
-                  <div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4">
-                    <div class="flex items-start justify-between gap-3">
-                      <div class="flex-1">
-                        <div class="text-[13px] font-semibold text-[#f9fafb]">{{ ex.name }}</div>
-                        @if (ex.notes) {
-                          <div class="mt-1 text-[12px] text-[#9ca3af]">{{ ex.notes }}</div>
-                        }
-                      </div>
-                      <div class="flex items-center gap-2">
-                        @if (ex.durationMin) {
-                          <div class="text-[12px] text-[#e5e7eb]">{{ ex.durationMin }} min</div>
-                        }
-                        <button 
-                          type="button" 
-                          pButton 
-                          icon="pi pi-eye" 
-                          class="p-button-text p-button-sm p-button-rounded" 
-                          (click)="openExercisePreview(ex)"
-                          pTooltip="Ver detalles"
-                          tooltipPosition="top"
-                        ></button>
-                      </div>
-                    </div>
+      <!-- Sesiones de entrenamiento -->
+      @if (blocks.length > 0) {
+        <div class="space-y-4">
+          @for (block of blocks; track block.id; let i = $index) {
+            <div class="bg-[#020617] rounded-lg border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+              <!-- Header de la sesión (clickable para colapsar) -->
+              <div class="flex flex-wrap items-center justify-between gap-3 p-5 cursor-pointer hover:bg-[#0f172a] transition-colors rounded-t-lg"
+                   (click)="toggleSession(block.id)">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-500/20">
+                    <i class="pi pi-calendar text-lg text-blue-400"></i>
                   </div>
-                }
+                  <div>
+                    <div class="text-[14px] font-semibold text-[#f9fafb]">Sesión {{ i + 1 }}</div>
+                    <div class="text-[12px] text-[#9ca3af]">{{ block.exercises?.length || 0 }} ejercicio{{ (block.exercises?.length || 0) !== 1 ? 's' : '' }}</div>
+                  </div>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2 text-[13px] text-[#e5e7eb]">
+                    {{ block.durationMin }} min
+                  </div>
+                  <i class="pi text-[#9ca3af]" 
+                     [ngClass]="isSessionCollapsed(block.id) ? 'pi-chevron-down' : 'pi-chevron-up'"></i>
+                </div>
               </div>
-            }
-          </div>
-        }
-      </div>
+
+              <!-- Contenido de la sesión (colapsable) -->
+              @if (!isSessionCollapsed(block.id)) {
+                <div class="px-5 pb-5">
+                  @if (block.focus) {
+                    <div class="mb-3 text-[12px] text-[#9ca3af]">
+                      <span class="font-medium">Enfoque:</span> {{ block.focus }}
+                    </div>
+                  }
+                  
+                  @if (block.exercises && block.exercises.length > 0) {
+                    <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+                      @for (ex of block.exercises; track ex.id) {
+                        <div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4 hover:border-[#374151] transition-colors">
+                          <div class="flex items-start justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                              <div class="text-[13px] font-semibold text-[#f9fafb] truncate">{{ ex.name }}</div>
+                              @if (ex.type) {
+                                <p-tag [value]="ex.type" severity="secondary" styleClass="mt-2 text-[10px]"></p-tag>
+                              }
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                              @if (ex.durationMin) {
+                                <div class="text-[12px] text-[#e5e7eb]">{{ ex.durationMin }} min</div>
+                              }
+                              <button 
+                                type="button" 
+                                pButton 
+                                icon="pi pi-eye" 
+                                class="p-button-text p-button-sm p-button-rounded" 
+                                (click)="openExercisePreview(ex); $event.stopPropagation()"
+                                pTooltip="Ver detalles"
+                                tooltipPosition="top"
+                              ></button>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  } @else {
+                    <div class="text-[13px] text-[#9ca3af]">No hay ejercicios en esta sesión.</div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
 
       @if (blocks.length === 0) {
         <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] text-center text-[13px] text-[#9ca3af]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-          No hay bloques configurados en esta versión.
+          No hay ejercicios configurados en esta versión.
         </div>
       }
     }

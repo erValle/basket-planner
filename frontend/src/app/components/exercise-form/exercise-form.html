@@ -120,26 +120,22 @@
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-200">Duración @if (!isViewMode) { * }</label>
+          <label class="mb-2 block text-sm text-zinc-200">Duración (minutos) @if (!isViewMode) { * }</label>
           @if (isViewMode) {
             <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100">
-              {{ Math.ceil((form.controls.duracionSegundos.value || 0) / 60) }} minutos 
-              <span class="text-zinc-500 text-sm">({{ form.controls.duracionSegundos.value || 0 }} segundos)</span>
+              {{ form.controls.duracionMinutos.value || 0 }} minutos
             </div>
           } @else {
-            <div class="flex items-center gap-2 mb-2">
-              <span class="text-xs text-zinc-400">≈ {{ duracionEnMinutos }} minutos</span>
-            </div>
             <p-inputNumber
-              formControlName="duracionSegundos"
-              [min]="30"
-              [max]="3600"
-              [step]="30"
-              suffix=" seg"
+              formControlName="duracionMinutos"
+              [min]="1"
+              [max]="60"
+              [step]="1"
+              suffix=" min"
               styleClass="w-full"
             />
-            @if (form.controls.duracionSegundos.touched && form.controls.duracionSegundos.invalid) {
-              <div class="mt-2 text-xs text-red-400">La duración debe ser al menos 30 segundos.</div>
+            @if (form.controls.duracionMinutos.touched && form.controls.duracionMinutos.invalid) {
+              <div class="mt-2 text-xs text-red-400">La duración debe ser entre 1 y 60 minutos.</div>
             }
           }
         </div>

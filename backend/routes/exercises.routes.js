@@ -8,20 +8,22 @@ const { listExercises, getExercise, createExercise, updateExercise, deleteExerci
 
 router.use(requireAuth);
 
-// Obtener etiquetas populares (debe ir ANTES de /:id para evitar conflictos)
-router.get('/tags/popular', getPopularTags);
-
-// CU.016: Catálogo de ejercicios - todos pueden consultar (incluido player)
+// ==================== /exercises ====================
+// GET  /exercises - CU.016: Catálogo de ejercicios - todos pueden consultar (incluido player)
 router.get('/', listExercises);
-router.get('/:id', validate({ params: idParamSchema }), getExercise);
-
-// CU.017: Registro de ejercicios - admin, technical_director, coach
+// POST /exercises - CU.017: Registro de ejercicios - admin, technical_director, coach
 router.post('/', requireAnyRole('admin', 'technical_director', 'coach'), validate({ body: createExerciseSchema }), createExercise);
 
-// CU.018: Edición de ejercicios - admin, technical_director, coach
-router.put('/:id', requireAnyRole('admin', 'technical_director', 'coach'), validate({ params: idParamSchema, body: updateExerciseSchema }), updateExercise);
+// ==================== /exercises/tags/popular ====================
+// GET /exercises/tags/popular - Obtener etiquetas populares (debe ir ANTES de /:id para evitar conflictos)
+router.get('/tags/popular', getPopularTags);
 
-// CU.019: Eliminación de ejercicios - solo admin (control y auditoría)
+// ==================== /exercises/:id ====================
+// GET    /exercises/:id - CU.016: Ver ejercicio
+router.get('/:id', validate({ params: idParamSchema }), getExercise);
+// PUT    /exercises/:id - CU.018: Edición de ejercicios - admin, technical_director, coach
+router.put('/:id', requireAnyRole('admin', 'technical_director', 'coach'), validate({ params: idParamSchema, body: updateExerciseSchema }), updateExercise);
+// DELETE /exercises/:id - CU.019: Eliminación de ejercicios - solo admin (control y auditoría)
 router.delete('/:id', requireAnyRole('admin'), validate({ params: idParamSchema }), deleteExercise);
 
 module.exports = router;

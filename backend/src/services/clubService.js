@@ -43,7 +43,7 @@ const listClubs = async ({ name, userClubIds } = {}) => {
   });
 };
 
-const getClubById = async (id) => {
+const getClubById = async (id, { raw = false } = {}) => {
   const club = await Club.findOne({
     where: { id },
     attributes: {
@@ -62,6 +62,11 @@ const getClubById = async (id) => {
   
   if (!club) {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'CLUB_NOT_FOUND', 'Club not found');
+  }
+  
+  // Return raw model for internal operations (update/delete)
+  if (raw) {
+    return club;
   }
   
   // Convert to plain JSON and ensure teamsCount is a number
@@ -83,7 +88,7 @@ const createClub = async (payload) => {
 };
 
 const updateClub = async (id, payload) => {
-  const club = await getClubById(id);
+  const club = await getClubById(id, { raw: true });
   // Map frontend 'status' to model 'active' field
   const data = { ...payload };
   if (data.status !== undefined) {
@@ -95,7 +100,7 @@ const updateClub = async (id, payload) => {
 };
 
 const deleteClub = async (id) => {
-  const club = await getClubById(id);
+  const club = await getClubById(id, { raw: true });
   await club.destroy();
 };
 

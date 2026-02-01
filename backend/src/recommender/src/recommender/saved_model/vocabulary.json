@@ -1,0 +1,33 @@
+{
+  "encoders": {
+    "intensity": {
+      "size": 3,
+      "type": "categorical"
+    },
+    "sessionPhase": {
+      "size": 5,
+      "type": "categorical"
+    },
+    "position": {
+      "size": 6,
+      "type": "categorical"
+    },
+    "exerciseType": {
+      "size": 17,
+      "type": "categorical"
+    },
+    "goals": {
+      "size": 26,
+      "type": "categorical"
+    },
+    "exerciseId": {
+      "size": 103,
+      "type": "embedding"
+    },
+    "tags": {
+      "size": 267,
+      "type": "categorical"
+    }
+  },
+  "isTrained": true
+}

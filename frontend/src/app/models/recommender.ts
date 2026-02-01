@@ -1,11 +1,61 @@
 export type RecommenderTechCost = 'low' | 'medium' | 'high';
 
+export type TrainingMetadata = {
+  trainedAt: string;
+  trainingType: string;
+  samples: number;
+  epochs: number;
+  durationSeconds: number;
+  finalLoss: number;
+  finalValLoss: number;
+  exerciseCount: number;
+  modelVersion: string;
+  history?: {
+    loss: number[];
+    val_loss: number[];
+  };
+};
+
+export type RecommenderMonitoring = {
+  memoryUsage: {
+    heapUsed: number;
+    heapTotal: number;
+    rss: number;
+    external: number;
+  };
+  queryLatencyMs: number;
+  uptime: number;
+  nodeVersion: string;
+  platform: string;
+  architecture?: {
+    embeddingDim: number;
+    userTowerLayers: number[];
+    exerciseTowerLayers: number[];
+    rankingLayers: number[];
+    activation: string;
+    dropoutRate: number;
+    l2Regularization: number;
+  };
+  weights?: {
+    neuralWeight: number;
+    heuristicWeight: number;
+    tagMatch: number;
+    typeMatch: number;
+    difficultyFit: number;
+    typeVariety: number;
+    uniqueness: number;
+  };
+  trainScript: string;
+};
+
 export type RecommenderStatus = {
   activeVersion: string;
   modelInfo?: {
     version: string;
     type: string;
     description: string;
+    isInitialized?: boolean;
+    isTrained?: boolean;
   };
   modelConfig?: {
     version: string;
@@ -27,7 +77,9 @@ export type RecommenderStatus = {
       count: number;
     }>;
   };
-  trainedAt: string; // ISO
+  monitoring?: RecommenderMonitoring;
+  training?: TrainingMetadata;
+  trainedAt: string;
   techCost: RecommenderTechCost;
 };
 
@@ -80,7 +132,6 @@ export type GoalSuggestion = {
 
 export type SuggestGoalsRequest = {
   context?: {
-    playerLevel?: 'beginner' | 'intermediate' | 'advanced';
     intensity?: 'low' | 'medium' | 'high';
     sessionDuration?: number;
   };

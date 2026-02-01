@@ -251,18 +251,16 @@ export class PlanningEdit {
             exercises: exercises.map((e: any) => ({
               id: this.uid('e'),
               name: e?.name || 'Ejercicio sin nombre',
-              series: e?.series || 1,
-              reps: e?.reps || 1,
               durationMin: e?.durationMinutes || 1,
               intensity: e?.intensity || 'Media',
-              restSec: e?.restSeconds || 0,
               material: Array.isArray(e?.material) ? e.material : [],
               notes: [
                 e?.type ? `Tipo: ${e.type}` : null,
                 e?.phase ? `Fase: ${e.phase}` : null,
-                e?.difficulty ? `Dificultad: ${e.difficulty}` : null,
+                e?.difficulty ? `Dificultad: ${JSON.stringify(e.difficulty)}` : null,
                 e?.description ? e.description : null,
               ].filter(Boolean).join(' • '),
+              difficulty: e?.difficulty,
             })),
           },
         ],
@@ -379,11 +377,8 @@ export class PlanningEdit {
       {
         id: this.uid('e'),
         name: `Ejercicio ${block.exercises.length + 1}`,
-        series: 3,
-        reps: 8,
         durationMin: 10,
         intensity: 'Media',
-        restSec: 60,
         material: [],
         notes: '',
       },
@@ -401,7 +396,7 @@ export class PlanningEdit {
     const block = this.currentBlockForExercise();
     if (!block) return;
 
-    const durationMin = exercise.duration ? Math.ceil(exercise.duration / 60) : 10;
+    const durationMin = exercise.duration || 10;
     
     // Extraer dificultad 4D
     const diff = exercise.difficulty as { tactica?: number; tecnica?: number; fisica?: number; mental?: number } | undefined;
@@ -411,11 +406,8 @@ export class PlanningEdit {
       {
         id: this.uid('e'),
         name: exercise.name || 'Ejercicio',
-        series: 3,
-        reps: 8,
         durationMin,
         intensity: 'Media',
-        restSec: 60,
         material: [],
         notes: exercise.description || '',
         difficulty: diff,
@@ -491,10 +483,7 @@ export class PlanningEdit {
   isExerciseValid(e: PlanningExerciseEditor): boolean {
     return (
       e.name.trim().length > 0 &&
-      e.series > 0 &&
-      e.reps > 0 &&
-      e.durationMin > 0 &&
-      e.restSec >= 0
+      e.durationMin > 0
     );
   }
 

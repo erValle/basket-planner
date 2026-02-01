@@ -89,7 +89,7 @@ curl -X POST http://localhost:3000/api/planning/generate/individual \
   -H "Content-Type: application/json" \
   -d '{
     "profile": {
-      "athleteId": 1,
+      "playerId": 1,
       "level": "intermediate",
       "maxSessionsPerWeek": 3,
       "sessionDurationMinutes": 90,

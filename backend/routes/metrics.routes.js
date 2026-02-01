@@ -8,10 +8,18 @@ const { listMetrics, getMetric, createMetric, updateMetric, deleteMetric } = req
 
 router.use(requireAuth);
 
+// ==================== /metrics ====================
+// GET  /metrics - Listar métricas - admin, technical_director
 router.get('/', requireAnyRole('admin', 'technical_director'), listMetrics);
-router.get('/:id', requireAnyRole('admin', 'technical_director'), validate({ params: idParamSchema }), getMetric);
+// POST /metrics - Crear métrica - admin, technical_director
 router.post('/', requireAnyRole('admin', 'technical_director'), validate({ body: createMetricSchema }), createMetric);
+
+// ==================== /metrics/:id ====================
+// GET    /metrics/:id - Ver métrica - admin, technical_director
+router.get('/:id', requireAnyRole('admin', 'technical_director'), validate({ params: idParamSchema }), getMetric);
+// PUT    /metrics/:id - Actualizar métrica - admin, technical_director
 router.put('/:id', requireAnyRole('admin', 'technical_director'), validate({ params: idParamSchema, body: createMetricSchema }), updateMetric);
+// DELETE /metrics/:id - Eliminar métrica - admin, technical_director
 router.delete('/:id', requireAnyRole('admin', 'technical_director'), validate({ params: idParamSchema }), deleteMetric);
 
 module.exports = router;

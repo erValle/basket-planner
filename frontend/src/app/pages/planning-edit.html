@@ -205,37 +205,7 @@
                             </div>
                           </div>
 
-                          <div class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-6">
-                            <div>
-                              <label class="block text-[#9ca3af] text-[12px] mb-2">Series</label>
-                              <p-inputNumber
-                                [(ngModel)]="e.series"
-                                [name]="'ex-series-' + e.id"
-                                (blur)="markTouched('e-series-' + e.id)"
-                                [min]="1"
-                                [showButtons]="true"
-                                [inputStyleClass]="'w-full'"
-                                styleClass="w-full"
-                              ></p-inputNumber>
-                              @if (hasError('e-series-' + e.id, e.series > 0)) {
-                                <div class="mt-2 text-[12px] text-red-200">≥ 1</div>
-                              }
-                            </div>
-                            <div>
-                              <label class="block text-[#9ca3af] text-[12px] mb-2">Reps</label>
-                              <p-inputNumber
-                                [(ngModel)]="e.reps"
-                                [name]="'ex-reps-' + e.id"
-                                (blur)="markTouched('e-reps-' + e.id)"
-                                [min]="1"
-                                [showButtons]="true"
-                                [inputStyleClass]="'w-full'"
-                                styleClass="w-full"
-                              ></p-inputNumber>
-                              @if (hasError('e-reps-' + e.id, e.reps > 0)) {
-                                <div class="mt-2 text-[12px] text-red-200">≥ 1</div>
-                              }
-                            </div>
+                          <div class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
                             <div>
                               <label class="block text-[#9ca3af] text-[12px] mb-2">Duración (min)</label>
                               <p-inputNumber
@@ -250,6 +220,18 @@
                               @if (hasError('e-dur-' + e.id, e.durationMin > 0)) {
                                 <div class="mt-2 text-[12px] text-red-200">> 0</div>
                               }
+                            </div>
+                            <div>
+                              <label class="block text-[#9ca3af] text-[12px] mb-2">Intensidad</label>
+                              <p-select
+                                [(ngModel)]="e.intensity"
+                                [name]="'ex-intensity-' + e.id"
+                                [options]="intensityOptions"
+                                optionLabel="label"
+                                optionValue="value"
+                                styleClass="bp-select w-full"
+                                [panelStyleClass]="'bp-select-panel'"
+                              ></p-select>
                             </div>
                             <div class="md:col-span-2">
                               <label class="block text-[#9ca3af] text-[12px] mb-2">Dificultad 4D</label>

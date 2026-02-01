@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { distinctUntilChanged, map } from 'rxjs';
 
@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TextareaModule } from 'primeng/textarea';
 import { SelectModule } from 'primeng/select';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { ChipModule } from 'primeng/chip';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
@@ -49,12 +50,12 @@ type Option = { label: string; value: string };
   imports: [
   CommonModule,
   FormsModule,
-  ReactiveFormsModule,
     ButtonModule,
     InputTextModule,
     InputNumberModule,
     TextareaModule,
     SelectModule,
+    MultiSelectModule,
 		ChipModule,
 		CheckboxModule,
 		BpDialog,
@@ -225,6 +226,8 @@ export class NewPlanification {
     private readonly equipmentApi: EquipmentApi,
     private readonly clubResources: ClubResourcesStore,
     private readonly exercisesApi: ExercisesApi,
+    private readonly cdr: ChangeDetectorRef,
+    private readonly ngZone: NgZone,
   ) {
 	this.loadTeams();
 	this.loadPlayers();
@@ -308,9 +311,7 @@ export class NewPlanification {
   selectedMaterials = new Set<string>();
   // Use a map for two-way binding with PrimeNG checkboxes
   materialSelectedMap: Record<string, boolean> = {};
-  restrictionTagsInput = '';
   restrictionTags: string[] = [];
-  tagsControl = new FormControl('');
 
   // Etiquetas populares de ejercicios
   popularTags: Array<{ tag: string; count: number }> = [];
@@ -318,49 +319,23 @@ export class NewPlanification {
   showAllTags = false;
   readonly INITIAL_TAGS_TO_SHOW = 15;
 
-	private normalizeTag(raw: string): string {
-		return raw.trim();
-	}
-
-	addTag(raw: string): void {
-		const tag = this.normalizeTag(raw);
-		if (!tag) return;
-		if (this.restrictionTags.includes(tag)) return;
-		this.restrictionTags = [...this.restrictionTags, tag];
-	}
-
-  syncRestrictionTags(): void {
-		// Accept comma-separated input but APPEND into the array (do not replace it)
-    const raw = (this.tagsControl?.value ?? this.restrictionTagsInput) as string;
-    raw
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean)
-			.forEach((t) => this.addTag(t));
-  }
-
-  addTagFromInput(e: any) {
-    if (e && typeof e.preventDefault === 'function') e.preventDefault();
-    this.syncRestrictionTags();
-    this.tagsControl.setValue('');
-  }
-
-  addTagManually() {
-    this.syncRestrictionTags();
-    this.tagsControl.setValue('');
-  }
-
   removeTag(tag: string) {
     this.restrictionTags = this.restrictionTags.filter((t) => t !== tag);
   }
 
   // Métodos para etiquetas populares
+  readonly MAX_TAGS = 5;
+
   togglePopularTag(tag: string): void {
     if (this.restrictionTags.includes(tag)) {
       this.removeTag(tag);
-    } else {
-      this.addTag(tag);
+    } else if (this.restrictionTags.length < this.MAX_TAGS) {
+      this.restrictionTags = [...this.restrictionTags, tag];
     }
+  }
+
+  isTagLimitReached(): boolean {
+    return this.restrictionTags.length >= this.MAX_TAGS;
   }
 
   isTagSelected(tag: string): boolean {
@@ -478,11 +453,6 @@ export class NewPlanification {
   }
 
   next() {
-    // Make sure we capture latest tag input before leaving the step.
-    if (this.currentStep === 3) {
-      this.syncRestrictionTags();
-    }
-
     if (!this.canGoNext()) return;
     this.currentStep = Math.min(this.steps.length, this.currentStep + 1);
 		this.syncWizardQueryParams();
@@ -491,7 +461,7 @@ export class NewPlanification {
 	confirm() {
     this.confirmation.confirm({
       header: 'Confirmar generación',
-      message: '¿Quieres generar la sesión con estos parámetros?',
+      message: '¿Quieres generar la Planificación con estos parámetros?',
       icon: 'pi pi-exclamation-triangle',
       acceptLabel: 'Generar',
       rejectLabel: 'Cancelar',
@@ -507,9 +477,6 @@ export class NewPlanification {
   generatedResultId: string | null = null;
 
   private buildDraft(): PlanningDraft {
-    // make sure tags reflect the latest input before sending
-    this.syncRestrictionTags();
-
     const materialIds = Object.entries(this.materialSelectedMap)
       .filter(([, selected]) => !!selected)
       .map(([id]) => id);
@@ -524,7 +491,7 @@ export class NewPlanification {
       duration: this.formData.duration,
       sessionsCount: this.formData.sessionsCount,
       summary: this.formData.summary,
-      objective: this.formData.objective,
+      objectives: this.formData.objectives || [],
       intensity: this.formData.intensity,
       mode: this.planningMode,
       playerId: this.planningMode === 'individual' ? this.selectedPlayerId : null,
@@ -542,21 +509,53 @@ export class NewPlanification {
     const draft = this.buildDraft();
 
     this.planningApi.generate(draft).subscribe({
-      next: (res) => {
-        this.saving = false;
-        this.generatedResultId = res?.id ?? null;
-        this.toast.add({
-          severity: 'success',
-          summary: 'Sesión generada',
-          detail: 'La propuesta se ha generado correctamente.',
+      next: (res: any) => {
+        // Ejecutar dentro de NgZone para asegurar detección de cambios
+        this.ngZone.run(() => {
+          this.saving = false;
+          
+          // Verificar si la respuesta indica error
+          if (res?.success === false) {
+            const msg = res.message || 'No se pudo generar la sesión.';
+            this.saveError = msg;
+            this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+            this.cdr.detectChanges();
+            return;
+          }
+          
+          this.generatedResultId = res?.id ?? null;
+          
+          // Verificar si fue generación parcial (por timeout)
+          if (res?.partialGeneration || res?.wasAborted) {
+            const sessionsGenerated = res.sessions?.length || 0;
+            const requested = res.requestedSessions || draft.sessionsCount;
+            this.toast.add({
+              severity: 'warn',
+              summary: 'Generación parcial',
+              detail: `Se generaron ${sessionsGenerated} de ${requested} sesiones solicitadas. Puedes usar la planificación o intentar de nuevo con menos objetivos.`,
+              life: 8000
+            });
+          } else {
+            this.toast.add({
+              severity: 'success',
+              summary: 'Sesión generada',
+              detail: 'La propuesta se ha generado correctamente.',
+            });
+          }
+          this.completedDialogVisible = true;
+          
+          // Forzar detección de cambios para mostrar el diálogo inmediatamente
+          this.cdr.detectChanges();
         });
-        this.completedDialogVisible = true;
       },
       error: (e: unknown) => {
-        this.saving = false;
-        const msg = e instanceof Error ? e.message : 'No se pudo generar la sesión.';
-        this.saveError = msg;
-        this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+        this.ngZone.run(() => {
+          this.saving = false;
+          const msg = e instanceof Error ? e.message : 'No se pudo generar la sesión.';
+          this.saveError = msg;
+          this.toast.add({ severity: 'error', summary: 'Error', detail: msg });
+          this.cdr.detectChanges();
+        });
       },
     });
   }

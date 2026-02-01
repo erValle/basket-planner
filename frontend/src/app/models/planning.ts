@@ -6,7 +6,7 @@ export interface PlanningDraft {
   duration: number; // Duración máxima por sesión (en minutos)
   sessionsCount?: number; // Número de sesiones deseadas
   summary: string;
-  objective: string;
+  objectives: string[]; // Objetivos múltiples
   intensity: string;
   mode: PlanningMode;
 
@@ -73,7 +73,7 @@ export interface PlanningVersionInfo {
 
 export interface PlanningMetricSummary {
   totalDurationMin: number;
-  estimatedLoad?: string;
+  intensity?: string;
 }
 
 export interface PlanningBlock {
@@ -115,12 +115,8 @@ export interface PlanningDetailResponse {
 export interface PlanningExerciseEditor {
   id: string;
   name: string;
-
-  series: number;
-  reps: number;
   durationMin: number;
   intensity: string;
-  restSec: number;
   material: string[];
   notes: string;
   difficulty?: {

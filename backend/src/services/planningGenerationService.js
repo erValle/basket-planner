@@ -6,8 +6,6 @@ const { TrainingPlan, TrainingPlanVersion, Equipment } = require('../../models')
 const auditLogService = require('./auditLogService');
 const planAssignmentService = require('./planAssignmentService');
 
-const dayOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
-
 const intensityMultiplier = {
   low: 0.8,
   medium: 1.0,
@@ -114,8 +112,8 @@ const validateIndividualInput = (input) => {
     throw httpError(StatusCodes.BAD_REQUEST, 'INVALID_PROFILE', 'profile is required');
   }
 
-  if (!input.profile.athleteId) {
-    throw httpError(StatusCodes.BAD_REQUEST, 'INVALID_PROFILE', 'profile.athleteId is required');
+  if (!input.profile.playerId) {
+    throw httpError(StatusCodes.BAD_REQUEST, 'INVALID_PROFILE', 'profile.playerId is required');
   }
 
   assertUtcDateString(input.startDate, 'startDate');
@@ -137,12 +135,6 @@ const validateGroupInput = (input) => {
 
   assertUtcDateString(input.startDate, 'startDate');
   assertUtcDateString(input.endDate, 'endDate');
-};
-
-const normalizeDays = (days) => {
-  const unique = Array.from(new Set(days || [])).filter(d => dayOrder.includes(d));
-  if (unique.length === 0) return ['mon', 'wed', 'fri'];
-  return unique.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b));
 };
 
 /**
@@ -249,48 +241,24 @@ const deriveFocusTags = (goals) => {
   return tags.length ? tags : ['fundamentals'];
 };
 
-/**
- * Deriva el nivel promedio de un grupo de perfiles
- * @param {Array<Object>} profiles - Perfiles de jugadores
- * @returns {string} Nivel promedio
- */
-const deriveAverageLevel = (profiles) => {
-  if (!profiles || profiles.length === 0) return 'intermediate';
+const generateIndividual = async (input, auditCtx = {}, options = {}) => {
+  console.log('🚀 [generateIndividual] Iniciando generación...');
+  console.log('   Goals:', JSON.stringify(input.goals || []));
   
-  const levelValues = {
-    beginner: 1,
-    intermediate: 2,
-    advanced: 3
-  };
+  const { signal } = options;
   
-  const reverseMap = {
-    1: 'beginner',
-    2: 'intermediate',
-    3: 'advanced'
-  };
-  
-  const sum = profiles.reduce((acc, p) => {
-    const level = p.level || 'intermediate';
-    return acc + (levelValues[level] || 2);
-  }, 0);
-  
-  const avg = Math.round(sum / profiles.length);
-  return reverseMap[avg] || 'intermediate';
-};
-
-const generateIndividual = async (input, auditCtx = {}) => {
   validateIndividualInput(input);
 
   const profile = input.profile;
   const intensity = profile.intensity || 'medium';
   const sessionDurationMinutes = profile.sessionDurationMinutes || 75;
   
-  // Calcular número de sesiones
+  // Calcular número de sesiones (máximo 7, por defecto 3)
   const numberOfSessions = profile.numberOfSessions 
     || profile.maxSessionsPerWeek // fallback a campo legacy
-    || 4;
+    || 3;
   
-  const days = normalizeDays(input.constraints && input.constraints.days);
+  console.log(`   Sessions: ${numberOfSessions}, Duration: ${sessionDurationMinutes}min, Intensity: ${intensity}`);
   
   // Obtener equipamiento disponible en el sistema
   const clubId = profile.clubId || (input.constraints && input.constraints.clubId) || null;
@@ -307,27 +275,39 @@ const generateIndividual = async (input, auditCtx = {}) => {
   // Obtener el modelo de recomendación activo
   const recommender = getActiveModel();
   
-  // Preparar parámetros para el modelo
+  // Preparar parámetros para el modelo (sin days, las sesiones se generan por número)
   const planParams = {
     goals: input.goals || [],
     constraints: {
-      equipment: (input.constraints && input.constraints.equipment) || [],
-      injuries: (input.constraints && input.constraints.injuries) || []
+      equipment: (input.constraints && input.constraints.equipment) || []
     },
     profile: {
-      level: profile.level || 'intermediate',
       intensity,
       sessionDurationMinutes,
       maxDurationMinutes: sessionDurationMinutes // Ahora es por sesión, no total
     },
-    numberOfSessions: Math.min(numberOfSessions, days.length),
-    days
+    numberOfSessions
   };
   
   // Generar planificación usando el modelo de recomendación
-  const generatedPlan = recommender.generatePlan(allExercises, planParams);
+  console.log('🔄 [generateIndividual] Llamando a recommender.generatePlan...');
+  const startTime = Date.now();
+  const generatedPlan = await recommender.generatePlan(allExercises, planParams, { signal });
+  console.log(`✅ [generateIndividual] Plan generado en ${Date.now() - startTime}ms`);
+  
+  // Si no se generaron sesiones, devolver resultado vacío
+  if (!generatedPlan.sessions || generatedPlan.sessions.length === 0) {
+    console.log('⚠️ [generateIndividual] No se generaron sesiones');
+    return {
+      success: false,
+      wasAborted: generatedPlan.wasAborted,
+      message: 'No se pudieron generar sesiones. Intenta con menos objetivos.',
+      generatedPlan: null
+    };
+  }
   
   // Guardar en la base de datos
+  console.log('💾 [generateIndividual] Guardando en base de datos...');
   const trainingPlan = await TrainingPlan.create({
     createdById: auditCtx.user?.id || null,
     targetType: 'individual',
@@ -356,9 +336,8 @@ const generateIndividual = async (input, auditCtx = {}) => {
       modelVersion: generatedPlan.modelVersion,
       generatedAt: generatedPlan.generatedAt,
       inputSummary: {
-        athleteId: profile.athleteId,
+        playerId: profile.playerId,
         goals: input.goals || [],
-        days: generatedPlan.summary.days,
         intensity,
         sessionDurationMinutes,
         sessionsPerWeek: generatedPlan.summary.totalSessions
@@ -370,17 +349,17 @@ const generateIndividual = async (input, auditCtx = {}) => {
   await trainingPlan.update({ activeVersionId: version.id });
 
   // Crear asignación automática para el atleta
-  if (profile.athleteId) {
+  if (profile.playerId) {
     try {
       await planAssignmentService.createAssignment({
         trainingPlanId: trainingPlan.id,
-        userId: profile.athleteId,
+        userId: profile.playerId,
         assignedById: auditCtx.user?.id || null,
         status: 'assigned',
         assignedAt: new Date()
       });
       
-      console.log(`✅ Asignación automática creada: Plan ${trainingPlan.id} → Usuario ${profile.athleteId}`);
+      console.log(`✅ Asignación automática creada: Plan ${trainingPlan.id} → Usuario ${profile.playerId}`);
     } catch (err) {
       console.error('⚠️  Error creando asignación automática:', err);
       // No fallar la generación si falla la asignación
@@ -397,23 +376,28 @@ const generateIndividual = async (input, auditCtx = {}) => {
       entityId: trainingPlan.id,
       metadata: { 
         targetType: 'individual',
-        athleteId: profile.athleteId,
+        playerId: profile.playerId,
         modelVersion: generatedPlan.modelVersion
       }
     });
   }
   
   // Formatear respuesta para mantener compatibilidad con el formato esperado
+  const wasAborted = generatedPlan.wasAborted || false;
+  const requestedSessions = generatedPlan.requestedSessions || numberOfSessions;
+  
   return {
     id: trainingPlan.id,
     versionId: version.id,
     kind: 'individual',
     generatedAt: generatedPlan.generatedAt,
     modelVersion: generatedPlan.modelVersion,
+    wasAborted,
+    requestedSessions,
+    partialGeneration: wasAborted && generatedPlan.sessions.length < requestedSessions,
     inputSummary: {
-      athleteId: profile.athleteId,
+      playerId: profile.playerId,
       goals: input.goals || [],
-      days: generatedPlan.summary.days,
       intensity,
       sessionDurationMinutes,
       sessionsPerWeek: generatedPlan.summary.totalSessions
@@ -428,19 +412,19 @@ const generateIndividual = async (input, auditCtx = {}) => {
   };
 };
 
-const generateGroup = async (input, auditCtx = {}) => {
+const generateGroup = async (input, auditCtx = {}, options = {}) => {
+  const { signal } = options;
+  
   validateGroupInput(input);
 
   const group = input.group;
   const intensity = group.intensity || 'medium';
   const sessionDurationMinutes = group.sessionDurationMinutes || 90;
   
-  // Calcular número de sesiones
+  // Calcular número de sesiones (máximo 7, por defecto 3)
   const numberOfSessions = group.numberOfSessions 
     || group.maxSessionsPerWeek // fallback a campo legacy
-    || 4;
-  
-  const days = normalizeDays(input.constraints && input.constraints.days);
+    || 3;
 
   // Obtener equipamiento disponible en el sistema
   const clubId = group.clubId || (input.constraints && input.constraints.clubId) || null;
@@ -457,32 +441,34 @@ const generateGroup = async (input, auditCtx = {}) => {
   // Obtener el modelo de recomendación activo
   const recommender = getActiveModel();
   
-  // Para grupos, usar un nivel promedio basado en los perfiles
-  const avgLevel = deriveAverageLevel(input.profiles);
-  
-  // Preparar parámetros para el modelo
+  // Preparar parámetros para el modelo (sin days ni level)
   const planParams = {
     goals: input.goals || [],
     constraints: {
-      equipment: (input.constraints && input.constraints.equipment) || [],
-      injuries: [] // Para grupos no consideramos lesiones individuales en la planificación general
+      equipment: (input.constraints && input.constraints.equipment) || []
     },
     profile: {
-      level: avgLevel,
       intensity,
       sessionDurationMinutes,
       maxDurationMinutes: sessionDurationMinutes // Ahora es por sesión, no total
     },
-    numberOfSessions: Math.min(numberOfSessions, days.length),
-    days
+    numberOfSessions
   };
   
   // Generar planificación usando el modelo de recomendación
-  const generatedPlan = recommender.generatePlan(allExercises, planParams);
+  const generatedPlan = await recommender.generatePlan(allExercises, planParams, { signal });
+  
+  // Si no se generaron sesiones, devolver resultado vacío
+  if (!generatedPlan.sessions || generatedPlan.sessions.length === 0) {
+    return {
+      success: false,
+      wasAborted: generatedPlan.wasAborted,
+      message: 'No se pudieron generar sesiones. Intenta con menos objetivos.'
+    };
+  }
 
   const perAthlete = input.profiles.map((p) => ({
-    athleteId: p.athleteId,
-    level: p.level || 'intermediate',
+    playerId: p.playerId,
     position: p.position
   }));
 
@@ -520,7 +506,6 @@ const generateGroup = async (input, auditCtx = {}) => {
         groupName: group.name,
         athletesCount: input.profiles.length,
         goals: input.goals || [],
-        days: generatedPlan.summary.days,
         intensity,
         sessionDurationMinutes,
         sessionsPerWeek: generatedPlan.summary.totalSessions
@@ -534,18 +519,18 @@ const generateGroup = async (input, auditCtx = {}) => {
   // Crear asignaciones automáticas para todos los atletas del grupo
   if (input.profiles && input.profiles.length > 0) {
     const assignmentPromises = input.profiles.map(async (profile) => {
-      if (profile.athleteId) {
+      if (profile.playerId) {
         try {
           await planAssignmentService.createAssignment({
             trainingPlanId: trainingPlan.id,
-            userId: profile.athleteId,
+            userId: profile.playerId,
             assignedById: auditCtx.user?.id || null,
             status: 'assigned',
             assignedAt: new Date()
           });
-          console.log(`✅ Asignación automática creada: Plan ${trainingPlan.id} → Usuario ${profile.athleteId}`);
+          console.log(`✅ Asignación automática creada: Plan ${trainingPlan.id} → Usuario ${profile.playerId}`);
         } catch (err) {
-          console.error(`⚠️  Error creando asignación para usuario ${profile.athleteId}:`, err);
+          console.error(`⚠️  Error creando asignación para usuario ${profile.playerId}:`, err);
         }
       }
     });
@@ -581,13 +566,15 @@ const generateGroup = async (input, auditCtx = {}) => {
       groupName: group.name,
       athletesCount: input.profiles.length,
       goals: input.goals || [],
-      days: generatedPlan.summary.days,
       intensity,
       sessionDurationMinutes,
       sessionsPerWeek: generatedPlan.summary.totalSessions
     },
     athletes: perAthlete,
     sessions: generatedPlan.sessions,
+    wasAborted: generatedPlan.wasAborted || false,
+    requestedSessions: numberOfSessions,
+    partialGeneration: generatedPlan.wasAborted && generatedPlan.sessions.length < numberOfSessions,
     metrics: {
       durationTotalMinutes: generatedPlan.summary.totalDurationMinutes,
       estimatedLoadTotal: 0,
