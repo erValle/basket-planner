@@ -7,7 +7,11 @@ const auditLogService = require('./auditLogService');
 const getPlan = async (trainingPlanId) => {
   const plan = await TrainingPlan.findByPk(trainingPlanId);
   if (!plan) {
-    throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'TRAINING_PLAN_NOT_FOUND', 'Training plan not found');
+    throw errorUtils.httpError(
+      StatusCodes.NOT_FOUND,
+      'TRAINING_PLAN_NOT_FOUND',
+      'Training plan not found'
+    );
   }
   return plan;
 };
@@ -45,7 +49,11 @@ const listVersionsPaged = async (trainingPlanId, { page = 1, pageSize = 10 } = {
 const getVersion = async (trainingPlanId, id) => {
   const row = await TrainingPlanVersion.findOne({ where: { id, trainingPlanId } });
   if (!row) {
-    throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'TRAINING_PLAN_VERSION_NOT_FOUND', 'Version not found');
+    throw errorUtils.httpError(
+      StatusCodes.NOT_FOUND,
+      'TRAINING_PLAN_VERSION_NOT_FOUND',
+      'Version not found'
+    );
   }
   return row;
 };
@@ -108,7 +116,9 @@ const restoreVersion = async (trainingPlanId, versionId, metadata = {}) => {
     comments: comment || null,
     date: metadata.date,
     // Keep traceability: caller can provide a new createdFrom, otherwise default to cloning source's.
-    createdFrom: metadata.createdFrom ?? (sourceVersion.createdFrom ? structuredClone(sourceVersion.createdFrom) : null),
+    createdFrom:
+      metadata.createdFrom ??
+      (sourceVersion.createdFrom ? structuredClone(sourceVersion.createdFrom) : null),
   });
 };
 
@@ -116,7 +126,7 @@ const setActiveVersion = async (trainingPlanId, versionId, auditCtx = {}) => {
   const plan = await getPlan(trainingPlanId);
 
   const version = await TrainingPlanVersion.findOne({
-    where: { id: versionId, trainingPlanId }
+    where: { id: versionId, trainingPlanId },
   });
 
   if (!version) {
@@ -128,9 +138,9 @@ const setActiveVersion = async (trainingPlanId, versionId, auditCtx = {}) => {
   }
 
   // Actualizar la versión activa Y cambiar el estado a 'active'
-  await plan.update({ 
+  await plan.update({
     activeVersionId: version.id,
-    status: 'active'
+    status: 'active',
   });
 
   await auditLogService.createAuditLog({
@@ -147,14 +157,14 @@ const setActiveVersion = async (trainingPlanId, versionId, auditCtx = {}) => {
 const updateVersion = async (trainingPlanId, id, payload) => {
   const row = await getVersion(trainingPlanId, id);
   await row.update(payload);
-  
+
   // Si la versión actualizada es la versión activa del plan y el plan está en draft,
   // cambiar el estado del plan a 'active'
   const plan = await getPlan(trainingPlanId);
   if (plan.activeVersionId === row.id && plan.status === 'draft') {
     await plan.update({ status: 'active' });
   }
-  
+
   return row;
 };
 

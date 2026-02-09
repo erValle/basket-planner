@@ -24,4 +24,8 @@ const restoreTrainingPlanVersionSchema = Joi.object({
   createdFrom: Joi.object().unknown(true).optional(),
 });
 
-module.exports = { createTrainingPlanVersionSchema, updateTrainingPlanVersionSchema, restoreTrainingPlanVersionSchema };
+module.exports = {
+  createTrainingPlanVersionSchema,
+  updateTrainingPlanVersionSchema,
+  restoreTrainingPlanVersionSchema,
+};

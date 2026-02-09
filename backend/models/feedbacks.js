@@ -18,37 +18,37 @@ module.exports = (sequelize, DataTypes) => {
 
   Feedback.init(
     {
-      id: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true 
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
       },
-      trainingPlanVersionId: { 
-        type: DataTypes.INTEGER, 
-        allowNull: false 
+      trainingPlanVersionId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
-      userId: { 
-        type: DataTypes.INTEGER, 
-        allowNull: false 
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
       sessionId: {
         type: DataTypes.STRING,
         allowNull: true,
-        comment: 'Session identifier for session-level feedback'
+        comment: 'Session identifier for session-level feedback',
       },
       targetType: {
         type: DataTypes.STRING,
         allowNull: false,
         defaultValue: 'version',
-        comment: 'Type: "version" or "session"'
+        comment: 'Type: "version" or "session"',
       },
-      rating: { 
-        type: DataTypes.JSON, 
-        allowNull: false 
+      rating: {
+        type: DataTypes.JSON,
+        allowNull: false,
       },
-      comments: { 
-        type: DataTypes.TEXT, 
-        allowNull: true 
+      comments: {
+        type: DataTypes.TEXT,
+        allowNull: true,
       },
     },
     {

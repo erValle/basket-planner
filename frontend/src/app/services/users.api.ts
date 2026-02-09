@@ -2,65 +2,70 @@ import { Injectable } from '@angular/core';
 
 import { ApiClient } from './api-client';
 import {
-  AdminUserDetail,
-  AdminUserListParams,
-  AdminUserListResponse,
-  AdminUserUpsertPayload,
+    AdminUserDetail,
+    AdminUserListParams,
+    AdminUserListResponse,
+    AdminUserUpsertPayload,
 } from '../models/user-admin';
 
 @Injectable({ providedIn: 'root' })
 export class UsersApiService {
-  constructor(private readonly api: ApiClient) {}
+    constructor(private readonly api: ApiClient) {}
 
-  list(params: AdminUserListParams) {
-    // Backend supports filtering by: email, role, status (no pagination at the moment).
-    // Frontend keeps pagination locally.
-    const mapped: any = {};
-    
-    if (params?.search) {
-      mapped.email = params.search;
+    list(params: AdminUserListParams & { clubId?: number }) {
+        // Backend supports filtering by: email, role, status, clubId (no pagination at the moment).
+        // Frontend keeps pagination locally.
+        const mapped: any = {};
+
+        if (params?.search) {
+            mapped.email = params.search;
+        }
+        if (params?.role) {
+            mapped.role = params.role;
+        }
+        if (params?.status) {
+            mapped.status = params.status;
+        }
+        if (params?.clubId) {
+            mapped.clubId = params.clubId;
+        }
+
+        return this.api.get<any>('/api/users', { params: mapped });
     }
-    if (params?.role) {
-      mapped.role = params.role;
-    }
-    if (params?.status) {
-      mapped.status = params.status;
+
+    get(id: string) {
+        return this.api.get<AdminUserDetail>(`/api/users/${encodeURIComponent(id)}`);
     }
 
-    return this.api.get<any>('/api/users', { params: mapped });
-  }
+    create(payload: AdminUserUpsertPayload) {
+        return this.api.post<{ id: string }>('/api/users', payload);
+    }
 
-  get(id: string) {
-    return this.api.get<AdminUserDetail>(`/api/users/${encodeURIComponent(id)}`);
-  }
+    update(id: string, payload: AdminUserUpsertPayload) {
+        return this.api.put<{ ok: boolean }>(`/api/users/${encodeURIComponent(id)}`, payload);
+    }
 
-  create(payload: AdminUserUpsertPayload) {
-    return this.api.post<{ id: string }>('/api/users', payload);
-  }
+    setPassword(id: string, newPassword: string) {
+        return this.api.put<{ ok: boolean }>(`/api/users/${encodeURIComponent(id)}`, {
+            password: newPassword,
+        } as any);
+    }
 
-  update(id: string, payload: AdminUserUpsertPayload) {
-    return this.api.put<{ ok: boolean }>(`/api/users/${encodeURIComponent(id)}`, payload);
-  }
+    block(id: string) {
+        // Backend does not expose /block|/unblock endpoints yet.
+        // Use PUT /api/users/:id with status change instead.
+        return this.update(id, { status: 'inactive' } as any);
+    }
 
-  setPassword(id: string, newPassword: string) {
-    return this.api.put<{ ok: boolean }>(`/api/users/${encodeURIComponent(id)}`, { password: newPassword } as any);
-  }
+    unblock(id: string) {
+        return this.update(id, { status: 'active' } as any);
+    }
 
-  block(id: string) {
-    // Backend does not expose /block|/unblock endpoints yet.
-    // Use PUT /api/users/:id with status change instead.
-    return this.update(id, { status: 'inactive' } as any);
-  }
+    remove(id: string) {
+        return this.api.delete<{ ok: boolean }>(`/api/users/${encodeURIComponent(id)}`);
+    }
 
-  unblock(id: string) {
-    return this.update(id, { status: 'active' } as any);
-  }
-
-  remove(id: string) {
-    return this.api.delete<{ ok: boolean }>(`/api/users/${encodeURIComponent(id)}`);
-  }
-
-  assignToClub(userIds: number[], clubId: number) {
-    return this.api.post<{ ok: boolean }>('/api/users/assign-to-club', { userIds, clubId });
-  }
+    assignToClub(userIds: number[], clubId: number) {
+        return this.api.post<{ ok: boolean }>('/api/users/assign-to-club', { userIds, clubId });
+    }
 }

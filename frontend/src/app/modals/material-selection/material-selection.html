@@ -1,67 +1,67 @@
 <bp-dialog
-	[(visible)]="visible"
-	[header]="title"
-	[subtitle]="subtitle"
-	size="xl"
-	confirmLabel="Añadir materiales"
-	cancelLabel="Cancelar"
-	(confirm)="onConfirm()"
-	(cancel)="onHide()"
+  [(visible)]="visible"
+  [header]="title"
+  [subtitle]="subtitle"
+  size="xl"
+  confirmLabel="Añadir materiales"
+  cancelLabel="Cancelar"
+  (confirm)="onConfirm()"
+  (cancel)="onHide()"
 >
-	<div class="space-y-4">
-		<div class="bp-dialog-field">
-			<span class="p-input-icon-left w-full">
-				<i class="pi pi-search"></i>
-				<input
-					pInputText
-					class="w-full"
-					type="text"
-					placeholder="Buscar material..."
-					[(ngModel)]="query"
-				/>
-			</span>
-		</div>
+  <div class="space-y-4">
+    <div class="bp-dialog-field">
+      <span class="p-input-icon-left w-full">
+        <i class="pi pi-search"></i>
+        <input
+          pInputText
+          class="w-full"
+          type="text"
+          placeholder="Buscar material..."
+          [(ngModel)]="query"
+        />
+      </span>
+    </div>
 
-		@if (isEquipmentMode) {
-			<div class="grid grid-cols-1 gap-2 md:grid-cols-2">
-				@for (row of filteredEquipment; track row.id) {
-					<button
-						type="button"
-						pButton
-						(click)="toggleEquipment(row.id, row.name)"
-						styleClass="w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors"
-						[class.border-sky-400]="row.selected"
-						[class.bg-sky-400]="row.selected"
-						[class.text-slate-950]="row.selected"
-						[class.border-zinc-800]="!row.selected"
-						[class.bg-zinc-950/40]="!row.selected"
-						[class.text-zinc-200]="!row.selected"
-					>
-						{{ row.name }}
-					</button>
-				}
-			</div>
-		} @else {
-			<div class="grid grid-cols-2 gap-3 md:grid-cols-3">
-				@for (material of filteredMaterials; track material) {
-					<button
-						type="button"
-						pButton
-						(click)="toggleMaterial(material)"
-						styleClass="w-full rounded-lg border px-4 py-3 text-left text-sm transition-colors"
-						[class.border-sky-400]="isSelected(material)"
-						[class.bg-sky-400]="isSelected(material)"
-						[class.text-slate-950]="isSelected(material)"
-						[class.border-zinc-800]="!isSelected(material)"
-						[class.bg-zinc-950/40]="!isSelected(material)"
-						[class.text-zinc-200]="!isSelected(material)"
-					>
-						{{ material }}
-					</button>
-				}
-			</div>
-		}
+    @if (isEquipmentMode) {
+      <div class="grid grid-cols-1 gap-2 md:grid-cols-2">
+        @for (row of filteredEquipment; track row.id) {
+          <button
+            type="button"
+            pButton
+            (click)="toggleEquipment(row.id, row.name)"
+            styleClass="w-full rounded-lg border px-3 py-2 text-left text-sm transition-colors"
+            [class.border-sky-400]="row.selected"
+            [class.bg-sky-400]="row.selected"
+            [class.text-slate-950]="row.selected"
+            [class.border-zinc-800]="!row.selected"
+            [class.bg-zinc-950/40]="!row.selected"
+            [class.text-zinc-200]="!row.selected"
+          >
+            {{ row.name }}
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+        @for (material of filteredMaterials; track material) {
+          <button
+            type="button"
+            pButton
+            (click)="toggleMaterial(material)"
+            styleClass="w-full rounded-lg border px-4 py-3 text-left text-sm transition-colors"
+            [class.border-sky-400]="isSelected(material)"
+            [class.bg-sky-400]="isSelected(material)"
+            [class.text-slate-950]="isSelected(material)"
+            [class.border-zinc-800]="!isSelected(material)"
+            [class.bg-zinc-950/40]="!isSelected(material)"
+            [class.text-zinc-200]="!isSelected(material)"
+          >
+            {{ material }}
+          </button>
+        }
+      </div>
+    }
 
-		<div class="text-xs text-zinc-400">{{ selectedCount }} materiales seleccionados</div>
-	</div>
+    <div class="text-xs text-zinc-400">{{ selectedCount }} materiales seleccionados</div>
+  </div>
 </bp-dialog>

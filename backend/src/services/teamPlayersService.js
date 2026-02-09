@@ -72,7 +72,11 @@ const removePlayerFromTeam = async (teamId, userId) => {
 
   const row = await TeamPlayer.findOne({ where: { teamId, userId } });
   if (!row) {
-    throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'TEAM_PLAYER_NOT_FOUND', 'Player is not assigned to this team');
+    throw errorUtils.httpError(
+      StatusCodes.NOT_FOUND,
+      'TEAM_PLAYER_NOT_FOUND',
+      'Player is not assigned to this team'
+    );
   }
 
   await row.destroy();
@@ -81,7 +85,9 @@ const removePlayerFromTeam = async (teamId, userId) => {
 const addPlayersToTeamBulk = async (teamId, userIds = []) => {
   await assertTeamExists(teamId);
 
-  const uniqueUserIds = Array.from(new Set((userIds ?? []).map((x) => Number(x)).filter((x) => Number.isFinite(x) && x > 0)));
+  const uniqueUserIds = Array.from(
+    new Set((userIds ?? []).map((x) => Number(x)).filter((x) => Number.isFinite(x) && x > 0))
+  );
   if (!uniqueUserIds.length) {
     return { created: 0, skipped: 0, requested: 0 };
   }
@@ -89,12 +95,20 @@ const addPlayersToTeamBulk = async (teamId, userIds = []) => {
   // Validate all users exist and are players (same rule as single-add).
   const users = await User.findAll({ where: { id: uniqueUserIds } });
   if (users.length !== uniqueUserIds.length) {
-    throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'USER_NOT_FOUND', 'One or more users not found');
+    throw errorUtils.httpError(
+      StatusCodes.NOT_FOUND,
+      'USER_NOT_FOUND',
+      'One or more users not found'
+    );
   }
 
   const notPlayers = users.filter((u) => u.role !== 'player');
   if (notPlayers.length) {
-    throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'USER_NOT_PLAYER', 'One or more users are not players');
+    throw errorUtils.httpError(
+      StatusCodes.BAD_REQUEST,
+      'USER_NOT_PLAYER',
+      'One or more users are not players'
+    );
   }
 
   const existing = await TeamPlayer.findAll({ where: { teamId, userId: uniqueUserIds } });
@@ -102,7 +116,10 @@ const addPlayersToTeamBulk = async (teamId, userIds = []) => {
   const toCreate = uniqueUserIds.filter((id) => !existingSet.has(id));
 
   if (toCreate.length) {
-    await TeamPlayer.bulkCreate(toCreate.map((userId) => ({ teamId, userId })), { ignoreDuplicates: true });
+    await TeamPlayer.bulkCreate(
+      toCreate.map((userId) => ({ teamId, userId })),
+      { ignoreDuplicates: true }
+    );
   }
 
   return {

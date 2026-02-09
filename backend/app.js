@@ -24,7 +24,7 @@ const metricsRouter = require('./routes/metrics.routes');
 const auditLogsRouter = require('./routes/auditLogs.routes');
 const monitoringRouter = require('./routes/monitoring.routes');
 const recommenderRouter = require('./routes/recommender.routes');
-const {sequelize} = require('./models');
+const { sequelize } = require('./models');
 const { errorHandler } = require('./src/middlewares/errorHandler');
 
 // Apply security middleware first (helmet, CORS, rate limiting, payload limits)
@@ -34,7 +34,9 @@ app.use(requestIdMiddleware);
 app.use(logger);
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/api/health', (req, res) => { res.json({ status: 'OK' }); });
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK' });
+});
 
 app.use('/api/auth', authRouter);
 app.use('/api/users', requireAuth, usersRouter);

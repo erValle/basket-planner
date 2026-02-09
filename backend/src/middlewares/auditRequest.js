@@ -18,17 +18,17 @@ const auditRequestMiddleware = (req, res, next) => {
       // "Cannot log after tests are done" when the process shuts down).
       Promise.resolve(
         createAuditLog({
-        user: req.user,
-        action: isError ? 'http_request.error' : 'http_request.success',
-        entity: 'HttpRequest',
-        entityId: null,
-        requestId: req.requestId,
-        metadata: {
-          method: req.method,
-          path: req.originalUrl,
-          statusCode,
-          latencyMs: Math.round(latencyMs),
-        },
+          user: req.user,
+          action: isError ? 'http_request.error' : 'http_request.success',
+          entity: 'HttpRequest',
+          entityId: null,
+          requestId: req.requestId,
+          metadata: {
+            method: req.method,
+            path: req.originalUrl,
+            statusCode,
+            latencyMs: Math.round(latencyMs),
+          },
         })
       ).catch(() => {});
     } catch {

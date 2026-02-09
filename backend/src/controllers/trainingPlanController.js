@@ -8,29 +8,29 @@ const listTrainingPlans = async (req, res, next) => {
   try {
     const user = req.user;
     let userClubIds = null;
-    
+
     // Si el usuario no es admin, filtrar por sus clubes
     if (user && user.role !== 'admin') {
       // Obtener los clubes del usuario autenticado (solo membresías activas)
       const userMemberships = await UserClub.findAll({
-        where: { 
+        where: {
           userId: user.id,
-          endDate: { [Op.is]: null }
+          endDate: { [Op.is]: null },
         },
-        attributes: ['clubId']
+        attributes: ['clubId'],
       });
-      
-      userClubIds = userMemberships.map(m => m.clubId);
-      
+
+      userClubIds = userMemberships.map((m) => m.clubId);
+
       // Si el usuario no tiene clubes, devolver lista vacía
       if (userClubIds.length === 0) {
         return res.status(StatusCodes.OK).json([]);
       }
     }
-    
+
     const rows = await trainingPlanService.listTrainingPlans({
       ...req.query,
-      userClubIds
+      userClubIds,
     });
     return res.status(StatusCodes.OK).json(rows);
   } catch (error) {
@@ -51,7 +51,10 @@ const getTrainingPlan = async (req, res, next) => {
 
 const createTrainingPlan = async (req, res, next) => {
   try {
-    const created = await trainingPlanService.createTrainingPlan(req.body, { user: req.user, requestId: req.requestId });
+    const created = await trainingPlanService.createTrainingPlan(req.body, {
+      user: req.user,
+      requestId: req.requestId,
+    });
     return res.status(StatusCodes.CREATED).json(created);
   } catch (error) {
     logger.error('Error creating training plan:', error);
@@ -61,7 +64,10 @@ const createTrainingPlan = async (req, res, next) => {
 
 const updateTrainingPlan = async (req, res, next) => {
   try {
-    const row = await trainingPlanService.updateTrainingPlan(req.params.id, req.body, { user: req.user, requestId: req.requestId });
+    const row = await trainingPlanService.updateTrainingPlan(req.params.id, req.body, {
+      user: req.user,
+      requestId: req.requestId,
+    });
     return res.status(StatusCodes.OK).json(row);
   } catch (error) {
     logger.error('Error updating training plan:', error);
@@ -79,4 +85,10 @@ const deleteTrainingPlan = async (req, res, next) => {
   }
 };
 
-module.exports = { listTrainingPlans, getTrainingPlan, createTrainingPlan, updateTrainingPlan, deleteTrainingPlan };
+module.exports = {
+  listTrainingPlans,
+  getTrainingPlan,
+  createTrainingPlan,
+  updateTrainingPlan,
+  deleteTrainingPlan,
+};

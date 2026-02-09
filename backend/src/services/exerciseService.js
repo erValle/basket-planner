@@ -25,7 +25,11 @@ const listExercises = async ({ type, difficulty, tags } = {}) => {
       }
     }
 
-    if (parsedDifficulty && typeof parsedDifficulty === 'object' && !Array.isArray(parsedDifficulty)) {
+    if (
+      parsedDifficulty &&
+      typeof parsedDifficulty === 'object' &&
+      !Array.isArray(parsedDifficulty)
+    ) {
       where.difficulty = { [Op.contains]: parsedDifficulty };
     } else {
       where.difficulty = parsedDifficulty;
@@ -36,7 +40,7 @@ const listExercises = async ({ type, difficulty, tags } = {}) => {
       ? tags
       : String(tags)
           .split(',')
-          .map(t => t.trim())
+          .map((t) => t.trim())
           .filter(Boolean);
     where.tags = { [Op.contains]: parsed };
   }
@@ -57,35 +61,36 @@ const createExercise = async (payload) => {
   // Verificar si el ejercicio tiene todos los materiales necesarios disponibles
   if (payload.clubId && payload.characteristics?.requiredEquipment) {
     const requiredMaterials = payload.characteristics.requiredEquipment;
-    
+
     if (requiredMaterials.length > 0) {
       // Obtener materiales disponibles del club
       const availableEquipment = await Equipment.findAll({
         where: {
           clubId: payload.clubId,
-          status: 'available'
-        }
+          status: 'available',
+        },
       });
-      
-      const availableMaterials = availableEquipment.map(e => normalizeMaterialName(e.name));
-      
+
+      const availableMaterials = availableEquipment.map((e) => normalizeMaterialName(e.name));
+
       // Verificar si todos los materiales están disponibles
-      const hasAllMaterials = requiredMaterials.every(required => {
+      const hasAllMaterials = requiredMaterials.every((required) => {
         const normalizedRequired = normalizeMaterialName(required);
-        return availableMaterials.some(available => 
-          available === normalizedRequired || 
-          available.includes(normalizedRequired) || 
-          normalizedRequired.includes(available)
+        return availableMaterials.some(
+          (available) =>
+            available === normalizedRequired ||
+            available.includes(normalizedRequired) ||
+            normalizedRequired.includes(available)
         );
       });
-      
+
       // Si no tiene todos los materiales, marcar como inactivo
       if (!hasAllMaterials) {
         payload.active = false;
       }
     }
   }
-  
+
   return Exercise.create(payload);
 };
 
@@ -94,32 +99,33 @@ const updateExercise = async (id, payload) => {
   if (!ex) {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'EXERCISE_NOT_FOUND', 'Exercise not found');
   }
-  
+
   // Si se está actualizando el material requerido, verificar disponibilidad
   if (ex.clubId && payload.characteristics?.requiredEquipment) {
     const requiredMaterials = payload.characteristics.requiredEquipment;
-    
+
     if (requiredMaterials.length > 0) {
       // Obtener materiales disponibles del club
       const availableEquipment = await Equipment.findAll({
         where: {
           clubId: ex.clubId,
-          status: 'available'
-        }
+          status: 'available',
+        },
       });
-      
-      const availableMaterials = availableEquipment.map(e => normalizeMaterialName(e.name));
-      
+
+      const availableMaterials = availableEquipment.map((e) => normalizeMaterialName(e.name));
+
       // Verificar si todos los materiales están disponibles
-      const hasAllMaterials = requiredMaterials.every(required => {
+      const hasAllMaterials = requiredMaterials.every((required) => {
         const normalizedRequired = normalizeMaterialName(required);
-        return availableMaterials.some(available => 
-          available === normalizedRequired || 
-          available.includes(normalizedRequired) || 
-          normalizedRequired.includes(available)
+        return availableMaterials.some(
+          (available) =>
+            available === normalizedRequired ||
+            available.includes(normalizedRequired) ||
+            normalizedRequired.includes(available)
         );
       });
-      
+
       // Si no tiene todos los materiales, marcar como inactivo (a menos que se especifique lo contrario)
       if (!hasAllMaterials && payload.active !== false) {
         payload.active = false;
@@ -128,7 +134,7 @@ const updateExercise = async (id, payload) => {
       }
     }
   }
-  
+
   await ex.update(payload);
   return ex;
 };
@@ -162,7 +168,7 @@ const getAllExercisesFromJSON = () => {
     etiquetas: exercise.etiquetas,
     materials: exercise.materiales_necesarios,
     materiales_necesarios: exercise.materiales_necesarios,
-    active: true
+    active: true,
   }));
 };
 
@@ -178,12 +184,12 @@ const getAllExercisesForRecommender = async (filters = {}) => {
     if (filters.active !== undefined) {
       where.active = filters.active;
     }
-    
+
     const dbExercises = await Exercise.findAll({ where, order: [['name', 'ASC']] });
-    
+
     // Si hay ejercicios en la DB, usarlos
     if (dbExercises.length > 0) {
-      return dbExercises.map(ex => {
+      return dbExercises.map((ex) => {
         const exJSON = ex.toJSON();
         const tags = exJSON.tags || {};
         return {
@@ -194,21 +200,27 @@ const getAllExercisesForRecommender = async (filters = {}) => {
           descripcion: exJSON.description,
           type: tags.tipo_original || exJSON.type,
           tipo: tags.tipo_original || exJSON.type,
-          difficulty: typeof exJSON.difficulty === 'string' ? JSON.parse(exJSON.difficulty) : exJSON.difficulty,
-          dificultad: typeof exJSON.difficulty === 'string' ? JSON.parse(exJSON.difficulty) : exJSON.difficulty,
+          difficulty:
+            typeof exJSON.difficulty === 'string'
+              ? JSON.parse(exJSON.difficulty)
+              : exJSON.difficulty,
+          dificultad:
+            typeof exJSON.difficulty === 'string'
+              ? JSON.parse(exJSON.difficulty)
+              : exJSON.difficulty,
           duration: exJSON.duration,
           duracion_segundos: exJSON.duration,
           tags: tags.tags || [],
           etiquetas: tags.tags || [],
           materials: tags.materiales || [],
           materiales_necesarios: tags.materiales || [],
-          active: exJSON.active
+          active: exJSON.active,
         };
       });
     }
-    
+
     // Si no hay ejercicios en DB, usar JSON
-    console.log('⚠️  No se encontraron ejercicios en la BD, usando datos del JSON');
+    console.log(' No se encontraron ejercicios en la BD, usando datos del JSON');
     return getAllExercisesFromJSON();
   } catch (error) {
     console.warn('Error al obtener ejercicios de la BD, usando JSON:', error.message);
@@ -223,17 +235,17 @@ const getAllExercisesForRecommender = async (filters = {}) => {
  */
 const listExercisesPaginated = async (query = {}) => {
   const { page = 1, pageSize = 12, type, difficulty, tags, search } = query;
-  
+
   const offset = (parseInt(page) - 1) * parseInt(pageSize);
   const limit = parseInt(pageSize);
-  
+
   // Construir filtros
   const where = {};
-  
+
   if (type) {
     where.type = type;
   }
-  
+
   if (difficulty) {
     let parsedDifficulty = difficulty;
     if (typeof difficulty === 'string') {
@@ -243,24 +255,31 @@ const listExercisesPaginated = async (query = {}) => {
         parsedDifficulty = difficulty;
       }
     }
-    if (parsedDifficulty && typeof parsedDifficulty === 'object' && !Array.isArray(parsedDifficulty)) {
+    if (
+      parsedDifficulty &&
+      typeof parsedDifficulty === 'object' &&
+      !Array.isArray(parsedDifficulty)
+    ) {
       where.difficulty = { [Op.contains]: parsedDifficulty };
     } else {
       where.difficulty = parsedDifficulty;
     }
   }
-  
+
   if (tags) {
     const parsed = Array.isArray(tags)
       ? tags
-      : String(tags).split(',').map(t => t.trim()).filter(Boolean);
+      : String(tags)
+          .split(',')
+          .map((t) => t.trim())
+          .filter(Boolean);
     where.tags = { [Op.contains]: parsed };
   }
-  
+
   if (search) {
     where.name = { [Op.iLike]: `%${search}%` };
   }
-  
+
   // Consulta paginada
   const { count, rows } = await Exercise.findAndCountAll({
     where,
@@ -269,9 +288,9 @@ const listExercisesPaginated = async (query = {}) => {
     offset,
     order: [['name', 'ASC']],
   });
-  
+
   const totalPages = Math.ceil(count / limit);
-  
+
   return {
     exercises: rows,
     pagination: {
@@ -295,13 +314,13 @@ const getPopularTags = async () => {
     where: { active: true },
     attributes: ['tags'],
   });
-  
+
   // Contar frecuencia de cada etiqueta
   const tagCounts = {};
-  
+
   for (const exercise of exercises) {
     let tags = [];
-    
+
     // Las tags pueden estar en diferentes formatos:
     // 1. Array directo: ['tag1', 'tag2']
     // 2. Objeto con propiedad tags: { tags: ['tag1', 'tag2'] }
@@ -312,7 +331,7 @@ const getPopularTags = async () => {
         tags = exercise.tags.tags;
       }
     }
-    
+
     for (const tag of tags) {
       if (tag && typeof tag === 'string') {
         const normalizedTag = tag.toLowerCase().trim();
@@ -322,12 +341,12 @@ const getPopularTags = async () => {
       }
     }
   }
-  
+
   // Convertir a array y ordenar por frecuencia
   const sortedTags = Object.entries(tagCounts)
     .map(([tag, count]) => ({ tag, count }))
     .sort((a, b) => b.count - a.count);
-  
+
   return sortedTags;
 };
 

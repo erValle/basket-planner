@@ -1,93 +1,101 @@
 <div
-	class="bp-login min-h-screen flex items-center justify-center px-4"
-	style="background: radial-gradient(circle at top left, #111827, #020617)"
+  class="bp-login min-h-screen flex items-center justify-center px-4"
+  style="background: radial-gradient(circle at top left, #111827, #020617)"
 >
-	<div class="w-full max-w-[420px] p-4">
-		<div
-			class="bg-[#020617] rounded-[18px] p-6 pb-5 border border-[#1f2937]"
-			style="box-shadow: 0 18px 45px rgba(0,0,0,0.45)"
-		>
-			<div class="flex items-center gap-2.5 mb-[18px]">
-				<div
-					class="w-9 h-9 rounded-full flex items-center justify-center"
-					style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
-				>
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-						<circle cx="12" cy="12" r="10" stroke="#0f172a" stroke-width="2" fill="none" />
-						<path
-							d="M12 2 C12 2, 8 8, 8 12 C8 16, 12 22, 12 22"
-							stroke="#0f172a"
-							stroke-width="2"
-							stroke-linecap="round"
-						/>
-						<path
-							d="M12 2 C12 2, 16 8, 16 12 C16 16, 12 22, 12 22"
-							stroke="#0f172a"
-							stroke-width="2"
-							stroke-linecap="round"
-						/>
-						<path d="M2 12 L22 12" stroke="#0f172a" stroke-width="2" stroke-linecap="round" />
-					</svg>
-				</div>
-				<h1 class="text-[20px] text-[#f9fafb]">BasketPlanner</h1>
-			</div>
+  <div class="w-full max-w-[420px] p-4">
+    <div
+      class="bg-[#020617] rounded-[18px] p-6 pb-5 border border-[#1f2937]"
+      style="box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45)"
+    >
+      <div class="flex items-center gap-2.5 mb-[18px]">
+        <div
+          class="w-9 h-9 rounded-full flex items-center justify-center"
+          style="background: radial-gradient(circle at 30% 0, #22d3ee, #0ea5e9)"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle cx="12" cy="12" r="10" stroke="#0f172a" stroke-width="2" fill="none" />
+            <path
+              d="M12 2 C12 2, 8 8, 8 12 C8 16, 12 22, 12 22"
+              stroke="#0f172a"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path
+              d="M12 2 C12 2, 16 8, 16 12 C16 16, 12 22, 12 22"
+              stroke="#0f172a"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+            <path d="M2 12 L22 12" stroke="#0f172a" stroke-width="2" stroke-linecap="round" />
+          </svg>
+        </div>
+        <h1 class="text-[20px] text-[#f9fafb]">BasketPlanner</h1>
+      </div>
 
-			<p class="text-[13px] text-[#9ca3af] mb-[18px]">
-				Accede para gestionar tu ecosistema de clubes, equipos y planificaciones.
-			</p>
+      <p class="text-[13px] text-[#9ca3af] mb-[18px]">
+        Accede para gestionar tu ecosistema de clubes, equipos y planificaciones.
+      </p>
 
-			@if (error) {
-				<div class="mb-3 border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200">
-					{{ error }}
-				</div>
-			}
+      @if (error) {
+        <div
+          class="mb-3 border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200"
+        >
+          {{ error }}
+        </div>
+      }
 
-			<form class="flex flex-col gap-[14px]" [formGroup]="form" (ngSubmit)="submit()">
-				<div class="flex flex-col gap-1">
-					<label for="email" class="text-[#e5e7eb] text-[13px]">Correo electrónico</label>
-					<input
-						pInputText
-						type="email"
-						id="email"
-						formControlName="email"
-						placeholder="tuusuario@club.com"
-						class="w-full"
-					/>
-				</div>
+      <form class="flex flex-col gap-[14px]" [formGroup]="form" (ngSubmit)="submit()">
+        <div class="flex flex-col gap-1">
+          <label for="email" class="text-[#e5e7eb] text-[13px]">Correo electrónico</label>
+          <input
+            pInputText
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="tuusuario@club.com"
+            class="w-full"
+          />
+        </div>
 
-				<div class="flex flex-col gap-1">
-					<label for="password" class="text-[#e5e7eb] text-[13px]">Contraseña</label>
-					<input
-						pInputText
-						type="password"
-						id="password"
-						formControlName="password"
-						placeholder="••••••••"
-						class="w-full"
-					/>
-				</div>
+        <div class="flex flex-col gap-1">
+          <label for="password" class="text-[#e5e7eb] text-[13px]">Contraseña</label>
+          <input
+            pInputText
+            type="password"
+            id="password"
+            formControlName="password"
+            placeholder="••••••••"
+            class="w-full"
+          />
+        </div>
 
-				<div class="flex justify-between items-center mt-4 gap-2 text-[12px]">
-					<p-button
-						type="submit"
-						label="Acceder"
-						[disabled]="form.invalid || loading"
-						[loading]="loading"
-						styleClass="bp-btn bp-btn-primary"
-					></p-button>
+        <div class="flex justify-between items-center mt-4 gap-2 text-[12px]">
+          <p-button
+            type="submit"
+            label="Acceder"
+            [disabled]="form.invalid || loading"
+            [loading]="loading"
+            styleClass="bp-btn bp-btn-primary"
+          ></p-button>
 
-					<p-button
-						type="button"
-						label="¿Has olvidado la contraseña?"
-						[link]="true"
-						styleClass="text-[#9ca3af] text-[12px] underline"
-					></p-button>
-				</div>
-			</form>
+          <p-button
+            type="button"
+            label="¿Has olvidado la contraseña?"
+            [link]="true"
+            styleClass="text-[#9ca3af] text-[12px] underline"
+          ></p-button>
+        </div>
+      </form>
 
-			<p class="text-[#6b7280] text-[11px] text-center mt-[18px]">
-				Acceso exclusivo para usuarios registrados por el administrador de la plataforma.
-			</p>
-		</div>
-	</div>
+      <p class="text-[#6b7280] text-[11px] text-center mt-[18px]">
+        Acceso exclusivo para usuarios registrados por el administrador de la plataforma.
+      </p>
+    </div>
+  </div>
 </div>

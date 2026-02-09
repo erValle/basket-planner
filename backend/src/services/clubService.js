@@ -8,7 +8,7 @@ const errorUtils = require('../libs/errorHelper');
 const listClubs = async ({ name, userClubIds } = {}) => {
   const where = {};
   if (name) where.name = name;
-  
+
   // Si se especifican userClubIds, filtrar por ellos
   if (userClubIds && userClubIds.length > 0) {
     const { Op } = require('sequelize');
@@ -34,7 +34,7 @@ const listClubs = async ({ name, userClubIds } = {}) => {
   });
 
   // Convert to plain JSON and ensure teamsCount is a number
-  return clubs.map(club => {
+  return clubs.map((club) => {
     const plainClub = club.get({ plain: true });
     return {
       ...plainClub,
@@ -59,16 +59,16 @@ const getClubById = async (id, { raw = false } = {}) => {
     ],
     group: ['Club.id'],
   });
-  
+
   if (!club) {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'CLUB_NOT_FOUND', 'Club not found');
   }
-  
+
   // Return raw model for internal operations (update/delete)
   if (raw) {
     return club;
   }
-  
+
   // Convert to plain JSON and ensure teamsCount is a number
   const plainClub = club.get({ plain: true });
   return {

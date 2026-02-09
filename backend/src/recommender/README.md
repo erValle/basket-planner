@@ -6,7 +6,7 @@ Este es un modelo de recomendación **baseline v0.1.0** basado en **reglas heur�
 
 ## Características
 
-### ✅ Funcionalidades Implementadas
+### Funcionalidades Implementadas
 
 - **Generación de planificaciones individuales y grupales**
 - **Filtrado por materiales disponibles**: Solo selecciona ejercicios que se pueden realizar con el equipamiento disponible

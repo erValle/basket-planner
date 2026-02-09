@@ -7,10 +7,10 @@ module.exports = {
       allowNull: true,
       references: {
         model: 'training_plan_versions',
-        key: 'id'
+        key: 'id',
       },
       onUpdate: 'CASCADE',
-      onDelete: 'SET NULL'
+      onDelete: 'SET NULL',
     });
 
     await queryInterface.addIndex('training_plans', ['activeVersionId']);
@@ -19,5 +19,5 @@ module.exports = {
   async down(queryInterface) {
     await queryInterface.removeIndex('training_plans', ['activeVersionId']);
     await queryInterface.removeColumn('training_plans', 'activeVersionId');
-  }
+  },
 };

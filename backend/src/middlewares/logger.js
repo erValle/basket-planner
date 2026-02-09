@@ -50,7 +50,8 @@ const loggerMiddleware = (req, res, next) => {
   res.on('finish', () => {
     const duration = Date.now() - startTime;
     const status = res.statusCode;
-    const level = status >= 500 ? LOG_LEVELS.ERROR : status >= 400 ? LOG_LEVELS.WARN : LOG_LEVELS.INFO;
+    const level =
+      status >= 500 ? LOG_LEVELS.ERROR : status >= 400 ? LOG_LEVELS.WARN : LOG_LEVELS.INFO;
     console.log(formatLog(level, `${method} ${url} ${status} ${duration}ms`, requestId));
   });
 

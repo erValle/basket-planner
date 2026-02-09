@@ -33,7 +33,8 @@
     "clean:install": "npm run clean && npm run install:all"
   },
   "devDependencies": {
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "prettier": "^3.8.1"
   },
   "engines": {
     "node": ">=20.0.0",

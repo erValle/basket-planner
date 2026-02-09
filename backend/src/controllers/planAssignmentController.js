@@ -16,7 +16,7 @@ const listAssignments = async (req, res, next) => {
 const getAssignment = async (req, res, next) => {
   try {
     const row = await planAssignmentService.getAssignmentById(req.params.id);
-    
+
     // Si el usuario autenticado es el jugador asignado (no el coach), registrar visualización
     if (req.user && req.user.id === row.userId) {
       await auditLogService.createAuditLog({
@@ -25,13 +25,13 @@ const getAssignment = async (req, res, next) => {
         action: 'plan_assignment.viewed_by_player',
         entity: 'PlanAssignment',
         entityId: row.id,
-        metadata: { 
+        metadata: {
           trainingPlanId: row.trainingPlanId,
-          planName: row.TrainingPlan?.name 
-        }
+          planName: row.TrainingPlan?.name,
+        },
       });
     }
-    
+
     return res.status(StatusCodes.OK).json(row);
   } catch (error) {
     logger.error('Error fetching assignment:', error);
@@ -89,4 +89,12 @@ const listAssignmentsForPlan = async (req, res, next) => {
   }
 };
 
-module.exports = { listAssignments, getAssignment, createAssignment, updateAssignment, deleteAssignment, listAssignmentsForUser, listAssignmentsForPlan };
+module.exports = {
+  listAssignments,
+  getAssignment,
+  createAssignment,
+  updateAssignment,
+  deleteAssignment,
+  listAssignmentsForUser,
+  listAssignmentsForPlan,
+};

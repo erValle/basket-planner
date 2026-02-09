@@ -26,7 +26,7 @@ const createNewVersion = async (req, res, next) => {
         date: req.body?.date,
         comments: req.body?.comments,
         createdFrom: req.body?.createdFrom,
-      },
+      }
     );
 
     return res.status(StatusCodes.CREATED).json(created);

@@ -7,10 +7,9 @@ import { ButtonModule } from 'primeng/button';
 import { AppShell } from '../layout/app-shell/app-shell';
 
 @Component({
-	selector: 'app-forbidden',
-	imports: [CommonModule, RouterLink, ButtonModule, AppShell],
-	templateUrl: './forbidden.html',
-	styleUrl: './forbidden.scss',
+    selector: 'app-forbidden',
+    imports: [CommonModule, RouterLink, ButtonModule, AppShell],
+    templateUrl: './forbidden.html',
+    styleUrl: './forbidden.scss',
 })
-export class ForbiddenPage {
-}
+export class ForbiddenPage {}

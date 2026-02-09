@@ -124,9 +124,7 @@ describe('teamService', () => {
       Team.findByPk.mockResolvedValue(mockTeam);
       TeamPlayer.count.mockResolvedValue(3); // Less than MIN_ACTIVE_PLAYERS (5)
 
-      await expect(
-        teamService.updateTeam(1, { active: true })
-      ).rejects.toMatchObject({
+      await expect(teamService.updateTeam(1, { active: true })).rejects.toMatchObject({
         status: StatusCodes.BAD_REQUEST,
         code: 'TEAM_ACTIVE_REQUIRES_MIN_PLAYERS',
       });

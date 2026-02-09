@@ -26,11 +26,7 @@ const listPlayers = async ({ search, clubId, teamId, withoutTeam, limit, userClu
       model: UserClub,
       as: 'userClubs',
       required: Boolean(clubId) || Boolean(userClubIds),
-      where: clubId 
-        ? { clubId } 
-        : userClubIds 
-          ? { clubId: { [Op.in]: userClubIds } }
-          : undefined,
+      where: clubId ? { clubId } : userClubIds ? { clubId: { [Op.in]: userClubIds } } : undefined,
       attributes: ['clubId'],
       include: [
         {
@@ -52,7 +48,19 @@ const listPlayers = async ({ search, clubId, teamId, withoutTeam, limit, userClu
 
   const rows = await User.findAll({
     where,
-    attributes: ['id', 'firstName', 'lastName', 'email', 'role', 'status', 'position', 'category', 'maxCategory', 'height', 'dateOfBirth'],
+    attributes: [
+      'id',
+      'firstName',
+      'lastName',
+      'email',
+      'role',
+      'status',
+      'position',
+      'category',
+      'maxCategory',
+      'height',
+      'dateOfBirth',
+    ],
     include,
     limit: limit ? Number(limit) : undefined,
     order: [
@@ -80,7 +88,12 @@ const listPlayers = async ({ search, clubId, teamId, withoutTeam, limit, userClu
           .filter(Boolean)
       : [];
     const teams = Array.isArray(json.playerTeams)
-      ? json.playerTeams.map((t) => ({ id: t.id, name: t.name, category: t.category, clubId: t.clubId }))
+      ? json.playerTeams.map((t) => ({
+          id: t.id,
+          name: t.name,
+          category: t.category,
+          clubId: t.clubId,
+        }))
       : [];
 
     return {
@@ -108,12 +121,25 @@ const getPlayerHistory = async (userId) => {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'PLAYER_NOT_FOUND', 'Player not found');
   }
   if (user.role !== 'player') {
-    throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'USER_NOT_A_PLAYER', 'User is not a player');
+    throw errorUtils.httpError(
+      StatusCodes.BAD_REQUEST,
+      'USER_NOT_A_PLAYER',
+      'User is not a player'
+    );
   }
 
   const rows = await UserClub.findAll({
     where: { userId },
-    attributes: ['id', 'userId', 'clubId', 'isPrimary', 'startDate', 'endDate', 'createdAt', 'updatedAt'],
+    attributes: [
+      'id',
+      'userId',
+      'clubId',
+      'isPrimary',
+      'startDate',
+      'endDate',
+      'createdAt',
+      'updatedAt',
+    ],
     include: [
       {
         model: Club,
@@ -168,7 +194,7 @@ const getActivePrimaryClubIdForUser = async (userId, { transaction } = {}) => {
 const enrollExistingUserAsPlayer = async (
   actor,
   { userId, clubId, startDate } = {},
-  { transaction } = {},
+  { transaction } = {}
 ) => {
   const target = await User.findByPk(userId, { transaction });
   if (!target) {
@@ -223,7 +249,7 @@ const enrollExistingUserAsPlayer = async (
           startDate: startDate ? new Date(startDate) : new Date(),
           endDate: null,
         },
-        { transaction },
+        { transaction }
       );
       membershipCreated = true;
     }
@@ -246,7 +272,11 @@ const updatePlayerProfile = async (userId, payload = {}, { transaction } = {}) =
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'PLAYER_NOT_FOUND', 'Player not found');
   }
   if (user.role !== 'player') {
-    throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'USER_NOT_A_PLAYER', 'User is not a player');
+    throw errorUtils.httpError(
+      StatusCodes.BAD_REQUEST,
+      'USER_NOT_A_PLAYER',
+      'User is not a player'
+    );
   }
 
   const allowed = {

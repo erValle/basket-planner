@@ -13,7 +13,7 @@
   >
     <div class="space-y-4">
       <p class="text-[13px] text-[#9ca3af]">Selecciona el formato de descarga:</p>
-      
+
       <div class="grid grid-cols-2 gap-4">
         <button
           pButton
@@ -56,7 +56,9 @@
     (cancel)="feedbackDialogOpen = false"
   >
     <div class="space-y-4">
-      <div class="text-[13px] text-[#9ca3af]">Valora el esfuerzo de la planificación (escala de esfuerzo).</div>
+      <div class="text-[13px] text-[#9ca3af]">
+        Valora el esfuerzo de la planificación (escala de esfuerzo).
+      </div>
 
       <div class="bp-dialog-grid-2">
         <div class="bp-dialog-field">
@@ -124,7 +126,13 @@
   <div class="max-w-6xl mx-auto space-y-4">
     <!-- Top actions bar (same vibe as session-detail) -->
     <div class="flex flex-wrap justify-between items-center gap-2">
-      <a pButton [routerLink]="getBackRoute()" label="Volver" icon="pi pi-arrow-left" class="bp-btn bp-btn-ghost bp-btn-sm"></a>
+      <a
+        pButton
+        [routerLink]="getBackRoute()"
+        label="Volver"
+        icon="pi pi-arrow-left"
+        class="bp-btn bp-btn-ghost bp-btn-sm"
+      ></a>
 
       <div class="flex flex-wrap items-center gap-2">
         <div class="min-w-[160px]">
@@ -140,11 +148,25 @@
         </div>
 
         @if (canManagePlanning()) {
-          <button pButton type="button" label="Crear nueva versión" icon="pi pi-copy" class="bp-btn bp-btn-secondary bp-btn-sm" (click)="createNewVersion()"></button>
+          <button
+            pButton
+            type="button"
+            label="Crear nueva versión"
+            icon="pi pi-copy"
+            class="bp-btn bp-btn-secondary bp-btn-sm"
+            (click)="createNewVersion()"
+          ></button>
         }
 
         @if (canAcceptPlanning()) {
-          <button pButton type="button" label="Activar planificación" icon="pi pi-check" class="bp-btn bp-btn-success bp-btn-sm" (click)="acceptPlanning()"></button>
+          <button
+            pButton
+            type="button"
+            label="Activar planificación"
+            icon="pi pi-check"
+            class="bp-btn bp-btn-success bp-btn-sm"
+            (click)="acceptPlanning()"
+          ></button>
         }
 
         <button
@@ -158,7 +180,15 @@
         ></button>
 
         @if (isPlayerView()) {
-          <button pButton type="button" label="Registrar feedback" icon="pi pi-clipboard" class="bp-btn bp-btn-primary bp-btn-sm" [disabled]="downloading !== null" (click)="openFeedback()"></button>
+          <button
+            pButton
+            type="button"
+            label="Registrar feedback"
+            icon="pi pi-clipboard"
+            class="bp-btn bp-btn-primary bp-btn-sm"
+            [disabled]="downloading !== null"
+            (click)="openFeedback()"
+          ></button>
         }
 
         @if (downloading) {
@@ -171,22 +201,37 @@
     </div>
 
     @if (loading) {
-      <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] text-[13px] text-[#9ca3af]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">Cargando planificación…</div>
+      <div
+        class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] text-[13px] text-[#9ca3af]"
+        style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+      >
+        Cargando planificación…
+      </div>
     }
 
     @if (loadError) {
-      <div class="bg-red-950/40 border border-red-900/60 rounded-lg px-4 py-3 text-[13px] text-red-200">{{ loadError }}</div>
+      <div
+        class="bg-red-950/40 border border-red-900/60 rounded-lg px-4 py-3 text-[13px] text-red-200"
+      >
+        {{ loadError }}
+      </div>
     }
 
     @if (emptyState && !loading && !loadError) {
-      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] text-center text-[13px] text-[#9ca3af]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      <div
+        class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] text-center text-[13px] text-[#9ca3af]"
+        style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+      >
         No existe la planificación solicitada.
       </div>
     }
 
     @if (detail && !loading) {
       <!-- Header card -->
-      <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      <div
+        class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+        style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+      >
         <app-page-header
           [title]="detail.title + ' · ' + detail.date"
           [subtitle]="detail.team + ' · ' + detail.objective"
@@ -194,7 +239,10 @@
 
         <div class="mt-3 flex flex-wrap items-center justify-between gap-3">
           <div class="flex flex-wrap items-center gap-2">
-            <p-tag [value]="statusLabel(detail.status)" [severity]="statusSeverity(detail.status)"></p-tag>
+            <p-tag
+              [value]="statusLabel(detail.status)"
+              [severity]="statusSeverity(detail.status)"
+            ></p-tag>
             <div class="text-[13px] text-[#9ca3af]">{{ detail.version }} · {{ detail.author }}</div>
           </div>
 
@@ -202,7 +250,9 @@
           <div class="flex flex-wrap gap-2">
             <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
               <div class="text-[11px] text-[#9ca3af]">Duración total</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ detail.metrics.totalDurationMin }} min</div>
+              <div class="text-[13px] text-[#e5e7eb]">
+                {{ detail.metrics.totalDurationMin }} min
+              </div>
             </div>
             <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
               <div class="text-[11px] text-[#9ca3af]">Intensidad</div>
@@ -210,33 +260,65 @@
             </div>
           </div>
         </div>
+
+        <!-- Usuarios asignados -->
+        @if (detail.assignedUsers && detail.assignedUsers.length > 0) {
+          <div class="mt-4 pt-4 border-t border-[#1f2937]">
+            <div class="text-[11px] text-[#9ca3af] mb-2">Asignado a</div>
+            <div class="flex flex-wrap gap-2">
+              @for (user of detail.assignedUsers; track user.id) {
+                <div
+                  class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-1.5 flex items-center gap-2"
+                >
+                  <i class="pi pi-user text-[#38bdf8] text-[12px]"></i>
+                  <span class="text-[13px] text-[#e5e7eb]"
+                    >{{ user.firstName }} {{ user.lastName }}</span
+                  >
+                </div>
+              }
+            </div>
+          </div>
+        }
       </div>
 
       @if (latestSurvey) {
-        <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        <div
+          class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+          style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+        >
           <div class="flex items-start justify-between gap-3">
             <div>
               <div class="text-[14px] font-semibold text-[#f9fafb]">Feedback registrado</div>
-              <div class="mt-1 text-[12px] text-[#9ca3af]">{{ latestSurvey.createdAt.slice(0, 10) }} · Planificación</div>
+              <div class="mt-1 text-[12px] text-[#9ca3af]">
+                {{ latestSurvey.createdAt.slice(0, 10) }} · Planificación
+              </div>
             </div>
           </div>
 
           <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
               <div class="text-[11px] text-[#9ca3af]">Valoración general</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ $any(latestSurvey.answers).overall }}/10</div>
+              <div class="text-[13px] text-[#e5e7eb]">
+                {{ $any(latestSurvey.answers).overall }}/10
+              </div>
             </div>
             <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
               <div class="text-[11px] text-[#9ca3af]">Esfuerzo físico</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ $any(latestSurvey.answers).physicalEffort }}/10</div>
+              <div class="text-[13px] text-[#e5e7eb]">
+                {{ $any(latestSurvey.answers).physicalEffort }}/10
+              </div>
             </div>
             <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
               <div class="text-[11px] text-[#9ca3af]">Esfuerzo técnico</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ $any(latestSurvey.answers).technicalEffort }}/10</div>
+              <div class="text-[13px] text-[#e5e7eb]">
+                {{ $any(latestSurvey.answers).technicalEffort }}/10
+              </div>
             </div>
             <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
               <div class="text-[11px] text-[#9ca3af]">Esfuerzo mental</div>
-              <div class="text-[13px] text-[#e5e7eb]">{{ $any(latestSurvey.answers).mentalEffort }}/10</div>
+              <div class="text-[13px] text-[#e5e7eb]">
+                {{ $any(latestSurvey.answers).mentalEffort }}/10
+              </div>
             </div>
           </div>
 
@@ -250,20 +332,34 @@
 
       @if (canViewAllFeedbacks()) {
         @if (loadingFeedbacks) {
-          <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] text-[13px] text-[#9ca3af]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-            <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4 inline-block mr-2"></p-progressSpinner>
+          <div
+            class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] text-[13px] text-[#9ca3af]"
+            style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+          >
+            <p-progressSpinner
+              strokeWidth="4"
+              styleClass="w-4 h-4 inline-block mr-2"
+            ></p-progressSpinner>
             Cargando feedbacks…
           </div>
         }
 
         @if (!loadingFeedbacks && allFeedbacks.length > 0) {
-          <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+          <div
+            class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+            style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+          >
             <div class="flex items-start justify-between gap-3 mb-4">
               <div>
                 <div class="text-[14px] font-semibold text-[#f9fafb]">Feedbacks recibidos</div>
-                <div class="mt-1 text-[12px] text-[#9ca3af]">Valoraciones de jugadores sobre esta planificación</div>
+                <div class="mt-1 text-[12px] text-[#9ca3af]">
+                  Valoraciones de jugadores sobre esta planificación
+                </div>
               </div>
-              <p-tag [value]="allFeedbacks.length + ' feedback' + (allFeedbacks.length !== 1 ? 's' : '')" severity="info"></p-tag>
+              <p-tag
+                [value]="allFeedbacks.length + ' feedback' + (allFeedbacks.length !== 1 ? 's' : '')"
+                severity="info"
+              ></p-tag>
             </div>
 
             <div class="space-y-3">
@@ -271,27 +367,40 @@
                 <div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4">
                   <div class="flex items-start justify-between gap-3 mb-3">
                     <div>
-                      <div class="text-[13px] font-semibold text-[#f9fafb]">{{ feedback.playerName || 'Usuario' }}</div>
-                      <div class="text-[11px] text-[#9ca3af]">{{ feedback.createdAt.slice(0, 10) }} · {{ feedback.createdAt.slice(11, 16) }}</div>
+                      <div class="text-[13px] font-semibold text-[#f9fafb]">
+                        {{ feedback.playerName || 'Usuario' }}
+                      </div>
+                      <div class="text-[11px] text-[#9ca3af]">
+                        {{ feedback.createdAt.slice(0, 10) }} ·
+                        {{ feedback.createdAt.slice(11, 16) }}
+                      </div>
                     </div>
                   </div>
 
                   <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
                     <div class="rounded border border-[#374151] bg-[#1f2937] px-3 py-2">
                       <div class="text-[10px] text-[#9ca3af]">Valoración general</div>
-                      <div class="text-[12px] text-[#e5e7eb]">{{ $any(feedback.answers).overall }}/10</div>
+                      <div class="text-[12px] text-[#e5e7eb]">
+                        {{ $any(feedback.answers).overall }}/10
+                      </div>
                     </div>
                     <div class="rounded border border-[#374151] bg-[#1f2937] px-3 py-2">
                       <div class="text-[10px] text-[#9ca3af]">Esfuerzo físico</div>
-                      <div class="text-[12px] text-[#e5e7eb]">{{ $any(feedback.answers).physicalEffort }}/10</div>
+                      <div class="text-[12px] text-[#e5e7eb]">
+                        {{ $any(feedback.answers).physicalEffort }}/10
+                      </div>
                     </div>
                     <div class="rounded border border-[#374151] bg-[#1f2937] px-3 py-2">
                       <div class="text-[10px] text-[#9ca3af]">Esfuerzo técnico</div>
-                      <div class="text-[12px] text-[#e5e7eb]">{{ $any(feedback.answers).technicalEffort }}/10</div>
+                      <div class="text-[12px] text-[#e5e7eb]">
+                        {{ $any(feedback.answers).technicalEffort }}/10
+                      </div>
                     </div>
                     <div class="rounded border border-[#374151] bg-[#1f2937] px-3 py-2">
                       <div class="text-[10px] text-[#9ca3af]">Esfuerzo mental</div>
-                      <div class="text-[12px] text-[#e5e7eb]">{{ $any(feedback.answers).mentalEffort }}/10</div>
+                      <div class="text-[12px] text-[#e5e7eb]">
+                        {{ $any(feedback.answers).mentalEffort }}/10
+                      </div>
                     </div>
                   </div>
 
@@ -333,7 +442,10 @@
         }
 
         @if (!loadingFeedbacks && allFeedbacks.length === 0) {
-          <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] text-[13px] text-[#9ca3af]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+          <div
+            class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] text-[13px] text-[#9ca3af]"
+            style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+          >
             <div class="text-[14px] font-semibold text-[#f9fafb] mb-2">Feedbacks recibidos</div>
             No hay feedbacks registrados para esta planificación aún.
           </div>
@@ -344,25 +456,38 @@
       @if (blocks.length > 0) {
         <div class="space-y-4">
           @for (block of blocks; track block.id; let i = $index) {
-            <div class="bg-[#020617] rounded-lg border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+            <div
+              class="bg-[#020617] rounded-lg border border-[#1f2937]"
+              style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+            >
               <!-- Header de la sesión (clickable para colapsar) -->
-              <div class="flex flex-wrap items-center justify-between gap-3 p-5 cursor-pointer hover:bg-[#0f172a] transition-colors rounded-t-lg"
-                   (click)="toggleSession(block.id)">
+              <div
+                class="flex flex-wrap items-center justify-between gap-3 p-5 cursor-pointer hover:bg-[#0f172a] transition-colors rounded-t-lg"
+                (click)="toggleSession(block.id)"
+              >
                 <div class="flex items-center gap-3">
                   <div class="w-10 h-10 rounded-lg flex items-center justify-center bg-blue-500/20">
                     <i class="pi pi-calendar text-lg text-blue-400"></i>
                   </div>
                   <div>
                     <div class="text-[14px] font-semibold text-[#f9fafb]">Sesión {{ i + 1 }}</div>
-                    <div class="text-[12px] text-[#9ca3af]">{{ block.exercises?.length || 0 }} ejercicio{{ (block.exercises?.length || 0) !== 1 ? 's' : '' }}</div>
+                    <div class="text-[12px] text-[#9ca3af]">
+                      {{ block.exercises?.length || 0 }} ejercicio{{
+                        (block.exercises?.length || 0) !== 1 ? 's' : ''
+                      }}
+                    </div>
                   </div>
                 </div>
                 <div class="flex items-center gap-3">
-                  <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2 text-[13px] text-[#e5e7eb]">
+                  <div
+                    class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2 text-[13px] text-[#e5e7eb]"
+                  >
                     {{ block.durationMin }} min
                   </div>
-                  <i class="pi text-[#9ca3af]" 
-                     [ngClass]="isSessionCollapsed(block.id) ? 'pi-chevron-down' : 'pi-chevron-up'"></i>
+                  <i
+                    class="pi text-[#9ca3af]"
+                    [ngClass]="isSessionCollapsed(block.id) ? 'pi-chevron-down' : 'pi-chevron-up'"
+                  ></i>
                 </div>
               </div>
 
@@ -374,27 +499,37 @@
                       <span class="font-medium">Enfoque:</span> {{ block.focus }}
                     </div>
                   }
-                  
+
                   @if (block.exercises && block.exercises.length > 0) {
                     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
                       @for (ex of block.exercises; track ex.id) {
-                        <div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4 hover:border-[#374151] transition-colors">
+                        <div
+                          class="rounded-lg border border-[#1f2937] bg-[#111827] p-4 hover:border-[#374151] transition-colors"
+                        >
                           <div class="flex items-start justify-between gap-3">
                             <div class="flex-1 min-w-0">
-                              <div class="text-[13px] font-semibold text-[#f9fafb] truncate">{{ ex.name }}</div>
+                              <div class="text-[13px] font-semibold text-[#f9fafb] truncate">
+                                {{ ex.name }}
+                              </div>
                               @if (ex.type) {
-                                <p-tag [value]="ex.type" severity="secondary" styleClass="mt-2 text-[10px]"></p-tag>
+                                <p-tag
+                                  [value]="ex.type"
+                                  severity="secondary"
+                                  styleClass="mt-2 text-[10px]"
+                                ></p-tag>
                               }
                             </div>
                             <div class="flex items-center gap-2 flex-shrink-0">
                               @if (ex.durationMin) {
-                                <div class="text-[12px] text-[#e5e7eb]">{{ ex.durationMin }} min</div>
+                                <div class="text-[12px] text-[#e5e7eb]">
+                                  {{ ex.durationMin }} min
+                                </div>
                               }
-                              <button 
-                                type="button" 
-                                pButton 
-                                icon="pi pi-eye" 
-                                class="p-button-text p-button-sm p-button-rounded" 
+                              <button
+                                type="button"
+                                pButton
+                                icon="pi pi-eye"
+                                class="p-button-text p-button-sm p-button-rounded"
                                 (click)="openExercisePreview(ex); $event.stopPropagation()"
                                 pTooltip="Ver detalles"
                                 tooltipPosition="top"
@@ -415,7 +550,10 @@
       }
 
       @if (blocks.length === 0) {
-        <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] text-center text-[13px] text-[#9ca3af]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+        <div
+          class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] text-center text-[13px] text-[#9ca3af]"
+          style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+        >
           No hay ejercicios configurados en esta versión.
         </div>
       }
@@ -435,14 +573,22 @@
       <div class="space-y-5">
         <!-- Descripción destacada -->
         @if (selectedExercise.description) {
-          <div class="rounded-lg bg-gradient-to-br from-blue-950/40 to-purple-950/40 border border-blue-800/30 p-4">
+          <div
+            class="rounded-lg bg-gradient-to-br from-blue-950/40 to-purple-950/40 border border-blue-800/30 p-4"
+          >
             <div class="flex items-start gap-3">
-              <div class="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center">
+              <div
+                class="flex-shrink-0 w-8 h-8 rounded-lg bg-blue-600/20 flex items-center justify-center"
+              >
                 <i class="pi pi-info-circle text-blue-400 text-sm"></i>
               </div>
               <div class="flex-1">
-                <label class="block text-[12px] font-semibold text-blue-300 mb-1">Descripción</label>
-                <p class="text-[13px] text-[#e5e7eb] leading-relaxed">{{ selectedExercise.description }}</p>
+                <label class="block text-[12px] font-semibold text-blue-300 mb-1"
+                  >Descripción</label
+                >
+                <p class="text-[13px] text-[#e5e7eb] leading-relaxed">
+                  {{ selectedExercise.description }}
+                </p>
               </div>
             </div>
           </div>
@@ -451,30 +597,53 @@
         <!-- Información básica con iconos -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
           @if (selectedExercise.type) {
-            <div class="rounded-lg bg-[#111827] border border-[#1f2937] p-4 hover:border-blue-800/50 transition-colors">
+            <div
+              class="rounded-lg bg-[#111827] border border-[#1f2937] p-4 hover:border-blue-800/50 transition-colors"
+            >
               <div class="flex items-center gap-2 mb-2">
                 <i class="pi pi-tag text-blue-400 text-xs"></i>
-                <label class="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wide">Tipo</label>
+                <label class="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wide"
+                  >Tipo</label
+                >
               </div>
-              <p-tag [value]="selectedExercise.type" severity="info" styleClass="text-[11px] w-full"></p-tag>
+              <p-tag
+                [value]="selectedExercise.type"
+                severity="info"
+                styleClass="text-[11px] w-full"
+              ></p-tag>
             </div>
           }
           @if (selectedExercise.phase) {
-            <div class="rounded-lg bg-[#111827] border border-[#1f2937] p-4 hover:border-purple-800/50 transition-colors">
+            <div
+              class="rounded-lg bg-[#111827] border border-[#1f2937] p-4 hover:border-purple-800/50 transition-colors"
+            >
               <div class="flex items-center gap-2 mb-2">
                 <i class="pi pi-calendar text-purple-400 text-xs"></i>
-                <label class="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wide">Fase</label>
+                <label class="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wide"
+                  >Fase</label
+                >
               </div>
-              <p-tag [value]="selectedExercise.phase" severity="secondary" styleClass="text-[11px] w-full"></p-tag>
+              <p-tag
+                [value]="translatePhase(selectedExercise.phase)"
+                severity="secondary"
+                styleClass="text-[11px] w-full"
+              ></p-tag>
             </div>
           }
           @if (selectedExercise.durationMin) {
-            <div class="rounded-lg bg-[#111827] border border-[#1f2937] p-4 hover:border-green-800/50 transition-colors">
+            <div
+              class="rounded-lg bg-[#111827] border border-[#1f2937] p-4 hover:border-green-800/50 transition-colors"
+            >
               <div class="flex items-center gap-2 mb-2">
                 <i class="pi pi-clock text-green-400 text-xs"></i>
-                <label class="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wide">Duración</label>
+                <label class="text-[11px] font-semibold text-[#9ca3af] uppercase tracking-wide"
+                  >Duración</label
+                >
               </div>
-              <p class="text-[14px] font-semibold text-[#f9fafb]">{{ selectedExercise.durationMin }} <span class="text-[12px] text-[#9ca3af] font-normal">minutos</span></p>
+              <p class="text-[14px] font-semibold text-[#f9fafb]">
+                {{ selectedExercise.durationMin }}
+                <span class="text-[12px] text-[#9ca3af] font-normal">minutos</span>
+              </p>
             </div>
           }
         </div>
@@ -495,12 +664,16 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               @for (key of getDifficultyKeys(); track key) {
-                <div class="rounded-lg bg-[#111827] border border-[#1f2937] p-3 hover:border-yellow-800/50 transition-colors">
+                <div
+                  class="rounded-lg bg-[#111827] border border-[#1f2937] p-3 hover:border-yellow-800/50 transition-colors"
+                >
                   <div class="flex items-center justify-between">
-                    <span class="text-[13px] font-medium text-[#e5e7eb]">{{ getDifficultyLabel(key) }}</span>
+                    <span class="text-[13px] font-medium text-[#e5e7eb]">{{
+                      getDifficultyLabel(key)
+                    }}</span>
                     <div class="flex gap-1">
-                      @for (i of [1,2,3,4,5]; track i) {
-                        <div 
+                      @for (i of [1, 2, 3, 4, 5]; track i) {
+                        <div
                           class="w-7 h-7 rounded-md flex items-center justify-center text-[11px] font-bold transition-all"
                           [class.bg-gradient-to-br]="i <= getDifficultyValue(key)"
                           [class.from-yellow-500]="i <= getDifficultyValue(key)"
@@ -527,13 +700,17 @@
             <div class="flex items-center gap-2 mb-3">
               <i class="pi pi-box text-cyan-400"></i>
               <label class="text-[13px] font-semibold text-[#f9fafb]">Materiales necesarios</label>
-              <span class="ml-auto px-2 py-0.5 rounded-full bg-cyan-500/10 text-[11px] text-cyan-400 font-semibold">
+              <span
+                class="ml-auto px-2 py-0.5 rounded-full bg-cyan-500/10 text-[11px] text-cyan-400 font-semibold"
+              >
                 {{ selectedExercise.equipment.length }}
               </span>
             </div>
             <div class="flex flex-wrap gap-2">
               @for (item of selectedExercise.equipment; track item) {
-                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-950/50 to-blue-950/50 border border-cyan-800/30 hover:border-cyan-600/50 transition-colors">
+                <div
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-950/50 to-blue-950/50 border border-cyan-800/30 hover:border-cyan-600/50 transition-colors"
+                >
                   <i class="pi pi-check-circle text-cyan-400 text-xs"></i>
                   <span class="text-[12px] text-[#e5e7eb] font-medium">{{ item }}</span>
                 </div>

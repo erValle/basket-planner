@@ -27,48 +27,49 @@ async function checkAndReactivateExercises(materialName, clubId) {
   try {
     // Obtener todos los materiales disponibles del club
     const allEquipment = await Equipment.findAll({
-      where: { clubId, status: 'available' }
+      where: { clubId, status: 'available' },
     });
-    
-    const availableMaterials = allEquipment.map(e => normalizeMaterialName(e.name));
-    
+
+    const availableMaterials = allEquipment.map((e) => normalizeMaterialName(e.name));
+
     // Obtener ejercicios inactivos del club
     const inactiveExercises = await Exercise.findAll({
       where: {
         clubId,
-        active: false
-      }
+        active: false,
+      },
     });
-    
+
     let reactivated = 0;
-    
+
     for (const exercise of inactiveExercises) {
       const characteristics = exercise.characteristics || {};
       const requiredMaterials = characteristics.requiredEquipment || [];
-      
+
       if (requiredMaterials.length === 0) {
         // No requiere material específico, puede reactivarse
         await exercise.update({ active: true });
         reactivated++;
         continue;
       }
-      
+
       // Verificar si ahora tiene todos los materiales
-      const hasAllMaterials = requiredMaterials.every(required => {
+      const hasAllMaterials = requiredMaterials.every((required) => {
         const normalizedRequired = normalizeMaterialName(required);
-        return availableMaterials.some(available => 
-          available === normalizedRequired || 
-          available.includes(normalizedRequired) || 
-          normalizedRequired.includes(available)
+        return availableMaterials.some(
+          (available) =>
+            available === normalizedRequired ||
+            available.includes(normalizedRequired) ||
+            normalizedRequired.includes(available)
         );
       });
-      
+
       if (hasAllMaterials) {
         await exercise.update({ active: true });
         reactivated++;
       }
     }
-    
+
     return reactivated;
   } catch (error) {
     console.error('Error checking exercises for reactivation:', error);
@@ -78,17 +79,17 @@ async function checkAndReactivateExercises(materialName, clubId) {
 
 const listEquipment = async ({ clubId, userClubIds } = {}) => {
   const where = {};
-  
+
   // Si se especifica un clubId específico, usarlo
   if (clubId) {
     where.clubId = clubId;
-  } 
+  }
   // Si se especifican userClubIds (para filtrar por clubes del usuario), usarlos
   else if (userClubIds && userClubIds.length > 0) {
     const { Op } = require('sequelize');
     where.clubId = { [Op.in]: userClubIds };
   }
-  
+
   return Equipment.findAll({ where });
 };
 
@@ -102,26 +103,26 @@ const getEquipmentById = async (id) => {
 
 const createEquipment = async (payload) => {
   const item = await Equipment.create(payload);
-  
+
   // Si el material está disponible, verificar ejercicios que podrían reactivarse
   if (item.status === 'available' && item.clubId) {
     await checkAndReactivateExercises(item.name, item.clubId);
   }
-  
+
   return item;
 };
 
 const updateEquipment = async (id, payload) => {
   const item = await getEquipmentById(id);
   const wasUnavailable = item.status !== 'available';
-  
+
   await item.update(payload);
-  
+
   // Si el material pasó a disponible, verificar ejercicios que podrían reactivarse
   if (wasUnavailable && item.status === 'available' && item.clubId) {
     await checkAndReactivateExercises(item.name, item.clubId);
   }
-  
+
   return item;
 };
 

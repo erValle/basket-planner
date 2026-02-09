@@ -50,9 +50,7 @@ describe('API Authentication', () => {
     });
 
     it('returns 401 with malformed authorization header', async () => {
-      const response = await request(app)
-        .get('/api/users')
-        .set('Authorization', 'NotBearer token');
+      const response = await request(app).get('/api/users').set('Authorization', 'NotBearer token');
       expect(response.status).toBe(401);
     });
   });

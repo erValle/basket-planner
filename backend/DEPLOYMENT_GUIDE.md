@@ -1,10 +1,10 @@
-# 🚀 Guía de Deployment - Modelo de Recomendación
+# Guía de Deployment - Modelo de Recomendación
 
 ## Pre-requisitos
 
-- ✅ Base de datos PostgreSQL configurada
-- ✅ Node.js v24.x instalado
-- ✅ Variables de entorno configuradas en `.env`
+- Base de datos PostgreSQL configurada
+- Node.js v24.x instalado
+- Variables de entorno configuradas en `.env`
 
 ## Pasos para Deployment
 
@@ -29,7 +29,7 @@ npx sequelize-cli db:seed --seed 20260105000000-seed-basketball-exercises.js
 
 **Resultado esperado:**
 ```
-✅ Insertados 102 ejercicios
+Insertados 102 ejercicios
 ```
 
 ### 4. Verificar la Instalación
@@ -42,13 +42,13 @@ node src/recommender/test-recommender.js
 
 **Resultado esperado:**
 ```
-🧪 Iniciando prueba del modelo de recomendación...
-✅ Modelo activo: rec-0.1.0-baseline
-✅ Ejercicios cargados: 102
+Iniciando prueba del modelo de recomendación...
+Modelo activo: rec-0.1.0-baseline
+Ejercicios cargados: 102
 📋 Prueba 1: Planificación individual - Foco en tiro
-   Sesiones generadas: 3
-   ...
-✅ Todas las pruebas completadas exitosamente!
+  Sesiones generadas: 3
+  ...
+Todas las pruebas completadas exitosamente!
 ```
 
 ### 5. Ver Ejemplos de Uso
@@ -186,7 +186,7 @@ npx sequelize-cli db:seed:undo --seed 20260105000000-seed-basketball-exercises.j
 # El sistema seguirá funcionando usando el JSON como fallback
 ```
 
-## Checklist de Deployment ✅
+## Checklist de Deployment
 
 - [ ] Migraciones ejecutadas
 - [ ] Seeder de ejercicios ejecutado (102 ejercicios cargados)
@@ -207,4 +207,4 @@ Para problemas o preguntas:
 
 **Versión del Modelo:** rec-0.1.0-baseline  
 **Fecha de Deployment:** 5 de enero de 2026  
-**Status:** ✅ Producción Ready
+**Status:** Producción Ready

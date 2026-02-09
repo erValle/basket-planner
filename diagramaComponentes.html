@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Diagramas de Componentes - Basket Planner</title>
+
+  <!-- Mermaid (CDN). Si lo quieres offline, descarga el JS y apunta a un fichero local. -->
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "base",
+      flowchart: { curve: "linear" },
+      themeVariables: {
+        fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+        primaryColor: "#FFF3C7",     /* cajas principales (amarillo claro) */
+        primaryTextColor: "#1B1B1B",
+        primaryBorderColor: "#2B2B2B",
+        lineColor: "#7A1E1E",        /* conectores (rojo oscuro similar a la captura) */
+        tertiaryColor: "#FFF9DD"     /* fondos secundarios */
+      }
+    });
+  </script>
+
+  <style>
+    :root{
+      --bg: #fbfbfb;
+      --card: #ffffff;
+      --border: #e5e5e5;
+      --shadow: 0 6px 18px rgba(0,0,0,.06);
+    }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:#111;
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    header{
+      padding:24px 18px 10px;
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+    header h1{
+      margin:0 0 6px;
+      font-size: 22px;
+      letter-spacing:.2px;
+    }
+    header p{
+      margin:0;
+      color:#444;
+      font-size:14px;
+    }
+    main{
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 8px 18px 30px;
+      display:grid;
+      gap: 16px;
+    }
+    section{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      box-shadow: var(--shadow);
+      padding: 14px 14px 6px;
+    }
+    section h2{
+      margin: 0 0 10px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    details{
+      border-top:1px dashed #ddd;
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    summary{
+      cursor:pointer;
+      user-select:none;
+      font-weight:700;
+      margin-bottom: 10px;
+    }
+    .mermaid{
+      overflow:auto;
+      padding: 6px 0 14px;
+    }
+    .note{
+      font-size: 12px;
+      color:#555;
+      margin: 8px 0 0;
+    }
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>Diagramas de Componentes (global + 5 iteraciones)</h1>
+  <p>Formato tipo “subsystem design” con artefactos &lt;&lt;file&gt;&gt;, &lt;&lt;table&gt;&gt; y &lt;&lt;exe&gt;&gt;, similar al ejemplo aportado.</p>
+</header>
+
+<main>
+  <!-- ========================= -->
+  <!-- DIAGRAMA GLOBAL           -->
+  <!-- ========================= -->
+  <section>
+    <h2>Diagrama global de componentes</h2>
+
+    <div class="mermaid">
+flowchart LR
+
+%% ======= Leyenda de estilos =======
+classDef file fill:#FFF9DD,stroke:#2B2B2B,stroke-width:1px;
+classDef table fill:#FFF1C7,stroke:#2B2B2B,stroke-width:1px;
+classDef exe fill:#FFE8A6,stroke:#2B2B2B,stroke-width:1px;
+classDef ext fill:#F3F3F3,stroke:#2B2B2B,stroke-width:1px,stroke-dasharray: 4 3;
+
+%% ======= FRONTEND =======
+subgraph FE["<<subsystem design>>\nFrontend (Angular SPA)"]
+direction TB
+FE_login["<<file>>\nlogin.html + login.ts"]:::file
+FE_users["<<file>>\nadmin-users.html + admin-users.ts"]:::file
+FE_clubs["<<file>>\nclubs.html + clubs.ts"]:::file
+FE_teams["<<file>>\nteams.html + teams.ts"]:::file
+FE_players["<<file>>\nplayers.html + players.ts"]:::file
+FE_exercises["<<file>>\nexercises.html + exercises.ts"]:::file
+FE_material["<<file>>\nmaterial.html + material.ts"]:::file
+FE_planning["<<file>>\nplanning.html + planning.ts"]:::file
+FE_monitor["<<file>>\nmonitoring.html + monitoring.ts"]:::file
+end
+
+%% ======= BACKEND =======
+subgraph BE["<<subsystem design>>\nBackend (Node.js + Express)"]
+direction TB
+
+subgraph BE_authusers["<<subsystem design>>\nMódulo Auth + Users"]
+direction TB
+BE_auth_ctrl["<<file>>\nauthController.js"]:::file
+BE_auth_srv["<<file>>\nauthService.js"]:::file
+BE_users_ctrl["<<file>>\nuserController.js"]:::file
+BE_users_srv["<<file>>\nuserService.js"]:::file
+end
+
+subgraph BE_clubsteam["<<subsystem design>>\nMódulo Clubs + Teams"]
+direction TB
+BE_club_ctrl["<<file>>\nclubController.js"]:::file
+BE_club_srv["<<file>>\nclubService.js"]:::file
+BE_team_ctrl["<<file>>\nteamController.js"]:::file
+BE_team_srv["<<file>>\nteamService.js"]:::file
+end
+
+subgraph BE_playersm["<<subsystem design>>\nMódulo Players + Relaciones"]
+direction TB
+BE_player_ctrl["<<file>>\nplayersController.js"]:::file
+BE_player_srv["<<file>>\nplayersService.js"]:::file
+BE_userclub_ctrl["<<file>>\nuserClubController.js"]:::file
+BE_userclub_srv["<<file>>\nuserClubService.js"]:::file
+BE_teamplayers_ctrl["<<file>>\nteamPlayersController.js"]:::file
+BE_teamplayers_srv["<<file>>\nteamPlayersService.js"]:::file
+end
+
+subgraph BE_catalog["<<subsystem design>>\nMódulo Exercises + Equipment"]
+direction TB
+BE_ex_ctrl["<<file>>\nexerciseController.js"]:::file
+BE_ex_srv["<<file>>\nexerciseService.js"]:::file
+BE_eq_ctrl["<<file>>\nequipmentController.js"]:::file
+BE_eq_srv["<<file>>\nequipmentService.js"]:::file
+BE_exeq_ctrl["<<file>>\nexerciseEquipmentController.js"]:::file
+BE_exeq_srv["<<file>>\nexerciseEquipmentService.js"]:::file
+end
+
+subgraph BE_planningm["<<subsystem design>>\nMódulo Training Plans"]
+direction TB
+BE_tp_ctrl["<<file>>\ntrainingPlanController.js"]:::file
+BE_tp_srv["<<file>>\ntrainingPlanService.js"]:::file
+BE_tpv_ctrl["<<file>>\ntrainingPlanVersionController.js"]:::file
+BE_tpv_srv["<<file>>\ntrainingPlanVersionService.js"]:::file
+BE_assign_ctrl["<<file>>\nplanAssignmentController.js"]:::file
+BE_assign_srv["<<file>>\nplanAssignmentService.js"]:::file
+BE_gen_ctrl["<<file>>\nplanningGenerationController.js"]:::file
+BE_gen_srv["<<file>>\nplanningGenerationService.js"]:::file
+end
+
+subgraph BE_rec["<<subsystem design>>\nMódulo Recommender"]
+direction TB
+BE_rec_ctrl["<<file>>\nrecommenderController.js"]:::file
+BE_rec_srv["<<file>>\nrecommenderService.js"]:::file
+BE_model["<<exe>>\nTwo-Tower + Heurístico\n(@tensorflow/tfjs)"]:::exe
+BE_saved["<<file>>\n/saved_model/*"]:::file
+end
+
+subgraph BE_obs["<<subsystem design>>\nMódulo Monitoring + Metrics + Audit + Feedback"]
+direction TB
+BE_mon_ctrl["<<file>>\nmonitoringController.js"]:::file
+BE_mon_srv["<<file>>\nmonitoringService.js"]:::file
+BE_met_ctrl["<<file>>\nmetricController.js"]:::file
+BE_met_srv["<<file>>\nmetricService.js"]:::file
+BE_aud_ctrl["<<file>>\nauditLogController.js"]:::file
+BE_aud_srv["<<file>>\nauditLogService.js"]:::file
+BE_fb_ctrl["<<file>>\nfeedbackController.js"]:::file
+BE_fb_srv["<<file>>\nfeedbackService.js"]:::file
+end
+
+end
+
+%% ======= DB =======
+subgraph DB["<<subsystem design>>\nPostgreSQL (Sequelize ORM)"]
+direction TB
+T_users["<<table>>\nusers"]:::table
+T_clubs["<<table>>\nclubs"]:::table
+T_teams["<<table>>\nteams"]:::table
+T_userclubs["<<table>>\nuser_clubs"]:::table
+T_teamplayers["<<table>>\nteam_players"]:::table
+T_exercises["<<table>>\nexercises"]:::table
+T_equipment["<<table>>\nequipment"]:::table
+T_exeq["<<table>>\nexercise_equipment"]:::table
+T_plans["<<table>>\ntraining_plans"]:::table
+T_planv["<<table>>\ntraining_plan_versions"]:::table
+T_assign["<<table>>\nplan_assignments"]:::table
+T_feedback["<<table>>\nfeedback"]:::table
+T_metrics["<<table>>\nmetrics"]:::table
+T_audit["<<table>>\naudit_logs"]:::table
+end
+
+%% ======= Dependencias Front -> Back =======
+FE_login --> BE_auth_ctrl
+FE_users --> BE_users_ctrl
+FE_clubs --> BE_club_ctrl
+FE_teams --> BE_team_ctrl
+FE_players --> BE_player_ctrl
+FE_exercises --> BE_ex_ctrl
+FE_material --> BE_eq_ctrl
+FE_planning --> BE_gen_ctrl
+FE_monitor --> BE_mon_ctrl
+FE_planning --> BE_fb_ctrl
+
+%% ======= Back: controladores -> servicios =======
+BE_auth_ctrl --> BE_auth_srv
+BE_users_ctrl --> BE_users_srv
+BE_club_ctrl --> BE_club_srv
+BE_team_ctrl --> BE_team_srv
+BE_player_ctrl --> BE_player_srv
+BE_userclub_ctrl --> BE_userclub_srv
+BE_teamplayers_ctrl --> BE_teamplayers_srv
+BE_ex_ctrl --> BE_ex_srv
+BE_eq_ctrl --> BE_eq_srv
+BE_exeq_ctrl --> BE_exeq_srv
+
+BE_tp_ctrl --> BE_tp_srv
+BE_tpv_ctrl --> BE_tpv_srv
+BE_assign_ctrl --> BE_assign_srv
+BE_gen_ctrl --> BE_gen_srv
+
+BE_mon_ctrl --> BE_mon_srv
+BE_met_ctrl --> BE_met_srv
+BE_aud_ctrl --> BE_aud_srv
+BE_fb_ctrl --> BE_fb_srv
+
+BE_rec_ctrl --> BE_rec_srv
+
+%% ======= Back: servicios -> BD =======
+BE_auth_srv --> T_users
+BE_users_srv --> T_users
+
+BE_club_srv --> T_clubs
+BE_team_srv --> T_teams
+BE_team_srv --> T_clubs
+
+BE_player_srv --> T_users
+BE_userclub_srv --> T_userclubs
+BE_userclub_srv --> T_clubs
+BE_teamplayers_srv --> T_teamplayers
+BE_teamplayers_srv --> T_teams
+BE_teamplayers_srv --> T_users
+
+BE_ex_srv --> T_exercises
+BE_eq_srv --> T_equipment
+BE_exeq_srv --> T_exeq
+BE_exeq_srv --> T_exercises
+BE_exeq_srv --> T_equipment
+
+BE_tp_srv --> T_plans
+BE_tpv_srv --> T_planv
+BE_assign_srv --> T_assign
+BE_assign_srv --> T_plans
+BE_assign_srv --> T_users
+BE_gen_srv --> T_plans
+BE_gen_srv --> T_exercises
+
+BE_fb_srv --> T_feedback
+BE_met_srv --> T_metrics
+BE_aud_srv --> T_audit
+
+%% ======= Recommender =======
+BE_gen_srv --> BE_rec_srv
+BE_rec_srv --> BE_model
+BE_model --> BE_saved
+BE_rec_srv --> T_exercises
+
+%% ======= Observabilidad consulta estado recomendador =======
+BE_mon_srv --> BE_rec_srv
+    </div>
+
+    <p class="note">Nota: El diagrama global resume dependencias por dominio funcional (Auth/Users, Clubs/Teams, Players, Catálogo, TrainingPlans, Recommender, Observabilidad).</p>
+  </section>
+
+  <!-- ========================= -->
+  <!-- ITERACIÓN 1               -->
+  <!-- ========================= -->
+  <section>
+    <h2>Diagrama por módulo — Iteración 1 (Auth + Users)</h2>
+    <div class="mermaid">
+flowchart LR
+classDef file fill:#FFF9DD,stroke:#2B2B2B,stroke-width:1px;
+classDef table fill:#FFF1C7,stroke:#2B2B2B,stroke-width:1px;
+
+subgraph I1_FE["<<subsystem design>>\nFrontend - Autenticación y Usuarios"]
+direction TB
+I1_login["<<file>>\nlogin.html\nlogin.ts"]:::file
+I1_adminUsers["<<file>>\nadmin-users.html\nadmin-users.ts"]:::file
+end
+
+subgraph I1_BE["<<subsystem design>>\nBackend - Auth + Users (Express)"]
+direction TB
+I1_authCtrl["<<file>>\nauthController.js"]:::file
+I1_authSrv["<<file>>\nauthService.js"]:::file
+I1_userCtrl["<<file>>\nuserController.js"]:::file
+I1_userSrv["<<file>>\nuserService.js"]:::file
+end
+
+subgraph I1_DB["<<subsystem design>>\nBase de Datos"]
+direction TB
+I1_userDB["<<table>>\nuser.db / users"]:::table
+end
+
+I1_login --> I1_authCtrl --> I1_authSrv --> I1_userDB
+I1_adminUsers --> I1_userCtrl --> I1_userSrv --> I1_userDB
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- ITERACIÓN 2               -->
+  <!-- ========================= -->
+  <section>
+    <h2>Diagrama por módulo — Iteración 2 (Clubs + Teams)</h2>
+    <div class="mermaid">
+flowchart LR
+classDef file fill:#FFF9DD,stroke:#2B2B2B,stroke-width:1px;
+classDef table fill:#FFF1C7,stroke:#2B2B2B,stroke-width:1px;
+classDef ext fill:#F3F3F3,stroke:#2B2B2B,stroke-width:1px,stroke-dasharray: 4 3;
+
+subgraph I2_FE["<<subsystem design>>\nFrontend - Clubs y Teams"]
+direction TB
+I2_clubs["<<file>>\nclubs.html\nclubs.ts"]:::file
+I2_teams["<<file>>\nteams.html\nteams.ts"]:::file
+end
+
+subgraph I2_BE["<<subsystem design>>\nBackend - Clubs + Teams"]
+direction TB
+I2_clubCtrl["<<file>>\nclubController.js"]:::file
+I2_clubSrv["<<file>>\nclubService.js"]:::file
+I2_teamCtrl["<<file>>\nteamController.js"]:::file
+I2_teamSrv["<<file>>\nteamService.js"]:::file
+I2_acl["<<file>>\n(requireAnyRole)\ncontrol de acceso por rol"]:::file
+end
+
+subgraph I2_DB["<<subsystem design>>\nBase de Datos"]
+direction TB
+I2_clubDB["<<table>>\nclub.db / clubs"]:::table
+I2_teamDB["<<table>>\nteam.db / teams"]:::table
+I2_userDBv2["<<table>>\nuser.db_v2 / users"]:::table
+end
+
+I2_clubs --> I2_clubCtrl --> I2_clubSrv --> I2_clubDB
+I2_teams --> I2_teamCtrl --> I2_teamSrv --> I2_teamDB
+
+I2_clubCtrl --> I2_acl --> I2_userDBv2
+I2_teamCtrl --> I2_acl
+I2_teamSrv --> I2_clubDB
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- ITERACIÓN 3               -->
+  <!-- ========================= -->
+  <section>
+    <h2>Diagrama por módulo — Iteración 3 (Players + Historial/Transferencias)</h2>
+    <div class="mermaid">
+flowchart LR
+classDef file fill:#FFF9DD,stroke:#2B2B2B,stroke-width:1px;
+classDef table fill:#FFF1C7,stroke:#2B2B2B,stroke-width:1px;
+classDef ext fill:#F3F3F3,stroke:#2B2B2B,stroke-width:1px,stroke-dasharray: 4 3;
+
+subgraph I3_FE["<<subsystem design>>\nFrontend - Players"]
+direction TB
+I3_players["<<file>>\nplayers.html\nplayers.ts"]:::file
+end
+
+subgraph I3_BE["<<subsystem design>>\nBackend - Players + Relaciones"]
+direction TB
+I3_playerCtrl["<<file>>\nplayersController.js"]:::file
+I3_playerSrv["<<file>>\nplayersService.js"]:::file
+
+I3_userClubCtrl["<<file>>\nuserClubController.js"]:::file
+I3_userClubSrv["<<file>>\nuserClubService.js"]:::file
+
+I3_teamPlayersCtrl["<<file>>\nteamPlayersController.js"]:::file
+I3_teamPlayersSrv["<<file>>\nteamPlayersService.js"]:::file
+end
+
+subgraph I3_DB["<<subsystem design>>\nBase de Datos"]
+direction TB
+I3_userDBv3["<<table>>\nuser.db_v3 / users"]:::table
+I3_userClubDB["<<table>>\nuserClub.db / user_clubs"]:::table
+I3_teamPlayersDB["<<table>>\nteamPlayers.db / team_players"]:::table
+I3_clubsTeamsRef["<<table>>\n(Refs)\nclubs + teams"]:::ext
+end
+
+I3_players --> I3_playerCtrl --> I3_playerSrv --> I3_userDBv3
+
+I3_playerSrv --> I3_userClubCtrl --> I3_userClubSrv --> I3_userClubDB
+I3_playerSrv --> I3_teamPlayersCtrl --> I3_teamPlayersSrv --> I3_teamPlayersDB
+
+I3_userClubSrv --> I3_clubsTeamsRef
+I3_teamPlayersSrv --> I3_clubsTeamsRef
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- ITERACIÓN 4               -->
+  <!-- ========================= -->
+  <section>
+    <h2>Diagrama por módulo — Iteración 4 (Exercises + Material/Equipment)</h2>
+    <div class="mermaid">
+flowchart LR
+classDef file fill:#FFF9DD,stroke:#2B2B2B,stroke-width:1px;
+classDef table fill:#FFF1C7,stroke:#2B2B2B,stroke-width:1px;
+
+subgraph I4_FE["<<subsystem design>>\nFrontend - Catálogo"]
+direction TB
+I4_ex["<<file>>\nexercises.html\nexercises.ts"]:::file
+I4_mat["<<file>>\nmaterial.html\nmaterial.ts"]:::file
+end
+
+subgraph I4_BE["<<subsystem design>>\nBackend - Exercises + Material"]
+direction TB
+I4_exCtrl["<<file>>\nexerciseController.js"]:::file
+I4_exSrv["<<file>>\nexerciseService.js"]:::file
+I4_matCtrl["<<file>>\nmaterialController.js"]:::file
+I4_matSrv["<<file>>\nmaterialService.js"]:::file
+I4_link["<<file>>\nexerciseEquipmentController.js\nexerciseEquipmentService.js"]:::file
+end
+
+subgraph I4_DB["<<subsystem design>>\nBase de Datos"]
+direction TB
+I4_exDB["<<table>>\nexercise.db / exercises"]:::table
+I4_matDB["<<table>>\nmaterial.db / equipment"]:::table
+I4_linkDB["<<table>>\nexercise_equipment"]:::table
+I4_clubDBv2["<<table>>\nclub.db_v2 / clubs"]:::table
+end
+
+I4_ex --> I4_exCtrl --> I4_exSrv --> I4_exDB
+I4_mat --> I4_matCtrl --> I4_matSrv --> I4_matDB
+
+I4_exSrv --> I4_link --> I4_linkDB
+I4_matSrv --> I4_link
+
+I4_exSrv --> I4_clubDBv2
+I4_matSrv --> I4_clubDBv2
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- ITERACIÓN 5               -->
+  <!-- ========================= -->
+  <section>
+    <h2>Diagrama por módulo — Iteración 5 (Planning + Feedback + Monitoring + Recommender)</h2>
+    <div class="mermaid">
+flowchart LR
+classDef file fill:#FFF9DD,stroke:#2B2B2B,stroke-width:1px;
+classDef table fill:#FFF1C7,stroke:#2B2B2B,stroke-width:1px;
+classDef exe fill:#FFE8A6,stroke:#2B2B2B,stroke-width:1px;
+
+subgraph I5_FE["<<subsystem design>>\nFrontend - Planning/Monitoring"]
+direction TB
+I5_planning["<<file>>\nplanning.html\nplanning.ts"]:::file
+I5_monitor["<<file>>\nmonitoring.html\nmonitoring.ts"]:::file
+end
+
+subgraph I5_BE["<<subsystem design>>\nBackend - TrainingPlans + Feedback + Monitoring"]
+direction TB
+I5_tpCtrl["<<file>>\ntrainingPlanController.js"]:::file
+I5_tpSrv["<<file>>\ntrainingPlanService.js"]:::file
+
+I5_genCtrl["<<file>>\nplanningGenerationController.js"]:::file
+I5_genSrv["<<file>>\nplanningGenerationService.js"]:::file
+
+I5_fbCtrl["<<file>>\nfeedbackController.js"]:::file
+I5_fbSrv["<<file>>\nfeedbackService.js"]:::file
+
+I5_monCtrl["<<file>>\nmonitoringController.js"]:::file
+I5_monSrv["<<file>>\nmonitoringService.js"]:::file
+end
+
+subgraph I5_REC["<<subsystem design>>\nRecommender (híbrido)"]
+direction TB
+I5_recCtrl["<<file>>\nrecommenderController.js"]:::file
+I5_recSrv["<<file>>\nrecommenderService.js"]:::file
+I5_model["<<exe>>\nTwo-Tower + Heurístico"]:::exe
+I5_saved["<<file>>\n/saved_model/*"]:::file
+end
+
+subgraph I5_DB["<<subsystem design>>\nBase de Datos"]
+direction TB
+I5_trainingDB["<<table>>\ntrainingPlan.db /\n(training_plans + versions + assignments)"]:::table
+I5_feedbackDB["<<table>>\nfeedback.db / feedback"]:::table
+I5_monitorDB["<<table>>\nmonitoring.db / metrics"]:::table
+I5_exDBref["<<table>>\n(Ref)\nexercises"]:::table
+end
+
+%% FE -> BE
+I5_planning --> I5_genCtrl
+I5_planning --> I5_tpCtrl
+I5_planning --> I5_fbCtrl
+I5_monitor --> I5_monCtrl
+
+%% Controllers -> Services
+I5_tpCtrl --> I5_tpSrv --> I5_trainingDB
+I5_genCtrl --> I5_genSrv --> I5_trainingDB
+I5_fbCtrl --> I5_fbSrv --> I5_feedbackDB
+I5_monCtrl --> I5_monSrv --> I5_monitorDB
+
+%% Recommender integration
+I5_genSrv --> I5_recSrv
+I5_recCtrl --> I5_recSrv --> I5_model --> I5_saved
+I5_recSrv --> I5_exDBref
+
+%% Monitoring reads status
+I5_monSrv --> I5_recSrv
+    </div>
+  </section>
+</main>
+
+</body>
+</html>

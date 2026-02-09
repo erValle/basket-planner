@@ -62,15 +62,18 @@ async function computeBackendKpis({ from, to }) {
 
   // Count error-related actions (UNAUTHORIZED_ACCESS_ATTEMPT, etc.)
   const errorActions = ['UNAUTHORIZED_ACCESS_ATTEMPT'];
-  const errors = rows.filter((r) => 
-    errorActions.some(err => r.action.includes(err)) || 
-    r.action.includes('.error') || 
-    r.action.endsWith('.failed')
+  const errors = rows.filter(
+    (r) =>
+      errorActions.some((err) => r.action.includes(err)) ||
+      r.action.includes('.error') ||
+      r.action.endsWith('.failed')
   ).length;
 
   // Calculate days in range
   const startedAt = rows[0].createdAt ? new Date(rows[0].createdAt).getTime() : Date.now();
-  const endedAt = rows[rows.length - 1].createdAt ? new Date(rows[rows.length - 1].createdAt).getTime() : Date.now();
+  const endedAt = rows[rows.length - 1].createdAt
+    ? new Date(rows[rows.length - 1].createdAt).getTime()
+    : Date.now();
   const days = Math.max((endedAt - startedAt) / (1000 * 60 * 60 * 24), 1);
 
   return {
@@ -92,10 +95,14 @@ async function computeExportKpis({ from, to }) {
 
   const rows = await AuditLog.findAll({ where, attributes: ['action'] });
   const total = rows.length;
-  const failures = rows.filter((r) => typeof r.action === 'string' && (r.action.includes('.error') || r.action.endsWith('.failed'))).length;
+  const failures = rows.filter(
+    (r) =>
+      typeof r.action === 'string' && (r.action.includes('.error') || r.action.endsWith('.failed'))
+  ).length;
 
   // If range is absent, treat as "per day" = totals (we can't infer period).
-  const days = from && to ? Math.max((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24), 1) : 1;
+  const days =
+    from && to ? Math.max((to.getTime() - from.getTime()) / (1000 * 60 * 60 * 24), 1) : 1;
 
   return {
     exportsPerDay: Math.round((total / days) * 10) / 10,
@@ -151,62 +158,62 @@ router.post('/export.csv', async (req, res, next) => {
   try {
     const range = parseRange(req.body);
     const o = await computeOverview(range);
-    
+
     // Obtener datos reales del recomendador
     const modelInfo = getModelInfo();
     const config = getModelConfig();
-    
+
     // Estadísticas reales
     const totalPlans = await TrainingPlan.count();
     const totalExercises = await Exercise.count();
-    
+
     // Top ejercicios
     const versionsWithSessions = await TrainingPlanVersion.findAll({
       where: { sessions: { [Op.ne]: null } },
       attributes: ['id', 'sessions'],
-      limit: 100
+      limit: 100,
     });
-    
+
     const exerciseCounts = {};
-    versionsWithSessions.forEach(version => {
+    versionsWithSessions.forEach((version) => {
       const sessions = version.sessions?.sessions || [];
-      sessions.forEach(session => {
-        (session.blocks || []).forEach(block => {
-          (block.exercises || []).forEach(ex => {
+      sessions.forEach((session) => {
+        (session.blocks || []).forEach((block) => {
+          (block.exercises || []).forEach((ex) => {
             const name = ex.name || 'Sin nombre';
             exerciseCounts[name] = (exerciseCounts[name] || 0) + 1;
           });
         });
       });
     });
-    
+
     const topExercises = Object.entries(exerciseCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
       .map(([name, count]) => `${name} (${count})`);
-    
+
     // Top objetivos
     const plansWithGoals = await TrainingPlan.findAll({
       where: { goal: { [Op.ne]: null } },
-      attributes: ['goal']
+      attributes: ['goal'],
     });
-    
+
     const goalCounts = {};
-    plansWithGoals.forEach(plan => {
+    plansWithGoals.forEach((plan) => {
       if (plan.goal) {
         goalCounts[plan.goal] = (goalCounts[plan.goal] || 0) + 1;
       }
     });
-    
+
     const topGoals = Object.entries(goalCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
       .map(([goal, count]) => `${goal} (${count})`);
-    
+
     // Config del modelo
     const totalGoals = config?.goalToTags ? Object.keys(config.goalToTags).length : 0;
     const totalWeights = config?.weights ? Object.keys(config.weights).length : 0;
-    
+
     const exportDate = new Date().toISOString();
 
     // Escape CSV fields properly

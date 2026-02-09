@@ -1,9 +1,13 @@
 {
   "trainedAt": "2026-01-26T01:09:23.304Z",
+  "trainingType": "warm-start",
   "samples": 5000,
   "epochs": 6,
+  "durationSeconds": 124.4,
   "finalLoss": 0.005700426176190376,
   "finalValLoss": 0.003969293553382158,
+  "exerciseCount": 126,
+  "modelVersion": "1.0.0-tfrs",
   "scoringVersion": "3.0",
   "scoringRules": {
     "tagMatch": {

@@ -119,14 +119,16 @@ describe('userService', () => {
         status: 'active',
       });
 
-      expect(User.create).toHaveBeenCalledWith(expect.objectContaining({
-        email: 'new@test.com',
-        firstName: 'John',
-        lastName: 'Doe',
-        passwordHash: expect.any(String),
-        role: 'player',
-        status: 'active',
-      }));
+      expect(User.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'new@test.com',
+          firstName: 'John',
+          lastName: 'Doe',
+          passwordHash: expect.any(String),
+          role: 'player',
+          status: 'active',
+        })
+      );
       expect(result).toEqual(mockUser);
     });
 
@@ -176,7 +178,7 @@ describe('userService', () => {
         lastName: 'Name',
         role: 'player',
         status: 'active',
-        update: jest.fn().mockImplementation(function(updates) {
+        update: jest.fn().mockImplementation(function (updates) {
           Object.assign(this, updates);
           return Promise.resolve(this);
         }),
@@ -185,9 +187,11 @@ describe('userService', () => {
 
       const result = await userService.updateUser(1, { email: 'new@test.com' });
 
-      expect(mockUser.update).toHaveBeenCalledWith(expect.objectContaining({
-        email: 'new@test.com',
-      }));
+      expect(mockUser.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: 'new@test.com',
+        })
+      );
       expect(result.email).toBe('new@test.com');
     });
 

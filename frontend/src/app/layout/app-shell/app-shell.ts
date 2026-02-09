@@ -14,110 +14,138 @@ import { NAV_ITEMS, canAccess } from '../../core/auth/permissions';
 import { ClubContextService } from '../../core/context/club-context.service';
 
 export type AppShellNavItem = {
-	label: string;
-	route: string;
-	group: 'general' | 'control';
-	icon?: string;
-	roles?: Role[];
+    label: string;
+    route: string;
+    group: 'general' | 'control';
+    icon?: string;
+    roles?: Role[];
 };
 
 @Component({
-	selector: 'app-shell',
-	standalone: true,
-	imports: [CommonModule, AsyncPipe, RouterLink, RouterLinkActive, FormsModule, SelectModule, ButtonModule, ToastModule],
-	templateUrl: './app-shell.html',
-	styleUrl: './app-shell.scss',
-	providers: [MessageService],
+    selector: 'app-shell',
+    standalone: true,
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        RouterLink,
+        RouterLinkActive,
+        FormsModule,
+        SelectModule,
+        ButtonModule,
+        ToastModule,
+    ],
+    templateUrl: './app-shell.html',
+    styleUrl: './app-shell.scss',
+    providers: [MessageService],
 })
 export class AppShell implements OnInit {
-	private readonly toast = inject(MessageService);
-	private readonly auth = inject(AuthService);
-	private readonly clubContext = inject(ClubContextService);
+    private readonly toast = inject(MessageService);
+    private readonly auth = inject(AuthService);
+    private readonly clubContext = inject(ClubContextService);
 
-	@Input({ required: true }) title = '';
-	@Input() subtitle = '';
+    @Input({ required: true }) title = '';
+    @Input() subtitle = '';
 
-	@Input() navItems: AppShellNavItem[] = [
-		...NAV_ITEMS
-			.filter((x) => x.group === 'general' || x.group === 'control')
-			.map((x) => ({
-				label: x.label,
-				route: x.route,
-				group: (x.group ?? 'general') as 'general' | 'control',
-				icon: x.icon,
-				roles: x.roles,
-			})),
-	];
+    @Input() navItems: AppShellNavItem[] = [
+        ...NAV_ITEMS.filter((x) => x.group === 'general' || x.group === 'control').map((x) => ({
+            label: x.label,
+            route: x.route,
+            group: (x.group ?? 'general') as 'general' | 'control',
+            icon: x.icon,
+            roles: x.roles,
+        })),
+    ];
 
-	private hasAccess(item: AppShellNavItem): boolean {
-		return canAccess(this.auth.getRoleSnapshot(), item.roles);
-	}
+    private hasAccess(item: AppShellNavItem): boolean {
+        return canAccess(this.auth.getRoleSnapshot(), item.roles);
+    }
 
-	get generalNav() {
-		const items = this.navItems.filter((i) => i.group === 'general' && this.hasAccess(i));
-		console.log('[AppShell] generalNav items:', items.map(i => i.route), 'role:', this.auth.getRoleSnapshot());
-		return items;
-	}
+    get generalNav() {
+        const items = this.navItems.filter((i) => i.group === 'general' && this.hasAccess(i));
+        console.log(
+            '[AppShell] generalNav items:',
+            items.map((i) => i.route),
+            'role:',
+            this.auth.getRoleSnapshot(),
+        );
+        return items;
+    }
 
-	get controlNav() {
-		return this.navItems.filter((i) => i.group === 'control' && this.hasAccess(i));
-	}
+    get controlNav() {
+        return this.navItems.filter((i) => i.group === 'control' && this.hasAccess(i));
+    }
 
-	// Responsive navigation
-	isMobileNavOpen = false;
+    // Responsive navigation
+    isMobileNavOpen = false;
 
-	// Club selector
-	readonly clubOptions$ = this.clubContext.clubs$;
-	selectedClubId: number | null = this.clubContext.getSelectedClubIdSnapshot();
+    // Club selector
+    readonly clubOptions$ = this.clubContext.clubs$;
+    selectedClubId: number | null = this.clubContext.getSelectedClubIdSnapshot();
 
-	get showClubSelector(): boolean {
-		const role = this.auth.getRoleSnapshot();
-		// Solo admin y technical_director pueden gestionar múltiples clubes
-		// Coach tiene un solo club asignado y no necesita selector
-		return role === 'admin' || role === 'technical_director';
-	}
+    get showClubSelector(): boolean {
+        const role = this.auth.getRoleSnapshot();
+        // Solo technical_director puede gestionar múltiples clubes
+        // Admin no gestiona clubes (solo los crea), coach tiene un solo club asignado
+        return role === 'technical_director';
+    }
 
-	onClubChange(value: number | null): void {
-		if (value == null) return;
-		this.selectedClubId = value;
-		this.clubContext.setSelectedClubId(value);
-	}
+    /**
+     * Determina si se muestra el título "General" en la sidebar
+     * Admin solo tiene sección "Control", no necesita título "General"
+     */
+    get showGeneralTitle(): boolean {
+        const role = this.auth.getRoleSnapshot();
+        return role !== 'admin';
+    }
 
-	get currentUserName(): string {
-		return this.auth.getSession()?.user?.name ?? 'Usuario';
-	}
+    /**
+     * Determina si el usuario actual es admin
+     */
+    get isAdmin(): boolean {
+        return this.auth.getRoleSnapshot() === 'admin';
+    }
 
-	get currentRoleLabel(): string {
-		const role = this.auth.getRoleSnapshot();
-		return role ? ROLE_LABELS[role] : '—';
-	}
+    onClubChange(value: number | null): void {
+        if (value == null) return;
+        this.selectedClubId = value;
+        this.clubContext.setSelectedClubId(value);
+    }
 
-	logout(): void {
-		this.auth.logout();
-	}
+    get currentUserName(): string {
+        return this.auth.getSession()?.user?.name ?? 'Usuario';
+    }
 
-	toggleMobileNav(): void {
-		this.isMobileNavOpen = !this.isMobileNavOpen;
-	}
+    get currentRoleLabel(): string {
+        const role = this.auth.getRoleSnapshot();
+        return role ? ROLE_LABELS[role] : '—';
+    }
 
-	closeMobileNav(): void {
-		this.isMobileNavOpen = false;
-	}
+    logout(): void {
+        this.auth.logout();
+    }
 
-	ngOnInit(): void {
-		// Cargar clubs disponibles
-		this.clubContext.refresh();
-		
-		// Suscribirse a cambios de club para mantener el select sincronizado
-		this.clubContext.selectedClubId$.subscribe((clubId) => {
-			this.selectedClubId = clubId;
-		});
-	}
+    toggleMobileNav(): void {
+        this.isMobileNavOpen = !this.isMobileNavOpen;
+    }
 
-	getPanelLabel(): string {
-		const role = this.auth.getRoleSnapshot();
-		if (role === 'player') return 'Panel jugador';
-		if (role === 'admin') return 'Panel administrador';
-		return 'Panel entrenador';
-	}
+    closeMobileNav(): void {
+        this.isMobileNavOpen = false;
+    }
+
+    ngOnInit(): void {
+        // Cargar clubs disponibles
+        this.clubContext.refresh();
+
+        // Suscribirse a cambios de club para mantener el select sincronizado
+        this.clubContext.selectedClubId$.subscribe((clubId) => {
+            this.selectedClubId = clubId;
+        });
+    }
+
+    getPanelLabel(): string {
+        const role = this.auth.getRoleSnapshot();
+        if (role === 'player') return 'Panel jugador';
+        if (role === 'admin') return 'Panel administrador';
+        return 'Panel entrenador';
+    }
 }

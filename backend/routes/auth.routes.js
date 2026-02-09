@@ -6,7 +6,12 @@ const { login, me } = require('../src/controllers/authController');
 const validate = require('../src/middlewares/validate');
 const { loginSchema } = require('../src/validation/authSchemas');
 
-const loginLimiter = rateLimit({windowMs: 60 * 1000, max: 5, standardHeaders: true, legacyHeaders: false});
+const loginLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // ==================== /auth/login ====================
 // POST /auth/login - CU.001: Autenticación - todos los roles (rate limited: 5/min)

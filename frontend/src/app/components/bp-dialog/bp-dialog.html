@@ -20,7 +20,7 @@
       @if (subtitle) {
         <p class="bp-dialog-subtitle">{{ subtitle }}</p>
       }
-      
+
       <!-- Contenido proyectado o template -->
       @if (contentTemplate) {
         <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
@@ -39,31 +39,31 @@
         @if (footerHint) {
           <span class="bp-dialog-footer-hint">{{ footerHint }}</span>
         } @else if (showDelete) {
-          <p-button 
-            [label]="deleteLabel" 
+          <p-button
+            [label]="deleteLabel"
             icon="pi pi-trash"
-            (click)="onDelete()" 
+            (click)="onDelete()"
             [disabled]="loading"
             styleClass="bp-btn bp-btn-danger"
           ></p-button>
         } @else {
           <span></span>
         }
-        
+
         <div class="bp-dialog-footer-actions">
           @if (showCancel) {
-            <p-button 
-              [label]="cancelLabel" 
-              (click)="onCancel()" 
+            <p-button
+              [label]="cancelLabel"
+              (click)="onCancel()"
               [disabled]="loading"
               styleClass="bp-btn bp-btn-secondary"
             ></p-button>
           }
           @if (showConfirm) {
-            <p-button 
-              [label]="confirmLabel" 
+            <p-button
+              [label]="confirmLabel"
               [icon]="confirmIcon"
-              (click)="onConfirm()" 
+              (click)="onConfirm()"
               [disabled]="loading || confirmDisabled"
               [loading]="loading"
               styleClass="bp-btn bp-btn-primary"

@@ -9,25 +9,24 @@ const GENERATION_TIMEOUT_MS = 60000; // 60 segundos
 const generateIndividual = async (req, res, next) => {
   try {
     console.log('📥 [Controller] Recibida solicitud de generación individual');
-    
+
     const proposal = await planningGenerationService.generateIndividual(
       req.body,
       { user: req.user, requestId: req.requestId },
       {} // Sin AbortSignal - la generación es muy rápida
     );
-    
+
     console.log('📤 [Controller] Generación completada');
-    
+
     if (!proposal || proposal.success === false) {
       return res.status(StatusCodes.OK).json({
         success: false,
         message: proposal?.message || 'No se pudo generar la planificación',
-        wasAborted: proposal?.wasAborted || false
+        wasAborted: proposal?.wasAborted || false,
       });
     }
-    
+
     return res.status(StatusCodes.OK).json(proposal);
-    
   } catch (error) {
     logger.error('Error generating individual planning:', error);
     return next(error);
@@ -37,23 +36,23 @@ const generateIndividual = async (req, res, next) => {
 const generateGroup = async (req, res, next) => {
   try {
     console.log('📥 [Controller] Recibida solicitud de generación grupal');
-    
+
     const proposal = await planningGenerationService.generateGroup(
       req.body,
       { user: req.user, requestId: req.requestId },
       {} // Sin AbortSignal
     );
-    
+
     console.log('📤 [Controller] Generación grupal completada');
-    
+
     if (!proposal || proposal.success === false) {
       return res.status(StatusCodes.OK).json({
         success: false,
         message: proposal?.message || 'No se pudo generar la planificación',
-        wasAborted: proposal?.wasAborted || false
+        wasAborted: proposal?.wasAborted || false,
       });
     }
-    
+
     return res.status(StatusCodes.OK).json(proposal);
   } catch (error) {
     logger.error('Error generating group planning:', error);
@@ -63,5 +62,5 @@ const generateGroup = async (req, res, next) => {
 
 module.exports = {
   generateIndividual,
-  generateGroup
+  generateGroup,
 };

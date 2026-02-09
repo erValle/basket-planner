@@ -8,20 +8,20 @@ import { AppShell } from '../layout/app-shell/app-shell';
 import { PageHeader } from '../components/page-header/page-header';
 
 @Component({
-	selector: 'app-new-exercise',
-	standalone: true,
-	imports: [CommonModule, ButtonModule, AppShell, PageHeader],
-	templateUrl: './new-exercise.html',
-	styleUrl: './new-exercise.scss'
+    selector: 'app-new-exercise',
+    standalone: true,
+    imports: [CommonModule, ButtonModule, AppShell, PageHeader],
+    templateUrl: './new-exercise.html',
+    styleUrl: './new-exercise.scss',
 })
 export class NewExercise {
-	constructor(private readonly router: Router) {}
+    constructor(private readonly router: Router) {}
 
-	goToExercises() {
-		this.router.navigateByUrl('/exercises');
-	}
+    goToExercises() {
+        this.router.navigateByUrl('/exercises');
+    }
 
-	cancel() {
-		this.router.navigateByUrl('/dashboard');
-	}
+    cancel() {
+        this.router.navigateByUrl('/dashboard');
+    }
 }

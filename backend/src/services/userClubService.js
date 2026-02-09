@@ -15,7 +15,11 @@ const listUserClubs = async ({ userId, clubId } = {}) => {
 const getUserClubById = async (id) => {
   const row = await UserClub.findByPk(id);
   if (!row) {
-    throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'USER_CLUB_NOT_FOUND', 'Membership not found');
+    throw errorUtils.httpError(
+      StatusCodes.NOT_FOUND,
+      'USER_CLUB_NOT_FOUND',
+      'Membership not found'
+    );
   }
   return row;
 };
@@ -25,14 +29,14 @@ const createUserClub = async (payload) => {
     const result = await UserClub.create(payload);
     return result;
   } catch (error) {
-    console.error('❌ Error creating UserClub:', error.message);
+    console.error('Error creating UserClub:', error.message);
     throw error;
   }
 };
 
 const updateUserClub = async (id, payload) => {
   const row = await getUserClubById(id);
-  
+
   // Si se está marcando como principal, quitar el flag de los demás
   if (payload.isPrimary === true) {
     await sequelize.transaction(async (t) => {
@@ -49,7 +53,7 @@ const updateUserClub = async (id, payload) => {
           transaction: t,
         }
       );
-      
+
       // Actualizar el registro actual
       await row.update(payload, { transaction: t });
     });
@@ -57,7 +61,7 @@ const updateUserClub = async (id, payload) => {
     // Si no es isPrimary, actualizar normalmente
     await row.update(payload);
   }
-  
+
   return row;
 };
 
@@ -97,7 +101,10 @@ const toMembershipDto = (row) => {
  * - There should be a single ACTIVE primary membership
  * - This operation closes the active primary membership (if any), then creates a new one.
  */
-async function transferPlayerToClub(userId, { clubId, startDate, closePreviousAt, makePrimary = true } = {}) {
+async function transferPlayerToClub(
+  userId,
+  { clubId, startDate, closePreviousAt, makePrimary = true } = {}
+) {
   if (!sequelize) {
     // In test mode without DB this will be null; let it surface as 500 like other endpoints.
     throw new Error('Database not initialized');
@@ -109,7 +116,11 @@ async function transferPlayerToClub(userId, { clubId, startDate, closePreviousAt
       throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'PLAYER_NOT_FOUND', 'Player not found');
     }
     if (user.role !== 'player') {
-      throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'USER_NOT_A_PLAYER', 'User is not a player');
+      throw errorUtils.httpError(
+        StatusCodes.BAD_REQUEST,
+        'USER_NOT_A_PLAYER',
+        'User is not a player'
+      );
     }
 
     // Convert string dates to proper format (ISO date string for DATEONLY)

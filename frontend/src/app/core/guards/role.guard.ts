@@ -13,19 +13,23 @@ import { resolveAllowedRolesFromUrl } from '../auth/permissions';
  *  data: { roles: ['ADMIN'] }
  */
 export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
-  const auth = inject(AuthService);
-  const router = inject(Router);
-  const toast = inject(MessageService);
+    const auth = inject(AuthService);
+    const router = inject(Router);
+    const toast = inject(MessageService);
 
-  const fromMatrix = resolveAllowedRolesFromUrl(router.url);
-  const fromRouteData = (route.data?.['roles'] ?? []) as Role[];
-  const required = (fromMatrix ?? fromRouteData) as Role[];
-  if (!required || required.length === 0) return true;
+    const fromMatrix = resolveAllowedRolesFromUrl(router.url);
+    const fromRouteData = (route.data?.['roles'] ?? []) as Role[];
+    const required = (fromMatrix ?? fromRouteData) as Role[];
+    if (!required || required.length === 0) return true;
 
-  const current = auth.getRoleSnapshot();
-  if (hasRole(current, required)) return true;
+    const current = auth.getRoleSnapshot();
+    if (hasRole(current, required)) return true;
 
-  toast.add({ severity: 'warn', summary: 'Acceso denegado', detail: 'No tienes permisos para acceder a esta sección.' });
-  router.navigateByUrl('/forbidden');
-  return false;
+    toast.add({
+        severity: 'warn',
+        summary: 'Acceso denegado',
+        detail: 'No tienes permisos para acceder a esta sección.',
+    });
+    router.navigateByUrl('/forbidden');
+    return false;
 };

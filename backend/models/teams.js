@@ -30,31 +30,31 @@ module.exports = (sequelize, DataTypes) => {
 
   Team.init(
     {
-      id: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true 
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
       },
-      clubId: { 
-        type: DataTypes.INTEGER, 
-        allowNull: false 
+      clubId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
-      name: { 
-        type: DataTypes.STRING(150), 
-        allowNull: false 
+      name: {
+        type: DataTypes.STRING(150),
+        allowNull: false,
       },
-      category: { 
-        type: DataTypes.STRING(50), 
-        allowNull: true 
+      category: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
       },
-      coachId: { 
-        type: DataTypes.INTEGER, 
-        allowNull: true 
+      coachId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
       },
-      active: { 
-        type: DataTypes.BOOLEAN, 
-        allowNull: false, 
-        defaultValue: false 
+      active: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
     },
     {

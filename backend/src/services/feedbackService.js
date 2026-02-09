@@ -1,6 +1,12 @@
 const { StatusCodes } = require('http-status-codes');
 
-const { Feedback, PlanAssignment, TrainingPlanVersion, TrainingPlan, User } = require('../../models');
+const {
+  Feedback,
+  PlanAssignment,
+  TrainingPlanVersion,
+  TrainingPlan,
+  User,
+} = require('../../models');
 const errorUtils = require('../libs/errorHelper');
 
 const listFeedbacks = async ({ trainingPlanVersionId, userId, sessionId, targetType } = {}) => {
@@ -9,14 +15,14 @@ const listFeedbacks = async ({ trainingPlanVersionId, userId, sessionId, targetT
   if (userId) where.userId = userId;
   if (sessionId) where.sessionId = sessionId;
   if (targetType) where.targetType = targetType;
-  
-  return Feedback.findAll({ 
+
+  return Feedback.findAll({
     where,
     include: [
       {
         model: User,
         as: 'user',
-        attributes: ['id', 'firstName', 'lastName', 'email']
+        attributes: ['id', 'firstName', 'lastName', 'email'],
       },
       {
         model: TrainingPlanVersion,
@@ -25,12 +31,12 @@ const listFeedbacks = async ({ trainingPlanVersionId, userId, sessionId, targetT
           {
             model: TrainingPlan,
             as: 'trainingPlan',
-            attributes: ['id', 'name']
-          }
-        ]
-      }
+            attributes: ['id', 'name'],
+          },
+        ],
+      },
     ],
-    order: [['createdAt', 'DESC']]
+    order: [['createdAt', 'DESC']],
   });
 };
 
@@ -86,7 +92,10 @@ const createFeedback = async (input, user) => {
   }
 
   // If assignment has a specific version, validate it matches
-  if (assignment.trainingPlanVersionId && assignment.trainingPlanVersionId !== input.trainingPlanVersionId) {
+  if (
+    assignment.trainingPlanVersionId &&
+    assignment.trainingPlanVersionId !== input.trainingPlanVersionId
+  ) {
     throw errorUtils.httpError(
       StatusCodes.FORBIDDEN,
       'VERSION_MISMATCH',
@@ -151,7 +160,10 @@ const canUserProvideFeedback = async (userId, trainingPlanVersionId) => {
   }
 
   // If assignment has a specific version, validate it matches
-  if (assignment.trainingPlanVersionId && assignment.trainingPlanVersionId !== trainingPlanVersionId) {
+  if (
+    assignment.trainingPlanVersionId &&
+    assignment.trainingPlanVersionId !== trainingPlanVersionId
+  ) {
     return { canFeedback: false, reason: 'Different version assigned' };
   }
 
@@ -176,19 +188,17 @@ const getVersionStats = async (trainingPlanVersionId) => {
 
   // Calculate averages for numeric rating fields
   const ratingKeys = new Set();
-  feedbacks.forEach(f => {
+  feedbacks.forEach((f) => {
     if (f.rating && typeof f.rating === 'object') {
-      Object.keys(f.rating).forEach(k => ratingKeys.add(k));
+      Object.keys(f.rating).forEach((k) => ratingKeys.add(k));
     }
   });
 
   const averages = {};
   const distribution = {};
 
-  ratingKeys.forEach(key => {
-    const values = feedbacks
-      .map(f => f.rating?.[key])
-      .filter(v => typeof v === 'number');
+  ratingKeys.forEach((key) => {
+    const values = feedbacks.map((f) => f.rating?.[key]).filter((v) => typeof v === 'number');
 
     if (values.length > 0) {
       const sum = values.reduce((a, b) => a + b, 0);
@@ -196,7 +206,7 @@ const getVersionStats = async (trainingPlanVersionId) => {
 
       // Calculate distribution (for 1-10 scales)
       distribution[key] = {};
-      values.forEach(v => {
+      values.forEach((v) => {
         distribution[key][v] = (distribution[key][v] || 0) + 1;
       });
     }
@@ -206,7 +216,7 @@ const getVersionStats = async (trainingPlanVersionId) => {
     count: feedbacks.length,
     averages,
     distribution,
-    feedbacks: feedbacks.map(f => ({
+    feedbacks: feedbacks.map((f) => ({
       id: f.id,
       userId: f.userId,
       rating: f.rating,
@@ -233,17 +243,15 @@ const getSessionStats = async (trainingPlanVersionId, sessionId) => {
 
   // Calculate averages (same logic as version stats)
   const ratingKeys = new Set();
-  feedbacks.forEach(f => {
+  feedbacks.forEach((f) => {
     if (f.rating && typeof f.rating === 'object') {
-      Object.keys(f.rating).forEach(k => ratingKeys.add(k));
+      Object.keys(f.rating).forEach((k) => ratingKeys.add(k));
     }
   });
 
   const averages = {};
-  ratingKeys.forEach(key => {
-    const values = feedbacks
-      .map(f => f.rating?.[key])
-      .filter(v => typeof v === 'number');
+  ratingKeys.forEach((key) => {
+    const values = feedbacks.map((f) => f.rating?.[key]).filter((v) => typeof v === 'number');
 
     if (values.length > 0) {
       const sum = values.reduce((a, b) => a + b, 0);
@@ -255,7 +263,7 @@ const getSessionStats = async (trainingPlanVersionId, sessionId) => {
     count: feedbacks.length,
     sessionId,
     averages,
-    feedbacks: feedbacks.map(f => ({
+    feedbacks: feedbacks.map((f) => ({
       id: f.id,
       userId: f.userId,
       rating: f.rating,

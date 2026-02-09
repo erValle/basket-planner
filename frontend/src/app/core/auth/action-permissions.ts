@@ -8,66 +8,78 @@ import { Role } from './roles';
 export type Action = 'create' | 'edit' | 'delete' | 'view' | 'assign' | 'export';
 
 export interface ActionPermissions {
-	[key: string]: Role[];
+    [key: string]: Role[];
 }
 
 /**
  * Permissions for each resource and action
  * Format: 'resource.action': ['role1', 'role2']
+ *
+ * Según alcance de la aplicación:
+ * - Admin: registrar usuarios, CRUD clubes, auditoría, monitorización
+ * - Director Técnico: CRUD equipos, asignar jugadores, transferencias, gestionar material
+ * - Entrenador: planificaciones, ejercicios, ver feedback
+ * - Jugador: ver sesiones, crear/editar/ver feedback propio
  */
 export const ACTION_PERMISSIONS: ActionPermissions = {
-	// Clubs
-	'clubs.create': ['admin'],
-	'clubs.edit': ['admin'],
-	'clubs.delete': ['admin'],
-	'clubs.view': ['admin', 'technical_director'],
+    // === CLUBES (Solo Admin) ===
+    'clubs.create': ['admin'],
+    'clubs.edit': ['admin'],
+    'clubs.delete': ['admin'],
+    'clubs.view': ['admin'],
 
-	// Teams
-	'teams.create': ['admin', 'technical_director'],
-	'teams.edit': ['admin', 'technical_director', 'coach'],
-	'teams.delete': ['admin', 'technical_director'],
-	'teams.view': ['admin', 'technical_director', 'coach'],
-	'teams.manage_players': ['admin', 'technical_director', 'coach'],
+    // === EQUIPOS (Solo Director Técnico) ===
+    'teams.create': ['technical_director'],
+    'teams.edit': ['technical_director'],
+    'teams.delete': ['technical_director'],
+    'teams.view': ['technical_director', 'coach'], // Coach puede ver pero no editar
+    'teams.manage_players': ['technical_director'], // Solo Director Técnico asigna jugadores
 
-	// Players
-	'players.create': ['admin', 'technical_director'],
-	'players.edit': ['admin', 'technical_director', 'coach'],
-	'players.delete': ['admin', 'technical_director'],
-	'players.view': ['admin', 'technical_director', 'coach'],
-	'players.transfer': ['admin', 'technical_director'],
+    // === JUGADORES ===
+    'players.create': ['admin', 'technical_director'], // Admin crea usuarios, Director Técnico puede añadir jugadores al club
+    'players.edit': ['technical_director'], // Solo Director Técnico edita perfiles de jugador
+    'players.delete': ['admin'],
+    'players.view': ['technical_director', 'coach'],
+    'players.transfer': ['technical_director'], // Solo Director Técnico puede transferir
 
-	// Exercises
-	'exercises.create': ['admin', 'technical_director', 'coach'],
-	'exercises.edit': ['admin', 'technical_director', 'coach'],
-	'exercises.delete': ['admin', 'technical_director', 'coach'],
-	'exercises.view': ['admin', 'technical_director', 'coach'],
+    // === EJERCICIOS (Entrenador + Director Técnico) ===
+    'exercises.create': ['technical_director', 'coach'],
+    'exercises.edit': ['technical_director', 'coach'],
+    'exercises.delete': ['technical_director', 'coach'], // Desactivar
+    'exercises.view': ['technical_director', 'coach', 'player'],
 
-	// Material/Equipment
-	'equipment.create': ['admin', 'technical_director', 'coach'],
-	'equipment.edit': ['admin', 'technical_director', 'coach'],
-	'equipment.delete': ['admin', 'technical_director'],
-	'equipment.view': ['admin', 'technical_director', 'coach'],
+    // === MATERIAL/EQUIPMENT (Solo Director Técnico) ===
+    'equipment.create': ['technical_director'],
+    'equipment.edit': ['technical_director'],
+    'equipment.delete': ['technical_director'],
+    'equipment.view': ['technical_director', 'coach'], // Coach puede ver pero no editar
 
-	// Training Plans
-	'planning.create': ['admin', 'technical_director', 'coach'],
-	'planning.edit': ['admin', 'technical_director', 'coach'],
-	'planning.delete': ['admin', 'technical_director', 'coach'],
-	'planning.view': ['admin', 'technical_director', 'coach', 'player'],
-	'planning.assign': ['admin', 'technical_director', 'coach'],
-	'planning.export': ['admin', 'technical_director', 'coach'],
+    // === PLANIFICACIONES (Entrenador + Director Técnico) ===
+    'planning.create': ['technical_director', 'coach'],
+    'planning.edit': ['technical_director', 'coach'],
+    'planning.delete': ['technical_director', 'coach'],
+    'planning.view': ['technical_director', 'coach', 'player'],
+    'planning.assign': ['technical_director', 'coach'],
+    'planning.export': ['technical_director', 'coach', 'player'],
 
-	// Users (Admin section)
-	'users.create': ['admin'],
-	'users.edit': ['admin'],
-	'users.delete': ['admin'],
-	'users.view': ['admin'],
-	'users.reset_password': ['admin'],
+    // === FEEDBACK ===
+    'feedback.create': ['technical_director', 'coach', 'player'],
+    'feedback.edit': ['technical_director', 'coach', 'player'], // Jugador puede editar su propio feedback
+    'feedback.delete': ['technical_director'],
+    'feedback.view': ['technical_director', 'coach', 'player'],
 
-	// Monitoring
-	'monitoring.view': ['admin'],
+    // === USUARIOS (Solo Admin) ===
+    'users.create': ['admin'],
+    'users.edit': ['admin'],
+    'users.delete': ['admin'],
+    'users.view': ['admin'],
+    'users.reset_password': ['admin'],
 
-	// Audit
-	'audit.view': ['admin'],
+    // === MONITORIZACIÓN (Solo Admin) ===
+    'monitoring.view': ['admin'],
+
+    // === AUDITORÍA (Solo Admin) ===
+    'audit.view': ['admin'],
 };
 
 /**
@@ -78,21 +90,21 @@ export const ACTION_PERMISSIONS: ActionPermissions = {
  * @returns true if the role has permission
  */
 export function hasActionPermission(
-	role: Role | null | undefined,
-	resource: string,
-	action: Action
+    role: Role | null | undefined,
+    resource: string,
+    action: Action,
 ): boolean {
-	if (!role) return false;
-	
-	const key = `${resource}.${action}`;
-	const allowedRoles = ACTION_PERMISSIONS[key];
-	
-	if (!allowedRoles) {
-		// If no specific permission is defined, deny access
-		return false;
-	}
-	
-	return allowedRoles.includes(role);
+    if (!role) return false;
+
+    const key = `${resource}.${action}`;
+    const allowedRoles = ACTION_PERMISSIONS[key];
+
+    if (!allowedRoles) {
+        // If no specific permission is defined, deny access
+        return false;
+    }
+
+    return allowedRoles.includes(role);
 }
 
 /**
@@ -101,16 +113,13 @@ export function hasActionPermission(
  * @param permissions - Array of permission keys (e.g., ['clubs.create', 'clubs.edit'])
  * @returns true if the role has ALL specified permissions
  */
-export function hasAllPermissions(
-	role: Role | null | undefined,
-	permissions: string[]
-): boolean {
-	if (!role) return false;
-	
-	return permissions.every(permission => {
-		const allowedRoles = ACTION_PERMISSIONS[permission];
-		return allowedRoles && allowedRoles.includes(role);
-	});
+export function hasAllPermissions(role: Role | null | undefined, permissions: string[]): boolean {
+    if (!role) return false;
+
+    return permissions.every((permission) => {
+        const allowedRoles = ACTION_PERMISSIONS[permission];
+        return allowedRoles && allowedRoles.includes(role);
+    });
 }
 
 /**
@@ -119,14 +128,11 @@ export function hasAllPermissions(
  * @param permissions - Array of permission keys
  * @returns true if the role has at least ONE of the specified permissions
  */
-export function hasAnyPermission(
-	role: Role | null | undefined,
-	permissions: string[]
-): boolean {
-	if (!role) return false;
-	
-	return permissions.some(permission => {
-		const allowedRoles = ACTION_PERMISSIONS[permission];
-		return allowedRoles && allowedRoles.includes(role);
-	});
+export function hasAnyPermission(role: Role | null | undefined, permissions: string[]): boolean {
+    if (!role) return false;
+
+    return permissions.some((permission) => {
+        const allowedRoles = ACTION_PERMISSIONS[permission];
+        return allowedRoles && allowedRoles.includes(role);
+    });
 }

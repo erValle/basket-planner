@@ -81,7 +81,7 @@ class HttpError extends Error {
     return new HttpError(
       status,
       code || getReasonPhrase(status).replace(/\s+/g, '_').toUpperCase(),
-      message || getReasonPhrase(status),
+      message || getReasonPhrase(status)
     );
   }
 }

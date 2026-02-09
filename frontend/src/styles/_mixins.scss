@@ -194,7 +194,9 @@
   }
 
   &:focus-visible {
-    box-shadow: 0 0 0 2px $bg-page, 0 0 0 4px $primary-400;
+    box-shadow:
+      0 0 0 2px $bg-page,
+      0 0 0 4px $primary-400;
   }
 }
 
@@ -243,7 +245,9 @@
   border-radius: $radius-lg;
   font-size: $font-size-sm;
   color: $text-primary;
-  transition: border-color $transition-fast, box-shadow $transition-fast;
+  transition:
+    border-color $transition-fast,
+    box-shadow $transition-fast;
 
   &::placeholder {
     color: $text-muted;
@@ -391,14 +395,18 @@
 @mixin focus-ring {
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px $bg-page, 0 0 0 4px $primary-400;
+    box-shadow:
+      0 0 0 2px $bg-page,
+      0 0 0 4px $primary-400;
   }
 }
 
 @mixin focus-within-ring {
   &:focus-within {
     outline: none;
-    box-shadow: 0 0 0 2px $bg-page, 0 0 0 4px $primary-400;
+    box-shadow:
+      0 0 0 2px $bg-page,
+      0 0 0 4px $primary-400;
   }
 }
 

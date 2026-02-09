@@ -14,7 +14,10 @@ const listForExercise = async (req, res, next) => {
 
 const createForExercise = async (req, res, next) => {
   try {
-    const created = await exerciseEquipmentService.createForExercise(req.params.exerciseId, req.body);
+    const created = await exerciseEquipmentService.createForExercise(
+      req.params.exerciseId,
+      req.body
+    );
     return res.status(StatusCodes.CREATED).json(created);
   } catch (error) {
     logger.error('Error linking equipment to exercise:', error);

@@ -475,19 +475,19 @@ lsof -ti:4200 | xargs kill -9
 ### Error de conexion a base de datos
 
 1. Verificar que PostgreSQL/Docker esta ejecutandose:
-   ```bash
-   docker ps
-   ```
+  ```bash
+  docker ps
+  ```
 
 2. Verificar configuracion en `backend/.env`
 
 3. Reiniciar el contenedor si es necesario:
-   ```bash
-   cd backend
-   docker-compose down
-   docker-compose up -d
-   cd ..
-   ```
+  ```bash
+  cd backend
+  docker-compose down
+  docker-compose up -d
+  cd ..
+  ```
 
 ### Error: "Model not loaded" en recomendacion
 

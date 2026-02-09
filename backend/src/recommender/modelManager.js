@@ -1,6 +1,6 @@
 /**
  * Gestor del Motor de Recomendación
- * 
+ *
  * Provee acceso al modelo TFRS de recomendación.
  */
 
@@ -46,8 +46,8 @@ function listAvailableModels() {
       isActive: true,
       type: 'tensorflow-hybrid',
       isTrained: info.isTrained,
-      isInitialized: info.isInitialized
-    }
+      isInitialized: info.isInitialized,
+    },
   ];
 }
 
@@ -55,5 +55,5 @@ module.exports = {
   getActiveModel,
   getModelInfo,
   getModelConfig,
-  listAvailableModels
+  listAvailableModels,
 };

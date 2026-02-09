@@ -30,17 +30,13 @@ if (shouldInitSequelize) {
   sequelize = new Sequelize(dbConfig.database, dbConfig.username, dbConfig.password, {
     host: dbConfig.host,
     dialect: dbConfig.dialect,
-    logging:
-      process.env.NODE_ENV === 'test'
-        ? false
-        : (msg) => logger.info(msg),
+    logging: process.env.NODE_ENV === 'test' ? false : (msg) => logger.info(msg),
   });
 }
 
 if (shouldInitSequelize) {
-  fs
-    .readdirSync(__dirname)
-    .filter(file => {
+  fs.readdirSync(__dirname)
+    .filter((file) => {
       return (
         file.indexOf('.') !== 0 &&
         file !== basename &&
@@ -48,14 +44,14 @@ if (shouldInitSequelize) {
         file.indexOf('.test.js') === -1
       );
     })
-    .forEach(file => {
+    .forEach((file) => {
       const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
       db[model.name] = model;
     });
 }
 
 if (shouldInitSequelize) {
-  Object.keys(db).forEach(modelName => {
+  Object.keys(db).forEach((modelName) => {
     if (db[modelName].associate) {
       db[modelName].associate(db);
     }

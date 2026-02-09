@@ -18,10 +18,10 @@ const HttpError = require('./HttpError');
  * @deprecated Use HttpError class methods instead.
  */
 const httpError = (status, code, message, details) => {
-    return new HttpError(status, code, message, details);
+  return new HttpError(status, code, message, details);
 };
 
 module.exports = {
-    httpError,
-    HttpError,
+  httpError,
+  HttpError,
 };

@@ -1,6 +1,6 @@
 /**
  * Sistema de Scoring de Ejercicios
- * 
+ *
  * Combina predicciones del modelo neuronal TFRS con reglas heurísticas.
  * También incluye funciones de scoring individual del modelo baseline.
  */
@@ -20,7 +20,7 @@ class TFRSExerciseScorer {
 
   async scoreExercise(context, exercise, sessionState = {}) {
     const enrichedContext = this._enrichContext(context, sessionState);
-    
+
     let neuralScore = 0.5;
     let heuristicScore = 0.5;
 
@@ -34,20 +34,19 @@ class TFRSExerciseScorer {
         return {
           score: heuristicScore,
           breakdown: this._getHeuristicBreakdown(enrichedContext, exercise),
-          source: 'heuristic_fallback'
+          source: 'heuristic_fallback',
         };
       }
     } else {
       return {
         score: heuristicScore,
         breakdown: this._getHeuristicBreakdown(enrichedContext, exercise),
-        source: 'heuristic_only'
+        source: 'heuristic_only',
       };
     }
 
-    const combinedScore = 
-      neuralScore * this.weights.neuralWeight + 
-      heuristicScore * this.weights.heuristicWeight;
+    const combinedScore =
+      neuralScore * this.weights.neuralWeight + heuristicScore * this.weights.heuristicWeight;
 
     return {
       score: combinedScore,
@@ -55,9 +54,9 @@ class TFRSExerciseScorer {
       heuristicScore,
       breakdown: {
         ...this._getHeuristicBreakdown(enrichedContext, exercise),
-        neural: neuralScore
+        neural: neuralScore,
       },
-      source: 'hybrid'
+      source: 'hybrid',
     };
   }
 
@@ -68,23 +67,22 @@ class TFRSExerciseScorer {
     if (this.tfrsModel && this.tfrsModel.isTrained) {
       try {
         // Añadir timeout de 10 segundos para el modelo neural
-        const timeoutPromise = new Promise((_, reject) => 
+        const timeoutPromise = new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Neural prediction timeout')), 10000)
         );
-        
+
         const neuralScores = await Promise.race([
           this.tfrsModel.predictBatch(enrichedContext, exercises),
-          timeoutPromise
+          timeoutPromise,
         ]);
-        
+
         for (let i = 0; i < exercises.length; i++) {
           const exercise = exercises[i];
           const neuralScore = neuralScores[i];
           const heuristicScore = this.heuristicScorer.calculateScore(enrichedContext, exercise);
-          
-          const combinedScore = 
-            neuralScore * this.weights.neuralWeight + 
-            heuristicScore * this.weights.heuristicWeight;
+
+          const combinedScore =
+            neuralScore * this.weights.neuralWeight + heuristicScore * this.weights.heuristicWeight;
 
           results.push({
             exercise,
@@ -93,9 +91,9 @@ class TFRSExerciseScorer {
             heuristicScore,
             breakdown: {
               ...this._getHeuristicBreakdown(enrichedContext, exercise),
-              neural: neuralScore
+              neural: neuralScore,
             },
-            source: 'hybrid'
+            source: 'hybrid',
           });
         }
       } catch (error) {
@@ -110,17 +108,19 @@ class TFRSExerciseScorer {
   }
 
   _scoreExercisesHeuristic(context, exercises) {
-    return exercises.map(exercise => {
-      const heuristicScore = this.heuristicScorer.calculateScore(context, exercise);
-      
-      return {
-        exercise,
-        score: heuristicScore,
-        heuristicScore,
-        breakdown: this._getHeuristicBreakdown(context, exercise),
-        source: 'heuristic_only'
-      };
-    }).sort((a, b) => b.score - a.score);
+    return exercises
+      .map((exercise) => {
+        const heuristicScore = this.heuristicScorer.calculateScore(context, exercise);
+
+        return {
+          exercise,
+          score: heuristicScore,
+          heuristicScore,
+          breakdown: this._getHeuristicBreakdown(context, exercise),
+          source: 'heuristic_only',
+        };
+      })
+      .sort((a, b) => b.score - a.score);
   }
 
   _enrichContext(context, sessionState) {
@@ -131,7 +131,7 @@ class TFRSExerciseScorer {
       typesUsed: sessionState.typesUsed || [],
       usedExerciseIds: sessionState.usedExerciseIds || [],
       currentSessionMinutes: sessionState.currentMinutes || 0,
-      remainingMinutes: (context.sessionDurationMinutes || 60) - (sessionState.currentMinutes || 0)
+      remainingMinutes: (context.sessionDurationMinutes || 60) - (sessionState.currentMinutes || 0),
     };
   }
 
@@ -142,7 +142,7 @@ class TFRSExerciseScorer {
       difficultyFit: this._calculateDifficultyFitScore(context, exercise),
       sessionPhaseFit: this._calculateSessionPhaseFitScore(context, exercise),
       typeVariety: this._calculateVarietyScore(context, exercise),
-      uniqueness: this._calculateUniquenessScore(context, exercise)
+      uniqueness: this._calculateUniquenessScore(context, exercise),
     };
   }
 
@@ -151,7 +151,7 @@ class TFRSExerciseScorer {
     if (!exercise.etiquetas || exercise.etiquetas.length === 0) return 0.3;
 
     let matchCount = 0;
-    const exerciseTags = exercise.etiquetas.map(t => t.toLowerCase());
+    const exerciseTags = exercise.etiquetas.map((t) => t.toLowerCase());
 
     for (const goal of context.goals) {
       const relevantTags = config.goalToTags[goal.toLowerCase()] || [];
@@ -183,15 +183,15 @@ class TFRSExerciseScorer {
 
   _calculateDifficultyFitScore(context, exercise) {
     // Usar intensidad en lugar de playerLevel
-    const difficultyRange = config.intensityToDifficulty[context.intensity] || 
-                            config.intensityToDifficulty.medium;
+    const difficultyRange =
+      config.intensityToDifficulty[context.intensity] || config.intensityToDifficulty.medium;
 
-    const avgDifficulty = (
-      (exercise.dificultad_tactica || 3) +
-      (exercise.dificultad_tecnica || 3) +
-      (exercise.dificultad_fisica || 3) +
-      (exercise.dificultad_mental || 3)
-    ) / 4;
+    const avgDifficulty =
+      ((exercise.dificultad_tactica || 3) +
+        (exercise.dificultad_tecnica || 3) +
+        (exercise.dificultad_fisica || 3) +
+        (exercise.dificultad_mental || 3)) /
+      4;
 
     const intensityMult = config.intensityMultiplier[context.intensity] || 1.0;
     const targetDifficulty = ((difficultyRange.min + difficultyRange.max) / 2) * intensityMult;
@@ -202,47 +202,47 @@ class TFRSExerciseScorer {
 
   _calculateVarietyScore(context, exercise) {
     if (!context.typesUsed || context.typesUsed.length === 0) return 1.0;
-    
+
     if (!context.typesUsed.includes(exercise.tipo)) {
       return 1.0;
     }
-    
+
     return 0.3;
   }
 
   _calculateUniquenessScore(context, exercise) {
     if (!context.usedExerciseIds || context.usedExerciseIds.length === 0) return 1.0;
-    
+
     if (context.usedExerciseIds.includes(exercise.id)) {
       return 0;
     }
-    
+
     return 1.0;
   }
 
   _calculateSessionPhaseFitScore(context, exercise) {
     const sessionPhase = context.sessionPhase || 'technical';
     const exerciseType = exercise.tipo?.toUpperCase();
-    
+
     if (!exerciseType) return 0.5;
-    
+
     // Obtener tipos apropiados para esta fase
     const appropriateTypes = config.sessionPhaseTypes[sessionPhase] || [];
-    
+
     let score = 0.5; // Base neutral
-    
+
     // Bonus si el tipo de ejercicio es apropiado para la fase
     if (appropriateTypes.includes(exerciseType)) {
       score += 0.3;
     } else {
       score -= 0.1;
     }
-    
+
     // Penalizaciones/bonificaciones adicionales por intensidad según fase
     const physicDifficulty = exercise.dificultad_fisica || 3;
     const technicDifficulty = exercise.dificultad_tecnica || 3;
     const tacticDifficulty = exercise.dificultad_tactica || 3;
-    
+
     switch (sessionPhase) {
       case 'warmup':
         // Penalizar ejercicios de alta intensidad física en calentamiento
@@ -254,28 +254,28 @@ class TFRSExerciseScorer {
           score += 0.1;
         }
         break;
-        
+
       case 'technical':
         // Favorecer ejercicios con alta dificultad técnica
         if (technicDifficulty >= 3) {
           score += 0.1;
         }
         break;
-        
+
       case 'tactical':
         // Favorecer ejercicios con componente táctico
         if (tacticDifficulty >= 3) {
           score += 0.1;
         }
         break;
-        
+
       case 'conditioning':
         // Favorecer ejercicios de alta intensidad física
         if (physicDifficulty >= 4) {
           score += 0.15;
         }
         break;
-        
+
       case 'recovery':
         // Penalizar fuertemente ejercicios intensos en recuperación
         if (physicDifficulty > 2) {
@@ -287,7 +287,7 @@ class TFRSExerciseScorer {
         }
         break;
     }
-    
+
     // Limitar al rango [0, 1]
     return Math.max(0, Math.min(1, score));
   }
@@ -303,14 +303,14 @@ class TFRSExerciseScorer {
 function scoreTagMatch(exerciseTags, relevantTags) {
   if (!exerciseTags || exerciseTags.length === 0) return 0;
   if (!relevantTags || relevantTags.length === 0) return 0.5;
-  
-  const matches = exerciseTags.filter(tag => 
-    relevantTags.some(rt => 
-      tag.toLowerCase().includes(rt.toLowerCase()) || 
-      rt.toLowerCase().includes(tag.toLowerCase())
+
+  const matches = exerciseTags.filter((tag) =>
+    relevantTags.some(
+      (rt) =>
+        tag.toLowerCase().includes(rt.toLowerCase()) || rt.toLowerCase().includes(tag.toLowerCase())
     )
   );
-  
+
   return Math.min(1.0, matches.length / Math.max(exerciseTags.length * 0.5, 1));
 }
 
@@ -329,15 +329,17 @@ function getDimensionWeights(objectives) {
   if (!objectives || objectives.length === 0) {
     return config.objectiveToDimensionWeights.default;
   }
-  
+
   if (objectives.length === 1) {
-    return config.objectiveToDimensionWeights[objectives[0]] || 
-           config.objectiveToDimensionWeights.default;
+    return (
+      config.objectiveToDimensionWeights[objectives[0]] ||
+      config.objectiveToDimensionWeights.default
+    );
   }
-  
+
   const weights = { tactica: 0, tecnica: 0, fisica: 0, mental: 0 };
   let validObjectives = 0;
-  
+
   for (const obj of objectives) {
     const objWeights = config.objectiveToDimensionWeights[obj];
     if (objWeights) {
@@ -348,16 +350,16 @@ function getDimensionWeights(objectives) {
       validObjectives++;
     }
   }
-  
+
   if (validObjectives === 0) {
     return config.objectiveToDimensionWeights.default;
   }
-  
+
   return {
     tactica: weights.tactica / validObjectives,
     tecnica: weights.tecnica / validObjectives,
     fisica: weights.fisica / validObjectives,
-    mental: weights.mental / validObjectives
+    mental: weights.mental / validObjectives,
   };
 }
 
@@ -368,27 +370,27 @@ function getDimensionWeights(objectives) {
 function scoreDifficultyFit(exerciseDifficulty, intensity, objectives = []) {
   const range = config.intensityToDifficulty[intensity] || config.intensityToDifficulty.medium;
   const multiplier = config.intensityMultiplier[intensity] || 1.0;
-  
+
   const dimensionWeights = getDimensionWeights(objectives);
-  
-  const weightedDifficulty = (
+
+  const weightedDifficulty =
     (exerciseDifficulty.tactica || 0) * dimensionWeights.tactica +
     (exerciseDifficulty.tecnica || 0) * dimensionWeights.tecnica +
     (exerciseDifficulty.fisica || 0) * dimensionWeights.fisica +
-    (exerciseDifficulty.mental || 0) * dimensionWeights.mental
-  );
-  
+    (exerciseDifficulty.mental || 0) * dimensionWeights.mental;
+
   const adjustedDifficulty = weightedDifficulty * multiplier;
-  
+
   if (adjustedDifficulty >= range.min && adjustedDifficulty <= range.max) {
     return 1.0;
   }
-  
-  const distanceFromRange = adjustedDifficulty < range.min 
-    ? range.min - adjustedDifficulty 
-    : adjustedDifficulty - range.max;
-  
-  return Math.max(0, 1 - (distanceFromRange * 0.3));
+
+  const distanceFromRange =
+    adjustedDifficulty < range.min
+      ? range.min - adjustedDifficulty
+      : adjustedDifficulty - range.max;
+
+  return Math.max(0, 1 - distanceFromRange * 0.3);
 }
 
 /**
@@ -396,9 +398,9 @@ function scoreDifficultyFit(exerciseDifficulty, intensity, objectives = []) {
  */
 function scoreTypeVariety(exerciseType, typesInSession) {
   if (!typesInSession || typesInSession.length === 0) return 1.0;
-  
-  const count = typesInSession.filter(t => t === exerciseType).length;
-  return Math.max(0, 1 - (count * 0.25));
+
+  const count = typesInSession.filter((t) => t === exerciseType).length;
+  return Math.max(0, 1 - count * 0.25);
 }
 
 /**
@@ -406,9 +408,9 @@ function scoreTypeVariety(exerciseType, typesInSession) {
  */
 function scoreUniqueness(exerciseId, exercisesInSession) {
   if (!exercisesInSession || exercisesInSession.length === 0) return 1.0;
-  
-  const count = exercisesInSession.filter(id => id === exerciseId).length;
-  return count === 0 ? 1.0 : Math.max(0, 1 - (count * 0.5));
+
+  const count = exercisesInSession.filter((id) => id === exerciseId).length;
+  return count === 0 ? 1.0 : Math.max(0, 1 - count * 0.5);
 }
 
 /**
@@ -416,41 +418,28 @@ function scoreUniqueness(exerciseId, exercisesInSession) {
  */
 function scoreExercise(exercise, context) {
   const weights = config.weights;
-  
-  const tagScore = scoreTagMatch(
-    exercise.tags || exercise.etiquetas,
-    context.relevantTags
-  );
-  
-  const typeScore = scoreTypeMatch(
-    exercise.type || exercise.tipo,
-    context.preferredTypes
-  );
-  
+
+  const tagScore = scoreTagMatch(exercise.tags || exercise.etiquetas, context.relevantTags);
+
+  const typeScore = scoreTypeMatch(exercise.type || exercise.tipo, context.preferredTypes);
+
   const difficultyScore = scoreDifficultyFit(
     exercise.difficulty || exercise.dificultad,
     context.intensity,
     context.objectives || []
   );
-  
-  const varietyScore = scoreTypeVariety(
-    exercise.type || exercise.tipo,
-    context.typesInSession
-  );
-  
-  const uniquenessScore = scoreUniqueness(
-    exercise.id,
-    context.exercisesInSession
-  );
-  
-  const totalScore = (
+
+  const varietyScore = scoreTypeVariety(exercise.type || exercise.tipo, context.typesInSession);
+
+  const uniquenessScore = scoreUniqueness(exercise.id, context.exercisesInSession);
+
+  const totalScore =
     tagScore * weights.tagMatch +
     typeScore * weights.typeMatch +
     difficultyScore * weights.difficultyFit +
     varietyScore * weights.typeVariety +
-    uniquenessScore * weights.uniqueness
-  );
-  
+    uniquenessScore * weights.uniqueness;
+
   return {
     totalScore,
     breakdown: {
@@ -458,8 +447,8 @@ function scoreExercise(exercise, context) {
       typeMatch: typeScore,
       difficultyFit: difficultyScore,
       typeVariety: varietyScore,
-      uniqueness: uniquenessScore
-    }
+      uniqueness: uniquenessScore,
+    },
   };
 }
 
@@ -472,5 +461,5 @@ module.exports = {
   scoreTypeVariety,
   scoreUniqueness,
   scoreExercise,
-  getDimensionWeights
+  getDimensionWeights,
 };

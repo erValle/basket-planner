@@ -1,6 +1,6 @@
 /**
  * Motor de Recomendación TFRS - Índice Principal
- * 
+ *
  * Este módulo exporta todas las funcionalidades del motor de recomendación
  * basado en TensorFlow Recommenders.
  */
@@ -8,7 +8,7 @@
 const recommender = require('./recommender');
 const config = require('./config');
 const TFRSRankingModel = require('./tfrsModel');
-const { 
+const {
   TFRSExerciseScorer,
   scoreExercise,
   scoreTagMatch,
@@ -16,14 +16,14 @@ const {
   scoreDifficultyFit,
   scoreTypeVariety,
   scoreUniqueness,
-  getDimensionWeights
+  getDimensionWeights,
 } = require('./exerciseScorer');
 const { TFRSTrainer, HeuristicScorer } = require('./trainer');
-const { 
-  filterExercises, 
-  filterBySessionPhase, 
+const {
+  filterExercises,
+  filterBySessionPhase,
   normalizeMaterial,
-  hasMaterialsAvailable
+  hasMaterialsAvailable,
 } = require('./exerciseFilter');
 
 module.exports = {
@@ -37,13 +37,13 @@ module.exports = {
   trainWithFeedback: recommender.trainWithFeedback,
   getModelInfo: recommender.getModelInfo,
   getModelConfig: recommender.getModelConfig,
-  
+
   // Configuración
   config,
-  
+
   // Modelo TensorFlow
   TFRSRankingModel,
-  
+
   // Scoring
   TFRSExerciseScorer,
   HeuristicScorer,
@@ -54,17 +54,17 @@ module.exports = {
   scoreTypeVariety,
   scoreUniqueness,
   getDimensionWeights,
-  
+
   // Entrenamiento
   TFRSTrainer,
-  
+
   // Filtrado
   filterExercises,
   filterBySessionPhase,
   normalizeMaterial,
   hasMaterialsAvailable,
-  
+
   // Metadata
   modelVersion: config.modelVersion,
-  modelDescription: config.description
+  modelDescription: config.description,
 };

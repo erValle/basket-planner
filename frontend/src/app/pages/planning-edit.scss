@@ -6,7 +6,9 @@
     background: #020617;
     border: 1px solid #1f2937;
     border-radius: 0.5rem;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.5),
+      0 4px 12px rgba(0, 0, 0, 0.3);
     min-width: 400px;
   }
 
@@ -28,7 +30,7 @@
 
   .p-dialog-header-icon {
     color: #9ca3af;
-    
+
     &:hover {
       color: #f9fafb;
     }

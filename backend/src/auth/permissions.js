@@ -147,14 +147,16 @@ const PERMISSIONS = {
 // ============================================================================
 
 const ROLE_PERMISSIONS = {
-  // ADMIN: Full access to everything
+  // ADMIN: Funciones específicas de administrador del sistema
+  // Según alcance: Registrar usuarios, CRUD clubes, auditoría, monitorización, motor de recomendación
+  // NO tiene: funcionalidades de entrenador/director técnico (equipos, ejercicios, planificaciones, etc.)
   admin: [
     // Auth
     PERMISSIONS.AUTH_LOGIN,
     PERMISSIONS.AUTH_CHANGE_PASSWORD,
     PERMISSIONS.AUTH_VIEW_PROFILE,
-    
-    // Users
+
+    // Users (CRUD completo - registrar usuarios de cualquier tipo)
     PERMISSIONS.USERS_CREATE,
     PERMISSIONS.USERS_READ,
     PERMISSIONS.USERS_READ_OWN,
@@ -162,103 +164,67 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.USERS_UPDATE_OWN,
     PERMISSIONS.USERS_DELETE,
     PERMISSIONS.USERS_LIST,
-    
-    // Clubs
+
+    // Clubs (CRUD completo - crear, editar, eliminar clubes)
     PERMISSIONS.CLUBS_CREATE,
     PERMISSIONS.CLUBS_READ,
     PERMISSIONS.CLUBS_UPDATE,
     PERMISSIONS.CLUBS_DELETE,
     PERMISSIONS.CLUBS_LIST,
-    
-    // Teams
-    PERMISSIONS.TEAMS_CREATE,
+
+    // Teams (solo lectura - no gestiona equipos, eso es del Director Técnico)
     PERMISSIONS.TEAMS_READ,
-    PERMISSIONS.TEAMS_UPDATE,
-    PERMISSIONS.TEAMS_DELETE,
     PERMISSIONS.TEAMS_LIST,
-    PERMISSIONS.TEAMS_ADD_PLAYERS,
-    PERMISSIONS.TEAMS_REMOVE_PLAYERS,
-    
-    // Players
-    PERMISSIONS.PLAYERS_CREATE,
+
+    // Players (solo lectura)
     PERMISSIONS.PLAYERS_READ,
-    PERMISSIONS.PLAYERS_UPDATE,
-    PERMISSIONS.PLAYERS_DELETE,
     PERMISSIONS.PLAYERS_LIST,
-    PERMISSIONS.PLAYERS_TRANSFER,
     PERMISSIONS.PLAYERS_VIEW_HISTORY,
-    
-    // Exercises
-    PERMISSIONS.EXERCISES_CREATE,
+
+    // Exercises (solo lectura)
     PERMISSIONS.EXERCISES_READ,
-    PERMISSIONS.EXERCISES_UPDATE,
-    PERMISSIONS.EXERCISES_DELETE,
     PERMISSIONS.EXERCISES_LIST,
-    
-    // Equipment
-    PERMISSIONS.EQUIPMENT_CREATE,
+
+    // Equipment (solo lectura)
     PERMISSIONS.EQUIPMENT_READ,
-    PERMISSIONS.EQUIPMENT_UPDATE,
-    PERMISSIONS.EQUIPMENT_DELETE,
     PERMISSIONS.EQUIPMENT_LIST,
-    
-    // Plans
-    PERMISSIONS.PLANS_CREATE,
-    PERMISSIONS.PLANS_CREATE_INDIVIDUAL,
-    PERMISSIONS.PLANS_CREATE_GROUP,
+
+    // Plans (solo lectura para supervisión)
     PERMISSIONS.PLANS_READ,
-    PERMISSIONS.PLANS_UPDATE,
-    PERMISSIONS.PLANS_DELETE,
     PERMISSIONS.PLANS_LIST,
-    PERMISSIONS.PLANS_EXPORT,
-    
-    // Versions
-    PERMISSIONS.VERSIONS_CREATE,
+
+    // Versions (solo lectura)
     PERMISSIONS.VERSIONS_READ,
-    PERMISSIONS.VERSIONS_UPDATE,
-    PERMISSIONS.VERSIONS_DELETE,
-    PERMISSIONS.VERSIONS_ACTIVATE,
-    PERMISSIONS.VERSIONS_RESTORE,
     PERMISSIONS.VERSIONS_LIST,
-    
-    // Assignments
-    PERMISSIONS.ASSIGNMENTS_CREATE,
+
+    // Assignments (solo lectura)
     PERMISSIONS.ASSIGNMENTS_READ,
-    PERMISSIONS.ASSIGNMENTS_UPDATE,
-    PERMISSIONS.ASSIGNMENTS_DELETE,
     PERMISSIONS.ASSIGNMENTS_LIST,
-    
-    // Feedback
-    PERMISSIONS.FEEDBACK_CREATE,
+
+    // Feedback (solo lectura)
     PERMISSIONS.FEEDBACK_READ,
-    PERMISSIONS.FEEDBACK_UPDATE,
-    PERMISSIONS.FEEDBACK_DELETE,
     PERMISSIONS.FEEDBACK_LIST,
-    PERMISSIONS.FEEDBACK_STATS,
-    
-    // Metrics
-    PERMISSIONS.METRICS_CREATE,
+
+    // Metrics (solo lectura)
     PERMISSIONS.METRICS_READ,
-    PERMISSIONS.METRICS_UPDATE,
-    PERMISSIONS.METRICS_DELETE,
     PERMISSIONS.METRICS_LIST,
-    
-    // Recommender
+
+    // Recommender (acceso completo - comprobar motor de recomendación)
     PERMISSIONS.RECOMMENDER_TRAIN,
     PERMISSIONS.RECOMMENDER_STATUS,
     PERMISSIONS.RECOMMENDER_CONFIG,
     PERMISSIONS.RECOMMENDER_MODELS,
     PERMISSIONS.RECOMMENDER_ACTIVATE,
-    
-    // Monitoring
+
+    // Monitoring (acceso completo - herramienta de monitorización)
     PERMISSIONS.MONITORING_VIEW,
     PERMISSIONS.MONITORING_EXPORT,
-    
-    // Audit
+
+    // Audit (acceso completo - consultar logs de auditoría)
     PERMISSIONS.AUDIT_READ,
     PERMISSIONS.AUDIT_LIST,
-    
-    // User-Clubs
+
+    // User-Clubs (gestión de relaciones usuario-club)
     PERMISSIONS.USER_CLUBS_CREATE,
     PERMISSIONS.USER_CLUBS_READ,
     PERMISSIONS.USER_CLUBS_UPDATE,
@@ -267,51 +233,55 @@ const ROLE_PERMISSIONS = {
   ],
 
   // TECHNICAL DIRECTOR: Club-scoped management
+  // Según alcance: Gestión de equipos, asignación de jugadores, transferencias,
+  // gestión de material deportivo, + todas las funcionalidades de Entrenador
   technical_director: [
     // Auth
     PERMISSIONS.AUTH_LOGIN,
     PERMISSIONS.AUTH_CHANGE_PASSWORD,
     PERMISSIONS.AUTH_VIEW_PROFILE,
-    
-    // Users (limited)
+
+    // Users (read only - no puede crear usuarios, eso es solo admin)
     PERMISSIONS.USERS_READ,
     PERMISSIONS.USERS_READ_OWN,
     PERMISSIONS.USERS_UPDATE_OWN,
     PERMISSIONS.USERS_LIST,
-    
-    // Clubs (limited to own club)
+
+    // Clubs (solo lectura - no puede CRUD clubes, eso es solo admin)
     PERMISSIONS.CLUBS_READ,
-    PERMISSIONS.CLUBS_UPDATE_OWN,
     PERMISSIONS.CLUBS_LIST,
-    
-    // Teams (limited to club)
+
+    // Teams (CRUD completo en su club - solo Director Técnico gestiona equipos)
     PERMISSIONS.TEAMS_CREATE_CLUB,
     PERMISSIONS.TEAMS_READ,
     PERMISSIONS.TEAMS_UPDATE_CLUB,
+    PERMISSIONS.TEAMS_DELETE, // Puede eliminar equipos de su club
     PERMISSIONS.TEAMS_LIST,
     PERMISSIONS.TEAMS_ADD_PLAYERS,
     PERMISSIONS.TEAMS_REMOVE_PLAYERS,
-    
-    // Players (limited to club)
+
+    // Players (gestión completa en su club - solo Director Técnico)
     PERMISSIONS.PLAYERS_CREATE_CLUB,
     PERMISSIONS.PLAYERS_READ,
     PERMISSIONS.PLAYERS_UPDATE_CLUB,
     PERMISSIONS.PLAYERS_LIST,
-    PERMISSIONS.PLAYERS_TRANSFER_CLUB,
+    PERMISSIONS.PLAYERS_TRANSFER_CLUB, // Solo Director Técnico puede transferir
     PERMISSIONS.PLAYERS_VIEW_HISTORY,
-    
-    // Exercises
+
+    // Exercises (heredado de Entrenador - añadir, editar, desactivar)
     PERMISSIONS.EXERCISES_CREATE,
     PERMISSIONS.EXERCISES_READ,
     PERMISSIONS.EXERCISES_UPDATE,
+    PERMISSIONS.EXERCISES_DELETE, // Desactivar = soft delete
     PERMISSIONS.EXERCISES_LIST,
-    
-    // Equipment (limited to club)
+
+    // Equipment (CRUD completo - solo Director Técnico gestiona material)
     PERMISSIONS.EQUIPMENT_CREATE_CLUB,
     PERMISSIONS.EQUIPMENT_READ,
     PERMISSIONS.EQUIPMENT_UPDATE_CLUB,
+    PERMISSIONS.EQUIPMENT_DELETE, // Puede eliminar material de su club
     PERMISSIONS.EQUIPMENT_LIST,
-    
+
     // Plans (limited to club players/teams)
     PERMISSIONS.PLANS_CREATE_INDIVIDUAL,
     PERMISSIONS.PLANS_CREATE_GROUP,
@@ -319,7 +289,7 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.PLANS_UPDATE_ASSIGNED,
     PERMISSIONS.PLANS_LIST,
     PERMISSIONS.PLANS_EXPORT,
-    
+
     // Versions
     PERMISSIONS.VERSIONS_CREATE,
     PERMISSIONS.VERSIONS_READ,
@@ -327,14 +297,14 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.VERSIONS_ACTIVATE,
     PERMISSIONS.VERSIONS_RESTORE,
     PERMISSIONS.VERSIONS_LIST,
-    
+
     // Assignments
     PERMISSIONS.ASSIGNMENTS_CREATE,
     PERMISSIONS.ASSIGNMENTS_READ,
     PERMISSIONS.ASSIGNMENTS_UPDATE,
     PERMISSIONS.ASSIGNMENTS_DELETE,
     PERMISSIONS.ASSIGNMENTS_LIST,
-    
+
     // Feedback
     PERMISSIONS.FEEDBACK_CREATE,
     PERMISSIONS.FEEDBACK_READ,
@@ -342,14 +312,14 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.FEEDBACK_DELETE,
     PERMISSIONS.FEEDBACK_LIST,
     PERMISSIONS.FEEDBACK_STATS,
-    
+
     // Metrics
     PERMISSIONS.METRICS_CREATE,
     PERMISSIONS.METRICS_READ,
     PERMISSIONS.METRICS_UPDATE,
     PERMISSIONS.METRICS_DELETE,
     PERMISSIONS.METRICS_LIST,
-    
+
     // User-Clubs
     PERMISSIONS.USER_CLUBS_CREATE,
     PERMISSIONS.USER_CLUBS_READ,
@@ -358,45 +328,46 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.USER_CLUBS_LIST,
   ],
 
-  // COACH: Team-scoped management
+  // COACH (Entrenador): Team-scoped management
+  // Según alcance: Gestión de planificaciones, gestión de ejercicios, visualizar feedback
+  // NO puede: crear/editar/eliminar equipos, gestionar material, transferir jugadores
   coach: [
     // Auth
     PERMISSIONS.AUTH_LOGIN,
     PERMISSIONS.AUTH_CHANGE_PASSWORD,
     PERMISSIONS.AUTH_VIEW_PROFILE,
-    
+
     // Users (read only own)
     PERMISSIONS.USERS_READ_OWN,
     PERMISSIONS.USERS_UPDATE_OWN,
-    
+
     // Clubs (read only)
     PERMISSIONS.CLUBS_READ,
     PERMISSIONS.CLUBS_LIST,
-    
-    // Teams (limited to assigned teams)
+
+    // Teams (solo lectura - NO puede crear/editar/eliminar equipos)
     PERMISSIONS.TEAMS_READ,
-    PERMISSIONS.TEAMS_UPDATE_ASSIGNED,
     PERMISSIONS.TEAMS_LIST,
-    PERMISSIONS.TEAMS_ADD_PLAYERS,
-    PERMISSIONS.TEAMS_REMOVE_PLAYERS,
-    
-    // Players (limited to assigned teams/club)
+    // QUITADO: TEAMS_UPDATE_ASSIGNED, TEAMS_ADD_PLAYERS, TEAMS_REMOVE_PLAYERS
+
+    // Players (solo lectura de jugadores de sus equipos - NO puede transferir)
     PERMISSIONS.PLAYERS_READ,
-    PERMISSIONS.PLAYERS_UPDATE_CLUB,
     PERMISSIONS.PLAYERS_LIST,
     PERMISSIONS.PLAYERS_VIEW_HISTORY,
-    
-    // Exercises
+    // QUITADO: PLAYERS_UPDATE_CLUB, no puede editar jugadores
+
+    // Exercises (añadir, editar, desactivar ejercicios)
     PERMISSIONS.EXERCISES_CREATE,
     PERMISSIONS.EXERCISES_READ,
     PERMISSIONS.EXERCISES_UPDATE,
+    PERMISSIONS.EXERCISES_DELETE, // Desactivar = soft delete
     PERMISSIONS.EXERCISES_LIST,
-    
-    // Equipment (read and update for club)
+
+    // Equipment (solo lectura - NO puede gestionar material)
     PERMISSIONS.EQUIPMENT_READ,
-    PERMISSIONS.EQUIPMENT_UPDATE_CLUB,
     PERMISSIONS.EQUIPMENT_LIST,
-    
+    // QUITADO: EQUIPMENT_UPDATE_CLUB
+
     // Plans (limited to assigned players)
     PERMISSIONS.PLANS_CREATE_INDIVIDUAL,
     PERMISSIONS.PLANS_CREATE_GROUP,
@@ -404,7 +375,7 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.PLANS_UPDATE_ASSIGNED,
     PERMISSIONS.PLANS_LIST,
     PERMISSIONS.PLANS_EXPORT,
-    
+
     // Versions
     PERMISSIONS.VERSIONS_CREATE,
     PERMISSIONS.VERSIONS_READ,
@@ -412,14 +383,14 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.VERSIONS_ACTIVATE,
     PERMISSIONS.VERSIONS_RESTORE,
     PERMISSIONS.VERSIONS_LIST,
-    
+
     // Assignments
     PERMISSIONS.ASSIGNMENTS_CREATE,
     PERMISSIONS.ASSIGNMENTS_READ,
     PERMISSIONS.ASSIGNMENTS_UPDATE,
     PERMISSIONS.ASSIGNMENTS_DELETE,
     PERMISSIONS.ASSIGNMENTS_LIST,
-    
+
     // Feedback
     PERMISSIONS.FEEDBACK_CREATE,
     PERMISSIONS.FEEDBACK_READ,
@@ -427,51 +398,53 @@ const ROLE_PERMISSIONS = {
     PERMISSIONS.FEEDBACK_STATS,
   ],
 
-  // PLAYER: Read-only with self access
+  // PLAYER (Jugador): Read-only with self access
+  // Según alcance: Visualizar sesiones asignadas, visualizar/generar/editar feedback
   player: [
     // Auth
     PERMISSIONS.AUTH_LOGIN,
     PERMISSIONS.AUTH_CHANGE_PASSWORD,
     PERMISSIONS.AUTH_VIEW_PROFILE,
-    
+
     // Users (own only)
     PERMISSIONS.USERS_READ_OWN,
     PERMISSIONS.USERS_UPDATE_OWN,
-    
+
     // Clubs (read only)
     PERMISSIONS.CLUBS_READ,
     PERMISSIONS.CLUBS_LIST,
-    
+
     // Teams (read only)
     PERMISSIONS.TEAMS_READ,
     PERMISSIONS.TEAMS_LIST,
-    
+
     // Players (own only)
     PERMISSIONS.PLAYERS_READ_OWN,
     PERMISSIONS.PLAYERS_UPDATE_OWN,
     PERMISSIONS.PLAYERS_VIEW_OWN_HISTORY,
-    
-    // Exercises (read only)
+
+    // Exercises (read only - para ver ejercicios en sus sesiones)
     PERMISSIONS.EXERCISES_READ,
     PERMISSIONS.EXERCISES_LIST,
-    
+
     // Equipment (read only)
     PERMISSIONS.EQUIPMENT_READ,
     PERMISSIONS.EQUIPMENT_LIST,
-    
-    // Plans (own only)
+
+    // Plans (own only - visualizar sesiones asignadas)
     PERMISSIONS.PLANS_READ_OWN,
     PERMISSIONS.PLANS_EXPORT_OWN,
-    
+
     // Versions (own only)
     PERMISSIONS.VERSIONS_READ_OWN,
-    
+
     // Assignments (own only)
     PERMISSIONS.ASSIGNMENTS_READ_OWN,
-    
-    // Feedback
+
+    // Feedback (crear, leer y editar propio - según imagen puede generar y editar)
     PERMISSIONS.FEEDBACK_CREATE,
     PERMISSIONS.FEEDBACK_READ,
+    PERMISSIONS.FEEDBACK_UPDATE, // Puede editar su propio feedback
   ],
 
   // USER: Minimal access (for users without role yet)
@@ -509,7 +482,7 @@ function hasPermission(role, permission) {
  */
 function hasAnyPermission(role, permissions) {
   if (!role || !permissions || permissions.length === 0) return false;
-  return permissions.some(permission => hasPermission(role, permission));
+  return permissions.some((permission) => hasPermission(role, permission));
 }
 
 /**
@@ -520,7 +493,7 @@ function hasAnyPermission(role, permissions) {
  */
 function hasAllPermissions(role, permissions) {
   if (!role || !permissions || permissions.length === 0) return false;
-  return permissions.every(permission => hasPermission(role, permission));
+  return permissions.every((permission) => hasPermission(role, permission));
 }
 
 /**

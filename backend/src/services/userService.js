@@ -2,12 +2,12 @@ const { StatusCodes } = require('http-status-codes');
 const { Op } = require('sequelize');
 const bcrypt = require('bcrypt');
 
-const { User } = require('../../models');
+const { User, UserClub } = require('../../models');
 const { ENCRYPTION_CONST } = require('../../config/constants');
 const errorUtils = require('../libs/errorHelper');
 const auditLogService = require('./auditLogService');
 
-const listUsers = async ({ email, search, role, status }) => {
+const listUsers = async ({ email, search, role, status, clubId }) => {
   const where = {};
 
   // Búsqueda genérica en email, firstName y lastName
@@ -16,12 +16,25 @@ const listUsers = async ({ email, search, role, status }) => {
     where[Op.or] = [
       { email: { [Op.iLike]: `%${searchTerm}%` } },
       { firstName: { [Op.iLike]: `%${searchTerm}%` } },
-      { lastName: { [Op.iLike]: `%${searchTerm}%` } }
+      { lastName: { [Op.iLike]: `%${searchTerm}%` } },
     ];
   }
-  
+
   if (role) where.role = role;
   if (status) where.status = status;
+
+  // Si se especifica clubId, filtrar usuarios que pertenezcan a ese club
+  if (clubId) {
+    const userClubs = await UserClub.findAll({
+      where: {
+        clubId,
+        endDate: { [Op.is]: null }, // Solo membresías activas
+      },
+      attributes: ['userId'],
+    });
+    const userIds = userClubs.map((uc) => uc.userId);
+    where.id = { [Op.in]: userIds };
+  }
 
   return User.findAll({ where });
 };
@@ -34,9 +47,16 @@ const getUserById = async (id) => {
   return user;
 };
 
-const createUser = async ({ email, name, firstName, lastName, password, role, status }, auditCtx = {}) => {
+const createUser = async (
+  { email, name, firstName, lastName, password, role, status },
+  auditCtx = {}
+) => {
   if (!password) {
-    throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'PASSWORD_REQUIRED', 'Password is required');
+    throw errorUtils.httpError(
+      StatusCodes.BAD_REQUEST,
+      'PASSWORD_REQUIRED',
+      'Password is required'
+    );
   }
 
   // Parse 'name' into firstName/lastName if not provided separately
@@ -50,13 +70,13 @@ const createUser = async ({ email, name, firstName, lastName, password, role, st
 
   try {
     const passwordHash = await bcrypt.hash(password, ENCRYPTION_CONST.SALT_ROUNDS);
-    const created = await User.create({ 
-      email, 
-      firstName: finalFirstName, 
-      lastName: finalLastName, 
-      passwordHash, 
-      role, 
-      status 
+    const created = await User.create({
+      email,
+      firstName: finalFirstName,
+      lastName: finalLastName,
+      passwordHash,
+      role,
+      status,
     });
 
     await auditLogService.createAuditLog({
@@ -71,25 +91,39 @@ const createUser = async ({ email, name, firstName, lastName, password, role, st
     return created;
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
-      throw errorUtils.httpError(StatusCodes.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'Email already exists');
+      throw errorUtils.httpError(
+        StatusCodes.CONFLICT,
+        'EMAIL_ALREADY_EXISTS',
+        'Email already exists'
+      );
     }
     if (error.name === 'SequelizeValidationError') {
-      const messages = error.errors.map(err => err.message);
+      const messages = error.errors.map((err) => err.message);
       throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'VALIDATION_ERROR', messages.join(', '));
     }
     throw error;
   }
 };
 
-const updateUser = async (id, { email, name, firstName, lastName, password, role, status }, auditCtx = {}) => {
+const updateUser = async (
+  id,
+  { email, name, firstName, lastName, password, role, status },
+  auditCtx = {}
+) => {
   const user = await getUserById(id);
 
-  const before = { email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, status: user.status };
+  const before = {
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    role: user.role,
+    status: user.status,
+  };
 
   // Parse 'name' into firstName/lastName if provided as single field
   let finalFirstName = firstName;
   let finalLastName = lastName;
-  if (name && (!firstName && !lastName)) {
+  if (name && !firstName && !lastName) {
     const nameParts = name.trim().split(/\s+/);
     finalFirstName = nameParts[0] || undefined;
     finalLastName = nameParts.slice(1).join(' ') || undefined;
@@ -108,7 +142,13 @@ const updateUser = async (id, { email, name, firstName, lastName, password, role
   try {
     await user.update(updates);
 
-    const after = { email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, status: user.status };
+    const after = {
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      status: user.status,
+    };
     const roleChanged = before.role !== after.role;
 
     await auditLogService.createAuditLog({
@@ -123,10 +163,14 @@ const updateUser = async (id, { email, name, firstName, lastName, password, role
     return user;
   } catch (error) {
     if (error.name === 'SequelizeUniqueConstraintError') {
-      throw errorUtils.httpError(StatusCodes.CONFLICT, 'EMAIL_ALREADY_EXISTS', 'Email already exists');
+      throw errorUtils.httpError(
+        StatusCodes.CONFLICT,
+        'EMAIL_ALREADY_EXISTS',
+        'Email already exists'
+      );
     }
     if (error.name === 'SequelizeValidationError') {
-      const messages = error.errors.map(err => err.message);
+      const messages = error.errors.map((err) => err.message);
       throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'VALIDATION_ERROR', messages.join(', '));
     }
     throw error;
@@ -140,7 +184,7 @@ const deleteUser = async (id) => {
 
 const assignUsersToClub = async (userIds, clubId, auditCtx = {}) => {
   const { UserClub, Club } = require('../../models');
-  
+
   // Validate club exists
   const club = await Club.findByPk(clubId);
   if (!club) {
@@ -151,14 +195,14 @@ const assignUsersToClub = async (userIds, clubId, auditCtx = {}) => {
   const users = await User.findAll({
     where: {
       id: userIds,
-      role: 'user'
-    }
+      role: 'user',
+    },
   });
 
   if (users.length !== userIds.length) {
     throw errorUtils.httpError(
-      StatusCodes.BAD_REQUEST, 
-      'INVALID_USERS', 
+      StatusCodes.BAD_REQUEST,
+      'INVALID_USERS',
       'Some users not found or do not have role "user"'
     );
   }
@@ -167,7 +211,7 @@ const assignUsersToClub = async (userIds, clubId, auditCtx = {}) => {
   for (const user of users) {
     // Check if user is already assigned to this club
     const existingAssignment = await UserClub.findOne({
-      where: { userId: user.id, clubId }
+      where: { userId: user.id, clubId },
     });
 
     if (!existingAssignment) {

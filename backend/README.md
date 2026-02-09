@@ -88,4 +88,3 @@ npm test
 ## Endpoints útiles
 
 - Health check: `GET /api/health`
-
