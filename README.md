@@ -62,7 +62,7 @@ basket-planner/
 │   ├── migrations/
 │   ├── seeders/
 │   └── models/
-├── frontend/          # SPA - Angular 18+ (Standalone Components)
+├── frontend/          # SPA - Angular 21 (Standalone Components)
 │   └── src/
 │       └── app/
 └── docs/              # Documentacion adicional
@@ -72,7 +72,7 @@ basket-planner/
 
 **Backend:**
 
-- Node.js 20+
+- Node.js 24+
 - Express.js
 - PostgreSQL 14+
 - Sequelize ORM
@@ -82,25 +82,26 @@ basket-planner/
 
 **Frontend:**
 
-- Angular 18+ (Standalone Components)
-- PrimeNG UI Components
+- Angular 21 (Standalone Components)
+- PrimeNG 21
+- Tailwind CSS 4
 - RxJS
-- TypeScript
+- TypeScript 5.9
 
 ---
 
 ## Requisitos del Sistema
 
-- **Node.js**: 20.0.0 o superior
-- **npm**: 10.0.0 o superior
+- **Node.js**: 24.0.0 o superior
+- **npm**: 11.0.0 o superior
 - **PostgreSQL**: 14.0 o superior (o Docker)
 - **Docker** (opcional): Para ejecutar PostgreSQL en contenedor
 
 ### Verificar versiones instaladas
 
 ```bash
-node --version    # Debe mostrar v20.x.x o superior
-npm --version     # Debe mostrar 10.x.x o superior
+node --version    # Debe mostrar v24.x.x o superior
+npm --version     # Debe mostrar 11.x.x o superior
 ```
 
 ---
@@ -148,7 +149,7 @@ JWT_SECRET=tu_secreto_jwt_seguro_aqui
 
 # Servidor
 SERVER_PORT=4000
-CORS_ORIGIN=http://localhost:4200
+CORS_ORIGIN=http://localhost:4000,http://localhost:4200
 ```
 
 Volver al directorio raiz:
@@ -365,7 +366,6 @@ El sistema viene con usuarios precargados para pruebas:
 | `npm start`     | Inicia servidor de desarrollo |
 | `npm run build` | Build de produccion           |
 | `npm test`      | Ejecuta tests unitarios       |
-| `npm run lint`  | Ejecuta linter                |
 
 ---
 
@@ -377,7 +377,6 @@ El sistema viene con usuarios precargados para pruebas:
 
 - `POST /api/auth/login` - Iniciar sesion
 - `GET /api/auth/me` - Obtener usuario actual
-- `POST /api/auth/change-password` - Cambiar contrasena
 
 **Motor de Recomendacion:**
 
@@ -392,7 +391,15 @@ El sistema viene con usuarios precargados para pruebas:
 - `GET/POST/PUT/DELETE /api/teams` - Gestion de equipos
 - `GET/POST/PUT/DELETE /api/exercises` - Gestion de ejercicios
 - `GET/POST/PUT/DELETE /api/training-plans` - Gestion de planificaciones
+- `GET /api/training-plans/:id/versions` - Versiones de una planificacion
+- `GET/POST/PUT/DELETE /api/users` - Gestion de usuarios
+- `GET /api/players` - Listado de jugadores
+- `GET/POST/PUT/DELETE /api/equipment` - Gestion de equipamiento
+- `GET/POST /api/plan-assignments` - Asignaciones de planes
 - `GET/POST /api/feedbacks` - Gestion de feedback
+- `GET /api/metrics` - Metricas del sistema
+- `GET /api/audit-logs` - Registros de auditoria
+- `GET /api/monitoring` - Monitorizacion del sistema
 
 **Health Check:**
 
