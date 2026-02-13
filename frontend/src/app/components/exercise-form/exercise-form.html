@@ -35,7 +35,12 @@
 
       <div class="space-y-4">
         <div>
-          <label class="mb-2 block text-sm text-zinc-200">Nombre del ejercicio @if (!isViewMode) { * }</label>
+          <label class="mb-2 block text-sm text-zinc-200"
+            >Nombre del ejercicio
+            @if (!isViewMode) {
+              *
+            }
+          </label>
           @if (isViewMode) {
             <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100">
               {{ form.controls.nombre.value || 'Sin nombre' }}
@@ -57,7 +62,9 @@
         <div>
           <label class="mb-2 block text-sm text-zinc-200">Descripción</label>
           @if (isViewMode) {
-            <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100 min-h-[100px]">
+            <div
+              class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100 min-h-[100px]"
+            >
               {{ form.controls.descripcion.value || 'Sin descripción' }}
             </div>
           } @else {
@@ -73,13 +80,15 @@
 
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <label class="mb-2 block text-sm text-zinc-200">Tipo de ejercicio @if (!isViewMode) { * }</label>
+            <label class="mb-2 block text-sm text-zinc-200"
+              >Tipo de ejercicio
+              @if (!isViewMode) {
+                *
+              }
+            </label>
             @if (isViewMode) {
               <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3">
-                <p-tag 
-                  [value]="getTipoLabel(form.controls.tipo.value)" 
-                  severity="info" 
-                />
+                <p-tag [value]="getTipoLabel(form.controls.tipo.value)" severity="info" />
               </div>
             } @else {
               <p-select
@@ -101,9 +110,9 @@
             <label class="mb-2 block text-sm text-zinc-200">Estado</label>
             @if (isViewMode) {
               <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3">
-                <p-tag 
-                  [value]="form.controls.estado.value" 
-                  [severity]="form.controls.estado.value === 'Activo' ? 'success' : 'secondary'" 
+                <p-tag
+                  [value]="form.controls.estado.value"
+                  [severity]="form.controls.estado.value === 'Activo' ? 'success' : 'secondary'"
                 />
               </div>
             } @else {
@@ -120,7 +129,12 @@
         </div>
 
         <div>
-          <label class="mb-2 block text-sm text-zinc-200">Duración (minutos) @if (!isViewMode) { * }</label>
+          <label class="mb-2 block text-sm text-zinc-200"
+            >Duración (minutos)
+            @if (!isViewMode) {
+              *
+            }
+          </label>
           @if (isViewMode) {
             <div class="rounded-lg bg-zinc-900/50 border border-zinc-800 px-4 py-3 text-zinc-100">
               {{ form.controls.duracionMinutos.value || 0 }} minutos
@@ -135,7 +149,9 @@
               styleClass="w-full"
             />
             @if (form.controls.duracionMinutos.touched && form.controls.duracionMinutos.invalid) {
-              <div class="mt-2 text-xs text-red-400">La duración debe ser entre 1 y 60 minutos.</div>
+              <div class="mt-2 text-xs text-red-400">
+                La duración debe ser entre 1 y 60 minutos.
+              </div>
             }
           }
         </div>
@@ -160,12 +176,14 @@
             <label class="text-sm text-zinc-200 font-medium">Dificultad Táctica</label>
             <div class="flex items-center gap-2">
               <span class="text-xs text-zinc-400">Nivel:</span>
-              <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadTactica.value }}</span>
+              <span class="text-xl font-bold text-sky-400">{{
+                form.controls.dificultadTactica.value
+              }}</span>
             </div>
           </div>
           <div class="flex gap-2 mb-2">
             @for (i of difficultyLevels; track i) {
-              <button 
+              <button
                 type="button"
                 (click)="setDifficulty('dificultadTactica', i)"
                 class="flex-1 h-10 rounded flex items-center justify-center text-sm font-semibold transition-all cursor-pointer hover:scale-105"
@@ -191,12 +209,14 @@
             <label class="text-sm text-zinc-200 font-medium">Dificultad Técnica</label>
             <div class="flex items-center gap-2">
               <span class="text-xs text-zinc-400">Nivel:</span>
-              <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadTecnica.value }}</span>
+              <span class="text-xl font-bold text-sky-400">{{
+                form.controls.dificultadTecnica.value
+              }}</span>
             </div>
           </div>
           <div class="flex gap-2 mb-2">
             @for (i of difficultyLevels; track i) {
-              <button 
+              <button
                 type="button"
                 (click)="setDifficulty('dificultadTecnica', i)"
                 class="flex-1 h-10 rounded flex items-center justify-center text-sm font-semibold transition-all cursor-pointer hover:scale-105"
@@ -222,12 +242,14 @@
             <label class="text-sm text-zinc-200 font-medium">Dificultad Física</label>
             <div class="flex items-center gap-2">
               <span class="text-xs text-zinc-400">Nivel:</span>
-              <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadFisica.value }}</span>
+              <span class="text-xl font-bold text-sky-400">{{
+                form.controls.dificultadFisica.value
+              }}</span>
             </div>
           </div>
           <div class="flex gap-2 mb-2">
             @for (i of difficultyLevels; track i) {
-              <button 
+              <button
                 type="button"
                 (click)="setDifficulty('dificultadFisica', i)"
                 class="flex-1 h-10 rounded flex items-center justify-center text-sm font-semibold transition-all cursor-pointer hover:scale-105"
@@ -253,12 +275,14 @@
             <label class="text-sm text-zinc-200 font-medium">Dificultad Mental</label>
             <div class="flex items-center gap-2">
               <span class="text-xs text-zinc-400">Nivel:</span>
-              <span class="text-xl font-bold text-sky-400">{{ form.controls.dificultadMental.value }}</span>
+              <span class="text-xl font-bold text-sky-400">{{
+                form.controls.dificultadMental.value
+              }}</span>
             </div>
           </div>
           <div class="flex gap-2 mb-2">
             @for (i of difficultyLevels; track i) {
-              <button 
+              <button
                 type="button"
                 (click)="setDifficulty('dificultadMental', i)"
                 class="flex-1 h-10 rounded flex items-center justify-center text-sm font-semibold transition-all cursor-pointer hover:scale-105"
@@ -284,7 +308,16 @@
             <div class="flex items-center justify-between p-4 rounded-lg bg-zinc-900/50">
               <span class="text-sm font-medium text-zinc-200">Dificultad Promedio</span>
               <span class="text-2xl font-bold text-sky-400">
-                {{ ((form.controls.dificultadTactica.value + form.controls.dificultadTecnica.value + form.controls.dificultadFisica.value + form.controls.dificultadMental.value) / 4).toFixed(1) }} / 5.0
+                {{
+                  (
+                    (form.controls.dificultadTactica.value +
+                      form.controls.dificultadTecnica.value +
+                      form.controls.dificultadFisica.value +
+                      form.controls.dificultadMental.value) /
+                    4
+                  ).toFixed(1)
+                }}
+                / 5.0
               </span>
             </div>
           </div>
@@ -299,9 +332,10 @@
       <div class="space-y-4">
         @if (!isViewMode) {
           <p class="text-xs text-zinc-400">
-            Las etiquetas ayudan al sistema de recomendación a encontrar ejercicios relevantes. Haz clic para añadir o quitar.
+            Las etiquetas ayudan al sistema de recomendación a encontrar ejercicios relevantes. Haz
+            clic para añadir o quitar.
           </p>
-          
+
           <!-- Popular tags -->
           @if (popularTagsLoading) {
             <div class="text-xs text-zinc-500">Cargando etiquetas populares...</div>
@@ -319,7 +353,8 @@
                   [class.hover:bg-sky-400]="!isTagSelected(item.tag)"
                 >
                   {{ item.tag }}
-                  <span class="px-1.5 py-0.5 rounded-full text-[10px]"
+                  <span
+                    class="px-1.5 py-0.5 rounded-full text-[10px]"
                     [class.bg-sky-600]="isTagSelected(item.tag)"
                     [class.bg-zinc-700]="!isTagSelected(item.tag)"
                   >
@@ -328,7 +363,7 @@
                 </button>
               }
             </div>
-            
+
             @if (popularTags.length > INITIAL_ITEMS_TO_SHOW) {
               <button
                 type="button"
@@ -353,9 +388,9 @@
             <div class="text-xs text-zinc-500 mb-2">Etiquetas seleccionadas:</div>
             <div class="flex flex-wrap gap-2">
               @for (tag of form.controls.etiquetas.value; track tag) {
-                <p-chip 
-                  [label]="tag" 
-                  [removable]="!isViewMode" 
+                <p-chip
+                  [label]="tag"
+                  [removable]="!isViewMode"
                   (onRemove)="removeTag(tag)"
                   styleClass="bg-sky-500/20 text-sky-300"
                 />
@@ -383,7 +418,7 @@
           <p class="text-xs text-zinc-400">
             Selecciona el material necesario del inventario disponible.
           </p>
-          
+
           <!-- Equipment from DB -->
           @if (equipmentLoading) {
             <div class="text-xs text-zinc-500">Cargando materiales...</div>
@@ -404,7 +439,7 @@
                 </button>
               }
             </div>
-            
+
             @if (equipmentItems.length > INITIAL_ITEMS_TO_SHOW) {
               <button
                 type="button"
@@ -431,9 +466,9 @@
             <div class="text-xs text-zinc-500 mb-2">Materiales seleccionados:</div>
             <div class="flex flex-wrap gap-2">
               @for (material of form.controls.materialesNecesarios.value; track material) {
-                <p-chip 
-                  [label]="material" 
-                  [removable]="!isViewMode" 
+                <p-chip
+                  [label]="material"
+                  [removable]="!isViewMode"
                   (onRemove)="removeMaterial(material)"
                   styleClass="bg-emerald-500/20 text-emerald-300"
                 />

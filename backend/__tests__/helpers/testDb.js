@@ -59,5 +59,5 @@ module.exports = {
   migrate,
   seed,
   reset,
-  resetAndSeed
+  resetAndSeed,
 };

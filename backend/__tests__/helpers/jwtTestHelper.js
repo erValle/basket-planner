@@ -10,7 +10,7 @@ const signTestToken = ({
   email = 'test@example.com',
   name = 'Test User',
   role = 'admin',
-  status = 'active'
+  status = 'active',
 } = {}) => {
   const secret = (config.test && config.test.auth && config.test.auth.secret) || 'test-secret';
 
@@ -20,17 +20,17 @@ const signTestToken = ({
       email,
       name,
       role,
-      status
+      status,
     },
     secret,
     {
       issuer: JWT_ISSUER,
       audience: JWT_AUDIENCE,
-      expiresIn: '1h'
+      expiresIn: '1h',
     }
   );
 };
 
 module.exports = {
-  signTestToken
+  signTestToken,
 };

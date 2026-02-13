@@ -7,15 +7,15 @@ module.exports = {
     const [clubs] = await queryInterface.sequelize.query(
       'SELECT id FROM clubs ORDER BY id LIMIT 1;'
     );
-    
+
     if (clubs.length === 0) {
-      console.log('⚠️  No hay clubs en la base de datos. Cree un club primero.');
+      console.log('No hay clubs en la base de datos. Cree un club primero.');
       return;
     }
-    
+
     const clubId = clubs[0].id;
     console.log(`ℹ️  Asignando equipamiento al club ID: ${clubId}`);
-    
+
     const equipment = [
       {
         clubId: clubId,
@@ -25,10 +25,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'balon',
           aliases: ['balon', '2_balones'],
-          descripcion: 'Balones de baloncesto oficiales'
+          descripcion: 'Balones de baloncesto oficiales',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -38,10 +38,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'conos',
           aliases: ['conos'],
-          descripcion: 'Conos de diferentes colores para marcaje'
+          descripcion: 'Conos de diferentes colores para marcaje',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -51,10 +51,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'canasta',
           aliases: ['canasta'],
-          descripcion: 'Canastas reglamentarias'
+          descripcion: 'Canastas reglamentarias',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -64,10 +64,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'petos',
           aliases: ['petos'],
-          descripcion: 'Petos de diferentes colores para diferenciar equipos'
+          descripcion: 'Petos de diferentes colores para diferenciar equipos',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -77,10 +77,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'foam_pad',
           aliases: ['foam_pad'],
-          descripcion: 'Almohadillas para ejercicios de contacto controlado'
+          descripcion: 'Almohadillas para ejercicios de contacto controlado',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -90,10 +90,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'pizarra_tactica',
           aliases: ['pizarra_tactica'],
-          descripcion: 'Pizarras para explicar tácticas y jugadas'
+          descripcion: 'Pizarras para explicar tácticas y jugadas',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -103,10 +103,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'cronometro_o_app',
           aliases: ['cronometro_o_app'],
-          descripcion: 'Dispositivos para control de tiempo'
+          descripcion: 'Dispositivos para control de tiempo',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -116,10 +116,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'colchoneta',
           aliases: ['colchoneta'],
-          descripcion: 'Colchonetas para ejercicios de suelo y movilidad'
+          descripcion: 'Colchonetas para ejercicios de suelo y movilidad',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -129,10 +129,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'banda_elastica',
           aliases: ['banda_elastica'],
-          descripcion: 'Bandas de resistencia para fortalecimiento'
+          descripcion: 'Bandas de resistencia para fortalecimiento',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -142,10 +142,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'foam_roller',
           aliases: ['foam_roller'],
-          descripcion: 'Rodillos de espuma para liberación miofascial'
+          descripcion: 'Rodillos de espuma para liberación miofascial',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -155,10 +155,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'cajon_pliometria',
           aliases: ['cajon_pliometria'],
-          descripcion: 'Cajones para ejercicios de salto y pliometría'
+          descripcion: 'Cajones para ejercicios de salto y pliometría',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -168,10 +168,10 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'tarjetas_colores',
           aliases: ['tarjetas_colores'],
-          descripcion: 'Tarjetas de colores para ejercicios de reacción'
+          descripcion: 'Tarjetas de colores para ejercicios de reacción',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       },
       {
         clubId: clubId,
@@ -181,18 +181,18 @@ module.exports = {
         characteristics: JSON.stringify({
           tipo: 'silbato_o_app_senal',
           aliases: ['silbato_o_app_senal'],
-          descripcion: 'Dispositivos para señales sonoras'
+          descripcion: 'Dispositivos para señales sonoras',
         }),
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     ];
 
     await queryInterface.bulkInsert('equipment', equipment, {});
-    console.log(`✅ Insertados ${equipment.length} items de equipamiento`);
+    console.log(`Insertados ${equipment.length} items de equipamiento`);
   },
 
   async down(queryInterface, Sequelize) {
     await queryInterface.bulkDelete('equipment', null, {});
-  }
+  },
 };

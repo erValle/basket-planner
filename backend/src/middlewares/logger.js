@@ -1,6 +1,6 @@
 /**
- * Logger middleware and utility for consistent logging across the application.
- * Provides structured logging with ISO timestamps and different log levels.
+ * Middleware y utilidad de logging para un registro consistente en la aplicacion.
+ * Proporciona logging estructurado con timestamps ISO y diferentes niveles de log.
  */
 
 const LOG_LEVELS = {
@@ -10,13 +10,7 @@ const LOG_LEVELS = {
   DEBUG: 'DEBUG',
 };
 
-/**
- * Formats a log message with timestamp, level, and optional request ID.
- * @param {string} level - Log level (ERROR, WARN, INFO, DEBUG)
- * @param {string} message - Log message
- * @param {string} [requestId] - Optional request ID for tracing
- * @returns {string} Formatted log string
- */
+
 const formatLog = (level, message, requestId = null) => {
   const timestamp = new Date().toISOString();
   const reqIdPart = requestId ? ` [${requestId}]` : '';
@@ -24,7 +18,7 @@ const formatLog = (level, message, requestId = null) => {
 };
 
 /**
- * Safely stringifies objects for logging, handling circular references.
+ * Convierte objetos a string de forma segura para logging, manejando referencias circulares.
  */
 const safeStringify = (obj) => {
   try {
@@ -35,7 +29,7 @@ const safeStringify = (obj) => {
 };
 
 /**
- * Express middleware for logging HTTP requests.
+ * Middleware de Express para registrar peticiones HTTP.
  */
 const loggerMiddleware = (req, res, next) => {
   const method = req.method;
@@ -43,14 +37,15 @@ const loggerMiddleware = (req, res, next) => {
   const requestId = req.requestId;
   const startTime = Date.now();
 
-  // Log request
+  // Registrar peticion
   console.log(formatLog(LOG_LEVELS.INFO, `${method} ${url}`, requestId));
 
-  // Log response on finish
+  // Registrar respuesta al finalizar
   res.on('finish', () => {
     const duration = Date.now() - startTime;
     const status = res.statusCode;
-    const level = status >= 500 ? LOG_LEVELS.ERROR : status >= 400 ? LOG_LEVELS.WARN : LOG_LEVELS.INFO;
+    const level =
+      status >= 500 ? LOG_LEVELS.ERROR : status >= 400 ? LOG_LEVELS.WARN : LOG_LEVELS.INFO;
     console.log(formatLog(level, `${method} ${url} ${status} ${duration}ms`, requestId));
   });
 
@@ -58,7 +53,7 @@ const loggerMiddleware = (req, res, next) => {
 };
 
 /**
- * Logger utility object with methods for different log levels.
+ * Utilidad de logging con metodos para diferentes niveles de log.
  */
 loggerMiddleware.error = (message, data = null) => {
   const formatted = data ? `${message} ${safeStringify(data)}` : message;

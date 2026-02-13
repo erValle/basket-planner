@@ -7,7 +7,7 @@
 
 // Tailwind CSS (using @import as Tailwind requires it for v4)
 /* stylelint-disable scss/at-import-partial-extension */
-@use "tailwindcss";
+@use 'tailwindcss';
 
 // PrimeNG Overrides - global styles
 @use './styles/primeng-overrides';

@@ -7,55 +7,55 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       trainingPlanId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: 'training_plans',
-          key: 'id'
+          key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
       },
       userId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: 'users',
-          key: 'id'
+          key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
       },
       assignedById: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: 'users',
-          key: 'id'
+          key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'SET NULL'
+        onDelete: 'SET NULL',
       },
       assignedAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       status: {
         type: Sequelize.STRING,
         allowNull: false,
-        defaultValue: 'assigned'
+        defaultValue: 'assigned',
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
 
     await queryInterface.addIndex('plan_assignments', ['trainingPlanId'], {
@@ -72,7 +72,10 @@ module.exports = {
   async down(queryInterface, Sequelize) {
     await queryInterface.removeIndex('plan_assignments', 'plan_assignments_trainingPlanId_idx');
     await queryInterface.removeIndex('plan_assignments', 'plan_assignments_userId_idx');
-    await queryInterface.removeIndex('plan_assignments', 'plan_assignments_training_plan_user_unique');
+    await queryInterface.removeIndex(
+      'plan_assignments',
+      'plan_assignments_training_plan_user_unique'
+    );
     await queryInterface.dropTable('plan_assignments');
-  }
+  },
 };

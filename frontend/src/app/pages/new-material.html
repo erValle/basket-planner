@@ -1,74 +1,74 @@
 <app-shell title="Nuevo material" subtitle="Añade un nuevo elemento al inventario.">
-	<p-toast></p-toast>
-	<div class="max-w-7xl mx-auto">
-		<app-page-header
-			[title]="'Nuevo material'"
-			[subtitle]="'Añade un nuevo elemento al inventario.'"
-		></app-page-header>
+  <p-toast></p-toast>
+  <div class="max-w-7xl mx-auto">
+    <app-page-header
+      [title]="'Nuevo material'"
+      [subtitle]="'Añade un nuevo elemento al inventario.'"
+    ></app-page-header>
 
-				<div
-					class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mt-6"
-					style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
-				>
-					<div class="grid grid-cols-2 gap-6">
-						<div class="col-span-2">
-							<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre</label>
-							<input
-								pInputText
-								[(ngModel)]="form.name"
-								name="name"
-								placeholder="Ej.: Balón talla 7"
-								class="w-full"
-							/>
-						</div>
+    <div
+      class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mt-6"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
+      <div class="grid grid-cols-2 gap-6">
+        <div class="col-span-2">
+          <label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre</label>
+          <input
+            pInputText
+            [(ngModel)]="form.name"
+            name="name"
+            placeholder="Ej.: Balón talla 7"
+            class="w-full"
+          />
+        </div>
 
-						<div>
-							<label class="block text-[#e5e7eb] text-[13px] mb-2">Categoría</label>
-							<p-select
-								[options]="categoryOptions"
-								[(ngModel)]="form.category"
-								name="category"
-								optionLabel="label"
-								optionValue="value"
-								styleClass="bp-select"
-								[panelStyleClass]="'bp-select-panel'"
-							></p-select>
-						</div>
+        <div>
+          <label class="block text-[#e5e7eb] text-[13px] mb-2">Categoría</label>
+          <p-select
+            [options]="categoryOptions"
+            [(ngModel)]="form.category"
+            name="category"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
 
-						<div>
-							<label class="block text-[#e5e7eb] text-[13px] mb-2">Estado</label>
-							<p-select
-								[options]="[
-									{ label: 'Disponible', value: 'available' },
-									{ label: 'Mantenimiento', value: 'maintenance' },
-									{ label: 'No disponible', value: 'unavailable' }
-								]"
-								[(ngModel)]="form.status"
-								name="status"
-								optionLabel="label"
-								optionValue="value"
-								styleClass="bp-select"
-								[panelStyleClass]="'bp-select-panel'"
-							></p-select>
-						</div>
-					</div>
+        <div>
+          <label class="block text-[#e5e7eb] text-[13px] mb-2">Estado</label>
+          <p-select
+            [options]="[
+              { label: 'Disponible', value: 'available' },
+              { label: 'Mantenimiento', value: 'maintenance' },
+              { label: 'No disponible', value: 'unavailable' },
+            ]"
+            [(ngModel)]="form.status"
+            name="status"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+      </div>
 
-					<div class="mt-6 flex justify-between items-center">
-						<p-button
-							label="Cancelar"
-							severity="secondary"
-							[outlined]="true"
-							(click)="cancel()"
-							styleClass="bp-btn bp-btn-secondary"
-						></p-button>
-						<p-button
-							label="Guardar"
-							(click)="save()"
-							[disabled]="!form.name.trim() || saving"
-							[loading]="saving"
-							styleClass="bp-btn bp-btn-primary"
-						></p-button>
-					</div>
-				</div>
-	</div>
+      <div class="mt-6 flex justify-between items-center">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          [outlined]="true"
+          (click)="cancel()"
+          styleClass="bp-btn bp-btn-secondary"
+        ></p-button>
+        <p-button
+          label="Guardar"
+          (click)="save()"
+          [disabled]="!form.name.trim() || saving"
+          [loading]="saving"
+          styleClass="bp-btn bp-btn-primary"
+        ></p-button>
+      </div>
+    </div>
+  </div>
 </app-shell>

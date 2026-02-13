@@ -3,18 +3,18 @@ info:
   title: Basket Planner API
   description: |
     API REST para el sistema de planificación de entrenamientos de baloncesto.
-    
+
     ## Autenticación
     La API utiliza autenticación basada en JWT (Bearer Token). Para acceder a los endpoints protegidos,
     incluye el token en el header `Authorization: Bearer <token>`.
-    
+
     ## Roles del sistema
     - **admin**: Acceso completo a todas las funcionalidades
     - **technical_director**: Gestión de su club y equipos
     - **coach**: Gestión de sus equipos y entrenamientos
     - **player**: Acceso a sus planificaciones y feedback
     - **user**: Usuario base sin rol específico
-    
+
     ## Sistema de recomendación
     El sistema utiliza un modelo TensorFlow TFRS (Two-Tower) para recomendar ejercicios
     personalizados según objetivos, intensidad y equipamiento disponible.
@@ -1362,7 +1362,7 @@ components:
               details:
                 - path: "email"
                   message: "must be a valid email"
-    
+
     Unauthorized:
       description: No autenticado - Token JWT inválido o expirado
       content:
@@ -1373,7 +1373,7 @@ components:
             error:
               code: UNAUTHORIZED
               message: "Token not provided or invalid"
-    
+
     Forbidden:
       description: No autorizado - Permisos insuficientes para esta acción
       content:
@@ -1384,7 +1384,7 @@ components:
             error:
               code: FORBIDDEN
               message: "You don't have permission to perform this action"
-    
+
     NotFound:
       description: Recurso no encontrado
       content:
@@ -1395,7 +1395,7 @@ components:
             error:
               code: NOT_FOUND
               message: "Resource not found"
-    
+
     Conflict:
       description: Conflicto - El recurso ya existe o hay un conflicto de estado
       content:
@@ -1406,7 +1406,7 @@ components:
             error:
               code: CONFLICT
               message: "Resource already exists"
-    
+
     TooManyRequests:
       description: Demasiadas solicitudes - Rate limit excedido
       content:
@@ -1417,7 +1417,7 @@ components:
             error:
               code: TOO_MANY_REQUESTS
               message: "Too many requests, please try again later"
-    
+
     InternalError:
       description: Error interno del servidor
       content:
@@ -1458,9 +1458,9 @@ paths:
       summary: Iniciar sesión
       description: |
         Autentica un usuario y devuelve un token JWT.
-        
+
         **Caso de uso:** CU.001 - Autenticación
-        
+
         **Rate limit:** 5 intentos por minuto
       tags: [Auth]
       security: []
@@ -1509,7 +1509,7 @@ paths:
       summary: Obtener usuario actual
       description: |
         Devuelve la información del usuario autenticado.
-        
+
         **Usado en:** Header de la aplicación, perfil de usuario
       tags: [Auth]
       responses:
@@ -1540,11 +1540,11 @@ paths:
       summary: Listar usuarios
       description: |
         Lista todos los usuarios del sistema con filtros opcionales.
-        
+
         **Caso de uso:** CU.002 - Listado de usuarios
-        
+
         **Roles permitidos:** admin, technical_director
-        
+
         **Usado en:** Panel de administración de usuarios
       tags: [Users]
       parameters:
@@ -1590,11 +1590,11 @@ paths:
       summary: Crear usuario
       description: |
         Crea un nuevo usuario en el sistema.
-        
+
         **Caso de uso:** CU.002 - Registro de usuarios
-        
+
         **Roles permitidos:** admin
-        
+
         **Usado en:** Panel de administración
       tags: [Users]
       requestBody:
@@ -1628,9 +1628,9 @@ paths:
       summary: Asignar usuarios a un club
       description: |
         Asigna múltiples usuarios a un club, convirtiéndolos en jugadores.
-        
+
         **Roles permitidos:** admin, technical_director
-        
+
         **Usado en:** Gestión de plantillas de club
       tags: [Users]
       requestBody:
@@ -1654,9 +1654,9 @@ paths:
       summary: Obtener usuario por ID
       description: |
         Obtiene los detalles de un usuario específico.
-        
+
         **Caso de uso:** CU.003 - Ver usuario
-        
+
         **Roles permitidos:** admin, technical_director, o el propio usuario
       tags: [Users]
       parameters:
@@ -1683,9 +1683,9 @@ paths:
       summary: Actualizar usuario
       description: |
         Actualiza los datos de un usuario.
-        
+
         **Caso de uso:** CU.003 - Edición de usuarios
-        
+
         **Roles permitidos:** admin, o el propio usuario
       tags: [Users]
       parameters:
@@ -1720,9 +1720,9 @@ paths:
       summary: Eliminar usuario
       description: |
         Elimina un usuario del sistema.
-        
+
         **Caso de uso:** CU.004 - Eliminación de usuarios
-        
+
         **Roles permitidos:** admin
       tags: [Users]
       parameters:
@@ -1747,11 +1747,11 @@ paths:
       summary: Listar clubes
       description: |
         Lista todos los clubes del sistema.
-        
+
         **Caso de uso:** CU.005 - Listado de clubes
-        
+
         **Roles permitidos:** Todos los usuarios autenticados
-        
+
         **Usado en:** Selector de club, panel de administración
       tags: [Clubs]
       responses:
@@ -1770,9 +1770,9 @@ paths:
       summary: Crear club
       description: |
         Crea un nuevo club.
-        
+
         **Caso de uso:** CU.005 - Creación de clubes
-        
+
         **Roles permitidos:** admin
       tags: [Clubs]
       requestBody:
@@ -1800,7 +1800,7 @@ paths:
       summary: Obtener club por ID
       description: |
         Obtiene los detalles de un club específico.
-        
+
         **Roles permitidos:** Todos los usuarios autenticados
       tags: [Clubs]
       parameters:
@@ -1825,9 +1825,9 @@ paths:
       summary: Actualizar club
       description: |
         Actualiza los datos de un club.
-        
+
         **Caso de uso:** CU.006 - Edición de clubes
-        
+
         **Roles permitidos:** admin (global), technical_director (solo su club)
       tags: [Clubs]
       parameters:
@@ -1862,9 +1862,9 @@ paths:
       summary: Eliminar club
       description: |
         Elimina un club del sistema.
-        
+
         **Caso de uso:** CU.007 - Eliminación de clubes
-        
+
         **Roles permitidos:** admin
       tags: [Clubs]
       parameters:
@@ -1889,11 +1889,11 @@ paths:
       summary: Listar equipos
       description: |
         Lista todos los equipos con filtros opcionales.
-        
+
         **Caso de uso:** CU.008/009 - Listado de equipos
-        
+
         **Roles permitidos:** Todos los usuarios autenticados
-        
+
         **Usado en:** Selector de equipo, panel de gestión
       tags: [Teams]
       parameters:
@@ -1923,9 +1923,9 @@ paths:
       summary: Crear equipo
       description: |
         Crea un nuevo equipo.
-        
+
         **Caso de uso:** CU.008 - Creación de equipos
-        
+
         **Roles permitidos:** admin, technical_director (su club), coach (su club)
       tags: [Teams]
       requestBody:
@@ -1953,7 +1953,7 @@ paths:
       summary: Obtener equipo por ID
       description: |
         Obtiene los detalles de un equipo específico.
-        
+
         **Roles permitidos:** Todos los usuarios autenticados
       tags: [Teams]
       parameters:
@@ -1978,9 +1978,9 @@ paths:
       summary: Actualizar equipo
       description: |
         Actualiza los datos de un equipo.
-        
+
         **Caso de uso:** CU.009 - Edición de equipos
-        
+
         **Roles permitidos:** admin, technical_director (su club), coach (sus equipos)
       tags: [Teams]
       parameters:
@@ -2015,9 +2015,9 @@ paths:
       summary: Eliminar equipo
       description: |
         Elimina un equipo del sistema.
-        
+
         **Caso de uso:** CU.010 - Eliminación de equipos
-        
+
         **Roles permitidos:** admin
       tags: [Teams]
       parameters:
@@ -2041,7 +2041,7 @@ paths:
       summary: Listar jugadores del equipo
       description: |
         Lista los jugadores asignados a un equipo.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Teams]
       parameters:
@@ -2070,7 +2070,7 @@ paths:
       summary: Añadir jugador al equipo
       description: |
         Añade un jugador a un equipo.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Teams]
       parameters:
@@ -2102,7 +2102,7 @@ paths:
       summary: Añadir múltiples jugadores al equipo
       description: |
         Añade varios jugadores a un equipo de una vez.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Teams]
       parameters:
@@ -2134,7 +2134,7 @@ paths:
       summary: Eliminar jugador del equipo
       description: |
         Elimina un jugador de un equipo.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Teams]
       parameters:
@@ -2164,11 +2164,11 @@ paths:
       summary: Listar jugadores
       description: |
         Lista todos los jugadores (usuarios con rol player) con filtros opcionales.
-        
+
         **Caso de uso:** CU.011 - Listado de jugadores
-        
+
         **Roles permitidos:** admin, technical_director, coach
-        
+
         **Usado en:** Selector de jugadores, gestión de plantilla
       tags: [Players]
       parameters:
@@ -2213,9 +2213,9 @@ paths:
       summary: Registrar jugador
       description: |
         Convierte un usuario existente (role=null) en jugador y lo asigna a un club.
-        
+
         **Caso de uso:** CU.011 - Registro de jugadores
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Players]
       requestBody:
@@ -2249,9 +2249,9 @@ paths:
       summary: Actualizar perfil de jugador
       description: |
         Actualiza el perfil deportivo de un jugador.
-        
+
         **Caso de uso:** CU.012 - Edición de perfil jugador
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Players]
       parameters:
@@ -2287,9 +2287,9 @@ paths:
       summary: Historial del jugador
       description: |
         Obtiene el historial de un jugador (clubes, equipos, entrenamientos).
-        
+
         **Caso de uso:** CU.015 - Historial de jugador
-        
+
         **Roles permitidos:** admin, technical_director, coach, player (propio)
       tags: [Players]
       parameters:
@@ -2317,9 +2317,9 @@ paths:
       summary: Transferir jugador
       description: |
         Transfiere un jugador a otro club.
-        
+
         **Caso de uso:** CU.014 - Transferir jugador
-        
+
         **Roles permitidos:** admin, technical_director (su club), coach (su club)
       tags: [Players]
       parameters:
@@ -2352,11 +2352,11 @@ paths:
       summary: Listar ejercicios
       description: |
         Lista el catálogo completo de ejercicios.
-        
+
         **Caso de uso:** CU.016 - Catálogo de ejercicios
-        
+
         **Roles permitidos:** Todos los usuarios autenticados (incluido player)
-        
+
         **Usado en:** Catálogo de ejercicios, selector en planificaciones
       tags: [Exercises]
       responses:
@@ -2375,9 +2375,9 @@ paths:
       summary: Crear ejercicio
       description: |
         Crea un nuevo ejercicio en el catálogo.
-        
+
         **Caso de uso:** CU.017 - Registro de ejercicios
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Exercises]
       requestBody:
@@ -2405,7 +2405,7 @@ paths:
       summary: Obtener etiquetas populares
       description: |
         Devuelve las etiquetas más usadas en los ejercicios.
-        
+
         **Usado en:** Filtros del catálogo, selector de objetivos
       tags: [Exercises]
       responses:
@@ -2430,7 +2430,7 @@ paths:
       summary: Obtener ejercicio por ID
       description: |
         Obtiene los detalles de un ejercicio específico.
-        
+
         **Roles permitidos:** Todos los usuarios autenticados
       tags: [Exercises]
       parameters:
@@ -2455,9 +2455,9 @@ paths:
       summary: Actualizar ejercicio
       description: |
         Actualiza un ejercicio existente.
-        
+
         **Caso de uso:** CU.018 - Edición de ejercicios
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Exercises]
       parameters:
@@ -2492,9 +2492,9 @@ paths:
       summary: Eliminar ejercicio
       description: |
         Elimina un ejercicio del catálogo.
-        
+
         **Caso de uso:** CU.019 - Eliminación de ejercicios
-        
+
         **Roles permitidos:** admin
       tags: [Exercises]
       parameters:
@@ -2519,11 +2519,11 @@ paths:
       summary: Listar material
       description: |
         Lista todo el material deportivo disponible.
-        
+
         **Caso de uso:** CU.020 - Listado de material
-        
+
         **Roles permitidos:** Todos los usuarios autenticados
-        
+
         **Usado en:** Selector de equipamiento en planificaciones
       tags: [Equipment]
       responses:
@@ -2542,9 +2542,9 @@ paths:
       summary: Crear material
       description: |
         Registra nuevo material deportivo.
-        
+
         **Caso de uso:** CU.020 - Registro de material
-        
+
         **Roles permitidos:** admin, technical_director (su club), coach (su club)
       tags: [Equipment]
       requestBody:
@@ -2593,9 +2593,9 @@ paths:
       summary: Actualizar material
       description: |
         Actualiza material existente.
-        
+
         **Caso de uso:** CU.021 - Edición de material
-        
+
         **Roles permitidos:** admin, technical_director (su club), coach (su club)
       tags: [Equipment]
       parameters:
@@ -2630,9 +2630,9 @@ paths:
       summary: Eliminar material
       description: |
         Elimina material del sistema.
-        
+
         **Caso de uso:** CU.022 - Eliminación de material
-        
+
         **Roles permitidos:** admin
       tags: [Equipment]
       parameters:
@@ -2680,7 +2680,7 @@ paths:
       summary: Asociar equipamiento a ejercicio
       description: |
         Asocia un material a un ejercicio.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Exercises]
       parameters:
@@ -2710,7 +2710,7 @@ paths:
       summary: Eliminar asociación de equipamiento
       description: |
         Elimina la asociación de un material con un ejercicio.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Exercises]
       parameters:
@@ -2740,11 +2740,11 @@ paths:
       summary: Listar planes de entrenamiento
       description: |
         Lista todos los planes de entrenamiento.
-        
+
         **Caso de uso:** CU.023/024/027 - Listado de planes
-        
+
         **Roles permitidos:** Todos los usuarios autenticados
-        
+
         **Usado en:** Panel de planificaciones
       tags: [Training Plans]
       responses:
@@ -2763,9 +2763,9 @@ paths:
       summary: Crear plan de entrenamiento
       description: |
         Crea un nuevo plan de entrenamiento manualmente.
-        
+
         **Caso de uso:** CU.023/024 - Creación de planes
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Training Plans]
       requestBody:
@@ -2814,9 +2814,9 @@ paths:
       summary: Actualizar plan
       description: |
         Actualiza un plan de entrenamiento.
-        
+
         **Caso de uso:** CU.025 - Edición de planes
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Training Plans]
       parameters:
@@ -2851,9 +2851,9 @@ paths:
       summary: Eliminar plan
       description: |
         Elimina un plan de entrenamiento.
-        
+
         **Caso de uso:** CU.026 - Eliminación de planes
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Training Plans]
       parameters:
@@ -2878,9 +2878,9 @@ paths:
       summary: Listar versiones de un plan
       description: |
         Lista todas las versiones de un plan de entrenamiento.
-        
+
         **Caso de uso:** CU.027 - Visualización de versiones
-        
+
         **Roles permitidos:** Todos los usuarios autenticados
       tags: [Training Plan Versions]
       parameters:
@@ -2905,9 +2905,9 @@ paths:
       summary: Crear versión
       description: |
         Crea una nueva versión de un plan de entrenamiento.
-        
+
         **Caso de uso:** CU.025 - Versionado
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Training Plan Versions]
       parameters:
@@ -2983,7 +2983,7 @@ paths:
       summary: Crear nueva versión desde la activa
       description: |
         Crea una nueva versión copiando la versión activa actual.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Training Plan Versions]
       parameters:
@@ -3037,7 +3037,7 @@ paths:
       summary: Actualizar versión
       description: |
         Actualiza una versión existente.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Training Plan Versions]
       parameters:
@@ -3077,7 +3077,7 @@ paths:
       summary: Eliminar versión
       description: |
         Elimina una versión de un plan.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Training Plan Versions]
       parameters:
@@ -3106,7 +3106,7 @@ paths:
       summary: Restaurar versión
       description: |
         Restaura una versión anterior creando una nueva versión con su contenido.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Training Plan Versions]
       parameters:
@@ -3144,7 +3144,7 @@ paths:
       summary: Activar versión
       description: |
         Establece una versión como la versión activa del plan.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Training Plan Versions]
       parameters:
@@ -3174,7 +3174,7 @@ paths:
       summary: Listar asignaciones
       description: |
         Lista todas las asignaciones de planes a usuarios.
-        
+
         **Caso de uso:** CU.027 - Visualización de asignaciones
       tags: [Plan Assignments]
       responses:
@@ -3193,9 +3193,9 @@ paths:
       summary: Crear asignación
       description: |
         Asigna un plan de entrenamiento a un usuario.
-        
+
         **Caso de uso:** CU.023/024 - Asignación de planes
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Plan Assignments]
       requestBody:
@@ -3223,9 +3223,9 @@ paths:
       summary: Asignaciones de un usuario
       description: |
         Lista las asignaciones de planes para un usuario específico.
-        
+
         **Roles permitidos:** admin, technical_director, coach, o el propio usuario
-        
+
         **Usado en:** Dashboard del jugador
       tags: [Plan Assignments]
       parameters:
@@ -3253,7 +3253,7 @@ paths:
       summary: Asignaciones de un plan
       description: |
         Lista los usuarios asignados a un plan específico.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Plan Assignments]
       parameters:
@@ -3302,7 +3302,7 @@ paths:
       summary: Actualizar asignación
       description: |
         Actualiza una asignación existente.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Plan Assignments]
       parameters:
@@ -3337,7 +3337,7 @@ paths:
       summary: Eliminar asignación
       description: |
         Elimina una asignación de plan.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Plan Assignments]
       parameters:
@@ -3362,13 +3362,13 @@ paths:
       summary: Generar plan individual
       description: |
         Genera un plan de entrenamiento personalizado para un jugador usando el sistema de recomendación con IA.
-        
+
         **Caso de uso:** CU.023 - Generación de plan individual
-        
+
         **Roles permitidos:** admin, technical_director, coach
-        
+
         **Usado en:** Asistente de nueva planificación
-        
+
         El sistema utiliza un modelo TensorFlow TFRS (Two-Tower) para seleccionar los ejercicios más adecuados según:
         - Objetivos del entrenamiento
         - Intensidad deseada
@@ -3420,11 +3420,11 @@ paths:
       summary: Generar plan grupal
       description: |
         Genera un plan de entrenamiento para un grupo de jugadores.
-        
+
         **Caso de uso:** CU.024 - Generación de plan grupal
-        
+
         **Roles permitidos:** admin, technical_director, coach
-        
+
         Similar a la generación individual pero optimizado para grupos de 2-30 jugadores.
       tags: [Training Plans]
       requestBody:
@@ -3458,9 +3458,9 @@ paths:
       summary: Exportar versión
       description: |
         Exporta una versión de planificación en formato CSV o PDF.
-        
+
         **Caso de uso:** CU.027 - Exportar versión
-        
+
         **Roles permitidos:** admin, technical_director, coach, player (propio)
       tags: [Training Plans]
       parameters:
@@ -3521,11 +3521,11 @@ paths:
       summary: Crear feedback
       description: |
         Crea un nuevo feedback para una versión de entrenamiento o sesión específica.
-        
+
         **Caso de uso:** CU.029 - Crear feedback
-        
+
         **Roles permitidos:** admin, technical_director, coach, player
-        
+
         **Usado en:** Pantalla de feedback post-entrenamiento
       tags: [Feedbacks]
       requestBody:
@@ -3574,7 +3574,7 @@ paths:
       summary: Actualizar feedback
       description: |
         Actualiza un feedback existente.
-        
+
         **Roles permitidos:** admin, technical_director, coach
       tags: [Feedbacks]
       parameters:
@@ -3609,7 +3609,7 @@ paths:
       summary: Eliminar feedback
       description: |
         Elimina un feedback.
-        
+
         **Roles permitidos:** admin, technical_director
       tags: [Feedbacks]
       parameters:
@@ -3710,7 +3710,7 @@ paths:
       summary: Listar métricas
       description: |
         Lista todas las métricas del sistema.
-        
+
         **Roles permitidos:** admin, technical_director
       tags: [Metrics]
       responses:
@@ -3731,7 +3731,7 @@ paths:
       summary: Crear métrica
       description: |
         Registra una nueva métrica.
-        
+
         **Roles permitidos:** admin, technical_director
       tags: [Metrics]
       requestBody:
@@ -3834,9 +3834,9 @@ paths:
       summary: Listar registros de auditoría
       description: |
         Lista los registros de auditoría del sistema.
-        
+
         **Roles permitidos:** admin
-        
+
         **Usado en:** Panel de auditoría
       tags: [Audit Logs]
       parameters:
@@ -3885,10 +3885,10 @@ paths:
       summary: Eliminar todos los registros
       description: |
         Elimina todos los registros de auditoría.
-        
+
         **Roles permitidos:** admin
-        
-        **⚠️ Acción irreversible**
+
+        **Acción irreversible**
       tags: [Audit Logs]
       responses:
         '204':
@@ -3903,7 +3903,7 @@ paths:
       summary: Exportar auditoría a CSV
       description: |
         Exporta los registros de auditoría en formato CSV.
-        
+
         **Roles permitidos:** admin
       tags: [Audit Logs]
       responses:
@@ -3948,11 +3948,11 @@ paths:
       summary: Obtener KPIs del sistema
       description: |
         Obtiene indicadores clave de rendimiento del sistema.
-        
+
         **Caso de uso:** CU.030 - Monitorización del sistema
-        
+
         **Roles permitidos:** admin
-        
+
         **Usado en:** Dashboard de monitorización
       tags: [Monitoring]
       requestBody:
@@ -3984,7 +3984,7 @@ paths:
       summary: Estadísticas del modelo
       description: |
         Obtiene estadísticas de uso del modelo de recomendación.
-        
+
         **Roles permitidos:** admin
       tags: [Monitoring]
       requestBody:
@@ -4016,7 +4016,7 @@ paths:
       summary: Estado de salud del sistema
       description: |
         Obtiene el estado de salud general del sistema.
-        
+
         **Roles permitidos:** admin
       tags: [Monitoring]
       responses:
@@ -4043,9 +4043,9 @@ paths:
       summary: Estado del recomendador
       description: |
         Obtiene el estado actual del sistema de recomendación.
-        
+
         **Caso de uso:** CU.028 - Sistema recomendador
-        
+
         **Roles permitidos:** admin
       tags: [Recommender]
       responses:
@@ -4065,7 +4065,7 @@ paths:
       summary: Listar versiones del modelo
       description: |
         Lista las versiones disponibles del modelo de recomendación.
-        
+
         **Roles permitidos:** admin
       tags: [Recommender]
       responses:
@@ -4096,10 +4096,10 @@ paths:
       summary: Entrenar modelo
       description: |
         Inicia un nuevo entrenamiento del modelo de recomendación.
-        
+
         **Roles permitidos:** admin
-        
-        **⚠️ Operación de larga duración**
+
+        **Operación de larga duración**
       tags: [Recommender]
       requestBody:
         content:
@@ -4132,7 +4132,7 @@ paths:
       summary: Estado del trabajo de entrenamiento
       description: |
         Obtiene el estado de un trabajo de entrenamiento.
-        
+
         **Roles permitidos:** admin
       tags: [Recommender]
       parameters:
@@ -4185,7 +4185,7 @@ paths:
       summary: Crear membresía de club
       description: |
         Crea una nueva relación usuario-club.
-        
+
         **Roles permitidos:** admin, technical_director
       tags: [Clubs]
       requestBody:
@@ -4234,7 +4234,7 @@ paths:
       summary: Actualizar membresía
       description: |
         Actualiza una membresía de club.
-        
+
         **Roles permitidos:** admin, technical_director
       tags: [Clubs]
       parameters:
@@ -4269,7 +4269,7 @@ paths:
       summary: Eliminar membresía
       description: |
         Elimina una membresía de club.
-        
+
         **Roles permitidos:** admin, technical_director
       tags: [Clubs]
       parameters:

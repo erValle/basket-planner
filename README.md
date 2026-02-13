@@ -40,6 +40,7 @@ El sistema utiliza un motor de recomendacion hibrido que combina:
 - **Heuristicas expertas** (30%): Reglas basadas en conocimiento de entrenadores profesionales
 
 El modelo genera planificaciones personalizadas considerando:
+
 - Objetivos del entrenamiento (tiro, defensa, manejo de balon, etc.)
 - Equipamiento disponible
 - Nivel de intensidad
@@ -63,14 +64,14 @@ basket-planner/
 │   └── models/
 ├── frontend/          # SPA - Angular 18+ (Standalone Components)
 │   └── src/
-│       ├── app/
-│       └── environments/
+│       └── app/
 └── docs/              # Documentacion adicional
 ```
 
 ### Tecnologias
 
 **Backend:**
+
 - Node.js 20+
 - Express.js
 - PostgreSQL 14+
@@ -80,6 +81,7 @@ basket-planner/
 - Joi para validacion
 
 **Frontend:**
+
 - Angular 18+ (Standalone Components)
 - PrimeNG UI Components
 - RxJS
@@ -170,6 +172,7 @@ cd ..
 ```
 
 Esto creara un contenedor con:
+
 - Base de datos: `planificador_basket_db`
 - Usuario: `postgres`
 - Password: `postgres`
@@ -208,6 +211,7 @@ npm run db:migrate
 ### Cargar datos iniciales (seeders)
 
 Los seeders cargan datos de ejemplo incluyendo:
+
 - Usuarios de prueba con diferentes roles
 - Clubes y equipos de ejemplo
 - Catalogo completo de ejercicios de baloncesto
@@ -281,6 +285,7 @@ npm start
 ```
 
 Esto arranca:
+
 - **Backend** en `http://localhost:4000`
 - **Frontend** en `http://localhost:4200`
 
@@ -295,11 +300,13 @@ npm run dev
 ### Iniciar servicios por separado
 
 Terminal 1 - Backend:
+
 ```bash
 npm run start:backend
 ```
 
 Terminal 2 - Frontend:
+
 ```bash
 npm run start:frontend
 ```
@@ -316,13 +323,13 @@ npm run start:frontend
 
 El sistema viene con usuarios precargados para pruebas:
 
-| Email | Password | Rol | Permisos |
-|-------|----------|-----|----------|
-| admin@demo.com | Admin123! | admin | Acceso completo al sistema |
-| td@demo.com | Coach123! | technical_director | Gestion de clubes, equipos y usuarios |
-| coach@demo.com | Coach123! | coach | Creacion de planificaciones, gestion de jugadores |
-| player1@demo.com | Player123! | player | Visualizacion de planificaciones asignadas |
-| player2@demo.com | Player123! | player | Visualizacion de planificaciones asignadas |
+| Email            | Password   | Rol                | Permisos                                          |
+| ---------------- | ---------- | ------------------ | ------------------------------------------------- |
+| admin@demo.com   | Admin123!  | admin              | Acceso completo al sistema                        |
+| td@demo.com      | Coach123!  | technical_director | Gestion de clubes, equipos y usuarios             |
+| coach@demo.com   | Coach123!  | coach              | Creacion de planificaciones, gestion de jugadores |
+| player1@demo.com | Player123! | player             | Visualizacion de planificaciones asignadas        |
+| player2@demo.com | Player123! | player             | Visualizacion de planificaciones asignadas        |
 
 ---
 
@@ -330,35 +337,35 @@ El sistema viene con usuarios precargados para pruebas:
 
 ### Comandos principales (desde directorio raiz)
 
-| Comando | Descripcion |
-|---------|-------------|
-| `npm run install:all` | Instala dependencias de root, backend y frontend |
-| `npm start` | Inicia backend y frontend simultaneamente |
-| `npm run dev` | Inicia en modo desarrollo con hot-reload |
-| `npm run db:setup` | Ejecuta migraciones y seeders |
-| `npm run db:reset` | Reinicia la base de datos completamente |
-| `npm run train:model` | Entrena el modelo de recomendacion (500 muestras) |
+| Comando                    | Descripcion                                        |
+| -------------------------- | -------------------------------------------------- |
+| `npm run install:all`      | Instala dependencias de root, backend y frontend   |
+| `npm start`                | Inicia backend y frontend simultaneamente          |
+| `npm run dev`              | Inicia en modo desarrollo con hot-reload           |
+| `npm run db:setup`         | Ejecuta migraciones y seeders                      |
+| `npm run db:reset`         | Reinicia la base de datos completamente            |
+| `npm run train:model`      | Entrena el modelo de recomendacion (500 muestras)  |
 | `npm run train:model:full` | Entrena el modelo de recomendacion (1000 muestras) |
-| `npm test` | Ejecuta tests de backend y frontend |
+| `npm test`                 | Ejecuta tests de backend y frontend                |
 
 ### Comandos de backend (desde /backend)
 
-| Comando | Descripcion |
-|---------|-------------|
-| `npm start` | Inicia el servidor en modo produccion |
-| `npm run dev` | Inicia con nodemon (hot-reload) |
-| `npm test` | Ejecuta tests unitarios e integracion |
-| `npm run migrate` | Ejecuta migraciones pendientes |
-| `npm run seed` | Ejecuta seeders |
+| Comando           | Descripcion                           |
+| ----------------- | ------------------------------------- |
+| `npm start`       | Inicia el servidor en modo produccion |
+| `npm run dev`     | Inicia con nodemon (hot-reload)       |
+| `npm test`        | Ejecuta tests unitarios e integracion |
+| `npm run migrate` | Ejecuta migraciones pendientes        |
+| `npm run seed`    | Ejecuta seeders                       |
 
 ### Comandos de frontend (desde /frontend)
 
-| Comando | Descripcion |
-|---------|-------------|
-| `npm start` | Inicia servidor de desarrollo |
-| `npm run build` | Build de produccion |
-| `npm test` | Ejecuta tests unitarios |
-| `npm run lint` | Ejecuta linter |
+| Comando         | Descripcion                   |
+| --------------- | ----------------------------- |
+| `npm start`     | Inicia servidor de desarrollo |
+| `npm run build` | Build de produccion           |
+| `npm test`      | Ejecuta tests unitarios       |
+| `npm run lint`  | Ejecuta linter                |
 
 ---
 
@@ -367,17 +374,20 @@ El sistema viene con usuarios precargados para pruebas:
 ### Endpoints principales
 
 **Autenticacion:**
+
 - `POST /api/auth/login` - Iniciar sesion
 - `GET /api/auth/me` - Obtener usuario actual
 - `POST /api/auth/change-password` - Cambiar contrasena
 
 **Motor de Recomendacion:**
+
 - `GET /api/recommender/status` - Estado del modelo y metricas
 - `GET /api/recommender/config` - Configuracion del modelo
-- `POST /api/planning/generate/individual` - Generar planificacion individual
-- `POST /api/planning/generate/group` - Generar planificacion grupal
+- `POST /api/training-plans/generate/individual` - Generar planificacion individual
+- `POST /api/training-plans/generate/group` - Generar planificacion grupal
 
 **Recursos:**
+
 - `GET/POST/PUT/DELETE /api/clubs` - Gestion de clubes
 - `GET/POST/PUT/DELETE /api/teams` - Gestion de equipos
 - `GET/POST/PUT/DELETE /api/exercises` - Gestion de ejercicios
@@ -385,12 +395,13 @@ El sistema viene con usuarios precargados para pruebas:
 - `GET/POST /api/feedbacks` - Gestion de feedback
 
 **Health Check:**
+
 - `GET /api/health` - Estado del servidor
 
 ### Ejemplo: Generar planificacion
 
 ```bash
-curl -X POST http://localhost:4000/api/planning/generate/individual \
+curl -X POST http://localhost:4000/api/training-plans/generate/individual \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
   -d '{
@@ -433,9 +444,7 @@ basket-planner/
 │   └── __tests__/             # Tests unitarios e integracion
 ├── frontend/
 │   ├── src/
-│   │   ├── app/               # Componentes y modulos Angular
-│   │   ├── environments/      # Configuracion por entorno
-│   │   └── assets/            # Recursos estaticos
+│   │   └── app/               # Componentes y modulos Angular
 │   └── angular.json           # Configuracion de Angular
 ├── docs/                      # Documentacion adicional
 ├── package.json               # Scripts y dependencias root
@@ -475,19 +484,21 @@ lsof -ti:4200 | xargs kill -9
 ### Error de conexion a base de datos
 
 1. Verificar que PostgreSQL/Docker esta ejecutandose:
-   ```bash
-   docker ps
-   ```
+
+```bash
+docker ps
+```
 
 2. Verificar configuracion en `backend/.env`
 
 3. Reiniciar el contenedor si es necesario:
-   ```bash
-   cd backend
-   docker-compose down
-   docker-compose up -d
-   cd ..
-   ```
+
+```bash
+cd backend
+docker-compose down
+docker-compose up -d
+cd ..
+```
 
 ### Error: "Model not loaded" en recomendacion
 

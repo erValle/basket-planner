@@ -1,195 +1,233 @@
 <app-shell title="Equipo" subtitle="Detalle y plantilla">
-	<p-toast position="top-right"></p-toast>
-	<div class="max-w-6xl mx-auto">
-		<app-page-header
-			[title]="team()?.name || 'Equipo'"
-			[subtitle]="'Gestiona el roster y el estado del equipo.'"
-		></app-page-header>
+  <p-toast position="top-right"></p-toast>
+  <div class="max-w-6xl mx-auto">
+    <app-page-header
+      [title]="team()?.name || 'Equipo'"
+      [subtitle]="'Gestiona el roster y el estado del equipo.'"
+    ></app-page-header>
 
-		@if (loading()) {
-			<div class="mt-6 text-[13px] text-[#9ca3af]">Cargando…</div>
-		} @else {
-			@if (!team()) {
-				<div class="mt-6 text-[13px] text-[#9ca3af]">No se encontró el equipo.</div>
-			} @else {
-				<div class="mt-6 bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-					<div class="flex items-start justify-between gap-3">
-						<div>
-							<div class="text-[16px] text-[#f9fafb] font-semibold">{{ team()!.name }}</div>
-							<div class="text-[12px] text-[#9ca3af] mt-1">Categoría: {{ team()!.category || '—' }} · ClubId: {{ team()!.clubId ?? '—' }}</div>
-							<div class="text-[12px] text-[#9ca3af] mt-1">Entrenador: {{ team()!.coach?.name || 'Sin asignar' }}</div>
-							<div class="text-[12px] text-[#9ca3af] mt-1">Jugadores: {{ players().length }}</div>
-						</div>
-						<p-tag [value]="statusLabel()" [severity]="statusSeverity()"></p-tag>
-					</div>
+    @if (loading()) {
+      <div class="mt-6 text-[13px] text-[#9ca3af]">Cargando…</div>
+    } @else {
+      @if (!team()) {
+        <div class="mt-6 text-[13px] text-[#9ca3af]">No se encontró el equipo.</div>
+      } @else {
+        <div
+          class="mt-6 bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+          style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="text-[16px] text-[#f9fafb] font-semibold">{{ team()!.name }}</div>
+              <div class="text-[12px] text-[#9ca3af] mt-1">
+                Categoría: {{ team()!.category || '—' }} · ClubId: {{ team()!.clubId ?? '—' }}
+              </div>
+              <div class="text-[12px] text-[#9ca3af] mt-1">
+                Entrenador: {{ team()!.coach?.name || 'Sin asignar' }}
+              </div>
+              <div class="text-[12px] text-[#9ca3af] mt-1">Jugadores: {{ players().length }}</div>
+            </div>
+            <p-tag [value]="statusLabel()" [severity]="statusSeverity()"></p-tag>
+          </div>
 
-					@if (activationError()) {
-						<div class="mt-4">
-							<app-error-card
-								[title]="'No se puede activar el equipo'"
-								[message]="activationError()"
-								(onDismiss)="activationError.set(null)"
-							></app-error-card>
-						</div>
-					}
+          @if (activationError()) {
+            <div class="mt-4">
+              <app-error-card
+                [title]="'No se puede activar el equipo'"
+                [message]="activationError()"
+                (onDismiss)="activationError.set(null)"
+              ></app-error-card>
+            </div>
+          }
 
-					<div class="mt-4 flex justify-between gap-2">
-						<div>
-							@if (canDeleteTeam()) {
-								<button 
-									type="button" 
-									pButton 
-									label="Eliminar equipo" 
-									icon="pi pi-trash" 
-									class="bp-btn bp-btn-danger bp-btn-sm" 
-									[disabled]="saving()" 
-									(click)="openDeleteDialog()"
-								></button>
-							}
-						</div>
-						<div class="flex gap-2">
-							<button type="button" pButton label="Volver" class="bp-btn bp-btn-ghost bp-btn-sm" routerLink="/teams"></button>
-							<button
-								type="button"
-								pButton
-								[label]="team()!.active === false ? 'Activar' : 'Desactivar'"
-								class="bp-btn bp-btn-secondary bp-btn-sm"
-								[disabled]="saving()"
-								(click)="toggleActive()"
-							></button>
-							@if (canManagePlayers()) {
-								<button type="button" pButton label="Añadir jugador" icon="pi pi-plus" class="bp-btn bp-btn-primary bp-btn-sm" [disabled]="saving()" (click)="openAddDialog()"></button>
-							}
-						</div>
-					</div>
-				</div>
+          <div class="mt-4 flex justify-between gap-2">
+            <div>
+              @if (canDeleteTeam()) {
+                <button
+                  type="button"
+                  pButton
+                  label="Eliminar equipo"
+                  icon="pi pi-trash"
+                  class="bp-btn bp-btn-danger bp-btn-sm"
+                  [disabled]="saving()"
+                  (click)="openDeleteDialog()"
+                ></button>
+              }
+            </div>
+            <div class="flex gap-2">
+              <button
+                type="button"
+                pButton
+                label="Volver"
+                class="bp-btn bp-btn-ghost bp-btn-sm"
+                routerLink="/teams"
+              ></button>
+              <button
+                type="button"
+                pButton
+                [label]="team()!.active === false ? 'Activar' : 'Desactivar'"
+                class="bp-btn bp-btn-secondary bp-btn-sm"
+                [disabled]="saving()"
+                (click)="toggleActive()"
+              ></button>
+              @if (canManagePlayers()) {
+                <button
+                  type="button"
+                  pButton
+                  label="Añadir jugador"
+                  icon="pi pi-plus"
+                  class="bp-btn bp-btn-primary bp-btn-sm"
+                  [disabled]="saving()"
+                  (click)="openAddDialog()"
+                ></button>
+              }
+            </div>
+          </div>
+        </div>
 
-				<div class="mt-6 bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-					<div class="text-[14px] text-[#e5e7eb] font-semibold">Plantilla</div>
-					<div class="mt-3 grid grid-cols-1 gap-2">
-						@if (players().length === 0) {
-							<div class="text-[13px] text-[#9ca3af]">Este equipo aún no tiene jugadores.</div>
-						} @else {
-							@for (p of players(); track p.id) {
-								<div class="flex items-center justify-between gap-3 p-3 rounded-lg border border-[#1f2937] bg-[#0b1220]">
-									<div>
-										<div class="text-[13px] text-[#e5e7eb]">{{ p.lastName }} {{ p.firstName }}</div>
-										<div class="text-[12px] text-[#94a3b8]">{{ p.email }} · {{ p.position || '—' }} · {{ p.category || '—' }}</div>
-									</div>
-									@if (canManagePlayers()) {
-										<button type="button" pButton label="Quitar" class="p-button-text p-button-sm" [disabled]="saving()" (click)="removePlayer(p.id)"></button>
-									}
-								</div>
-							}
-						}
-					</div>
-				</div>
-			}
-		}
-	</div>
+        <div
+          class="mt-6 bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+          style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+        >
+          <div class="text-[14px] text-[#e5e7eb] font-semibold">Plantilla</div>
+          <div class="mt-3 grid grid-cols-1 gap-2">
+            @if (players().length === 0) {
+              <div class="text-[13px] text-[#9ca3af]">Este equipo aún no tiene jugadores.</div>
+            } @else {
+              @for (p of players(); track p.id) {
+                <div
+                  class="flex items-center justify-between gap-3 p-3 rounded-lg border border-[#1f2937] bg-[#0b1220]"
+                >
+                  <div>
+                    <div class="text-[13px] text-[#e5e7eb]">{{ p.lastName }} {{ p.firstName }}</div>
+                    <div class="text-[12px] text-[#94a3b8]">
+                      {{ p.email }} · {{ p.position || '—' }} · {{ p.category || '—' }}
+                    </div>
+                  </div>
+                  @if (canManagePlayers()) {
+                    <button
+                      type="button"
+                      pButton
+                      label="Quitar"
+                      class="p-button-text p-button-sm"
+                      [disabled]="saving()"
+                      (click)="removePlayer(p.id)"
+                    ></button>
+                  }
+                </div>
+              }
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
 
-	<bp-dialog
-		header="Añadir jugadores al equipo"
-		[(visible)]="addDialogOpen"
-		[confirmLabel]="'Añadir ' + selectedPlayerIds().length + ' jugador(es)'"
-		[confirmDisabled]="saving() || selectedPlayerIds().length === 0"
-		[loading]="saving()"
-		(confirm)="addSelectedPlayers()"
-		(cancel)="closeAddDialog()"
-		size="lg"
-	>
-		<div class="grid grid-cols-1 gap-4">
-			<div class="bp-dialog-field">
-				<label class="bp-dialog-label">Buscar en jugadores disponibles</label>
-				<input 
-					pInputText 
-					[(ngModel)]="playerSearch" 
-					name="playerSearch" 
-					placeholder="Nombre o email" 
-					class="w-full" 
-					(ngModelChange)="searchInAvailable()"
-				/>
-				<div class="bp-dialog-help">
-					Mostrando jugadores del club sin equipo asignado
-				</div>
-			</div>
+  <bp-dialog
+    header="Añadir jugadores al equipo"
+    [(visible)]="addDialogOpen"
+    [confirmLabel]="'Añadir ' + selectedPlayerIds().length + ' jugador(es)'"
+    [confirmDisabled]="saving() || selectedPlayerIds().length === 0"
+    [loading]="saving()"
+    (confirm)="addSelectedPlayers()"
+    (cancel)="closeAddDialog()"
+    size="lg"
+  >
+    <div class="grid grid-cols-1 gap-4">
+      <div class="bp-dialog-field">
+        <label class="bp-dialog-label">Buscar en jugadores disponibles</label>
+        <input
+          pInputText
+          [(ngModel)]="playerSearch"
+          name="playerSearch"
+          placeholder="Nombre o email"
+          class="w-full"
+          (ngModelChange)="searchInAvailable()"
+        />
+        <div class="bp-dialog-help">Mostrando jugadores del club sin equipo asignado</div>
+      </div>
 
-			<div class="flex items-center justify-between gap-3 py-2 border-y border-[#1f2937]">
-				<div class="text-[13px] text-[#e5e7eb]">
-					Seleccionados: <b>{{ selectedPlayerIds().length }}</b> de {{ filteredAvailablePlayers().length }}
-				</div>
-			</div>
+      <div class="flex items-center justify-between gap-3 py-2 border-y border-[#1f2937]">
+        <div class="text-[13px] text-[#e5e7eb]">
+          Seleccionados: <b>{{ selectedPlayerIds().length }}</b> de
+          {{ filteredAvailablePlayers().length }}
+        </div>
+      </div>
 
-			@if (searchLoading()) {
-				<div class="text-[13px] text-[#9ca3af]">Cargando jugadores…</div>
-			} @else if (filteredAvailablePlayers().length === 0) {
-				<div class="text-center py-8">
-					<div class="text-[13px] text-[#9ca3af]">No hay jugadores disponibles en este club</div>
-					<div class="text-[12px] text-[#6b7280] mt-1">Todos los jugadores ya tienen equipo asignado</div>
-				</div>
-			} @else {
-				<div class="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto">
-					@for (player of filteredAvailablePlayers(); track player.id) {
-						<div 
-							class="flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer"
-							[class.border-[#3b82f6]]="isSelected(player.id)"
-							[class.bg-[#1e293b]]="isSelected(player.id)"
-							[class.border-[#1f2937]]="!isSelected(player.id)"
-							[class.bg-[#0b1220]]="!isSelected(player.id)"
-							[class.hover:border-[#374151]]="!isSelected(player.id)"
-							(click)="toggleSelection(player.id)"
-						>
-							<input 
-								type="checkbox" 
-								[checked]="isSelected(player.id)"
-								class="w-4 h-4"
-								(click)="$event.stopPropagation()"
-								(change)="toggleSelection(player.id)"
-							/>
-							<div class="flex-1">
-								<div class="text-[13px] text-[#e5e7eb] font-medium">
-									{{ player.firstName }} {{ player.lastName }}
-								</div>
-								<div class="text-[12px] text-[#94a3b8] mt-0.5">
-									{{ player.email || '—' }} · {{ player.position || 'Sin posición' }} · {{ player.category || 'Sin categoría' }}
-								</div>
-							</div>
-							<button
-								type="button"
-								pButton
-								[label]="isSelected(player.id) ? 'Quitar' : 'Seleccionar'"
-								class="bp-btn bp-btn-ghost bp-btn-sm"
-								[disabled]="saving()"
-								(click)="$event.stopPropagation(); toggleSelection(player.id)"
-							></button>
-						</div>
-					}
-				</div>
-			}
-		</div>
-	</bp-dialog>
+      @if (searchLoading()) {
+        <div class="text-[13px] text-[#9ca3af]">Cargando jugadores…</div>
+      } @else if (filteredAvailablePlayers().length === 0) {
+        <div class="text-center py-8">
+          <div class="text-[13px] text-[#9ca3af]">No hay jugadores disponibles en este club</div>
+          <div class="text-[12px] text-[#6b7280] mt-1">
+            Todos los jugadores ya tienen equipo asignado
+          </div>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 gap-2 max-h-[400px] overflow-y-auto">
+          @for (player of filteredAvailablePlayers(); track player.id) {
+            <div
+              class="flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer"
+              [class.border-[#3b82f6]]="isSelected(player.id)"
+              [class.bg-[#1e293b]]="isSelected(player.id)"
+              [class.border-[#1f2937]]="!isSelected(player.id)"
+              [class.bg-[#0b1220]]="!isSelected(player.id)"
+              [class.hover:border-[#374151]]="!isSelected(player.id)"
+              (click)="toggleSelection(player.id)"
+            >
+              <input
+                type="checkbox"
+                [checked]="isSelected(player.id)"
+                class="w-4 h-4"
+                (click)="$event.stopPropagation()"
+                (change)="toggleSelection(player.id)"
+              />
+              <div class="flex-1">
+                <div class="text-[13px] text-[#e5e7eb] font-medium">
+                  {{ player.firstName }} {{ player.lastName }}
+                </div>
+                <div class="text-[12px] text-[#94a3b8] mt-0.5">
+                  {{ player.email || '—' }} · {{ player.position || 'Sin posición' }} ·
+                  {{ player.category || 'Sin categoría' }}
+                </div>
+              </div>
+              <button
+                type="button"
+                pButton
+                [label]="isSelected(player.id) ? 'Quitar' : 'Seleccionar'"
+                class="bp-btn bp-btn-ghost bp-btn-sm"
+                [disabled]="saving()"
+                (click)="$event.stopPropagation(); toggleSelection(player.id)"
+              ></button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </bp-dialog>
 
-	<bp-dialog
-		header="Confirmar eliminación"
-		[(visible)]="deleteDialogOpen"
-		[confirmLabel]="'Eliminar'"
-		[confirmDisabled]="saving()"
-		[loading]="saving()"
-		(confirm)="confirmDelete()"
-		(cancel)="closeDeleteDialog()"
-		size="sm"
-	>
-		<div class="py-2">
-			<div class="mb-4">
-				<app-error-card
-					[title]="'¡Atención!'"
-					[message]="'Esta acción no se puede deshacer. Se eliminará el equipo y todas sus asignaciones de jugadores.'"
-					[dismissible]="false"
-				></app-error-card>
-			</div>
-			<p class="text-[13px] text-[#e5e7eb]">
-				¿Estás seguro de que quieres eliminar el equipo <strong>{{ team()?.name }}</strong>?
-			</p>
-		</div>
-	</bp-dialog>
+  <bp-dialog
+    header="Confirmar eliminación"
+    [(visible)]="deleteDialogOpen"
+    [confirmLabel]="'Eliminar'"
+    [confirmDisabled]="saving()"
+    [loading]="saving()"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDeleteDialog()"
+    size="sm"
+  >
+    <div class="py-2">
+      <div class="mb-4">
+        <app-error-card
+          [title]="'¡Atención!'"
+          [message]="'Esta acción no se puede deshacer. Se eliminará el equipo y todas sus asignaciones de jugadores.'"
+          [dismissible]="false"
+        ></app-error-card>
+      </div>
+      <p class="text-[13px] text-[#e5e7eb]">
+        ¿Estás seguro de que quieres eliminar el equipo <strong>{{ team()?.name }}</strong
+        >?
+      </p>
+    </div>
+  </bp-dialog>
 </app-shell>

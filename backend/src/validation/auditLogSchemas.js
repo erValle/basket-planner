@@ -10,26 +10,13 @@ const auditLogListQuerySchema = Joi.object({
   entity: Joi.string().trim().allow('').optional(),
   entityId: Joi.string().trim().allow('').optional(),
   userId: Joi.alternatives()
-    .try(
-      Joi.number().integer().positive(),
-      Joi.string().valid('').optional()
-    )
+    .try(Joi.number().integer().positive(), Joi.string().valid('').optional())
     .optional(),
   requestId: Joi.string().trim().allow('').optional(),
 
   // ISO strings; allow empty string or valid ISO date
-  from: Joi.alternatives()
-    .try(
-      Joi.date().iso(),
-      Joi.string().valid('').optional()
-    )
-    .optional(),
-  to: Joi.alternatives()
-    .try(
-      Joi.date().iso(),
-      Joi.string().valid('').optional()
-    )
-    .optional(),
+  from: Joi.alternatives().try(Joi.date().iso(), Joi.string().valid('').optional()).optional(),
+  to: Joi.alternatives().try(Joi.date().iso(), Joi.string().valid('').optional()).optional(),
 });
 
 module.exports = {

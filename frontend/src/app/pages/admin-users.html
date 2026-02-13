@@ -2,7 +2,7 @@
   <p-toast></p-toast>
   <p-confirmDialog styleClass="bp-dialog"></p-confirmDialog>
 
-  @let vm = (vm$ | async);
+  @let vm = vm$ | async;
 
   <div class="max-w-7xl mx-auto">
     <app-page-header
@@ -14,7 +14,10 @@
     ></app-page-header>
 
     <!-- Filters -->
-    <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+    <div
+      class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
       <div class="grid grid-cols-6 gap-4">
         <div class="col-span-2">
           <label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
@@ -57,29 +60,48 @@
         </div>
 
         <div class="col-span-2 flex items-end justify-end gap-2">
-          <button type="button" pButton label="Aplicar" class="p-button-sm" (click)="refresh()"></button>
-          <button type="button" pButton label="Limpiar" class="p-button-text p-button-sm" (click)="clearFilters()"></button>
+          <button
+            type="button"
+            pButton
+            label="Aplicar"
+            class="p-button-sm"
+            (click)="refresh()"
+          ></button>
+          <button
+            type="button"
+            pButton
+            label="Limpiar"
+            class="p-button-text p-button-sm"
+            (click)="clearFilters()"
+          ></button>
         </div>
       </div>
     </div>
 
     <!-- Table -->
-    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+    <div
+      class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
       @if (vm?.loading) {
-        <div class="border-b border-[#1f2937] pb-4 mb-4 text-[13px] text-[#9ca3af] flex items-center gap-2">
+        <div
+          class="border-b border-[#1f2937] pb-4 mb-4 text-[13px] text-[#9ca3af] flex items-center gap-2"
+        >
           <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
           Cargando usuarios…
         </div>
       }
 
       @if (vm?.error) {
-        <div class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200 mb-4">
+        <div
+          class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200 mb-4"
+        >
           {{ vm?.error }}
         </div>
       }
 
       <p-table
-        [value]="(vm?.pageItems ?? [])"
+        [value]="vm?.pageItems ?? []"
         [paginator]="true"
         [rows]="rows"
         [first]="first"
@@ -106,11 +128,20 @@
             <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ u.name }}</td>
             <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ u.email }}</td>
             <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ roleLabel(u.role) }}</td>
-            <td class="py-4 pr-4"><p-tag [value]="statusLabel(u.status)" [severity]="statusSeverity(u.status)"></p-tag></td>
+            <td class="py-4 pr-4">
+              <p-tag [value]="statusLabel(u.status)" [severity]="statusSeverity(u.status)"></p-tag>
+            </td>
             <td class="text-[13px] text-[#e5e7eb] py-4 pr-4">{{ u.createdAt }}</td>
             <td class="py-4">
               <div class="flex items-center gap-1">
-                <button type="button" pButton icon="pi pi-pencil" class="p-button-text p-button-sm" aria-label="Editar" (click)="edit(u)"></button>
+                <button
+                  type="button"
+                  pButton
+                  icon="pi pi-pencil"
+                  class="p-button-text p-button-sm"
+                  aria-label="Editar"
+                  (click)="edit(u)"
+                ></button>
 
                 <button
                   type="button"
@@ -145,7 +176,9 @@
       </p-table>
 
       @if (!vm?.loading && (vm?.pageItems?.length ?? 0) === 0) {
-        <div class="mt-8 text-center text-[13px] text-[#9ca3af]">No hay usuarios con esos filtros.</div>
+        <div class="mt-8 text-center text-[13px] text-[#9ca3af]">
+          No hay usuarios con esos filtros.
+        </div>
       }
     </div>
   </div>

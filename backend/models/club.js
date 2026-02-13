@@ -23,24 +23,28 @@ module.exports = (sequelize, DataTypes) => {
 
   Club.init(
     {
-      id: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true 
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
       },
-      name: { 
-        type: DataTypes.STRING, 
-        allowNull: false },
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       city: {
         type: DataTypes.STRING(120),
-        allowNull: true },
-      address: { 
-        type: DataTypes.STRING, 
-        allowNull: true },
-      active: { 
-        type: DataTypes.BOOLEAN, 
-        allowNull: false, 
-        defaultValue: true },
+        allowNull: true,
+      },
+      address: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      active: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
     },
     {
       sequelize,

@@ -9,7 +9,7 @@ const listExercises = async (req, res, next) => {
       const result = await exerciseService.listExercisesPaginated(req.query);
       return res.status(StatusCodes.OK).json(result);
     }
-    
+
     // Sino, devolver todos (mantener compatibilidad)
     const exercises = await exerciseService.listExercises(req.query);
     return res.status(StatusCodes.OK).json(exercises);
@@ -71,4 +71,11 @@ const getPopularTags = async (req, res, next) => {
   }
 };
 
-module.exports = { listExercises, getExercise, createExercise, updateExercise, deleteExercise, getPopularTags };
+module.exports = {
+  listExercises,
+  getExercise,
+  createExercise,
+  updateExercise,
+  deleteExercise,
+  getPopularTags,
+};

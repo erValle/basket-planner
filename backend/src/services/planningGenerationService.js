@@ -9,7 +9,7 @@ const planAssignmentService = require('./planAssignmentService');
 const intensityMultiplier = {
   low: 0.8,
   medium: 1.0,
-  high: 1.2
+  high: 1.2,
 };
 
 const baseLoadByType = {
@@ -18,7 +18,7 @@ const baseLoadByType = {
   conditioning: 4,
   strength: 5,
   tactical: 3,
-  recovery: 1
+  recovery: 1,
 };
 
 const assertUtcDateString = (value, fieldName) => {
@@ -37,7 +37,7 @@ const buildExercise = ({ id, name, type, minutes, intensity }) => {
     type,
     durationMinutes: minutes,
     intensity,
-    estimatedLoad: load
+    estimatedLoad: load,
   };
 };
 
@@ -47,7 +47,7 @@ const buildSession = ({ sessionIndex, day, durationMinutes, intensity, focusTags
     name: 'Dynamic warm-up',
     type: 'warmup',
     minutes: Math.max(10, Math.round(durationMinutes * 0.15)),
-    intensity: 'low'
+    intensity: 'low',
   });
 
   const mainMinutes = Math.max(20, Math.round(durationMinutes * 0.6));
@@ -58,7 +58,7 @@ const buildSession = ({ sessionIndex, day, durationMinutes, intensity, focusTags
     name: focusTags.includes('shooting') ? 'Shooting series' : 'Ball-handling & passing',
     type: 'skills',
     minutes: Math.round(mainMinutes * 0.6),
-    intensity
+    intensity,
   });
 
   const tactical = buildExercise({
@@ -66,7 +66,7 @@ const buildSession = ({ sessionIndex, day, durationMinutes, intensity, focusTags
     name: focusTags.includes('tactics') ? 'Half-court tactical sets' : 'Small-sided games',
     type: 'tactical',
     minutes: Math.round(mainMinutes * 0.4),
-    intensity
+    intensity,
   });
 
   const conditioning = buildExercise({
@@ -74,7 +74,7 @@ const buildSession = ({ sessionIndex, day, durationMinutes, intensity, focusTags
     name: intensity === 'high' ? 'High-intensity intervals' : 'Aerobic conditioning',
     type: 'conditioning',
     minutes: conditioningMinutes,
-    intensity
+    intensity,
   });
 
   const exercises = [warmup, skills, tactical, conditioning];
@@ -88,8 +88,8 @@ const buildSession = ({ sessionIndex, day, durationMinutes, intensity, focusTags
     exercises,
     metrics: {
       durationMinutes: totalDurationMinutes,
-      estimatedLoad
-    }
+      estimatedLoad,
+    },
   };
 };
 
@@ -99,7 +99,7 @@ const computePlanMetrics = (sessions) => {
   return {
     durationTotalMinutes,
     estimatedLoadTotal,
-    sessionsCount: sessions.length
+    sessionsCount: sessions.length,
   };
 };
 
@@ -130,7 +130,11 @@ const validateGroupInput = (input) => {
   }
 
   if (!Array.isArray(input.profiles) || input.profiles.length < 2) {
-    throw httpError(StatusCodes.BAD_REQUEST, 'INVALID_PROFILES', 'profiles must have at least 2 athletes');
+    throw httpError(
+      StatusCodes.BAD_REQUEST,
+      'INVALID_PROFILES',
+      'profiles must have at least 2 athletes'
+    );
   }
 
   assertUtcDateString(input.startDate, 'startDate');
@@ -146,50 +150,59 @@ const getAvailableEquipmentAliases = async (clubId = null) => {
   try {
     const where = { status: 'available' };
     if (clubId) where.clubId = clubId;
-    
+
     const equipment = await Equipment.findAll({ where });
     const aliases = new Set();
-    
-    equipment.forEach(item => {
+
+    equipment.forEach((item) => {
       // Agregar el alias principal basado en el nombre normalizado
-      const normalizedName = item.name.toLowerCase()
+      const normalizedName = item.name
+        .toLowerCase()
         .replace(/[áàäâ]/g, 'a')
         .replace(/[éèëê]/g, 'e')
         .replace(/[íìïî]/g, 'i')
         .replace(/[óòöô]/g, 'o')
         .replace(/[úùüû]/g, 'u')
         .replace(/ñ/g, 'n');
-      
+
       // Mapeo de nombres a alias
       if (normalizedName.includes('balon') || normalizedName.includes('pelota')) {
         aliases.add('balon');
         aliases.add('2_balones');
       }
       if (normalizedName.includes('cono')) aliases.add('conos');
-      if (normalizedName.includes('canasta') || normalizedName.includes('aro')) aliases.add('canasta');
+      if (normalizedName.includes('canasta') || normalizedName.includes('aro'))
+        aliases.add('canasta');
       if (normalizedName.includes('peto')) aliases.add('petos');
-      if (normalizedName.includes('foam') && normalizedName.includes('pad')) aliases.add('foam_pad');
+      if (normalizedName.includes('foam') && normalizedName.includes('pad'))
+        aliases.add('foam_pad');
       if (normalizedName.includes('pizarra')) aliases.add('pizarra_tactica');
-      if (normalizedName.includes('cronometro') || normalizedName.includes('temporizador')) aliases.add('cronometro_o_app');
-      if (normalizedName.includes('colchoneta') || normalizedName.includes('mat')) aliases.add('colchoneta');
-      if (normalizedName.includes('banda') && normalizedName.includes('elastica')) aliases.add('banda_elastica');
-      if (normalizedName.includes('foam') && normalizedName.includes('roller')) aliases.add('foam_roller');
-      if (normalizedName.includes('cajon') && normalizedName.includes('plio')) aliases.add('cajon_pliometria');
+      if (normalizedName.includes('cronometro') || normalizedName.includes('temporizador'))
+        aliases.add('cronometro_o_app');
+      if (normalizedName.includes('colchoneta') || normalizedName.includes('mat'))
+        aliases.add('colchoneta');
+      if (normalizedName.includes('banda') && normalizedName.includes('elastica'))
+        aliases.add('banda_elastica');
+      if (normalizedName.includes('foam') && normalizedName.includes('roller'))
+        aliases.add('foam_roller');
+      if (normalizedName.includes('cajon') && normalizedName.includes('plio'))
+        aliases.add('cajon_pliometria');
       if (normalizedName.includes('tarjeta')) aliases.add('tarjetas_colores');
       if (normalizedName.includes('silbato')) aliases.add('silbato_o_app_senal');
-      
+
       // También agregar los alias del JSON si existen en characteristics
       if (item.characteristics && typeof item.characteristics === 'object') {
-        const chars = typeof item.characteristics === 'string' 
-          ? JSON.parse(item.characteristics) 
-          : item.characteristics;
-        
+        const chars =
+          typeof item.characteristics === 'string'
+            ? JSON.parse(item.characteristics)
+            : item.characteristics;
+
         if (chars.aliases && Array.isArray(chars.aliases)) {
-          chars.aliases.forEach(alias => aliases.add(alias));
+          chars.aliases.forEach((alias) => aliases.add(alias));
         }
       }
     });
-    
+
     return aliases;
   } catch (error) {
     console.error('Error obteniendo equipamiento disponible:', error);
@@ -209,111 +222,104 @@ const filterExercisesByEquipment = (exercises, availableEquipment) => {
   if (!availableEquipment || availableEquipment.size === 0) {
     return exercises;
   }
-  
-  return exercises.filter(exercise => {
+
+  return exercises.filter((exercise) => {
     // Obtener materiales necesarios del ejercicio
     let materials = [];
-    
+
     if (exercise.materiales_necesarios && Array.isArray(exercise.materiales_necesarios)) {
       materials = exercise.materiales_necesarios;
     } else if (exercise.tags && typeof exercise.tags === 'object') {
       const tags = typeof exercise.tags === 'string' ? JSON.parse(exercise.tags) : exercise.tags;
       materials = tags.materiales || [];
     }
-    
+
     // Si el ejercicio no requiere materiales, incluirlo
     if (!materials || materials.length === 0) {
       return true;
     }
-    
+
     // Verificar si todos los materiales necesarios están disponibles
-    return materials.every(material => availableEquipment.has(material));
+    return materials.every((material) => availableEquipment.has(material));
   });
 };
 
 const deriveFocusTags = (goals) => {
-  const g = (goals || []).map(x => String(x).toLowerCase());
+  const g = (goals || []).map((x) => String(x).toLowerCase());
   const tags = [];
-  if (g.some(x => x.includes('shoot'))) tags.push('shooting');
-  if (g.some(x => x.includes('tactic') || x.includes('play'))) tags.push('tactics');
-  if (g.some(x => x.includes('strength'))) tags.push('strength');
-  if (g.some(x => x.includes('speed') || x.includes('conditioning'))) tags.push('conditioning');
+  if (g.some((x) => x.includes('shoot'))) tags.push('shooting');
+  if (g.some((x) => x.includes('tactic') || x.includes('play'))) tags.push('tactics');
+  if (g.some((x) => x.includes('strength'))) tags.push('strength');
+  if (g.some((x) => x.includes('speed') || x.includes('conditioning'))) tags.push('conditioning');
   return tags.length ? tags : ['fundamentals'];
 };
 
 const generateIndividual = async (input, auditCtx = {}, options = {}) => {
-  console.log('🚀 [generateIndividual] Iniciando generación...');
-  console.log('   Goals:', JSON.stringify(input.goals || []));
-  
+
   const { signal } = options;
-  
+
   validateIndividualInput(input);
 
   const profile = input.profile;
   const intensity = profile.intensity || 'medium';
   const sessionDurationMinutes = profile.sessionDurationMinutes || 75;
-  
+
   // Calcular número de sesiones (máximo 7, por defecto 3)
-  const numberOfSessions = profile.numberOfSessions 
-    || profile.maxSessionsPerWeek // fallback a campo legacy
-    || 3;
-  
-  console.log(`   Sessions: ${numberOfSessions}, Duration: ${sessionDurationMinutes}min, Intensity: ${intensity}`);
-  
+  const numberOfSessions =
+    profile.numberOfSessions ||
+    profile.maxSessionsPerWeek || // fallback a campo legacy
+    3;
+
   // Obtener equipamiento disponible en el sistema
   const clubId = profile.clubId || (input.constraints && input.constraints.clubId) || null;
   const availableEquipment = await getAvailableEquipmentAliases(clubId);
-  
+
   // Obtener ejercicios disponibles
   let allExercises = await getAllExercisesForRecommender({ active: true });
-  
+
   // Filtrar ejercicios según equipamiento disponible
   allExercises = filterExercisesByEquipment(allExercises, availableEquipment);
-  
-  console.log(`ℹ️  Ejercicios disponibles después de filtrar por equipamiento: ${allExercises.length}`);
-  
+
+
   // Obtener el modelo de recomendación activo
   const recommender = getActiveModel();
-  
+
   // Preparar parámetros para el modelo (sin days, las sesiones se generan por número)
   const planParams = {
     goals: input.goals || [],
     constraints: {
-      equipment: (input.constraints && input.constraints.equipment) || []
+      equipment: (input.constraints && input.constraints.equipment) || [],
     },
     profile: {
       intensity,
       sessionDurationMinutes,
-      maxDurationMinutes: sessionDurationMinutes // Ahora es por sesión, no total
+      maxDurationMinutes: sessionDurationMinutes, // Ahora es por sesión, no total
     },
-    numberOfSessions
+    numberOfSessions,
   };
-  
+
   // Generar planificación usando el modelo de recomendación
-  console.log('🔄 [generateIndividual] Llamando a recommender.generatePlan...');
   const startTime = Date.now();
   const generatedPlan = await recommender.generatePlan(allExercises, planParams, { signal });
-  console.log(`✅ [generateIndividual] Plan generado en ${Date.now() - startTime}ms`);
-  
+
   // Si no se generaron sesiones, devolver resultado vacío
   if (!generatedPlan.sessions || generatedPlan.sessions.length === 0) {
-    console.log('⚠️ [generateIndividual] No se generaron sesiones');
     return {
       success: false,
       wasAborted: generatedPlan.wasAborted,
       message: 'No se pudieron generar sesiones. Intenta con menos objetivos.',
-      generatedPlan: null
+      generatedPlan: null,
     };
   }
-  
+
   // Guardar en la base de datos
-  console.log('💾 [generateIndividual] Guardando en base de datos...');
   const trainingPlan = await TrainingPlan.create({
     createdById: auditCtx.user?.id || null,
     targetType: 'individual',
-    name: input.goals && input.goals.length > 0 
-      ? `Plan: ${input.goals[0]}` 
-      : 'Plan de entrenamiento individual',
+    name:
+      input.goals && input.goals.length > 0
+        ? `Plan: ${input.goals[0]}`
+        : 'Plan de entrenamiento individual',
     description: input.goals ? input.goals.join(', ') : null,
     goal: input.goals ? input.goals.join(', ') : null,
     type: 'generated',
@@ -321,7 +327,7 @@ const generateIndividual = async (input, auditCtx = {}, options = {}) => {
     duration: generatedPlan.summary.totalDurationMinutes,
     sessionsCount: generatedPlan.summary.totalSessions,
     sessionDurationMinutes: sessionDurationMinutes,
-    status: 'draft'
+    status: 'draft',
   });
 
   // Crear versión inicial
@@ -340,9 +346,9 @@ const generateIndividual = async (input, auditCtx = {}, options = {}) => {
         goals: input.goals || [],
         intensity,
         sessionDurationMinutes,
-        sessionsPerWeek: generatedPlan.summary.totalSessions
-      }
-    }
+        sessionsPerWeek: generatedPlan.summary.totalSessions,
+      },
+    },
   });
 
   // Establecer como versión activa
@@ -356,13 +362,10 @@ const generateIndividual = async (input, auditCtx = {}, options = {}) => {
         userId: profile.playerId,
         assignedById: auditCtx.user?.id || null,
         status: 'assigned',
-        assignedAt: new Date()
+        assignedAt: new Date(),
       });
-      
-      console.log(`✅ Asignación automática creada: Plan ${trainingPlan.id} → Usuario ${profile.playerId}`);
     } catch (err) {
-      console.error('⚠️  Error creando asignación automática:', err);
-      // No fallar la generación si falla la asignación
+      console.error('Error creando asignación automática:', err);
     }
   }
 
@@ -374,18 +377,18 @@ const generateIndividual = async (input, auditCtx = {}, options = {}) => {
       action: 'training_plan.generated',
       entity: 'TrainingPlan',
       entityId: trainingPlan.id,
-      metadata: { 
+      metadata: {
         targetType: 'individual',
         playerId: profile.playerId,
-        modelVersion: generatedPlan.modelVersion
-      }
+        modelVersion: generatedPlan.modelVersion,
+      },
     });
   }
-  
+
   // Formatear respuesta para mantener compatibilidad con el formato esperado
   const wasAborted = generatedPlan.wasAborted || false;
   const requestedSessions = generatedPlan.requestedSessions || numberOfSessions;
-  
+
   return {
     id: trainingPlan.id,
     versionId: version.id,
@@ -400,85 +403,87 @@ const generateIndividual = async (input, auditCtx = {}, options = {}) => {
       goals: input.goals || [],
       intensity,
       sessionDurationMinutes,
-      sessionsPerWeek: generatedPlan.summary.totalSessions
+      sessionsPerWeek: generatedPlan.summary.totalSessions,
     },
     sessions: generatedPlan.sessions,
     metrics: {
       durationTotalMinutes: generatedPlan.summary.totalDurationMinutes,
       estimatedLoadTotal: 0, // Se puede calcular si es necesario
       sessionsCount: generatedPlan.summary.totalSessions,
-      exercisesCount: generatedPlan.summary.totalExercises
-    }
+      exercisesCount: generatedPlan.summary.totalExercises,
+    },
   };
 };
 
 const generateGroup = async (input, auditCtx = {}, options = {}) => {
   const { signal } = options;
-  
+
   validateGroupInput(input);
 
   const group = input.group;
   const intensity = group.intensity || 'medium';
   const sessionDurationMinutes = group.sessionDurationMinutes || 90;
-  
+
   // Calcular número de sesiones (máximo 7, por defecto 3)
-  const numberOfSessions = group.numberOfSessions 
-    || group.maxSessionsPerWeek // fallback a campo legacy
-    || 3;
+  const numberOfSessions =
+    group.numberOfSessions ||
+    group.maxSessionsPerWeek || // fallback a campo legacy
+    3;
 
   // Obtener equipamiento disponible en el sistema
   const clubId = group.clubId || (input.constraints && input.constraints.clubId) || null;
   const availableEquipment = await getAvailableEquipmentAliases(clubId);
-  
+
   // Obtener ejercicios disponibles
   let allExercises = await getAllExercisesForRecommender({ active: true });
-  
+
   // Filtrar ejercicios según equipamiento disponible
   allExercises = filterExercisesByEquipment(allExercises, availableEquipment);
-  
-  console.log(`ℹ️  Ejercicios disponibles después de filtrar por equipamiento: ${allExercises.length}`);
-  
+
+
   // Obtener el modelo de recomendación activo
   const recommender = getActiveModel();
-  
+
   // Preparar parámetros para el modelo (sin days ni level)
   const planParams = {
     goals: input.goals || [],
     constraints: {
-      equipment: (input.constraints && input.constraints.equipment) || []
+      equipment: (input.constraints && input.constraints.equipment) || [],
     },
     profile: {
       intensity,
       sessionDurationMinutes,
-      maxDurationMinutes: sessionDurationMinutes // Ahora es por sesión, no total
+      maxDurationMinutes: sessionDurationMinutes, // Ahora es por sesión, no total
     },
-    numberOfSessions
+    numberOfSessions,
   };
-  
+
   // Generar planificación usando el modelo de recomendación
   const generatedPlan = await recommender.generatePlan(allExercises, planParams, { signal });
-  
+
   // Si no se generaron sesiones, devolver resultado vacío
   if (!generatedPlan.sessions || generatedPlan.sessions.length === 0) {
     return {
       success: false,
       wasAborted: generatedPlan.wasAborted,
-      message: 'No se pudieron generar sesiones. Intenta con menos objetivos.'
+      message: 'No se pudieron generar sesiones. Intenta con menos objetivos.',
     };
   }
 
   const perAthlete = input.profiles.map((p) => ({
     playerId: p.playerId,
-    position: p.position
+    position: p.position,
   }));
 
   // Guardar en la base de datos
   const trainingPlan = await TrainingPlan.create({
     createdById: auditCtx.user?.id || null,
     targetType: 'group',
-    name: group.name || (input.goals && input.goals.length > 0 
-      ? `Plan grupal: ${input.goals[0]}` 
-      : 'Plan de entrenamiento grupal'),
+    name:
+      group.name ||
+      (input.goals && input.goals.length > 0
+        ? `Plan grupal: ${input.goals[0]}`
+        : 'Plan de entrenamiento grupal'),
     description: input.goals ? input.goals.join(', ') : null,
     goal: input.goals ? input.goals.join(', ') : null,
     type: 'generated',
@@ -486,7 +491,7 @@ const generateGroup = async (input, auditCtx = {}, options = {}) => {
     duration: generatedPlan.summary.totalDurationMinutes,
     sessionsCount: generatedPlan.summary.totalSessions,
     sessionDurationMinutes: sessionDurationMinutes,
-    status: 'draft'
+    status: 'draft',
   });
 
   // Crear versión inicial
@@ -508,9 +513,9 @@ const generateGroup = async (input, auditCtx = {}, options = {}) => {
         goals: input.goals || [],
         intensity,
         sessionDurationMinutes,
-        sessionsPerWeek: generatedPlan.summary.totalSessions
-      }
-    }
+        sessionsPerWeek: generatedPlan.summary.totalSessions,
+      },
+    },
   });
 
   // Establecer como versión activa
@@ -526,15 +531,14 @@ const generateGroup = async (input, auditCtx = {}, options = {}) => {
             userId: profile.playerId,
             assignedById: auditCtx.user?.id || null,
             status: 'assigned',
-            assignedAt: new Date()
+            assignedAt: new Date(),
           });
-          console.log(`✅ Asignación automática creada: Plan ${trainingPlan.id} → Usuario ${profile.playerId}`);
         } catch (err) {
-          console.error(`⚠️  Error creando asignación para usuario ${profile.playerId}:`, err);
+          console.error(`Error creando asignación para usuario ${profile.playerId}:`, err);
         }
       }
     });
-    
+
     await Promise.all(assignmentPromises);
   }
 
@@ -546,12 +550,12 @@ const generateGroup = async (input, auditCtx = {}, options = {}) => {
       action: 'training_plan.generated',
       entity: 'TrainingPlan',
       entityId: trainingPlan.id,
-      metadata: { 
+      metadata: {
         targetType: 'group',
         groupId: group.groupId,
         athletesCount: input.profiles.length,
-        modelVersion: generatedPlan.modelVersion
-      }
+        modelVersion: generatedPlan.modelVersion,
+      },
     });
   }
 
@@ -568,7 +572,7 @@ const generateGroup = async (input, auditCtx = {}, options = {}) => {
       goals: input.goals || [],
       intensity,
       sessionDurationMinutes,
-      sessionsPerWeek: generatedPlan.summary.totalSessions
+      sessionsPerWeek: generatedPlan.summary.totalSessions,
     },
     athletes: perAthlete,
     sessions: generatedPlan.sessions,
@@ -579,12 +583,12 @@ const generateGroup = async (input, auditCtx = {}, options = {}) => {
       durationTotalMinutes: generatedPlan.summary.totalDurationMinutes,
       estimatedLoadTotal: 0,
       sessionsCount: generatedPlan.summary.totalSessions,
-      exercisesCount: generatedPlan.summary.totalExercises
-    }
+      exercisesCount: generatedPlan.summary.totalExercises,
+    },
   };
 };
 
 module.exports = {
   generateIndividual,
-  generateGroup
+  generateGroup,
 };

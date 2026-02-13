@@ -20,13 +20,36 @@
       <div class="bp-dialog-grid-2">
         <div class="bp-dialog-field">
           <label class="bp-dialog-label">Nueva contraseña</label>
-          <input pInputText [(ngModel)]="newPassword" name="newPassword" readonly class="w-full font-mono" />
-          <div class="mt-2 text-[12px] text-[#6b7280]">Se muestra solo en este diálogo. Copiala antes de cerrar.</div>
+          <input
+            pInputText
+            [(ngModel)]="newPassword"
+            name="newPassword"
+            readonly
+            class="w-full font-mono"
+          />
+          <div class="mt-2 text-[12px] text-[#6b7280]">
+            Se muestra solo en este diálogo. Copiala antes de cerrar.
+          </div>
         </div>
 
         <div class="flex items-end gap-2">
-          <button type="button" pButton label="Regenerar" class="p-button-text p-button-sm" [disabled]="resettingPassword" (click)="regeneratePassword()"></button>
-          <button type="button" pButton label="Copiar" icon="pi pi-copy" class="p-button-sm" [disabled]="!newPassword" (click)="copyPassword()"></button>
+          <button
+            type="button"
+            pButton
+            label="Regenerar"
+            class="p-button-text p-button-sm"
+            [disabled]="resettingPassword"
+            (click)="regeneratePassword()"
+          ></button>
+          <button
+            type="button"
+            pButton
+            label="Copiar"
+            icon="pi pi-copy"
+            class="p-button-sm"
+            [disabled]="!newPassword"
+            (click)="copyPassword()"
+          ></button>
         </div>
       </div>
     </div>
@@ -34,33 +57,60 @@
 
   <div class="max-w-4xl mx-auto space-y-4">
     <div class="flex items-center justify-between gap-2">
-      <a pButton routerLink="/admin/users" label="Volver" icon="pi pi-arrow-left" class="p-button-text p-button-sm"></a>
+      <a
+        pButton
+        routerLink="/admin/users"
+        label="Volver"
+        icon="pi pi-arrow-left"
+        class="p-button-text p-button-sm"
+      ></a>
     </div>
 
     @if (loading) {
-      <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] text-[13px] text-[#9ca3af] flex items-center gap-2" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+      <div
+        class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] text-[13px] text-[#9ca3af] flex items-center gap-2"
+        style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+      >
         <p-progressSpinner strokeWidth="4" styleClass="w-4 h-4"></p-progressSpinner>
         Cargando usuario…
       </div>
     }
 
     @if (loadError) {
-      <div class="bg-red-950/40 border border-red-900/60 rounded-lg px-4 py-3 text-[13px] text-red-200">{{ loadError }}</div>
+      <div
+        class="bg-red-950/40 border border-red-900/60 rounded-lg px-4 py-3 text-[13px] text-red-200"
+      >
+        {{ loadError }}
+      </div>
     }
 
-    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+    <div
+      class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
       <app-page-header
         [title]="isEdit ? 'Editar usuario' : 'Nuevo usuario'"
-        [subtitle]="isEdit ? ('ID: ' + userId) : 'Crea un nuevo usuario para el sistema.'"
+        [subtitle]="isEdit ? 'ID: ' + userId : 'Crea un nuevo usuario para el sistema.'"
       ></app-page-header>
 
       @if (isEdit) {
-        <div class="mt-4 rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 flex items-center justify-between gap-3">
+        <div
+          class="mt-4 rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 flex items-center justify-between gap-3"
+        >
           <div>
             <div class="text-[#e5e7eb] text-[13px] font-medium">Acceso</div>
-            <div class="mt-1 text-[12px] text-[#94a3b8]">Restablece la contraseña si el usuario no puede iniciar sesión.</div>
+            <div class="mt-1 text-[12px] text-[#94a3b8]">
+              Restablece la contraseña si el usuario no puede iniciar sesión.
+            </div>
           </div>
-          <button type="button" pButton label="Restablecer contraseña" icon="pi pi-key" class="p-button-sm" (click)="openPasswordReset()"></button>
+          <button
+            type="button"
+            pButton
+            label="Restablecer contraseña"
+            icon="pi pi-key"
+            class="p-button-sm"
+            (click)="openPasswordReset()"
+          ></button>
         </div>
       }
 
@@ -75,7 +125,9 @@
             class="w-full bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280]"
           />
           @if (touched.has('name') && !nameValid) {
-            <div class="mt-2 text-[12px] text-red-200">El nombre es obligatorio (mín. 2 caracteres).</div>
+            <div class="mt-2 text-[12px] text-red-200">
+              El nombre es obligatorio (mín. 2 caracteres).
+            </div>
           }
         </div>
 
@@ -92,6 +144,47 @@
             <div class="mt-2 text-[12px] text-red-200">Introduce un email válido.</div>
           }
         </div>
+
+        @if (!isEdit) {
+          <div class="md:col-span-2">
+            <label class="block text-[#9ca3af] text-[12px] mb-2">Contraseña</label>
+            <div class="flex gap-2">
+              <input
+                pInputText
+                [(ngModel)]="form.password"
+                name="password"
+                (blur)="markTouched('password')"
+                class="flex-1 bg-[#111827] text-[#f9fafb] px-3 py-2 rounded-lg border border-[#1f2937] focus:border-[#38bdf8] focus:outline-none text-[13px] placeholder-[#6b7280] font-mono"
+                placeholder="Mínimo 6 caracteres"
+              />
+              <button
+                type="button"
+                pButton
+                icon="pi pi-refresh"
+                class="p-button-sm p-button-text"
+                (click)="generateNewPassword()"
+                pTooltip="Generar contraseña"
+              ></button>
+              <button
+                type="button"
+                pButton
+                icon="pi pi-copy"
+                class="p-button-sm p-button-text"
+                (click)="copyGeneratedPassword()"
+                [disabled]="!form.password"
+                pTooltip="Copiar contraseña"
+              ></button>
+            </div>
+            @if (touched.has('password') && !passwordValid) {
+              <div class="mt-2 text-[12px] text-red-200">
+                La contraseña debe tener al menos 6 caracteres.
+              </div>
+            }
+            <div class="mt-1 text-[11px] text-[#6b7280]">
+              Genera una contraseña segura o escribe una manualmente.
+            </div>
+          </div>
+        }
 
         <div>
           <label class="block text-[#9ca3af] text-[12px] mb-2">Rol</label>
@@ -124,7 +217,7 @@
             <label class="block text-[#9ca3af] text-[12px] mb-2">
               {{ isMultiClubRole ? 'Clubs' : 'Club' }}
             </label>
-            
+
             @if (isMultiClubRole) {
               <!-- Multi-select para directores técnicos -->
               <p-multiselect
@@ -165,8 +258,23 @@
       </div>
 
       <div class="mt-8 flex items-center justify-end gap-2">
-        <button type="button" pButton label="Cancelar" class="bp-btn bp-btn-secondary" [disabled]="saving" (click)="cancel()"></button>
-        <button type="button" pButton label="Guardar" icon="pi pi-check" class="bp-btn bp-btn-primary" [disabled]="saving" (click)="save()"></button>
+        <button
+          type="button"
+          pButton
+          label="Cancelar"
+          class="bp-btn bp-btn-secondary"
+          [disabled]="saving"
+          (click)="cancel()"
+        ></button>
+        <button
+          type="button"
+          pButton
+          label="Guardar"
+          icon="pi pi-check"
+          class="bp-btn bp-btn-primary"
+          [disabled]="saving"
+          (click)="save()"
+        ></button>
       </div>
     </div>
   </div>

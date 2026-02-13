@@ -17,5 +17,5 @@ const setActiveVersion = async (req, res, next) => {
 };
 
 module.exports = {
-  setActiveVersion
+  setActiveVersion,
 };

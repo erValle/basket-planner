@@ -1,8 +1,8 @@
 const { createAuditLog } = require('../services/auditLogService');
 
 /**
- * Writes per-request audit logs (entity=HttpRequest) with latency and status.
- * Safe in contract/test mode: createAuditLog() no-ops if DB isn't initialized.
+ * Registra logs de auditoria por peticion (entity=HttpRequest) con latencia y estado.
+ * Seguro en modo test/contrato: createAuditLog() no hace nada si la BD no esta inicializada.
  */
 const auditRequestMiddleware = (req, res, next) => {
   const startedAt = process.hrtime.bigint();
@@ -14,25 +14,25 @@ const auditRequestMiddleware = (req, res, next) => {
       const statusCode = res.statusCode;
       const isError = statusCode >= 500;
 
-      // Fire-and-forget to avoid extending request lifecycle (and causing Jest
-      // "Cannot log after tests are done" when the process shuts down).
+      // Dispara y olvida para no extender el ciclo de vida de la peticion (y evitar
+      // "Cannot log after tests are done" de Jest cuando el proceso se cierra).
       Promise.resolve(
         createAuditLog({
-        user: req.user,
-        action: isError ? 'http_request.error' : 'http_request.success',
-        entity: 'HttpRequest',
-        entityId: null,
-        requestId: req.requestId,
-        metadata: {
-          method: req.method,
-          path: req.originalUrl,
-          statusCode,
-          latencyMs: Math.round(latencyMs),
-        },
+          user: req.user,
+          action: isError ? 'http_request.error' : 'http_request.success',
+          entity: 'HttpRequest',
+          entityId: null,
+          requestId: req.requestId,
+          metadata: {
+            method: req.method,
+            path: req.originalUrl,
+            statusCode,
+            latencyMs: Math.round(latencyMs),
+          },
         })
       ).catch(() => {});
     } catch {
-      // Never break the request path due to monitoring.
+      // Nunca interrumpir la peticion por errores de monitorizacion.
     }
   });
 

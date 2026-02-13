@@ -24,7 +24,9 @@
       @if (exercise.description) {
         <div>
           <div class="text-[12px] text-[#6b7280] mb-1">Descripción</div>
-          <div class="text-[13px] text-[#e5e7eb] whitespace-pre-wrap">{{ exercise.description }}</div>
+          <div class="text-[13px] text-[#e5e7eb] whitespace-pre-wrap">
+            {{ exercise.description }}
+          </div>
         </div>
       }
 
@@ -36,7 +38,9 @@
             @for (key of getDifficultyKeys(); track key) {
               <div class="flex items-center justify-between bg-[#0f172a] rounded-lg px-3 py-2">
                 <span class="text-[12px] text-[#9ca3af]">{{ getDifficultyLabel(key) }}</span>
-                <span class="text-[13px] font-medium text-[#f9fafb]">{{ getDifficultyValue(key) }}/10</span>
+                <span class="text-[13px] font-medium text-[#f9fafb]"
+                  >{{ getDifficultyValue(key) }}/10</span
+                >
               </div>
             }
           </div>

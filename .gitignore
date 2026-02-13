@@ -53,3 +53,5 @@ backend/coverage/
 # Mock ups
 frontendMockUps
 diagramaGantt.html
+backend/DEPLOYMENT_GUIDE.md
+*.sql

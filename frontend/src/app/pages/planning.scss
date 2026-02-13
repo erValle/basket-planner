@@ -1,30 +1,30 @@
 /* Keep page-specific overrides minimal; follow existing pages convention. */
 
 :host ::ng-deep .bp-date .p-inputtext {
-	background: #0b1220;
-	border: 1px solid #1f2937;
-	color: #e5e7eb;
+  background: #0b1220;
+  border: 1px solid #1f2937;
+  color: #e5e7eb;
 }
 
 :host ::ng-deep .bp-date .p-inputtext::placeholder {
-	color: #94a3b8;
+  color: #94a3b8;
 }
 
 :host ::ng-deep .bp-date .p-inputtext:enabled:hover {
-	border-color: #334155;
+  border-color: #334155;
 }
 
 :host ::ng-deep .bp-date .p-inputtext:enabled:focus {
-	outline: none;
-	box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.25);
+  outline: none;
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.25);
 }
 
 :host ::ng-deep .bp-date .p-datepicker-trigger {
-	background: #0b1220;
-	border: 1px solid #1f2937;
-	color: #94a3b8;
+  background: #0b1220;
+  border: 1px solid #1f2937;
+  color: #94a3b8;
 }
 
 :host ::ng-deep .bp-date .p-datepicker-trigger:hover {
-	border-color: #334155;
+  border-color: #334155;
 }

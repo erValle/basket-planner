@@ -1,151 +1,195 @@
 <app-shell title="Equipos" subtitle="Gestión de equipos">
-	<p-toast></p-toast>
-	<div class="max-w-7xl mx-auto">
-		<app-page-header
-			[title]="'Equipos'"
-			[subtitle]="'Gestiona los equipos por club y categoría.'"
-			[actionLabel]="'Nuevo equipo'"
-			[actionIcon]="'pi pi-plus'"
-			[actionPermission]="'teams.create'"
-			[action]="openCreate.bind(this)"
-		></app-page-header>
+  <p-toast></p-toast>
+  <div class="max-w-7xl mx-auto">
+    <app-page-header
+      [title]="'Equipos'"
+      [subtitle]="'Gestiona los equipos por club y categoría.'"
+      [actionLabel]="'Nuevo equipo'"
+      [actionIcon]="'pi pi-plus'"
+      [actionPermission]="'teams.create'"
+      [action]="openCreate.bind(this)"
+    ></app-page-header>
 
-		<div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-			<div class="grid grid-cols-4 gap-4">
-				<div>
-					<label class="block text-[#9ca3af] text-[12px] mb-2">Club</label>
-					<p-select
-						[options]="clubOptionsWithAll"
-						[(ngModel)]="filters.club"
-						(ngModelChange)="refresh()"
-						name="club"
-						optionLabel="label"
-						optionValue="value"
-							styleClass="bp-select"
-							[panelStyleClass]="'bp-select-panel'"
-					></p-select>
-				</div>
-				<div>
-					<label class="block text-[#9ca3af] text-[12px] mb-2">Categoría</label>
-					<p-select
-						[options]="categoryOptions"
-							[(ngModel)]="filters.category"
-							(ngModelChange)="refresh()"
-							name="category"
-						optionLabel="label"
-						optionValue="value"
-							styleClass="bp-select"
-							[panelStyleClass]="'bp-select-panel'"
-					></p-select>
-				</div>
-				<div class="col-span-2">
-					<label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
-					<input
-						pInputText
-						[(ngModel)]="filters.search"
-						(ngModelChange)="refresh()"
-						name="search"
-						placeholder="Nombre del equipo"
-						class="w-full"
-					/>
-				</div>
-			</div>
-			<div class="mt-4 flex justify-end">
-				<button type="button" pButton label="Limpiar filtros" class="p-button-text p-button-sm" (click)="clearFilters()"></button>
-			</div>
-		</div>
+    <div
+      class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
+      <div class="grid grid-cols-4 gap-4">
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Club</label>
+          <p-select
+            [options]="clubOptionsWithAll"
+            [(ngModel)]="filters.club"
+            (ngModelChange)="refresh()"
+            name="club"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+        <div>
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Categoría</label>
+          <p-select
+            [options]="categoryOptions"
+            [(ngModel)]="filters.category"
+            (ngModelChange)="refresh()"
+            name="category"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-[#9ca3af] text-[12px] mb-2">Buscar</label>
+          <input
+            pInputText
+            [(ngModel)]="filters.search"
+            (ngModelChange)="refresh()"
+            name="search"
+            placeholder="Nombre del equipo"
+            class="w-full"
+          />
+        </div>
+      </div>
+      <div class="mt-4 flex justify-end">
+        <button
+          type="button"
+          pButton
+          label="Limpiar filtros"
+          class="p-button-text p-button-sm"
+          (click)="clearFilters()"
+        ></button>
+      </div>
+    </div>
 
-		@let vm = (vm$ | async);
-		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-			@for (team of (vm?.filtered ?? []); track team.id) {
-				<div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-					<div class="flex items-start justify-between gap-3">
-						<div>
-							<a class="text-[16px] text-[#f9fafb] font-semibold hover:underline" [routerLink]="['/teams', team.id]">{{ team.name }}</a>
-							<div class="text-[12px] text-[#9ca3af] mt-1">{{ team.clubName }} · {{ team.category }} · {{ team.players }} jugadores</div>
-						</div>
-						<p-tag [value]="team.status === 'active' ? 'Activo' : 'Inactivo'" [severity]="team.status === 'active' ? 'success' : 'danger'"></p-tag>
-					</div>
+    @let vm = vm$ | async;
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      @for (team of vm?.filtered ?? []; track team.id) {
+        <div
+          class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+          style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <a
+                class="text-[16px] text-[#f9fafb] font-semibold hover:underline"
+                [routerLink]="['/teams', team.id]"
+                >{{ team.name }}</a
+              >
+              <div class="text-[12px] text-[#9ca3af] mt-1">
+                {{ team.clubName }} · {{ team.category }} · {{ team.players }} jugadores
+              </div>
+            </div>
+            <p-tag
+              [value]="team.status === 'active' ? 'Activo' : 'Inactivo'"
+              [severity]="team.status === 'active' ? 'success' : 'danger'"
+            ></p-tag>
+          </div>
 
-					<div class="mt-4 flex justify-end gap-2">
-						<button type="button" pButton label="Ver detalle" icon="pi pi-eye" class="p-button-text p-button-sm" [routerLink]="['/teams', team.id]"></button>
-						<button type="button" pButton label="Editar" icon="pi pi-pencil" class="p-button-text p-button-sm" (click)="openEdit(team)"></button>
-					</div>
-				</div>
-			}
-		</div>
+          <div class="mt-4 flex justify-end gap-2">
+            <button
+              type="button"
+              pButton
+              label="Ver detalle"
+              icon="pi pi-eye"
+              class="p-button-text p-button-sm"
+              [routerLink]="['/teams', team.id]"
+            ></button>
+            <button
+              type="button"
+              pButton
+              label="Editar"
+              icon="pi pi-pencil"
+              class="p-button-text p-button-sm"
+              (click)="openEdit(team)"
+            ></button>
+          </div>
+        </div>
+      }
+    </div>
 
-		@if ((vm?.filtered?.length ?? 0) === 0) {
-			<div class="mt-10 text-center text-[13px] text-[#9ca3af]">Selecciona un club</div>
-		}
-	</div>
+    @if ((vm?.filtered?.length ?? 0) === 0) {
+      <div class="mt-10 text-center text-[13px] text-[#9ca3af]">Selecciona un club</div>
+    }
+  </div>
 
-	<bp-dialog
-		[header]="dialogMode === 'create' ? 'Nuevo equipo' : 'Editar equipo'"
-		[(visible)]="teamDialogVisible"
-		[confirmLabel]="'Guardar'"
-		[confirmDisabled]="!draft.name.trim()"
-		(confirm)="saveDialog()"
-		(cancel)="closeDialog()"
-		size="md"
-	>
-		<div class="bp-dialog-section">
-			<div class="bp-dialog-section-title">Información del equipo</div>
-			<div class="bp-dialog-grid-2">
-				<div class="bp-dialog-field span-2">
-					<label class="bp-dialog-label bp-dialog-label-required">Nombre</label>
-					<input pInputText [(ngModel)]="draft.name" name="teamName" placeholder="Ej.: Senior Masculino" class="w-full" />
-				</div>
-				<div class="bp-dialog-field">
-					<label class="bp-dialog-label bp-dialog-label-required">Club</label>
-					<p-select
-						[options]="clubOptions"
-						[(ngModel)]="draft.clubId"
-						name="teamClub"
-						optionLabel="label"
-						optionValue="value"
-						styleClass="bp-select w-full"
-						[panelStyleClass]="'bp-select-panel'"
-					></p-select>
-				</div>
-				<div class="bp-dialog-field">
-					<label class="bp-dialog-label bp-dialog-label-required">Categoría</label>
-					<p-select
-						[options]="categoryOptionsWithoutAll"
-						[(ngModel)]="draft.category"
-						name="teamCategory"
-						optionLabel="label"
-						optionValue="value"
-						styleClass="bp-select w-full"
-						[panelStyleClass]="'bp-select-panel'"
-					></p-select>
-				</div>
-				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">Entrenador</label>
-					<p-select
-						[options]="coachOptions"
-						[(ngModel)]="draft.coachId"
-						name="teamCoach"
-						optionLabel="label"
-						optionValue="value"
-						styleClass="bp-select w-full"
-						[panelStyleClass]="'bp-select-panel'"
-						placeholder="Seleccionar entrenador"
-					></p-select>
-				</div>
-				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">Estado</label>
-					<p-select
-						[options]="[{ label: 'Activo', value: 'active' }, { label: 'Inactivo', value: 'inactive' }]"
-						[(ngModel)]="draft.status"
-						name="teamStatus"
-						optionLabel="label"
-						optionValue="value"
-						styleClass="bp-select w-full"
-						[panelStyleClass]="'bp-select-panel'"
-					></p-select>
-				</div>
-			</div>
-		</div>
-	</bp-dialog>
+  <bp-dialog
+    [header]="dialogMode === 'create' ? 'Nuevo equipo' : 'Editar equipo'"
+    [(visible)]="teamDialogVisible"
+    [confirmLabel]="'Guardar'"
+    [confirmDisabled]="!draft.name.trim()"
+    (confirm)="saveDialog()"
+    (cancel)="closeDialog()"
+    size="md"
+  >
+    <div class="bp-dialog-section">
+      <div class="bp-dialog-section-title">Información del equipo</div>
+      <div class="bp-dialog-grid-2">
+        <div class="bp-dialog-field span-2">
+          <label class="bp-dialog-label bp-dialog-label-required">Nombre</label>
+          <input
+            pInputText
+            [(ngModel)]="draft.name"
+            name="teamName"
+            placeholder="Ej.: Senior Masculino"
+            class="w-full"
+          />
+        </div>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label bp-dialog-label-required">Club</label>
+          <p-select
+            [options]="clubOptions"
+            [(ngModel)]="draft.clubId"
+            name="teamClub"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select w-full"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label bp-dialog-label-required">Categoría</label>
+          <p-select
+            [options]="categoryOptionsWithoutAll"
+            [(ngModel)]="draft.category"
+            name="teamCategory"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select w-full"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Entrenador</label>
+          <p-select
+            [options]="coachOptions"
+            [(ngModel)]="draft.coachId"
+            name="teamCoach"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select w-full"
+            [panelStyleClass]="'bp-select-panel'"
+            placeholder="Seleccionar entrenador"
+          ></p-select>
+        </div>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Estado</label>
+          <p-select
+            [options]="[
+              { label: 'Activo', value: 'active' },
+              { label: 'Inactivo', value: 'inactive' },
+            ]"
+            [(ngModel)]="draft.status"
+            name="teamStatus"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select w-full"
+            [panelStyleClass]="'bp-select-panel'"
+          ></p-select>
+        </div>
+      </div>
+    </div>
+  </bp-dialog>
 </app-shell>

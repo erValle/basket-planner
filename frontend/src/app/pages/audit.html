@@ -16,7 +16,9 @@
         Cargando detalle…
       </div>
     } @else if (detailError) {
-      <div class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200">
+      <div
+        class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200"
+      >
         {{ detailError }}
       </div>
     } @else if (selected) {
@@ -28,7 +30,10 @@
           </div>
           <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-4 py-3">
             <div class="text-[11px] text-[#9ca3af]">Usuario</div>
-            <div class="text-[13px] text-[#e5e7eb]">{{ selected.actor.name }} <span class="text-[#6b7280]">({{ selected.actor.email || selected.actor.id }})</span></div>
+            <div class="text-[13px] text-[#e5e7eb]">
+              {{ selected.actor.name }}
+              <span class="text-[#6b7280]">({{ selected.actor.email || selected.actor.id }})</span>
+            </div>
           </div>
           <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-4 py-3">
             <div class="text-[11px] text-[#9ca3af]">Acción</div>
@@ -36,7 +41,9 @@
           </div>
           <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] px-4 py-3">
             <div class="text-[11px] text-[#9ca3af]">Entidad</div>
-            <div class="text-[13px] text-[#e5e7eb]">{{ selected.entity }} · {{ selected.entityId }}</div>
+            <div class="text-[13px] text-[#e5e7eb]">
+              {{ selected.entity }} · {{ selected.entityId }}
+            </div>
           </div>
         </div>
 
@@ -55,7 +62,10 @@
         @if (selected.metadata) {
           <div>
             <div class="text-[12px] text-[#9ca3af] mb-2">Metadata (JSON)</div>
-            <pre class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[320px]">{{ prettyJson(selected.metadata) }}</pre>
+            <pre
+              class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4 text-[12px] text-[#e5e7eb] overflow-auto max-h-[320px]"
+              >{{ prettyJson(selected.metadata) }}</pre
+            >
           </div>
         }
 
@@ -77,32 +87,35 @@
 
   <div class="max-w-7xl mx-auto">
     <app-page-header
-      [title]="'Audit log'"
+      [title]="'Logs de Auditoría'"
       [subtitle]="'Actividades relevantes del sistema (solo ADMIN).'"
     ></app-page-header>
 
     <!-- Action buttons -->
     <div class="flex justify-end gap-2 mb-4">
-      <button 
-        type="button" 
-        pButton 
-        icon="pi pi-download" 
-        label="Exportar CSV" 
-        class="bp-btn bp-btn-secondary bp-btn-sm" 
+      <button
+        type="button"
+        pButton
+        icon="pi pi-download"
+        label="Exportar CSV"
+        class="bp-btn bp-btn-secondary bp-btn-sm"
         (click)="exportCsv()"
       ></button>
-      <button 
-        type="button" 
-        pButton 
-        icon="pi pi-trash" 
-        label="Eliminar todos" 
-        class="bp-btn bp-btn-danger bp-btn-sm" 
+      <button
+        type="button"
+        pButton
+        icon="pi pi-trash"
+        label="Eliminar todos"
+        class="bp-btn bp-btn-danger bp-btn-sm"
         (click)="confirmDeleteAll()"
       ></button>
     </div>
 
     <!-- Filters -->
-    <div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+    <div
+      class="bg-[#020617] rounded-lg p-5 border border-[#1f2937] mb-6 mt-6"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
       <div class="grid grid-cols-6 gap-4">
         <div>
           <label class="block text-[#9ca3af] text-[12px] mb-2">Entidad</label>
@@ -142,12 +155,24 @@
 
         <div>
           <label class="block text-[#9ca3af] text-[12px] mb-2">Entidad ID</label>
-          <input pInputText [(ngModel)]="filters.entityId" name="entityId" placeholder="entityId…" class="w-full" />
+          <input
+            pInputText
+            [(ngModel)]="filters.entityId"
+            name="entityId"
+            placeholder="entityId…"
+            class="w-full"
+          />
         </div>
 
         <div>
           <label class="block text-[#9ca3af] text-[12px] mb-2">Request ID</label>
-          <input pInputText [(ngModel)]="filters.requestId" name="requestId" placeholder="requestId…" class="w-full" />
+          <input
+            pInputText
+            [(ngModel)]="filters.requestId"
+            name="requestId"
+            placeholder="requestId…"
+            class="w-full"
+          />
         </div>
 
         <div>
@@ -161,16 +186,31 @@
         </div>
 
         <div class="col-span-6 flex items-end justify-end gap-2">
-          <button type="button" pButton label="Aplicar" class="bp-btn bp-btn-primary bp-btn-sm" (click)="first = 0; load()"></button>
-          <button type="button" pButton label="Limpiar" class="bp-btn bp-btn-ghost bp-btn-sm" (click)="clearFilters()"></button>
+          <button
+            type="button"
+            pButton
+            label="Aplicar"
+            class="bp-btn bp-btn-primary bp-btn-sm"
+            (click)="first = 0; load()"
+          ></button>
+          <button
+            type="button"
+            pButton
+            label="Limpiar"
+            class="bp-btn bp-btn-ghost bp-btn-sm"
+            (click)="clearFilters()"
+          ></button>
         </div>
       </div>
     </div>
 
     <!-- Table -->
-    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-      @let vm = (vm$ | async);
-      
+    <div
+      class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
+      @let vm = vm$ | async;
+
       @if (vm?.loading) {
         <div class="flex flex-col items-center justify-center py-12 gap-3">
           <p-progressSpinner strokeWidth="4" styleClass="w-8 h-8"></p-progressSpinner>
@@ -179,7 +219,9 @@
       }
 
       @if (!vm?.loading && vm?.error) {
-        <div class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200 mb-4">
+        <div
+          class="border border-red-900/60 bg-red-950/40 px-4 py-3 rounded-lg text-[13px] text-red-200 mb-4"
+        >
           {{ vm?.error }}
         </div>
       }
@@ -190,58 +232,113 @@
 
       @if (!vm?.loading && (vm?.items?.length ?? 0) > 0) {
         <p-table
-        [value]="vm?.items ?? []"
-        [paginator]="true"
-        [rows]="rows"
-        [first]="first"
-        [rowsPerPageOptions]="[10, 20, 50]"
-        (onPage)="onPageChange($event)"
-        [tableStyle]="{ width: '100%', 'table-layout': 'fixed' }"
-        styleClass="bp-table p-datatable-sm"
-      >
-        <ng-template pTemplate="header">
-          <tr class="border-b border-[#1f2937]">
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4 whitespace-nowrap" style="width: 140px">Fecha</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4" style="width: 150px">Usuario</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4 whitespace-nowrap" style="width: 180px">Acción</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4 whitespace-nowrap" style="width: 120px">Entidad</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4" style="width: 100px">EntityId</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4" style="width: auto">Resumen</th>
-            <th class="text-left text-[12px] text-[#9ca3af] pb-3 whitespace-nowrap" style="width: 80px">Acciones</th>
-          </tr>
-        </ng-template>
+          [value]="vm?.items ?? []"
+          [paginator]="true"
+          [rows]="rows"
+          [first]="first"
+          [rowsPerPageOptions]="[10, 20, 50]"
+          (onPage)="onPageChange($event)"
+          [tableStyle]="{ width: '100%', 'table-layout': 'fixed' }"
+          styleClass="bp-table p-datatable-sm"
+        >
+          <ng-template pTemplate="header">
+            <tr class="border-b border-[#1f2937]">
+              <th
+                class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4 whitespace-nowrap"
+                style="width: 140px"
+              >
+                Fecha
+              </th>
+              <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4" style="width: 150px">
+                Usuario
+              </th>
+              <th
+                class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4 whitespace-nowrap"
+                style="width: 180px"
+              >
+                Acción
+              </th>
+              <th
+                class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4 whitespace-nowrap"
+                style="width: 120px"
+              >
+                Entidad
+              </th>
+              <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4" style="width: 100px">
+                EntityId
+              </th>
+              <th class="text-left text-[12px] text-[#9ca3af] pb-3 pr-4" style="width: auto">
+                Resumen
+              </th>
+              <th
+                class="text-left text-[12px] text-[#9ca3af] pb-3 whitespace-nowrap"
+                style="width: 80px"
+              >
+                Acciones
+              </th>
+            </tr>
+          </ng-template>
 
-        <ng-template pTemplate="body" let-r>
-          <tr class="border-b border-[#1f2937]">
-            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4 whitespace-nowrap overflow-hidden text-ellipsis">{{ r.createdAt.slice(0, 19).replace('T', ' ') }}</td>
-            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4 overflow-hidden text-ellipsis" [title]="r.actor.name">{{ r.actor.name }}</td>
-            <td class="py-4 pr-4 overflow-hidden">
-              <p-tag [value]="r.action" [severity]="actionSeverity(r.action)" styleClass="text-ellipsis block"></p-tag>
-            </td>
-            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4 overflow-hidden text-ellipsis">{{ r.entity }}</td>
-            <td class="text-[13px] py-4 pr-4 overflow-hidden text-ellipsis font-mono text-[11px]" [title]="r.entityId" [class.text-[#6b7280]]="!r.entityId || r.entityId === '/' || r.entityId.includes('/overview')" [class.text-[#e5e7eb]]="r.entityId && r.entityId !== '/' && !r.entityId.includes('/overview')">
-              @if (r.entityId && r.entityId !== '/' && !r.entityId.includes('/overview')) {
-                {{ r.entityId }}
-              } @else {
-                <span class="text-[#6b7280]">—</span>
-              }
-            </td>
-            <td class="text-[13px] text-[#e5e7eb] py-4 pr-4 overflow-hidden text-ellipsis" [title]="r.summary">{{ r.summary }}</td>
-            <td class="py-4">
-              <div class="flex items-center gap-1">
-                <button
-                  type="button"
-                  pButton
-                  icon="pi pi-eye"
-                  class="bp-btn bp-btn-ghost bp-btn-sm"
-                  aria-label="Ver detalle"
-                  (click)="openDetail(r)"
-                ></button>
-              </div>
-            </td>
-          </tr>
-        </ng-template>
-      </p-table>
+          <ng-template pTemplate="body" let-r>
+            <tr class="border-b border-[#1f2937]">
+              <td
+                class="text-[13px] text-[#e5e7eb] py-4 pr-4 whitespace-nowrap overflow-hidden text-ellipsis"
+              >
+                {{ r.createdAt.slice(0, 19).replace('T', ' ') }}
+              </td>
+              <td
+                class="text-[13px] text-[#e5e7eb] py-4 pr-4 overflow-hidden text-ellipsis"
+                [title]="r.actor.name"
+              >
+                {{ r.actor.name }}
+              </td>
+              <td class="py-4 pr-4 overflow-hidden">
+                <p-tag
+                  [value]="r.action"
+                  [severity]="actionSeverity(r.action)"
+                  styleClass="text-ellipsis block"
+                ></p-tag>
+              </td>
+              <td class="text-[13px] text-[#e5e7eb] py-4 pr-4 overflow-hidden text-ellipsis">
+                {{ r.entity }}
+              </td>
+              <td
+                class="text-[13px] py-4 pr-4 overflow-hidden text-ellipsis font-mono text-[11px]"
+                [title]="r.entityId"
+                [class.text-[#6b7280]]="
+                  !r.entityId || r.entityId === '/' || r.entityId.includes('/overview')
+                "
+                [class.text-[#e5e7eb]]="
+                  r.entityId && r.entityId !== '/' && !r.entityId.includes('/overview')
+                "
+              >
+                @if (r.entityId && r.entityId !== '/' && !r.entityId.includes('/overview')) {
+                  {{ r.entityId }}
+                } @else {
+                  <span class="text-[#6b7280]">—</span>
+                }
+              </td>
+              <td
+                class="text-[13px] text-[#e5e7eb] py-4 pr-4 overflow-hidden text-ellipsis"
+                [title]="r.summary"
+              >
+                {{ r.summary }}
+              </td>
+              <td class="py-4">
+                <div class="flex items-center gap-1">
+                  <button
+                    type="button"
+                    pButton
+                    icon="pi pi-eye"
+                    class="bp-btn bp-btn-ghost bp-btn-sm"
+                    aria-label="Ver detalle"
+                    (click)="openDetail(r)"
+                  ></button>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
       }
     </div>
   </div>

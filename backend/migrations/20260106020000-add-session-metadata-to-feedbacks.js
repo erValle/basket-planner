@@ -7,7 +7,7 @@ module.exports = {
     await queryInterface.addColumn('feedbacks', 'sessionId', {
       type: Sequelize.STRING,
       allowNull: true,
-      comment: 'Session identifier from training plan version items.sessions[].sessionId'
+      comment: 'Session identifier from training plan version items.sessions[].sessionId',
     });
 
     // Add targetType to distinguish between version-level and session-level feedback
@@ -15,7 +15,7 @@ module.exports = {
       type: Sequelize.STRING,
       allowNull: false,
       defaultValue: 'version',
-      comment: 'Type of feedback: "version" (planning-level) or "session" (session-level)'
+      comment: 'Type of feedback: "version" (planning-level) or "session" (session-level)',
     });
 
     // Add index for session feedback queries
@@ -25,10 +25,14 @@ module.exports = {
 
     // Add unique constraint: one feedback per user per version (for version-level)
     // and one per user per session (for session-level)
-    await queryInterface.addIndex('feedbacks', ['trainingPlanVersionId', 'userId', 'sessionId', 'targetType'], {
-      name: 'feedbacks_user_target_unique',
-      unique: true,
-    });
+    await queryInterface.addIndex(
+      'feedbacks',
+      ['trainingPlanVersionId', 'userId', 'sessionId', 'targetType'],
+      {
+        name: 'feedbacks_user_target_unique',
+        unique: true,
+      }
+    );
   },
 
   async down(queryInterface, Sequelize) {
@@ -36,5 +40,5 @@ module.exports = {
     await queryInterface.removeIndex('feedbacks', 'feedbacks_version_session_idx');
     await queryInterface.removeColumn('feedbacks', 'targetType');
     await queryInterface.removeColumn('feedbacks', 'sessionId');
-  }
+  },
 };

@@ -131,9 +131,7 @@ describe('clubService', () => {
 
       await clubService.updateClub(1, { status: 'inactive' });
 
-      expect(mockClub.update).toHaveBeenCalledWith(
-        expect.objectContaining({ active: false })
-      );
+      expect(mockClub.update).toHaveBeenCalledWith(expect.objectContaining({ active: false }));
     });
 
     it('throws 404 when club not found', async () => {

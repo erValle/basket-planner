@@ -1,4 +1,3 @@
-
 'use strict';
 const { Model } = require('sequelize');
 
@@ -29,30 +28,30 @@ module.exports = (sequelize, DataTypes) => {
 
   PlanAssignment.init(
     {
-      id: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true 
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
       },
-      trainingPlanId: { 
-        type: DataTypes.INTEGER, 
-        allowNull: false 
+      trainingPlanId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
       trainingPlanVersionId: {
         type: DataTypes.INTEGER,
         allowNull: true,
       },
-      userId: { 
-        type: DataTypes.INTEGER, 
-        allowNull: false 
+      userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
-      assignedById: { 
-        type: DataTypes.INTEGER, 
-        allowNull: true 
+      assignedById: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
       },
-      assignedAt: { 
-        type: DataTypes.DATE, 
-        allowNull: false 
+      assignedAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
       },
       status: {
         type: DataTypes.STRING,

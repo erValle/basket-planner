@@ -1,4 +1,3 @@
-
 'use strict';
 const { Model } = require('sequelize');
 
@@ -31,59 +30,59 @@ module.exports = (sequelize, DataTypes) => {
 
   TrainingPlan.init(
     {
-      id: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true 
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
       },
-      createdById: { 
-        type: DataTypes.INTEGER, 
-        allowNull: false 
+      createdById: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
-      targetType: { 
-        type: DataTypes.STRING, 
-        allowNull: false, 
-        defaultValue: 'individual' 
+      targetType: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'individual',
       },
-      name: { 
-        type: DataTypes.STRING, 
-        allowNull: false 
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
       },
-      description: { 
-        type: DataTypes.TEXT, 
-        allowNull: true 
-      },
-      goal: { 
-        type: DataTypes.TEXT, 
-        allowNull: true 
-      },
-      type: { 
-        type: DataTypes.STRING, 
-        allowNull: false 
-      },
-      intensity: { 
-        type: DataTypes.STRING, 
-        allowNull: true 
-      },
-      duration: { 
-        type: DataTypes.INTEGER, 
+      description: {
+        type: DataTypes.TEXT,
         allowNull: true,
-        comment: 'DEPRECATED: Use sessionDurationMinutes instead'
+      },
+      goal: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      type: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      intensity: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      duration: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        comment: 'DEPRECATED: Use sessionDurationMinutes instead',
       },
       sessionsCount: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        comment: 'Número de sesiones en la planificación'
+        comment: 'Número de sesiones en la planificación',
       },
       sessionDurationMinutes: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        comment: 'Duración máxima por sesión en minutos'
+        comment: 'Duración máxima por sesión en minutos',
       },
-      status: { 
-        type: DataTypes.STRING, 
-        allowNull: false, 
-        defaultValue: 'draft' 
+      status: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'draft',
       },
 
       activeVersionId: {

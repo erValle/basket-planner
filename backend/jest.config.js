@@ -4,5 +4,5 @@ module.exports = {
   clearMocks: true,
   setupFiles: ['<rootDir>/__tests__/jest.setup.js'],
   globalSetup: '<rootDir>/__tests__/globalSetup.js',
-  globalTeardown: '<rootDir>/__tests__/globalTeardown.js'
+  globalTeardown: '<rootDir>/__tests__/globalTeardown.js',
 };

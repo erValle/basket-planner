@@ -10,10 +10,11 @@
 }
 
 @mixin transition-standard {
-  transition: background-color $transition-fast,
-              border-color $transition-fast,
-              box-shadow $transition-fast,
-              color $transition-fast;
+  transition:
+    background-color $transition-fast,
+    border-color $transition-fast,
+    box-shadow $transition-fast,
+    color $transition-fast;
 }
 
 @mixin dark-panel {
@@ -61,7 +62,9 @@
     background: transparent !important;
     border: none !important;
     border-radius: $radius-lg;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease;
 
     &:hover {
       background: rgba($primary-400, 0.1) !important;
@@ -224,11 +227,11 @@
     }
 
     &.p-tab-active,
-    &[aria-selected="true"] {
+    &[aria-selected='true'] {
       background: $neutral-900;
       border: 1px solid rgba($primary-400, 0.28);
       color: $neutral-50;
-      box-shadow: 0 0 0 2px rgba($primary-400, 0.10);
+      box-shadow: 0 0 0 2px rgba($primary-400, 0.1);
     }
 
     &:focus-visible {
@@ -610,7 +613,9 @@
   background: $primary-400;
   border-color: $primary-400;
   color: $text-inverse;
-  box-shadow: 0 12px 28px rgba($primary-400, 0.22), 0 2px 0 rgba($bg-page, 0.35);
+  box-shadow:
+    0 12px 28px rgba($primary-400, 0.22),
+    0 2px 0 rgba($bg-page, 0.35);
 
   &:not(:disabled):hover {
     background: $primary-500;
@@ -620,7 +625,7 @@
 
 .bp-btn-secondary.p-button {
   background: rgba($bg-page, 0.15);
-  border-color: rgba($neutral-50, 0.10);
+  border-color: rgba($neutral-50, 0.1);
   color: $neutral-200;
 
   &:not(:disabled):hover {

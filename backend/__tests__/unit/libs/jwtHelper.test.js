@@ -64,31 +64,29 @@ describe('jwtHelper', () => {
 
     it('throws error for expired token', () => {
       // Create an expired token
-      const expiredToken = jwt.sign(
-        { userId: 1 },
-        'test-secret-key',
-        { expiresIn: '-1h', issuer: 'tfg-api', audience: 'tfg-web' }
-      );
+      const expiredToken = jwt.sign({ userId: 1 }, 'test-secret-key', {
+        expiresIn: '-1h',
+        issuer: 'tfg-api',
+        audience: 'tfg-web',
+      });
 
       expect(() => tokenDecode(expiredToken)).toThrow();
     });
 
     it('throws error for token with wrong issuer', () => {
-      const wrongIssuerToken = jwt.sign(
-        { userId: 1 },
-        'test-secret-key',
-        { issuer: 'wrong-issuer', audience: 'tfg-web' }
-      );
+      const wrongIssuerToken = jwt.sign({ userId: 1 }, 'test-secret-key', {
+        issuer: 'wrong-issuer',
+        audience: 'tfg-web',
+      });
 
       expect(() => tokenDecode(wrongIssuerToken)).toThrow();
     });
 
     it('throws error for token with wrong audience', () => {
-      const wrongAudienceToken = jwt.sign(
-        { userId: 1 },
-        'test-secret-key',
-        { issuer: 'tfg-api', audience: 'wrong-audience' }
-      );
+      const wrongAudienceToken = jwt.sign({ userId: 1 }, 'test-secret-key', {
+        issuer: 'tfg-api',
+        audience: 'wrong-audience',
+      });
 
       expect(() => tokenDecode(wrongAudienceToken)).toThrow();
     });
@@ -115,7 +113,13 @@ describe('jwtHelper', () => {
     });
 
     it('converts user id to string in sub claim', () => {
-      const user = { id: 123, email: 'test@test.com', name: 'Test', role: 'player', status: 'active' };
+      const user = {
+        id: 123,
+        email: 'test@test.com',
+        name: 'Test',
+        role: 'player',
+        status: 'active',
+      };
 
       const token = userEncode(user);
       const decoded = jwt.decode(token);

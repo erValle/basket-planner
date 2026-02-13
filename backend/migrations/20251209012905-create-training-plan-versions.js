@@ -7,49 +7,49 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       trainingPlanId: {
         type: Sequelize.INTEGER,
         allowNull: false,
         references: {
           model: 'training_plans',
-          key: 'id'
+          key: 'id',
         },
         onUpdate: 'CASCADE',
-        onDelete: 'CASCADE'
+        onDelete: 'CASCADE',
       },
       versionNumber: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
       },
       source: {
         type: Sequelize.STRING, //automatic, manual
-        allowNull: false
+        allowNull: false,
       },
       date: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
       },
       comments: {
         type: Sequelize.TEXT,
-        allowNull: true
+        allowNull: true,
       },
-      items:{
+      items: {
         type: Sequelize.JSONB,
-        allowNull: true
+        allowNull: true,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('training_plan_versions');
-  }
+  },
 };
