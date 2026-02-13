@@ -5,9 +5,15 @@ const { fn, col } = require('sequelize');
 const { Club, Team } = require('../../models');
 const errorUtils = require('../libs/errorHelper');
 
-const listClubs = async ({ name } = {}) => {
+const listClubs = async ({ name, userClubIds } = {}) => {
   const where = {};
   if (name) where.name = name;
+
+  // Si se especifican userClubIds, filtrar por ellos
+  if (userClubIds && userClubIds.length > 0) {
+    const { Op } = require('sequelize');
+    where.id = { [Op.in]: userClubIds };
+  }
 
   const clubs = await Club.findAll({
     where,
@@ -28,7 +34,7 @@ const listClubs = async ({ name } = {}) => {
   });
 
   // Convert to plain JSON and ensure teamsCount is a number
-  return clubs.map(club => {
+  return clubs.map((club) => {
     const plainClub = club.get({ plain: true });
     return {
       ...plainClub,
@@ -37,7 +43,7 @@ const listClubs = async ({ name } = {}) => {
   });
 };
 
-const getClubById = async (id) => {
+const getClubById = async (id, { raw = false } = {}) => {
   const club = await Club.findOne({
     where: { id },
     attributes: {
@@ -53,11 +59,16 @@ const getClubById = async (id) => {
     ],
     group: ['Club.id'],
   });
-  
+
   if (!club) {
     throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'CLUB_NOT_FOUND', 'Club not found');
   }
-  
+
+  // Return raw model for internal operations (update/delete)
+  if (raw) {
+    return club;
+  }
+
   // Convert to plain JSON and ensure teamsCount is a number
   const plainClub = club.get({ plain: true });
   return {
@@ -77,7 +88,7 @@ const createClub = async (payload) => {
 };
 
 const updateClub = async (id, payload) => {
-  const club = await getClubById(id);
+  const club = await getClubById(id, { raw: true });
   // Map frontend 'status' to model 'active' field
   const data = { ...payload };
   if (data.status !== undefined) {
@@ -89,7 +100,7 @@ const updateClub = async (id, payload) => {
 };
 
 const deleteClub = async (id) => {
-  const club = await getClubById(id);
+  const club = await getClubById(id, { raw: true });
   await club.destroy();
 };
 

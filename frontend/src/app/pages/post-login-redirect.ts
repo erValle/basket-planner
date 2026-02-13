@@ -12,19 +12,19 @@ import { AppShell } from '../layout/app-shell/app-shell';
  * This prevents players from being redirected to /dashboard (forbidden).
  */
 @Component({
-  selector: 'app-post-login-redirect',
-  imports: [CommonModule, ProgressSpinnerModule, AppShell],
-  templateUrl: './post-login-redirect.html',
-  styleUrl: './post-login-redirect.scss',
+    selector: 'app-post-login-redirect',
+    imports: [CommonModule, ProgressSpinnerModule, AppShell],
+    templateUrl: './post-login-redirect.html',
+    styleUrl: './post-login-redirect.scss',
 })
 export class PostLoginRedirectPage {
-  constructor(
-    private readonly auth: AuthService,
-    private readonly router: Router,
-  ) {}
+    constructor(
+        private readonly auth: AuthService,
+        private readonly router: Router,
+    ) {}
 
-  ngOnInit(): void {
-    const role = this.auth.getRoleSnapshot();
-    void this.router.navigateByUrl(role === 'player' ? '/player' : '/dashboard');
-  }
+    ngOnInit(): void {
+        const role = this.auth.getRoleSnapshot();
+        void this.router.navigateByUrl(role === 'player' ? '/player' : '/dashboard');
+    }
 }

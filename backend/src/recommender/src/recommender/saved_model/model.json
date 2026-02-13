@@ -1,0 +1,1051 @@
+{
+  "modelTopology": {
+    "class_name": "Model",
+    "config": {
+      "name": "tfrs_ranking_model",
+      "layers": [
+        {
+          "name": "context_input",
+          "class_name": "InputLayer",
+          "config": {
+            "batch_input_shape": [
+              null,
+              46
+            ],
+            "dtype": "float32",
+            "sparse": false,
+            "name": "context_input"
+          },
+          "inbound_nodes": []
+        },
+        {
+          "name": "exercise_features",
+          "class_name": "InputLayer",
+          "config": {
+            "batch_input_shape": [
+              null,
+              289
+            ],
+            "dtype": "float32",
+            "sparse": false,
+            "name": "exercise_features"
+          },
+          "inbound_nodes": []
+        },
+        {
+          "name": "exercise_id",
+          "class_name": "InputLayer",
+          "config": {
+            "batch_input_shape": [
+              null,
+              1
+            ],
+            "dtype": "int32",
+            "sparse": false,
+            "name": "exercise_id"
+          },
+          "inbound_nodes": []
+        },
+        {
+          "name": "user_tower",
+          "class_name": "Model",
+          "config": {
+            "name": "user_tower",
+            "layers": [
+              {
+                "name": "context_input",
+                "class_name": "InputLayer",
+                "config": {
+                  "batch_input_shape": [
+                    null,
+                    46
+                  ],
+                  "dtype": "float32",
+                  "sparse": false,
+                  "name": "context_input"
+                },
+                "inbound_nodes": []
+              },
+              {
+                "name": "user_tower_dense_0",
+                "class_name": "Dense",
+                "config": {
+                  "units": 64,
+                  "activation": "relu",
+                  "use_bias": true,
+                  "kernel_initializer": {
+                    "class_name": "VarianceScaling",
+                    "config": {
+                      "scale": 1,
+                      "mode": "fan_avg",
+                      "distribution": "normal",
+                      "seed": null
+                    }
+                  },
+                  "bias_initializer": {
+                    "class_name": "Zeros",
+                    "config": {}
+                  },
+                  "kernel_regularizer": {
+                    "class_name": "L1L2",
+                    "config": {
+                      "l1": 0,
+                      "l2": 0.001
+                    }
+                  },
+                  "bias_regularizer": null,
+                  "activity_regularizer": null,
+                  "kernel_constraint": null,
+                  "bias_constraint": null,
+                  "name": "user_tower_dense_0",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "context_input",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              },
+              {
+                "name": "user_tower_dropout_0",
+                "class_name": "Dropout",
+                "config": {
+                  "rate": 0.2,
+                  "noise_shape": null,
+                  "seed": null,
+                  "name": "user_tower_dropout_0",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "user_tower_dense_0",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              },
+              {
+                "name": "user_tower_dense_1",
+                "class_name": "Dense",
+                "config": {
+                  "units": 32,
+                  "activation": "relu",
+                  "use_bias": true,
+                  "kernel_initializer": {
+                    "class_name": "VarianceScaling",
+                    "config": {
+                      "scale": 1,
+                      "mode": "fan_avg",
+                      "distribution": "normal",
+                      "seed": null
+                    }
+                  },
+                  "bias_initializer": {
+                    "class_name": "Zeros",
+                    "config": {}
+                  },
+                  "kernel_regularizer": {
+                    "class_name": "L1L2",
+                    "config": {
+                      "l1": 0,
+                      "l2": 0.001
+                    }
+                  },
+                  "bias_regularizer": null,
+                  "activity_regularizer": null,
+                  "kernel_constraint": null,
+                  "bias_constraint": null,
+                  "name": "user_tower_dense_1",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "user_tower_dropout_0",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              },
+              {
+                "name": "user_tower_dropout_1",
+                "class_name": "Dropout",
+                "config": {
+                  "rate": 0.2,
+                  "noise_shape": null,
+                  "seed": null,
+                  "name": "user_tower_dropout_1",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "user_tower_dense_1",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              },
+              {
+                "name": "user_embedding",
+                "class_name": "Dense",
+                "config": {
+                  "units": 32,
+                  "activation": "linear",
+                  "use_bias": true,
+                  "kernel_initializer": {
+                    "class_name": "VarianceScaling",
+                    "config": {
+                      "scale": 1,
+                      "mode": "fan_avg",
+                      "distribution": "normal",
+                      "seed": null
+                    }
+                  },
+                  "bias_initializer": {
+                    "class_name": "Zeros",
+                    "config": {}
+                  },
+                  "kernel_regularizer": null,
+                  "bias_regularizer": null,
+                  "activity_regularizer": null,
+                  "kernel_constraint": null,
+                  "bias_constraint": null,
+                  "name": "user_embedding",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "user_tower_dropout_1",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              }
+            ],
+            "input_layers": [
+              [
+                "context_input",
+                0,
+                0
+              ]
+            ],
+            "output_layers": [
+              [
+                "user_embedding",
+                0,
+                0
+              ]
+            ]
+          },
+          "inbound_nodes": [
+            [
+              [
+                "context_input",
+                0,
+                0,
+                {}
+              ]
+            ]
+          ]
+        },
+        {
+          "name": "exercise_tower",
+          "class_name": "Model",
+          "config": {
+            "name": "exercise_tower",
+            "layers": [
+              {
+                "name": "exercise_features_input",
+                "class_name": "InputLayer",
+                "config": {
+                  "batch_input_shape": [
+                    null,
+                    289
+                  ],
+                  "dtype": "float32",
+                  "sparse": false,
+                  "name": "exercise_features_input"
+                },
+                "inbound_nodes": []
+              },
+              {
+                "name": "exercise_tower_dense_0",
+                "class_name": "Dense",
+                "config": {
+                  "units": 64,
+                  "activation": "relu",
+                  "use_bias": true,
+                  "kernel_initializer": {
+                    "class_name": "VarianceScaling",
+                    "config": {
+                      "scale": 1,
+                      "mode": "fan_avg",
+                      "distribution": "normal",
+                      "seed": null
+                    }
+                  },
+                  "bias_initializer": {
+                    "class_name": "Zeros",
+                    "config": {}
+                  },
+                  "kernel_regularizer": {
+                    "class_name": "L1L2",
+                    "config": {
+                      "l1": 0,
+                      "l2": 0.001
+                    }
+                  },
+                  "bias_regularizer": null,
+                  "activity_regularizer": null,
+                  "kernel_constraint": null,
+                  "bias_constraint": null,
+                  "name": "exercise_tower_dense_0",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "exercise_features_input",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              },
+              {
+                "name": "exercise_tower_dropout_0",
+                "class_name": "Dropout",
+                "config": {
+                  "rate": 0.2,
+                  "noise_shape": null,
+                  "seed": null,
+                  "name": "exercise_tower_dropout_0",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "exercise_tower_dense_0",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              },
+              {
+                "name": "exercise_id_input",
+                "class_name": "InputLayer",
+                "config": {
+                  "batch_input_shape": [
+                    null,
+                    1
+                  ],
+                  "dtype": "int32",
+                  "sparse": false,
+                  "name": "exercise_id_input"
+                },
+                "inbound_nodes": []
+              },
+              {
+                "name": "exercise_tower_dense_1",
+                "class_name": "Dense",
+                "config": {
+                  "units": 32,
+                  "activation": "relu",
+                  "use_bias": true,
+                  "kernel_initializer": {
+                    "class_name": "VarianceScaling",
+                    "config": {
+                      "scale": 1,
+                      "mode": "fan_avg",
+                      "distribution": "normal",
+                      "seed": null
+                    }
+                  },
+                  "bias_initializer": {
+                    "class_name": "Zeros",
+                    "config": {}
+                  },
+                  "kernel_regularizer": {
+                    "class_name": "L1L2",
+                    "config": {
+                      "l1": 0,
+                      "l2": 0.001
+                    }
+                  },
+                  "bias_regularizer": null,
+                  "activity_regularizer": null,
+                  "kernel_constraint": null,
+                  "bias_constraint": null,
+                  "name": "exercise_tower_dense_1",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "exercise_tower_dropout_0",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              },
+              {
+                "name": "exercise_id_embedding",
+                "class_name": "Embedding",
+                "config": {
+                  "input_dim": 103,
+                  "output_dim": 32,
+                  "embeddings_initializer": {
+                    "class_name": "RandomUniform",
+                    "config": {
+                      "minval": -0.05,
+                      "maxval": 0.05,
+                      "seed": null
+                    }
+                  },
+                  "embeddings_regularizer": null,
+                  "activity_regularizer": null,
+                  "embeddings_constraint": null,
+                  "mask_zero": null,
+                  "input_length": null,
+                  "name": "exercise_id_embedding",
+                  "trainable": true,
+                  "batch_input_shape": [
+                    null,
+                    null
+                  ]
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "exercise_id_input",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              },
+              {
+                "name": "exercise_tower_dropout_1",
+                "class_name": "Dropout",
+                "config": {
+                  "rate": 0.2,
+                  "noise_shape": null,
+                  "seed": null,
+                  "name": "exercise_tower_dropout_1",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "exercise_tower_dense_1",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              },
+              {
+                "name": "flatten_id_embedding",
+                "class_name": "Flatten",
+                "config": {
+                  "name": "flatten_id_embedding",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "exercise_id_embedding",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              },
+              {
+                "name": "combine_features_embedding",
+                "class_name": "Concatenate",
+                "config": {
+                  "axis": -1,
+                  "name": "combine_features_embedding",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "exercise_tower_dropout_1",
+                      0,
+                      0,
+                      {}
+                    ],
+                    [
+                      "flatten_id_embedding",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              },
+              {
+                "name": "exercise_embedding",
+                "class_name": "Dense",
+                "config": {
+                  "units": 32,
+                  "activation": "linear",
+                  "use_bias": true,
+                  "kernel_initializer": {
+                    "class_name": "VarianceScaling",
+                    "config": {
+                      "scale": 1,
+                      "mode": "fan_avg",
+                      "distribution": "normal",
+                      "seed": null
+                    }
+                  },
+                  "bias_initializer": {
+                    "class_name": "Zeros",
+                    "config": {}
+                  },
+                  "kernel_regularizer": null,
+                  "bias_regularizer": null,
+                  "activity_regularizer": null,
+                  "kernel_constraint": null,
+                  "bias_constraint": null,
+                  "name": "exercise_embedding",
+                  "trainable": true
+                },
+                "inbound_nodes": [
+                  [
+                    [
+                      "combine_features_embedding",
+                      0,
+                      0,
+                      {}
+                    ]
+                  ]
+                ]
+              }
+            ],
+            "input_layers": [
+              [
+                "exercise_features_input",
+                0,
+                0
+              ],
+              [
+                "exercise_id_input",
+                0,
+                0
+              ]
+            ],
+            "output_layers": [
+              [
+                "exercise_embedding",
+                0,
+                0
+              ]
+            ]
+          },
+          "inbound_nodes": [
+            [
+              [
+                "exercise_features",
+                0,
+                0,
+                {}
+              ],
+              [
+                "exercise_id",
+                0,
+                0,
+                {}
+              ]
+            ]
+          ]
+        },
+        {
+          "name": "combined_embeddings",
+          "class_name": "Concatenate",
+          "config": {
+            "axis": -1,
+            "name": "combined_embeddings",
+            "trainable": true
+          },
+          "inbound_nodes": [
+            [
+              [
+                "user_tower",
+                1,
+                0,
+                {}
+              ],
+              [
+                "exercise_tower",
+                1,
+                0,
+                {}
+              ]
+            ]
+          ]
+        },
+        {
+          "name": "ranking_dense_0",
+          "class_name": "Dense",
+          "config": {
+            "units": 64,
+            "activation": "relu",
+            "use_bias": true,
+            "kernel_initializer": {
+              "class_name": "VarianceScaling",
+              "config": {
+                "scale": 1,
+                "mode": "fan_avg",
+                "distribution": "normal",
+                "seed": null
+              }
+            },
+            "bias_initializer": {
+              "class_name": "Zeros",
+              "config": {}
+            },
+            "kernel_regularizer": {
+              "class_name": "L1L2",
+              "config": {
+                "l1": 0,
+                "l2": 0.001
+              }
+            },
+            "bias_regularizer": null,
+            "activity_regularizer": null,
+            "kernel_constraint": null,
+            "bias_constraint": null,
+            "name": "ranking_dense_0",
+            "trainable": true
+          },
+          "inbound_nodes": [
+            [
+              [
+                "combined_embeddings",
+                0,
+                0,
+                {}
+              ]
+            ]
+          ]
+        },
+        {
+          "name": "ranking_dropout_0",
+          "class_name": "Dropout",
+          "config": {
+            "rate": 0.2,
+            "noise_shape": null,
+            "seed": null,
+            "name": "ranking_dropout_0",
+            "trainable": true
+          },
+          "inbound_nodes": [
+            [
+              [
+                "ranking_dense_0",
+                0,
+                0,
+                {}
+              ]
+            ]
+          ]
+        },
+        {
+          "name": "ranking_dense_1",
+          "class_name": "Dense",
+          "config": {
+            "units": 32,
+            "activation": "relu",
+            "use_bias": true,
+            "kernel_initializer": {
+              "class_name": "VarianceScaling",
+              "config": {
+                "scale": 1,
+                "mode": "fan_avg",
+                "distribution": "normal",
+                "seed": null
+              }
+            },
+            "bias_initializer": {
+              "class_name": "Zeros",
+              "config": {}
+            },
+            "kernel_regularizer": {
+              "class_name": "L1L2",
+              "config": {
+                "l1": 0,
+                "l2": 0.001
+              }
+            },
+            "bias_regularizer": null,
+            "activity_regularizer": null,
+            "kernel_constraint": null,
+            "bias_constraint": null,
+            "name": "ranking_dense_1",
+            "trainable": true
+          },
+          "inbound_nodes": [
+            [
+              [
+                "ranking_dropout_0",
+                0,
+                0,
+                {}
+              ]
+            ]
+          ]
+        },
+        {
+          "name": "ranking_dropout_1",
+          "class_name": "Dropout",
+          "config": {
+            "rate": 0.2,
+            "noise_shape": null,
+            "seed": null,
+            "name": "ranking_dropout_1",
+            "trainable": true
+          },
+          "inbound_nodes": [
+            [
+              [
+                "ranking_dense_1",
+                0,
+                0,
+                {}
+              ]
+            ]
+          ]
+        },
+        {
+          "name": "ranking_dense_2",
+          "class_name": "Dense",
+          "config": {
+            "units": 16,
+            "activation": "relu",
+            "use_bias": true,
+            "kernel_initializer": {
+              "class_name": "VarianceScaling",
+              "config": {
+                "scale": 1,
+                "mode": "fan_avg",
+                "distribution": "normal",
+                "seed": null
+              }
+            },
+            "bias_initializer": {
+              "class_name": "Zeros",
+              "config": {}
+            },
+            "kernel_regularizer": {
+              "class_name": "L1L2",
+              "config": {
+                "l1": 0,
+                "l2": 0.001
+              }
+            },
+            "bias_regularizer": null,
+            "activity_regularizer": null,
+            "kernel_constraint": null,
+            "bias_constraint": null,
+            "name": "ranking_dense_2",
+            "trainable": true
+          },
+          "inbound_nodes": [
+            [
+              [
+                "ranking_dropout_1",
+                0,
+                0,
+                {}
+              ]
+            ]
+          ]
+        },
+        {
+          "name": "ranking_dropout_2",
+          "class_name": "Dropout",
+          "config": {
+            "rate": 0.2,
+            "noise_shape": null,
+            "seed": null,
+            "name": "ranking_dropout_2",
+            "trainable": true
+          },
+          "inbound_nodes": [
+            [
+              [
+                "ranking_dense_2",
+                0,
+                0,
+                {}
+              ]
+            ]
+          ]
+        },
+        {
+          "name": "ranking_output",
+          "class_name": "Dense",
+          "config": {
+            "units": 1,
+            "activation": "sigmoid",
+            "use_bias": true,
+            "kernel_initializer": {
+              "class_name": "VarianceScaling",
+              "config": {
+                "scale": 1,
+                "mode": "fan_avg",
+                "distribution": "normal",
+                "seed": null
+              }
+            },
+            "bias_initializer": {
+              "class_name": "Zeros",
+              "config": {}
+            },
+            "kernel_regularizer": null,
+            "bias_regularizer": null,
+            "activity_regularizer": null,
+            "kernel_constraint": null,
+            "bias_constraint": null,
+            "name": "ranking_output",
+            "trainable": true
+          },
+          "inbound_nodes": [
+            [
+              [
+                "ranking_dropout_2",
+                0,
+                0,
+                {}
+              ]
+            ]
+          ]
+        }
+      ],
+      "input_layers": [
+        [
+          "context_input",
+          0,
+          0
+        ],
+        [
+          "exercise_features",
+          0,
+          0
+        ],
+        [
+          "exercise_id",
+          0,
+          0
+        ]
+      ],
+      "output_layers": [
+        [
+          "ranking_output",
+          0,
+          0
+        ]
+      ]
+    },
+    "keras_version": "tfjs-layers 4.22.0",
+    "backend": "tensor_flow.js"
+  },
+  "format": "layers-model",
+  "generatedBy": "TensorFlow.js tfjs-layers v4.22.0",
+  "convertedBy": null,
+  "weightsManifest": [
+    {
+      "paths": [
+        "weights.bin"
+      ],
+      "weights": [
+        {
+          "name": "user_tower_dense_0/kernel",
+          "shape": [
+            46,
+            64
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "user_tower_dense_0/bias",
+          "shape": [
+            64
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "user_tower_dense_1/kernel",
+          "shape": [
+            64,
+            32
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "user_tower_dense_1/bias",
+          "shape": [
+            32
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "user_embedding/kernel",
+          "shape": [
+            32,
+            32
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "user_embedding/bias",
+          "shape": [
+            32
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "exercise_tower_dense_0/kernel",
+          "shape": [
+            289,
+            64
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "exercise_tower_dense_0/bias",
+          "shape": [
+            64
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "exercise_tower_dense_1/kernel",
+          "shape": [
+            64,
+            32
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "exercise_tower_dense_1/bias",
+          "shape": [
+            32
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "exercise_id_embedding/embeddings",
+          "shape": [
+            103,
+            32
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "exercise_embedding/kernel",
+          "shape": [
+            64,
+            32
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "exercise_embedding/bias",
+          "shape": [
+            32
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "ranking_dense_0/kernel",
+          "shape": [
+            64,
+            64
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "ranking_dense_0/bias",
+          "shape": [
+            64
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "ranking_dense_1/kernel",
+          "shape": [
+            64,
+            32
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "ranking_dense_1/bias",
+          "shape": [
+            32
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "ranking_dense_2/kernel",
+          "shape": [
+            32,
+            16
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "ranking_dense_2/bias",
+          "shape": [
+            16
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "ranking_output/kernel",
+          "shape": [
+            16,
+            1
+          ],
+          "dtype": "float32"
+        },
+        {
+          "name": "ranking_output/bias",
+          "shape": [
+            1
+          ],
+          "dtype": "float32"
+        }
+      ]
+    }
+  ]
+}

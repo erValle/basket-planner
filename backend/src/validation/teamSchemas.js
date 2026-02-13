@@ -5,7 +5,7 @@ const createTeamSchema = Joi.object({
   category: Joi.string().max(60).allow(null).optional(),
   clubId: Joi.number().integer().positive().required(),
   coachId: Joi.number().integer().positive().allow(null).optional(),
-  active: Joi.boolean().optional()
+  active: Joi.boolean().optional(),
 });
 
 const updateTeamSchema = Joi.object({
@@ -13,7 +13,7 @@ const updateTeamSchema = Joi.object({
   category: Joi.string().max(60),
   clubId: Joi.number().integer().positive(),
   coachId: Joi.number().integer().positive().allow(null),
-  active: Joi.boolean()
+  active: Joi.boolean(),
 }).min(1);
 
 const listTeamsQuerySchema = Joi.object({

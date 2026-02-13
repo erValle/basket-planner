@@ -37,5 +37,5 @@ module.exports = {
     await queryInterface.sequelize.query(
       "ALTER TABLE users ALTER COLUMN status SET DEFAULT 'pending';"
     );
-  }
+  },
 };

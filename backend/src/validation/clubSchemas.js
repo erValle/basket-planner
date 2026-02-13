@@ -5,7 +5,7 @@ const createClubSchema = Joi.object({
   description: Joi.string().max(500).allow('', null),
   city: Joi.string().max(120).allow('', null),
   country: Joi.string().max(120).allow('', null),
-  status: Joi.string().valid('active', 'inactive').optional()
+  status: Joi.string().valid('active', 'inactive').optional(),
 });
 
 const updateClubSchema = Joi.object({
@@ -13,7 +13,7 @@ const updateClubSchema = Joi.object({
   description: Joi.string().max(500).allow('', null),
   city: Joi.string().max(120).allow('', null),
   country: Joi.string().max(120).allow('', null),
-  status: Joi.string().valid('active', 'inactive')
+  status: Joi.string().valid('active', 'inactive'),
 }).min(1);
 
 module.exports = { createClubSchema, updateClubSchema };

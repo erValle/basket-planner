@@ -1,127 +1,182 @@
 <app-shell title="Sesión" subtitle="Detalle de planificación">
-	<p-toast></p-toast>
-	<div class="max-w-6xl mx-auto space-y-4">
-		<div class="flex justify-end gap-2">
-			<a pButton routerLink="/planning" label="Volver" icon="pi pi-arrow-left" class="p-button-text p-button-sm"></a>
-			<button
-				pButton
-				type="button"
-				label="Registrar feedback"
-				icon="pi pi-clipboard"
-				class="p-button-sm"
-				[disabled]="!canRegisterFeedback"
-				(click)="openFeedback()"
-			></button>
-		</div>
+  <p-toast></p-toast>
+  <div class="max-w-6xl mx-auto space-y-4">
+    <div class="flex justify-end gap-2">
+      <a
+        pButton
+        routerLink="/planning"
+        label="Volver"
+        icon="pi pi-arrow-left"
+        class="p-button-text p-button-sm"
+      ></a>
+      <button
+        pButton
+        type="button"
+        label="Registrar feedback"
+        icon="pi pi-clipboard"
+        class="p-button-sm"
+        [disabled]="!canRegisterFeedback"
+        (click)="openFeedback()"
+      ></button>
+    </div>
 
-		@if (!canRegisterFeedback) {
-			<div class="text-[12px] text-[#94a3b8]">
-				El feedback de sesión todavía no está conectado al backend.
-			</div>
-		}
+    @if (!canRegisterFeedback) {
+      <div class="text-[12px] text-[#94a3b8]">
+        El feedback de sesión todavía no está conectado al backend.
+      </div>
+    }
 
-		<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-			<app-page-header
-				[title]="session.title"
-				[subtitle]="session.date + ' · ' + session.durationMin + ' min'"
-			></app-page-header>
+    <div
+      class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
+      <app-page-header
+        [title]="session.title"
+        [subtitle]="session.date + ' · ' + session.durationMin + ' min'"
+      ></app-page-header>
 
-			<div class="mt-3 flex flex-wrap items-center gap-2">
-				<p-tag [value]="session.status" severity="success"></p-tag>
-				<div class="text-[13px] text-[#9ca3af]">{{ session.objective }}</div>
-			</div>
-		</div>
+      <div class="mt-3 flex flex-wrap items-center gap-2">
+        <p-tag [value]="session.status" severity="success"></p-tag>
+        <div class="text-[13px] text-[#9ca3af]">{{ session.objective }}</div>
+      </div>
+    </div>
 
-		<div class="space-y-3">
-				@for (b of blocks; track b.id) {
-					<div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-						<div class="flex flex-wrap items-start justify-between gap-3">
-							<div>
-								<div class="text-[14px] font-semibold text-[#f9fafb]">{{ b.name }}</div>
-								<div class="mt-1 text-[13px] text-[#e5e7eb]">{{ b.focus }}</div>
-								<div class="mt-1 text-[12px] text-[#9ca3af]">{{ b.notes }}</div>
-							</div>
-							<div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2 text-[13px] text-[#e5e7eb]">
-								{{ b.durationMin }} min
-							</div>
-						</div>
-					</div>
-				}
-			</div>
+    <div class="space-y-3">
+      @for (b of blocks; track b.id) {
+        <div
+          class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+          style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+        >
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div class="text-[14px] font-semibold text-[#f9fafb]">{{ b.name }}</div>
+              <div class="mt-1 text-[13px] text-[#e5e7eb]">{{ b.focus }}</div>
+              <div class="mt-1 text-[12px] text-[#9ca3af]">{{ b.notes }}</div>
+            </div>
+            <div
+              class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2 text-[13px] text-[#e5e7eb]"
+            >
+              {{ b.durationMin }} min
+            </div>
+          </div>
+        </div>
+      }
+    </div>
 
-		@if (latestSurvey) {
-			<div class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-				<div class="flex items-start justify-between gap-3">
-					<div>
-						<div class="text-[14px] font-semibold text-[#f9fafb]">Feedback registrado</div>
-						<div class="mt-1 text-[12px] text-[#9ca3af]">{{ latestSurvey.createdAt.slice(0, 10) }} · Encuesta</div>
-					</div>
-				</div>
+    @if (latestSurvey) {
+      <div
+        class="bg-[#020617] rounded-lg p-5 border border-[#1f2937]"
+        style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <div class="text-[14px] font-semibold text-[#f9fafb]">Feedback registrado</div>
+            <div class="mt-1 text-[12px] text-[#9ca3af]">
+              {{ latestSurvey.createdAt.slice(0, 10) }} · Encuesta
+            </div>
+          </div>
+        </div>
 
-				<div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-					<div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-						<div class="text-[11px] text-[#9ca3af]">Valoración general</div>
-						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ $any(latestSurvey.answers).overall }}/10</div>
-					</div>
-					<div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-						<div class="text-[11px] text-[#9ca3af]">Esfuerzo físico</div>
-						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ $any(latestSurvey.answers).physicalEffort }}/10</div>
-					</div>
-					<div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-						<div class="text-[11px] text-[#9ca3af]">Esfuerzo técnico</div>
-						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ $any(latestSurvey.answers).technicalEffort }}/10</div>
-					</div>
-					<div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
-						<div class="text-[11px] text-[#9ca3af]">Esfuerzo mental</div>
-						<div class="text-[14px] font-semibold text-[#f9fafb]">{{ $any(latestSurvey.answers).mentalEffort }}/10</div>
-					</div>
-				</div>
+        <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+            <div class="text-[11px] text-[#9ca3af]">Valoración general</div>
+            <div class="text-[14px] font-semibold text-[#f9fafb]">
+              {{ $any(latestSurvey.answers).overall }}/10
+            </div>
+          </div>
+          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+            <div class="text-[11px] text-[#9ca3af]">Esfuerzo físico</div>
+            <div class="text-[14px] font-semibold text-[#f9fafb]">
+              {{ $any(latestSurvey.answers).physicalEffort }}/10
+            </div>
+          </div>
+          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+            <div class="text-[11px] text-[#9ca3af]">Esfuerzo técnico</div>
+            <div class="text-[14px] font-semibold text-[#f9fafb]">
+              {{ $any(latestSurvey.answers).technicalEffort }}/10
+            </div>
+          </div>
+          <div class="rounded-lg border border-[#1f2937] bg-[#111827] px-3 py-2">
+            <div class="text-[11px] text-[#9ca3af]">Esfuerzo mental</div>
+            <div class="text-[14px] font-semibold text-[#f9fafb]">
+              {{ $any(latestSurvey.answers).mentalEffort }}/10
+            </div>
+          </div>
+        </div>
 
-				@if (latestSurvey.answers.notes) {
-					<div class="mt-3 text-[13px] text-[#e5e7eb]">
-						<span class="text-[#9ca3af]">Notas:</span> {{ latestSurvey.answers.notes }}
-					</div>
-				}
-			</div>
-		}
-	</div>
+        @if (latestSurvey.answers.notes) {
+          <div class="mt-3 text-[13px] text-[#e5e7eb]">
+            <span class="text-[#9ca3af]">Notas:</span> {{ latestSurvey.answers.notes }}
+          </div>
+        }
+      </div>
+    }
+  </div>
 
-	<bp-dialog
-		[(visible)]="feedbackDialogVisible"
-		header="Feedback de sesión"
-		size="lg"
-		[loading]="savingFeedback"
-		confirmLabel="Guardar"
-		cancelLabel="Cancelar"
-		(confirm)="saveFeedback()"
-		(cancel)="feedbackDialogVisible = false"
-	>
-		<div class="space-y-4">
-			<div class="text-[13px] text-[#9ca3af]">Encuesta de esfuerzo percibido de la sesión.</div>
+  <bp-dialog
+    [(visible)]="feedbackDialogVisible"
+    header="Feedback de sesión"
+    size="lg"
+    [loading]="savingFeedback"
+    confirmLabel="Guardar"
+    cancelLabel="Cancelar"
+    (confirm)="saveFeedback()"
+    (cancel)="feedbackDialogVisible = false"
+  >
+    <div class="space-y-4">
+      <div class="text-[13px] text-[#9ca3af]">Encuesta de esfuerzo percibido de la sesión.</div>
 
-			<div class="bp-dialog-grid-2">
-				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">Valoración general (1-10)</label>
-					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.overall"></p-select>
-				</div>
-				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">Esfuerzo físico (1-10)</label>
-					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.physicalEffort"></p-select>
-				</div>
-				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">Esfuerzo técnico (1-10)</label>
-					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.technicalEffort"></p-select>
-				</div>
-				<div class="bp-dialog-field">
-					<label class="bp-dialog-label">Esfuerzo mental (1-10)</label>
-					<p-select styleClass="bp-select" [panelStyleClass]="'bp-select-panel'" [options]="scale1to10" optionLabel="label" optionValue="value" [(ngModel)]="draftSurvey.mentalEffort"></p-select>
-				</div>
-			</div>
+      <div class="bp-dialog-grid-2">
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Valoración general (1-10)</label>
+          <p-select
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+            [options]="scale1to10"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="draftSurvey.overall"
+          ></p-select>
+        </div>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Esfuerzo físico (1-10)</label>
+          <p-select
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+            [options]="scale1to10"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="draftSurvey.physicalEffort"
+          ></p-select>
+        </div>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Esfuerzo técnico (1-10)</label>
+          <p-select
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+            [options]="scale1to10"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="draftSurvey.technicalEffort"
+          ></p-select>
+        </div>
+        <div class="bp-dialog-field">
+          <label class="bp-dialog-label">Esfuerzo mental (1-10)</label>
+          <p-select
+            styleClass="bp-select"
+            [panelStyleClass]="'bp-select-panel'"
+            [options]="scale1to10"
+            optionLabel="label"
+            optionValue="value"
+            [(ngModel)]="draftSurvey.mentalEffort"
+          ></p-select>
+        </div>
+      </div>
 
-			<div class="bp-dialog-field">
-				<label class="bp-dialog-label">Notas (opcional)</label>
-				<textarea pTextarea [(ngModel)]="draftSurvey.notes" rows="3" class="w-full"></textarea>
-			</div>
-		</div>
-	</bp-dialog>
+      <div class="bp-dialog-field">
+        <label class="bp-dialog-label">Notas (opcional)</label>
+        <textarea pTextarea [(ngModel)]="draftSurvey.notes" rows="3" class="w-full"></textarea>
+      </div>
+    </div>
+  </bp-dialog>
 </app-shell>

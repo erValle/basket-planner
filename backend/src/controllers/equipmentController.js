@@ -4,7 +4,34 @@ const equipmentService = require('../services/equipmentService');
 
 const listEquipment = async (req, res, next) => {
   try {
-    const items = await equipmentService.listEquipment(req.query);
+    const user = req.user;
+    let filteredQuery = { ...req.query };
+
+    // Si el usuario no es admin, filtrar por sus clubes asociados
+    if (user && user.role !== 'admin') {
+      const { Op } = require('sequelize');
+      const { UserClub } = require('../../models');
+
+      // Obtener los clubes del usuario autenticado (solo membresías activas)
+      const userMemberships = await UserClub.findAll({
+        where: {
+          userId: user.id,
+          endDate: { [Op.is]: null },
+        },
+        attributes: ['clubId'],
+      });
+
+      const userClubIds = userMemberships.map((m) => m.clubId);
+
+      // Si el usuario no tiene clubes, devolver lista vacía
+      if (userClubIds.length === 0) {
+        return res.status(StatusCodes.OK).json([]);
+      }
+
+      filteredQuery.userClubIds = userClubIds;
+    }
+
+    const items = await equipmentService.listEquipment(filteredQuery);
     return res.status(StatusCodes.OK).json(items);
   } catch (error) {
     logger.error('Error fetching equipment:', error);

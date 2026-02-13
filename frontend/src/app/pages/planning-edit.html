@@ -4,12 +4,15 @@
 
   <div class="max-w-6xl mx-auto space-y-4">
     <!-- Header / actions -->
-    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+    <div
+      class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <app-page-header
             [title]="'Editar planificación'"
-            [subtitle]="planningId ? ('ID: ' + planningId) : '—'"
+            [subtitle]="planningId ? 'ID: ' + planningId : '—'"
           ></app-page-header>
           <div class="mt-3 flex items-center gap-2">
             <p-tag value="Nueva versión" severity="info"></p-tag>
@@ -41,47 +44,89 @@
       </div>
 
       @if (saveError()) {
-        <div class="mt-4 rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-[13px] text-red-200">
+        <div
+          class="mt-4 rounded-lg border border-red-900/60 bg-red-950/40 px-4 py-3 text-[13px] text-red-200"
+        >
           {{ saveError() }}
         </div>
       }
     </div>
 
     <!-- Editor -->
-    <div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
+    <div
+      class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
       <div class="flex items-center justify-between">
         <div>
           <div class="text-[15px] font-semibold text-[#f9fafb]">Sesiones de entrenamiento</div>
           <div class="mt-1 text-[12px] text-[#9ca3af]">Clicka en cada sesión para editarla.</div>
         </div>
 
-        <button type="button" pButton label="Añadir sesión" icon="pi pi-plus" class="p-button-sm" (click)="addSession()"></button>
+        <button
+          type="button"
+          pButton
+          label="Añadir sesión"
+          icon="pi pi-plus"
+          class="p-button-sm"
+          (click)="addSession()"
+        ></button>
       </div>
 
       @if (sessions().length === 0) {
-        <div class="mt-8 text-center text-[13px] text-[#9ca3af]">Añade al menos una sesión para guardar una nueva versión.</div>
+        <div class="mt-8 text-center text-[13px] text-[#9ca3af]">
+          Añade al menos una sesión para guardar una nueva versión.
+        </div>
       } @else {
         <div class="mt-6 space-y-3">
           @for (s of sessions(); track s.id; let sIdx = $index) {
             <!-- Session Card -->
             <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] overflow-hidden">
               <!-- Session Header (clickable) -->
-              <div 
+              <div
                 class="p-4 cursor-pointer hover:bg-[#111827] transition-colors flex items-center justify-between"
                 (click)="toggleSessionExpanded(s.id)"
               >
                 <div class="flex items-center gap-3 flex-1">
-                  <i [class]="isSessionExpanded(s.id) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" class="text-[#9ca3af] text-[12px]"></i>
+                  <i
+                    [class]="isSessionExpanded(s.id) ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                    class="text-[#9ca3af] text-[12px]"
+                  ></i>
                   <div>
-                    <div class="text-[14px] font-medium text-[#f9fafb]">{{ s.title || 'Sesión sin título' }}</div>
-                    <div class="text-[12px] text-[#9ca3af] mt-1">{{ s.blocks.length }} bloque(s)</div>
+                    <div class="text-[14px] font-medium text-[#f9fafb]">
+                      {{ s.title || 'Sesión sin título' }}
+                    </div>
+                    <div class="text-[12px] text-[#9ca3af] mt-1">
+                      {{ s.blocks.length }} bloque(s)
+                    </div>
                   </div>
                 </div>
 
                 <div class="flex items-center gap-1" (click)="$event.stopPropagation()">
-                  <button type="button" pButton icon="pi pi-arrow-up" class="p-button-text p-button-sm" aria-label="Subir" (click)="moveSession(s.id, -1)"></button>
-                  <button type="button" pButton icon="pi pi-arrow-down" class="p-button-text p-button-sm" aria-label="Bajar" (click)="moveSession(s.id, 1)"></button>
-                  <button type="button" pButton icon="pi pi-trash" class="p-button-text p-button-sm" aria-label="Eliminar" (click)="removeSession(s.id)"></button>
+                  <button
+                    type="button"
+                    pButton
+                    icon="pi pi-arrow-up"
+                    class="p-button-text p-button-sm"
+                    aria-label="Subir"
+                    (click)="moveSession(s.id, -1)"
+                  ></button>
+                  <button
+                    type="button"
+                    pButton
+                    icon="pi pi-arrow-down"
+                    class="p-button-text p-button-sm"
+                    aria-label="Bajar"
+                    (click)="moveSession(s.id, 1)"
+                  ></button>
+                  <button
+                    type="button"
+                    pButton
+                    icon="pi pi-trash"
+                    class="p-button-text p-button-sm"
+                    aria-label="Eliminar"
+                    (click)="removeSession(s.id)"
+                  ></button>
                 </div>
               </div>
 
@@ -106,234 +151,328 @@
 
                   <div class="mt-4 flex justify-between items-center">
                     <div class="text-[12px] text-[#9ca3af]">{{ s.blocks.length }} bloque(s)</div>
-                    <button type="button" pButton label="Añadir bloque" icon="pi pi-plus" class="p-button-text p-button-sm" (click)="addBlock(s)"></button>
+                    <button
+                      type="button"
+                      pButton
+                      label="Añadir bloque"
+                      icon="pi pi-plus"
+                      class="p-button-text p-button-sm"
+                      (click)="addBlock(s)"
+                    ></button>
                   </div>
 
                   <div class="mt-4 space-y-3">
                     @for (b of s.blocks; track b.id; let bIdx = $index) {
-                  <div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4">
-                    <div class="flex flex-wrap items-start justify-between gap-3">
-                      <div class="grid grid-cols-1 gap-3 md:grid-cols-3 flex-1">
-                        <div class="md:col-span-2">
-                          <label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre del bloque</label>
-                          <input
-                            pInputText
-                            [(ngModel)]="b.name"
-                            [name]="'block-name-' + b.id"
-                            (blur)="markTouched('b-name-' + b.id)"
-                            class="w-full"
-                          />
-                          @if (hasError('b-name-' + b.id, b.name.trim().length > 0)) {
-                            <div class="mt-2 text-[12px] text-red-200">El nombre del bloque es obligatorio.</div>
-                          }
-                        </div>
-
-                        <div>
-                          <label class="block text-[#e5e7eb] text-[13px] mb-2">Duración (min)</label>
-                          <p-inputNumber
-                            [(ngModel)]="b.durationMin"
-                            [name]="'block-duration-' + b.id"
-                            (blur)="markTouched('b-dur-' + b.id)"
-                            [min]="1"
-                            [showButtons]="true"
-                            [inputStyleClass]="'w-full'"
-                            styleClass="w-full"
-                          ></p-inputNumber>
-                          @if (hasError('b-dur-' + b.id, b.durationMin > 0)) {
-                            <div class="mt-2 text-[12px] text-red-200">La duración debe ser mayor que 0.</div>
-                          }
-                        </div>
-                      </div>
-
-                      <div class="flex items-center gap-1">
-                        <button type="button" pButton icon="pi pi-arrow-up" class="p-button-text p-button-sm" aria-label="Subir" (click)="moveBlock(s, b.id, -1)"></button>
-                        <button type="button" pButton icon="pi pi-arrow-down" class="p-button-text p-button-sm" aria-label="Bajar" (click)="moveBlock(s, b.id, 1)"></button>
-                        <button type="button" pButton icon="pi pi-trash" class="p-button-text p-button-sm" aria-label="Eliminar" (click)="removeBlock(s, b.id)"></button>
-                      </div>
-                    </div>
-
-                    <div class="mt-3">
-                      <label class="block text-[#9ca3af] text-[12px] mb-2">Notas (opcional)</label>
-                      <textarea
-                        pTextarea
-                        [(ngModel)]="b.notes"
-                        [name]="'block-notes-' + b.id"
-                        rows="2"
-                        class="w-full resize-none"
-                      ></textarea>
-                    </div>
-
-                    <div class="mt-4 flex justify-between items-center">
-                      <div class="text-[12px] text-[#9ca3af]">{{ b.exercises.length }} ejercicio(s)</div>
-                      <div class="flex gap-2">
-                        <button type="button" pButton label="Añadir ejercicio" icon="pi pi-search" class="p-button-text p-button-sm" (click)="openExerciseSearch(b)"></button>
-                      </div>
-                    </div>
-
-                    <div class="mt-3 space-y-3">
-                      @for (e of b.exercises; track e.id; let eIdx = $index) {
-                        <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4">
-                          <div class="flex items-start justify-between gap-3">
-                            <div class="flex-1">
-                              <label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre del ejercicio</label>
+                      <div class="rounded-lg border border-[#1f2937] bg-[#111827] p-4">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                          <div class="grid grid-cols-1 gap-3 md:grid-cols-3 flex-1">
+                            <div class="md:col-span-2">
+                              <label class="block text-[#e5e7eb] text-[13px] mb-2"
+                                >Nombre del bloque</label
+                              >
                               <input
                                 pInputText
-                                [(ngModel)]="e.name"
-                                [name]="'ex-name-' + e.id"
-                                (blur)="markTouched('e-name-' + e.id)"
+                                [(ngModel)]="b.name"
+                                [name]="'block-name-' + b.id"
+                                (blur)="markTouched('b-name-' + b.id)"
                                 class="w-full"
                               />
-                              @if (hasError('e-name-' + e.id, e.name.trim().length > 0)) {
-                                <div class="mt-2 text-[12px] text-red-200">El nombre es obligatorio.</div>
+                              @if (hasError('b-name-' + b.id, b.name.trim().length > 0)) {
+                                <div class="mt-2 text-[12px] text-red-200">
+                                  El nombre del bloque es obligatorio.
+                                </div>
                               }
                             </div>
 
-                            <div class="flex items-center gap-1">
-                              <button 
-                                type="button" 
-                                pButton 
-                                icon="pi pi-eye" 
-                                class="p-button-text p-button-sm" 
-                                aria-label="Ver detalles" 
-                                (click)="openExercisePreviewFromBlock(e)"
-                                pTooltip="Ver detalles"
-                                tooltipPosition="top"
-                              ></button>
-                              <button type="button" pButton icon="pi pi-arrow-up" class="p-button-text p-button-sm" aria-label="Subir" (click)="moveExercise(b, e.id, -1)"></button>
-                              <button type="button" pButton icon="pi pi-arrow-down" class="p-button-text p-button-sm" aria-label="Bajar" (click)="moveExercise(b, e.id, 1)"></button>
-                              <button type="button" pButton icon="pi pi-trash" class="p-button-text p-button-sm" aria-label="Eliminar" (click)="removeExercise(b, e.id)"></button>
-                            </div>
-                          </div>
-
-                          <div class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-6">
                             <div>
-                              <label class="block text-[#9ca3af] text-[12px] mb-2">Series</label>
+                              <label class="block text-[#e5e7eb] text-[13px] mb-2"
+                                >Duración (min)</label
+                              >
                               <p-inputNumber
-                                [(ngModel)]="e.series"
-                                [name]="'ex-series-' + e.id"
-                                (blur)="markTouched('e-series-' + e.id)"
+                                [(ngModel)]="b.durationMin"
+                                [name]="'block-duration-' + b.id"
+                                (blur)="markTouched('b-dur-' + b.id)"
                                 [min]="1"
                                 [showButtons]="true"
                                 [inputStyleClass]="'w-full'"
                                 styleClass="w-full"
                               ></p-inputNumber>
-                              @if (hasError('e-series-' + e.id, e.series > 0)) {
-                                <div class="mt-2 text-[12px] text-red-200">≥ 1</div>
+                              @if (hasError('b-dur-' + b.id, b.durationMin > 0)) {
+                                <div class="mt-2 text-[12px] text-red-200">
+                                  La duración debe ser mayor que 0.
+                                </div>
                               }
-                            </div>
-                            <div>
-                              <label class="block text-[#9ca3af] text-[12px] mb-2">Reps</label>
-                              <p-inputNumber
-                                [(ngModel)]="e.reps"
-                                [name]="'ex-reps-' + e.id"
-                                (blur)="markTouched('e-reps-' + e.id)"
-                                [min]="1"
-                                [showButtons]="true"
-                                [inputStyleClass]="'w-full'"
-                                styleClass="w-full"
-                              ></p-inputNumber>
-                              @if (hasError('e-reps-' + e.id, e.reps > 0)) {
-                                <div class="mt-2 text-[12px] text-red-200">≥ 1</div>
-                              }
-                            </div>
-                            <div>
-                              <label class="block text-[#9ca3af] text-[12px] mb-2">Duración (min)</label>
-                              <p-inputNumber
-                                [(ngModel)]="e.durationMin"
-                                [name]="'ex-dur-' + e.id"
-                                (blur)="markTouched('e-dur-' + e.id)"
-                                [min]="1"
-                                [showButtons]="true"
-                                [inputStyleClass]="'w-full'"
-                                styleClass="w-full"
-                              ></p-inputNumber>
-                              @if (hasError('e-dur-' + e.id, e.durationMin > 0)) {
-                                <div class="mt-2 text-[12px] text-red-200">> 0</div>
-                              }
-                            </div>
-                            <div class="md:col-span-2">
-                              <label class="block text-[#9ca3af] text-[12px] mb-2">Dificultad 4D</label>
-                              <div class="bg-[#1f2937] border border-[#374151] rounded-md p-2 text-[13px] text-[#e5e7eb]">
-                                @if (e.difficulty) {
-                                  <div class="grid grid-cols-2 gap-x-4 gap-y-1">
-                                    @if (e.difficulty.tactica != null) {
-                                      <span><span class="text-[#9ca3af]">Táctica:</span> {{ e.difficulty.tactica }}</span>
-                                    }
-                                    @if (e.difficulty.tecnica != null) {
-                                      <span><span class="text-[#9ca3af]">Técnica:</span> {{ e.difficulty.tecnica }}</span>
-                                    }
-                                    @if (e.difficulty.fisica != null) {
-                                      <span><span class="text-[#9ca3af]">Física:</span> {{ e.difficulty.fisica }}</span>
-                                    }
-                                    @if (e.difficulty.mental != null) {
-                                      <span><span class="text-[#9ca3af]">Mental:</span> {{ e.difficulty.mental }}</span>
-                                    }
-                                  </div>
-                                  <div class="mt-1 pt-1 border-t border-[#374151] text-[11px] text-[#9ca3af]">
-                                    Media: <span class="text-[#e5e7eb]">{{ calculateAverageDifficulty(e.difficulty) }}</span>
-                                  </div>
-                                } @else {
-                                  <span class="text-[#6b7280]">Sin datos</span>
-                                }
-                              </div>
                             </div>
                           </div>
 
-                          <div class="mt-4">
-                            <label class="block text-[#9ca3af] text-[12px] mb-2">Material (opcional)</label>
-                            @if (e.material.length === 0) {
-                              <div class="text-[12px] text-[#6b7280]">Sin material</div>
-                            } @else {
-                              <div class="flex flex-wrap gap-2">
-                                @for (m of e.material; track m) {
-                                  <p-chip [label]="m"></p-chip>
-                                }
-                              </div>
-                            }
-                            <div class="mt-2 flex gap-2">
-                              <p-select
-                                [options]="equipmentOptions()"
-                                [(ngModel)]="selectedMaterialName"
-                                [name]="'ex-mat-select-' + e.id"
-                                optionLabel="label"
-                                optionValue="value"
-                                placeholder="Selecciona material"
-                                styleClass="bp-select"
-                                [panelStyleClass]="'bp-select-panel'"
-                              ></p-select>
-                              <button
-                                type="button"
-                                pButton
-                                label="Añadir"
-                                class="p-button-text p-button-sm"
-                                [disabled]="!selectedMaterialName()"
-                                (click)="selectedMaterialName() && addMaterial(e, selectedMaterialName()!)"
-                              ></button>
-                              <button type="button" pButton label="Limpiar" class="p-button-text p-button-sm" (click)="clearMaterial(e)"></button>
-                            </div>
-                          </div>
-
-                          <div class="mt-4">
-                            <label class="block text-[#9ca3af] text-[12px] mb-2">Notas (opcional)</label>
-                            <textarea
-                              pTextarea
-                              [(ngModel)]="e.notes"
-                              [name]="'ex-notes-' + e.id"
-                              rows="2"
-                              class="w-full resize-none"
-                            ></textarea>
+                          <div class="flex items-center gap-1">
+                            <button
+                              type="button"
+                              pButton
+                              icon="pi pi-arrow-up"
+                              class="p-button-text p-button-sm"
+                              aria-label="Subir"
+                              (click)="moveBlock(s, b.id, -1)"
+                            ></button>
+                            <button
+                              type="button"
+                              pButton
+                              icon="pi pi-arrow-down"
+                              class="p-button-text p-button-sm"
+                              aria-label="Bajar"
+                              (click)="moveBlock(s, b.id, 1)"
+                            ></button>
+                            <button
+                              type="button"
+                              pButton
+                              icon="pi pi-trash"
+                              class="p-button-text p-button-sm"
+                              aria-label="Eliminar"
+                              (click)="removeBlock(s, b.id)"
+                            ></button>
                           </div>
                         </div>
-                      }
-                    </div>
+
+                        <div class="mt-3">
+                          <label class="block text-[#9ca3af] text-[12px] mb-2"
+                            >Notas (opcional)</label
+                          >
+                          <textarea
+                            pTextarea
+                            [(ngModel)]="b.notes"
+                            [name]="'block-notes-' + b.id"
+                            rows="2"
+                            class="w-full resize-none"
+                          ></textarea>
+                        </div>
+
+                        <div class="mt-4 flex justify-between items-center">
+                          <div class="text-[12px] text-[#9ca3af]">
+                            {{ b.exercises.length }} ejercicio(s)
+                          </div>
+                          <div class="flex gap-2">
+                            <button
+                              type="button"
+                              pButton
+                              label="Añadir ejercicio"
+                              icon="pi pi-search"
+                              class="p-button-text p-button-sm"
+                              (click)="openExerciseSearch(b)"
+                            ></button>
+                          </div>
+                        </div>
+
+                        <div class="mt-3 space-y-3">
+                          @for (e of b.exercises; track e.id; let eIdx = $index) {
+                            <div class="rounded-lg border border-[#1f2937] bg-[#0b1220] p-4">
+                              <div class="flex items-start justify-between gap-3">
+                                <div class="flex-1">
+                                  <label class="block text-[#e5e7eb] text-[13px] mb-2"
+                                    >Nombre del ejercicio</label
+                                  >
+                                  <input
+                                    pInputText
+                                    [(ngModel)]="e.name"
+                                    [name]="'ex-name-' + e.id"
+                                    (blur)="markTouched('e-name-' + e.id)"
+                                    class="w-full"
+                                  />
+                                  @if (hasError('e-name-' + e.id, e.name.trim().length > 0)) {
+                                    <div class="mt-2 text-[12px] text-red-200">
+                                      El nombre es obligatorio.
+                                    </div>
+                                  }
+                                </div>
+
+                                <div class="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    pButton
+                                    icon="pi pi-eye"
+                                    class="p-button-text p-button-sm"
+                                    aria-label="Ver detalles"
+                                    (click)="openExercisePreviewFromBlock(e)"
+                                    pTooltip="Ver detalles"
+                                    tooltipPosition="top"
+                                  ></button>
+                                  <button
+                                    type="button"
+                                    pButton
+                                    icon="pi pi-arrow-up"
+                                    class="p-button-text p-button-sm"
+                                    aria-label="Subir"
+                                    (click)="moveExercise(b, e.id, -1)"
+                                  ></button>
+                                  <button
+                                    type="button"
+                                    pButton
+                                    icon="pi pi-arrow-down"
+                                    class="p-button-text p-button-sm"
+                                    aria-label="Bajar"
+                                    (click)="moveExercise(b, e.id, 1)"
+                                  ></button>
+                                  <button
+                                    type="button"
+                                    pButton
+                                    icon="pi pi-trash"
+                                    class="p-button-text p-button-sm"
+                                    aria-label="Eliminar"
+                                    (click)="removeExercise(b, e.id)"
+                                  ></button>
+                                </div>
+                              </div>
+
+                              <div class="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+                                <div>
+                                  <label class="block text-[#9ca3af] text-[12px] mb-2"
+                                    >Duración (min)</label
+                                  >
+                                  <p-inputNumber
+                                    [(ngModel)]="e.durationMin"
+                                    [name]="'ex-dur-' + e.id"
+                                    (blur)="markTouched('e-dur-' + e.id)"
+                                    [min]="1"
+                                    [showButtons]="true"
+                                    [inputStyleClass]="'w-full'"
+                                    styleClass="w-full"
+                                  ></p-inputNumber>
+                                  @if (hasError('e-dur-' + e.id, e.durationMin > 0)) {
+                                    <div class="mt-2 text-[12px] text-red-200">> 0</div>
+                                  }
+                                </div>
+                                <div>
+                                  <label class="block text-[#9ca3af] text-[12px] mb-2"
+                                    >Intensidad</label
+                                  >
+                                  <p-select
+                                    [(ngModel)]="e.intensity"
+                                    [name]="'ex-intensity-' + e.id"
+                                    [options]="intensityOptions"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    styleClass="bp-select w-full"
+                                    [panelStyleClass]="'bp-select-panel'"
+                                  ></p-select>
+                                </div>
+                                <div class="md:col-span-2">
+                                  <label class="block text-[#9ca3af] text-[12px] mb-2"
+                                    >Dificultad 4D</label
+                                  >
+                                  <div
+                                    class="bg-[#1f2937] border border-[#374151] rounded-md p-2 text-[13px] text-[#e5e7eb]"
+                                  >
+                                    @if (e.difficulty) {
+                                      <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                                        @if (e.difficulty.tactica != null) {
+                                          <span
+                                            ><span class="text-[#9ca3af]">Táctica:</span>
+                                            {{ e.difficulty.tactica }}</span
+                                          >
+                                        }
+                                        @if (e.difficulty.tecnica != null) {
+                                          <span
+                                            ><span class="text-[#9ca3af]">Técnica:</span>
+                                            {{ e.difficulty.tecnica }}</span
+                                          >
+                                        }
+                                        @if (e.difficulty.fisica != null) {
+                                          <span
+                                            ><span class="text-[#9ca3af]">Física:</span>
+                                            {{ e.difficulty.fisica }}</span
+                                          >
+                                        }
+                                        @if (e.difficulty.mental != null) {
+                                          <span
+                                            ><span class="text-[#9ca3af]">Mental:</span>
+                                            {{ e.difficulty.mental }}</span
+                                          >
+                                        }
+                                      </div>
+                                      <div
+                                        class="mt-1 pt-1 border-t border-[#374151] text-[11px] text-[#9ca3af]"
+                                      >
+                                        Media:
+                                        <span class="text-[#e5e7eb]">{{
+                                          calculateAverageDifficulty(e.difficulty)
+                                        }}</span>
+                                      </div>
+                                    } @else {
+                                      <span class="text-[#6b7280]">Sin datos</span>
+                                    }
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="mt-4">
+                                <label class="block text-[#9ca3af] text-[12px] mb-2"
+                                  >Material (opcional)</label
+                                >
+                                @if (e.material.length === 0) {
+                                  <div class="text-[12px] text-[#6b7280]">Sin material</div>
+                                } @else {
+                                  <div class="flex flex-wrap gap-2">
+                                    @for (m of e.material; track m) {
+                                      <p-chip [label]="m"></p-chip>
+                                    }
+                                  </div>
+                                }
+                                <div class="mt-2 flex gap-2">
+                                  <p-select
+                                    [options]="equipmentOptions()"
+                                    [(ngModel)]="selectedMaterialName"
+                                    [name]="'ex-mat-select-' + e.id"
+                                    optionLabel="label"
+                                    optionValue="value"
+                                    placeholder="Selecciona material"
+                                    styleClass="bp-select"
+                                    [panelStyleClass]="'bp-select-panel'"
+                                  ></p-select>
+                                  <button
+                                    type="button"
+                                    pButton
+                                    label="Añadir"
+                                    class="p-button-text p-button-sm"
+                                    [disabled]="!selectedMaterialName()"
+                                    (click)="
+                                      selectedMaterialName() &&
+                                        addMaterial(e, selectedMaterialName()!)
+                                    "
+                                  ></button>
+                                  <button
+                                    type="button"
+                                    pButton
+                                    label="Limpiar"
+                                    class="p-button-text p-button-sm"
+                                    (click)="clearMaterial(e)"
+                                  ></button>
+                                </div>
+                              </div>
+
+                              <div class="mt-4">
+                                <label class="block text-[#9ca3af] text-[12px] mb-2"
+                                  >Notas (opcional)</label
+                                >
+                                <textarea
+                                  pTextarea
+                                  [(ngModel)]="e.notes"
+                                  [name]="'ex-notes-' + e.id"
+                                  rows="2"
+                                  class="w-full resize-none"
+                                ></textarea>
+                              </div>
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                    @if (s.blocks.length === 0) {
+                      <div class="text-center text-[13px] text-[#9ca3af] py-6">
+                        Añade un bloque para empezar.
+                      </div>
+                    }
                   </div>
-                }
-                @if (s.blocks.length === 0) {
-                  <div class="text-center text-[13px] text-[#9ca3af] py-6">Añade un bloque para empezar.</div>
-                }
-                  </div>
-              </div>
-            }
+                </div>
+              }
             </div>
           }
         </div>

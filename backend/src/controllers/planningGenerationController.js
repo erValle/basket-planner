@@ -4,10 +4,20 @@ const planningGenerationService = require('../services/planningGenerationService
 
 const generateIndividual = async (req, res, next) => {
   try {
-    const proposal = await planningGenerationService.generateIndividual(req.body, {
-      user: req.user,
-      requestId: req.requestId
-    });
+    const proposal = await planningGenerationService.generateIndividual(
+      req.body,
+      { user: req.user, requestId: req.requestId },
+      {}
+    );
+
+    if (!proposal || proposal.success === false) {
+      return res.status(StatusCodes.OK).json({
+        success: false,
+        message: proposal?.message || 'No se pudo generar la planificación',
+        wasAborted: proposal?.wasAborted || false,
+      });
+    }
+
     return res.status(StatusCodes.OK).json(proposal);
   } catch (error) {
     logger.error('Error generating individual planning:', error);
@@ -17,10 +27,20 @@ const generateIndividual = async (req, res, next) => {
 
 const generateGroup = async (req, res, next) => {
   try {
-    const proposal = await planningGenerationService.generateGroup(req.body, {
-      user: req.user,
-      requestId: req.requestId
-    });
+    const proposal = await planningGenerationService.generateGroup(
+      req.body,
+      { user: req.user, requestId: req.requestId },
+      {}
+    );
+
+    if (!proposal || proposal.success === false) {
+      return res.status(StatusCodes.OK).json({
+        success: false,
+        message: proposal?.message || 'No se pudo generar la planificación',
+        wasAborted: proposal?.wasAborted || false,
+      });
+    }
+
     return res.status(StatusCodes.OK).json(proposal);
   } catch (error) {
     logger.error('Error generating group planning:', error);
@@ -30,5 +50,5 @@ const generateGroup = async (req, res, next) => {
 
 module.exports = {
   generateIndividual,
-  generateGroup
+  generateGroup,
 };

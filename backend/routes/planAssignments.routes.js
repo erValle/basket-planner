@@ -2,24 +2,62 @@ const express = require('express');
 const router = express.Router();
 const validate = require('../src/middlewares/validate');
 const { requireAuth, requireAnyRole, requireSelfOrRoles } = require('../src/middlewares/rbac');
-const { createPlanAssignmentSchema, updatePlanAssignmentSchema } = require('../src/validation/planAssignmentSchemas');
+const {
+  createPlanAssignmentSchema,
+  updatePlanAssignmentSchema,
+} = require('../src/validation/planAssignmentSchemas');
 const { idParamSchema } = require('../src/validation/commonSchemas');
-const { listAssignments, getAssignment, createAssignment, updateAssignment, deleteAssignment, listAssignmentsForUser, listAssignmentsForPlan } = require('../src/controllers/planAssignmentController');
+const {
+  listAssignments,
+  getAssignment,
+  createAssignment,
+  updateAssignment,
+  deleteAssignment,
+  listAssignmentsForUser,
+  listAssignmentsForPlan,
+} = require('../src/controllers/planAssignmentController');
 
 router.use(requireAuth);
 
-// CU.027: Ver asignaciones de usuario - propio o roles admin/technical_director/coach
-// IMPORTANTE: Estas rutas específicas deben ir ANTES de las genéricas /:id
-router.get('/user/:userId', requireSelfOrRoles('userId', 'admin', 'technical_director', 'coach'), listAssignmentsForUser);
-router.get('/training-plan/:trainingPlanId', requireAnyRole('admin', 'technical_director', 'coach'), listAssignmentsForPlan);
-
-// CU.027: Visualización de asignaciones
+// GET  /plan-assignments - Listar asignaciones - todos autenticados (jugadores solo las suyas)
 router.get('/', listAssignments);
-router.get('/:id', validate({ params: idParamSchema }), getAssignment);
+// POST /plan-assignments - Crear asignación - Director Técnico y Entrenador
+router.post(
+  '/',
+  requireAnyRole('technical_director', 'coach'),
+  validate({ body: createPlanAssignmentSchema }),
+  createAssignment
+);
 
-// CU.023/024: Crear asignaciones - admin, technical_director, coach
-router.post('/', requireAnyRole('admin', 'technical_director', 'coach'), validate({ body: createPlanAssignmentSchema }), createAssignment);
-router.put('/:id', requireAnyRole('admin', 'technical_director', 'coach'), validate({ params: idParamSchema, body: updatePlanAssignmentSchema }), updateAssignment);
-router.delete('/:id', requireAnyRole('admin', 'technical_director', 'coach'), validate({ params: idParamSchema }), deleteAssignment);
+// GET /plan-assignments/user/:userId - Ver asignaciones de usuario - propio o technical_director/coach
+router.get(
+  '/user/:userId',
+  requireSelfOrRoles('userId', 'technical_director', 'coach'),
+  listAssignmentsForUser
+);
+
+// GET /plan-assignments/training-plan/:trainingPlanId - Ver asignaciones de plan - technical_director, coach
+router.get(
+  '/training-plan/:trainingPlanId',
+  requireAnyRole('technical_director', 'coach'),
+  listAssignmentsForPlan
+);
+
+// GET    /plan-assignments/:id - Ver asignación (todos autenticados)
+router.get('/:id', validate({ params: idParamSchema }), getAssignment);
+// PUT    /plan-assignments/:id - Editar asignación - Director Técnico y Entrenador
+router.put(
+  '/:id',
+  requireAnyRole('technical_director', 'coach'),
+  validate({ params: idParamSchema, body: updatePlanAssignmentSchema }),
+  updateAssignment
+);
+// DELETE /plan-assignments/:id - Eliminar asignación - Director Técnico y Entrenador
+router.delete(
+  '/:id',
+  requireAnyRole('technical_director', 'coach'),
+  validate({ params: idParamSchema }),
+  deleteAssignment
+);
 
 module.exports = router;

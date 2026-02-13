@@ -5,13 +5,13 @@ const createPlanAssignmentSchema = Joi.object({
   userId: Joi.number().integer().positive().required(),
   assignedById: Joi.number().integer().positive().required(),
   assignedAt: Joi.date().optional(),
-  status: Joi.string().valid('assigned','in_progress','completed','cancelled').optional()
+  status: Joi.string().valid('assigned', 'in_progress', 'completed', 'cancelled').optional(),
 });
 
 const updatePlanAssignmentSchema = Joi.object({
   assignedById: Joi.number().integer().positive(),
   assignedAt: Joi.date(),
-  status: Joi.string().valid('assigned','in_progress','completed','cancelled')
+  status: Joi.string().valid('assigned', 'in_progress', 'completed', 'cancelled'),
 }).min(1);
 
 module.exports = { createPlanAssignmentSchema, updatePlanAssignmentSchema };

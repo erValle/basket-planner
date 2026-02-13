@@ -143,9 +143,11 @@ const exportToPDF = async (planVersion, { title, author, planId } = {}) => {
         doc.fontSize(10).text('  (no exercises)');
       } else {
         exercises.forEach((ex) => {
-          doc.fontSize(10).text(
-            `  - ${ex.name || ex.id || 'Exercise'} | ${ex.type || ''} | ${ex.durationMinutes ?? ''} min | ${ex.intensity || ''} | load ${ex.estimatedLoad ?? ''}`
-          );
+          doc
+            .fontSize(10)
+            .text(
+              `  - ${ex.name || ex.id || 'Exercise'} | ${ex.type || ''} | ${ex.durationMinutes ?? ''} min | ${ex.intensity || ''} | load ${ex.estimatedLoad ?? ''}`
+            );
         });
       }
 

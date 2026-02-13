@@ -7,39 +7,39 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       timestamp: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
       },
       cpuUsage: {
         type: Sequelize.FLOAT,
-        allowNull: true
+        allowNull: true,
       },
       memoryUsage: {
         type: Sequelize.FLOAT,
-        allowNull: true
+        allowNull: true,
       },
       backEndStatus: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       recomenderStatus: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: true,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('metrics');
-  }
+  },
 };

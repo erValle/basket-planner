@@ -9,10 +9,10 @@ module.exports = {
       allowNull: true, // nullable para mantener compatibilidad con asignaciones existentes
       references: {
         model: 'training_plan_versions',
-        key: 'id'
+        key: 'id',
       },
       onUpdate: 'CASCADE',
-      onDelete: 'SET NULL'
+      onDelete: 'SET NULL',
     });
 
     // Add index for faster lookups
@@ -22,7 +22,10 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
-    await queryInterface.removeIndex('plan_assignments', 'plan_assignments_trainingPlanVersionId_idx');
+    await queryInterface.removeIndex(
+      'plan_assignments',
+      'plan_assignments_trainingPlanVersionId_idx'
+    );
     await queryInterface.removeColumn('plan_assignments', 'trainingPlanVersionId');
-  }
+  },
 };

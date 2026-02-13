@@ -17,7 +17,10 @@ module.exports = {
   },
 
   async down(queryInterface) {
-    await queryInterface.removeIndex('training_plan_versions', 'training_plan_versions_created_from_gin');
+    await queryInterface.removeIndex(
+      'training_plan_versions',
+      'training_plan_versions_created_from_gin'
+    );
     await queryInterface.removeColumn('training_plan_versions', 'createdFrom');
-  }
+  },
 };

@@ -10,26 +10,48 @@ const {
   assignUsersToClub,
 } = require('../src/controllers/userController');
 const validate = require('../src/middlewares/validate');
-const { userQuerySchema, createUserSchema, updateUserSchema, assignUsersToClubSchema } = require('../src/validation/userSchemas');
+const {
+  userQuerySchema,
+  createUserSchema,
+  updateUserSchema,
+  assignUsersToClubSchema,
+} = require('../src/validation/userSchemas');
 const { idParamSchema } = require('../src/validation/commonSchemas');
 const { requireAnyRole, requireSelfOrRoles } = require('../src/middlewares/rbac');
 
-// CU.002: Listado de usuarios - admin, technical_director
-router.get('/', requireAnyRole('admin', 'technical_director'), validate({ query: userQuerySchema }), getAllUsers);
-
-// Asignar usuarios a club (convertir usuarios en jugadores) - admin, technical_director
-router.post('/assign-to-club', requireAnyRole('admin', 'technical_director'), validate({ body: assignUsersToClubSchema }), assignUsersToClub);
-
-// CU.003: Ver usuario - admin/technical_director o propio
-router.get('/:id', requireSelfOrRoles('id', 'admin', 'technical_director'), validate({ params: idParamSchema }), getUserById);
-
-// CU.002: Registro de usuarios - solo admin
+// GET  /users - Listado de usuarios - admin y technical_director (para añadir jugadores)
+router.get(
+  '/',
+  requireAnyRole('admin', 'technical_director'),
+  validate({ query: userQuerySchema }),
+  getAllUsers
+);
+// POST /users - Registro de usuarios - solo admin
 router.post('/', requireAnyRole('admin'), validate({ body: createUserSchema }), createUser);
 
-// CU.003: Edición de usuarios - admin o propio
-router.put('/:id', requireSelfOrRoles('id', 'admin'), validate({ params: idParamSchema, body: updateUserSchema }), updateUser);
+// POST /users/assign-to-club - Asignar usuarios a club - admin y technical_director
+router.post(
+  '/assign-to-club',
+  requireAnyRole('admin', 'technical_director'),
+  validate({ body: assignUsersToClubSchema }),
+  assignUsersToClub
+);
 
-// CU.004: Eliminación de usuarios - solo admin
+// GET    /users/:id - Ver usuario - admin o propio
+router.get(
+  '/:id',
+  requireSelfOrRoles('id', 'admin'),
+  validate({ params: idParamSchema }),
+  getUserById
+);
+// PUT    /users/:id - Edición de usuarios - admin o propio (solo ciertos campos)
+router.put(
+  '/:id',
+  requireSelfOrRoles('id', 'admin'),
+  validate({ params: idParamSchema, body: updateUserSchema }),
+  updateUser
+);
+// DELETE /users/:id - Eliminación de usuarios - solo admin
 router.delete('/:id', requireAnyRole('admin'), validate({ params: idParamSchema }), deleteUser);
 
 module.exports = router;

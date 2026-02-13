@@ -7,48 +7,48 @@ module.exports = {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
       },
       name: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       description: {
         type: Sequelize.TEXT,
-        allowNull: true
+        allowNull: true,
       },
       difficulty: {
         type: Sequelize.JSONB,
-        allowNull: false
+        allowNull: false,
       },
       type: {
         type: Sequelize.ENUM('cardio', 'strength', 'flexibility', 'balance'),
-        allowNull: false
+        allowNull: false,
       },
       duration: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
       },
       tags: {
         type: Sequelize.JSONB,
-        allowNull: true
+        allowNull: true,
       },
       active: {
         type: Sequelize.BOOLEAN,
         allowNull: false,
-        defaultValue: true
+        defaultValue: true,
       },
       createdAt: {
         allowNull: false,
-        type: Sequelize.DATE
+        type: Sequelize.DATE,
       },
       updatedAt: {
         allowNull: false,
-        type: Sequelize.DATE
-      }
+        type: Sequelize.DATE,
+      },
     });
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('exercises');
-  }
+  },
 };

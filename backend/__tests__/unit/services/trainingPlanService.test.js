@@ -111,8 +111,9 @@ describe('trainingPlanService', () => {
     it('throws 404 error when not found', async () => {
       TrainingPlan.findByPk.mockResolvedValue(null);
 
-      await expect(trainingPlanService.getTrainingPlanById(999))
-        .rejects.toMatchObject({ status: 404 });
+      await expect(trainingPlanService.getTrainingPlanById(999)).rejects.toMatchObject({
+        status: 404,
+      });
     });
   });
 
@@ -166,7 +167,7 @@ describe('trainingPlanService', () => {
 
       const payload = { name: 'Updated Name' };
       const auditCtx = { user: { id: 1 }, requestId: 'req-456' };
-      
+
       await trainingPlanService.updateTrainingPlan(1, payload, auditCtx);
 
       expect(mockPlan.update).toHaveBeenCalledWith(payload);
@@ -183,8 +184,9 @@ describe('trainingPlanService', () => {
     it('throws 404 error when plan not found', async () => {
       TrainingPlan.findByPk.mockResolvedValue(null);
 
-      await expect(trainingPlanService.updateTrainingPlan(999, { name: 'Test' }))
-        .rejects.toMatchObject({ status: 404 });
+      await expect(
+        trainingPlanService.updateTrainingPlan(999, { name: 'Test' })
+      ).rejects.toMatchObject({ status: 404 });
     });
   });
 
@@ -204,8 +206,9 @@ describe('trainingPlanService', () => {
     it('throws 404 error when plan not found', async () => {
       TrainingPlan.findByPk.mockResolvedValue(null);
 
-      await expect(trainingPlanService.deleteTrainingPlan(999))
-        .rejects.toMatchObject({ status: 404 });
+      await expect(trainingPlanService.deleteTrainingPlan(999)).rejects.toMatchObject({
+        status: 404,
+      });
     });
   });
 });

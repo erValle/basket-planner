@@ -7,16 +7,16 @@ import { ClubContextService } from '../../core/context/club-context.service';
  * All UI (sidebar, navigation, logout) is handled by AppShell inside each page.
  */
 @Component({
-  selector: 'bp-shell',
-  imports: [RouterOutlet],
-  templateUrl: './shell.html',
-  styleUrls: ['./shell.scss'],
+    selector: 'bp-shell',
+    imports: [RouterOutlet],
+    templateUrl: './shell.html',
+    styleUrls: ['./shell.scss'],
 })
 export class Shell {
-  private readonly clubContext = inject(ClubContextService);
+    private readonly clubContext = inject(ClubContextService);
 
-  constructor() {
-    // Initialize club context on app load
-    this.clubContext.refresh();
-  }
+    constructor() {
+        // Initialize club context on app load
+        this.clubContext.refresh();
+    }
 }

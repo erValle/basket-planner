@@ -18,32 +18,32 @@ module.exports = (sequelize, DataTypes) => {
 
   UserClub.init(
     {
-      id: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true 
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
       },
-      userId: { 
-        type: DataTypes.INTEGER, 
-        allowNull: false 
-      },
-      clubId: { 
-        type: DataTypes.INTEGER, 
-        allowNull: false 
-      },
-      isPrimary: { 
-        type: DataTypes.BOOLEAN, 
-        allowNull: false, 
-        defaultValue: false 
-      },
-      startDate: { 
-        type: DataTypes.DATEONLY, 
+      userId: {
+        type: DataTypes.INTEGER,
         allowNull: false,
-        defaultValue: DataTypes.NOW
       },
-      endDate: { 
-        type: DataTypes.DATEONLY, 
-        allowNull: true 
+      clubId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      isPrimary: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      },
+      startDate: {
+        type: DataTypes.DATEONLY,
+        allowNull: false,
+        defaultValue: DataTypes.NOW,
+      },
+      endDate: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
       },
     },
     {

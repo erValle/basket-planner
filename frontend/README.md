@@ -1,49 +1,63 @@
-# Frontend
+# Frontend (Angular)
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.0.
+SPA en Angular 21 con Standalone Components y PrimeNG.
 
-## Development server
+## Requisitos
 
-To start a local development server, run:
+- Node.js: **20.0.0 o superior**
+- npm: **10.0.0 o superior**
 
-```bash
-ng serve
-```
-
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Instalar dependencias
 
 ```bash
-ng generate component component-name
+npm install
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Servidor de desarrollo
 
 ```bash
-ng generate --help
+npm start
 ```
 
-## Building
+Abre el navegador en `http://localhost:4200`. La aplicacion se recarga automaticamente al modificar archivos.
 
-To build the project run:
+> El proxy (`proxy.conf.json`) redirige las peticiones `/api` al backend en `http://localhost:4000`.
+
+## Build de produccion
 
 ```bash
-ng build
+npm run build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Los artefactos se generan en `dist/frontend/`.
 
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## Tests
 
 ```bash
-ng test
+npm test
 ```
 
-## Additional Resources
+## Estructura
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+```
+src/
+├── app/
+│   ├── components/     # Componentes reutilizables
+│   ├── constants/      # Constantes de la aplicacion
+│   ├── core/           # Guards, interceptors, servicios base, auth
+│   ├── layout/         # Shell y navegacion principal
+│   ├── modals/         # Modales reutilizables
+│   ├── models/         # Interfaces y tipos TypeScript
+│   ├── pages/          # Paginas/vistas de la aplicacion
+│   └── services/       # Servicios API (comunicacion con backend)
+├── main.ts             # Punto de entrada
+└── styles.css          # Estilos globales
+```
+
+## Tecnologias
+
+- Angular 21 (Standalone Components)
+- PrimeNG 21 (componentes UI)
+- Tailwind CSS 4
+- RxJS
+- TypeScript 5.9

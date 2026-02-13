@@ -14,7 +14,10 @@ const listVersions = async (req, res, next) => {
 
 const listVersionsPaged = async (req, res, next) => {
   try {
-    const result = await trainingPlanVersionService.listVersionsPaged(req.params.trainingPlanId, req.query);
+    const result = await trainingPlanVersionService.listVersionsPaged(
+      req.params.trainingPlanId,
+      req.query
+    );
     return res.status(StatusCodes.OK).json(result);
   } catch (error) {
     logger.error('Error fetching training plan versions (paged):', error);
@@ -24,7 +27,10 @@ const listVersionsPaged = async (req, res, next) => {
 
 const getVersion = async (req, res, next) => {
   try {
-    const row = await trainingPlanVersionService.getVersion(req.params.trainingPlanId, req.params.id);
+    const row = await trainingPlanVersionService.getVersion(
+      req.params.trainingPlanId,
+      req.params.id
+    );
     return res.status(StatusCodes.OK).json(row);
   } catch (error) {
     logger.error('Error fetching version:', error);
@@ -34,10 +40,14 @@ const getVersion = async (req, res, next) => {
 
 const createVersion = async (req, res, next) => {
   try {
-    const created = await trainingPlanVersionService.createVersion(req.params.trainingPlanId, req.body, {
-      user: req.user,
-      requestId: req.requestId,
-    });
+    const created = await trainingPlanVersionService.createVersion(
+      req.params.trainingPlanId,
+      req.body,
+      {
+        user: req.user,
+        requestId: req.requestId,
+      }
+    );
     return res.status(StatusCodes.CREATED).json(created);
   } catch (error) {
     logger.error('Error creating version:', error);
@@ -47,7 +57,11 @@ const createVersion = async (req, res, next) => {
 
 const updateVersion = async (req, res, next) => {
   try {
-    const row = await trainingPlanVersionService.updateVersion(req.params.trainingPlanId, req.params.id, req.body);
+    const row = await trainingPlanVersionService.updateVersion(
+      req.params.trainingPlanId,
+      req.params.id,
+      req.body
+    );
     return res.status(StatusCodes.OK).json(row);
   } catch (error) {
     logger.error('Error updating version:', error);
@@ -79,4 +93,12 @@ const restoreVersion = async (req, res, next) => {
   }
 };
 
-module.exports = { listVersions, listVersionsPaged, getVersion, createVersion, updateVersion, restoreVersion, deleteVersion };
+module.exports = {
+  listVersions,
+  listVersionsPaged,
+  getVersion,
+  createVersion,
+  updateVersion,
+  restoreVersion,
+  deleteVersion,
+};

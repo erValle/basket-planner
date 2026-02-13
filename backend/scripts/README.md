@@ -167,8 +167,8 @@ docker compose exec postgres psql -U postgres -d planificador_basket_db -c "SELE
 Si al ejecutar `seed-equipment.js` aparece este error:
 
 ```
-❌ Error: No hay clubs en la base de datos.
-   Por favor, cree un club primero o especifique un --club-id
+Error: No hay clubs en la base de datos.
+  Por favor, cree un club primero o especifique un --club-id
 ```
 
 **Solución:** Cree un club primero usando la interfaz web o mediante SQL:
@@ -183,7 +183,7 @@ VALUES ('Mi Club', NOW(), NOW());
 Si al ejecutar `seed-exercises.js` aparece un error de archivo no encontrado:
 
 ```
-❌ Error: No se pudo cargar el archivo "..."
+Error: No se pudo cargar el archivo "..."
 ```
 
 **Solución:** Verifique que el archivo existe en la raíz del proyecto:
@@ -210,8 +210,8 @@ Ver `EQUIPMENT_FILTERING_SYSTEM.md` para más detalles sobre el sistema de filtr
 
 ## Notas Importantes
 
-- ✅ Los scripts son **idempotentes**: pueden ejecutarse múltiples veces sin crear duplicados
-- ✅ Son **opcionales**: no son necesarios para que la aplicación funcione
-- ✅ Son **independientes**: no usan el sistema de seeders de Sequelize
-- ✅ Incluyen **validación**: verifican que existan las dependencias necesarias (clubs, archivos)
-- ✅ Proporcionan **feedback detallado**: muestran progreso y resumen de operaciones
+- Los scripts son **idempotentes**: pueden ejecutarse múltiples veces sin crear duplicados
+- Son **opcionales**: no son necesarios para que la aplicación funcione
+- Son **independientes**: no usan el sistema de seeders de Sequelize
+- Incluyen **validación**: verifican que existan las dependencias necesarias (clubs, archivos)
+- Proporcionan **feedback detallado**: muestran progreso y resumen de operaciones

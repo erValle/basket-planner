@@ -24,35 +24,35 @@ module.exports = (sequelize, DataTypes) => {
 
   TrainingPlanVersion.init(
     {
-      id: { 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        autoIncrement: true 
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
       },
-      trainingPlanId: { 
-        type: DataTypes.INTEGER, 
-        allowNull: false 
+      trainingPlanId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
-      versionNumber: { 
-        type: DataTypes.INTEGER, 
-        allowNull: false 
+      versionNumber: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
       },
-      source: { 
-        type: DataTypes.STRING, 
-        allowNull: false, 
-        defaultValue: 'automatic' 
+      source: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'automatic',
       },
-      date: { 
-        type: DataTypes.DATE, 
-        allowNull: false 
+      date: {
+        type: DataTypes.DATE,
+        allowNull: false,
       },
-      comments: { 
-        type: DataTypes.TEXT, 
-        allowNull: true 
+      comments: {
+        type: DataTypes.TEXT,
+        allowNull: true,
       },
-      sessions: { 
-        type: DataTypes.JSONB, 
-        allowNull: true 
+      sessions: {
+        type: DataTypes.JSONB,
+        allowNull: true,
       },
 
       // Trace of inputs/context used to create this version (ML dataset friendly)

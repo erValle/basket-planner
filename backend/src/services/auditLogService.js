@@ -7,7 +7,7 @@ const errorUtils = require('../libs/errorHelper');
 /**
  * Whitelist de acciones que se deben registrar en auditoría.
  * Solo se registran acciones de negocio relevantes, no todas las peticiones HTTP.
- * 
+ *
  * Categorías:
  * - user.*: Gestión de usuarios (registro, login, actualización, eliminación)
  * - training_plan.*: Gestión de planes de entrenamiento (creación, actualización, generación, eliminación)
@@ -28,48 +28,48 @@ const ALLOWED_AUDIT_ACTIONS = new Set([
   'user.deleted',
   'user.password_changed',
   'user.role_changed',
-  
+
   // Planes de entrenamiento
   'training_plan.created',
   'training_plan.updated',
   'training_plan.deleted',
   'training_plan.generated',
   'training_plan.duplicated',
-  
+
   // Versiones de planes
   'training_plan_version.created',
   'training_plan_version.published',
   'training_plan_version.activated',
-  
+
   // Asignaciones
   'plan_assignment.created',
   'plan_assignment.viewed_by_player',
   'plan_assignment.updated',
   'plan_assignment.deleted',
   'plan_assignment.status_changed',
-  
+
   // Feedback
   'feedback.created',
   'feedback.updated',
   'feedback.deleted',
-  
+
   // Clubes
   'club.created',
   'club.updated',
   'club.deleted',
-  
+
   // Equipos
   'team.created',
   'team.updated',
   'team.deleted',
   'team.player_added',
   'team.player_removed',
-  
+
   // Ejercicios
   'exercise.created',
   'exercise.updated',
   'exercise.deleted',
-  
+
   // Equipamiento
   'equipment.created',
   'equipment.updated',
@@ -88,7 +88,7 @@ const safeJson = (value) => {
 /**
  * Crea un registro de auditoría para acciones de negocio relevantes.
  * Solo se registran acciones incluidas en ALLOWED_AUDIT_ACTIONS.
- * 
+ *
  * Contract:
  * - input: { user, action, entity, entityId, requestId, metadata }
  * - Si la acción no está en la whitelist, se ignora silenciosamente y retorna null
@@ -100,7 +100,11 @@ const createAuditLog = async ({ user, action, entity, entityId, requestId, metad
   if (!AuditLog) return null;
 
   if (!action || !entity) {
-    throw errorUtils.httpError(StatusCodes.BAD_REQUEST, 'INVALID_AUDIT_LOG', 'action and entity are required');
+    throw errorUtils.httpError(
+      StatusCodes.BAD_REQUEST,
+      'INVALID_AUDIT_LOG',
+      'action and entity are required'
+    );
   }
 
   // Filtrar: solo registrar acciones en la whitelist
@@ -265,12 +269,12 @@ const getAuditLogById = async (id) => {
  */
 const deleteAllAuditLogs = async () => {
   if (!AuditLog) return { deleted: 0 };
-  
+
   const count = await AuditLog.destroy({
     where: {},
     truncate: true,
   });
-  
+
   return { deleted: count };
 };
 
@@ -290,7 +294,7 @@ const exportAuditLogsAsCsv = async (filters = {}) => {
   if (filters.userId) where.userId = filters.userId;
   if (filters.entityId) where.entityId = filters.entityId;
   if (filters.requestId) where.requestId = { [Op.like]: `%${filters.requestId}%` };
-  
+
   if (filters.from || filters.to) {
     where.createdAt = {};
     if (filters.from) where.createdAt[Op.gte] = new Date(filters.from);
@@ -317,7 +321,18 @@ const exportAuditLogsAsCsv = async (filters = {}) => {
   });
 
   // Build CSV
-  const headers = ['ID', 'Created At', 'User ID', 'User Name', 'User Email', 'Action', 'Entity', 'Entity ID', 'Request ID', 'Summary'];
+  const headers = [
+    'ID',
+    'Created At',
+    'User ID',
+    'User Name',
+    'User Email',
+    'Action',
+    'Entity',
+    'Entity ID',
+    'Request ID',
+    'Summary',
+  ];
   const csvRows = [headers.join(',')];
 
   for (const row of rows) {
@@ -339,7 +354,10 @@ const exportAuditLogsAsCsv = async (filters = {}) => {
       json.entity,
       json.entityId ?? '',
       json.requestId ?? '',
-      `${json.action} ${json.entity}${json.entityId ? ` #${json.entityId}` : ''}`.replace(/,/g, ';'),
+      `${json.action} ${json.entity}${json.entityId ? ` #${json.entityId}` : ''}`.replace(
+        /,/g,
+        ';'
+      ),
     ];
 
     csvRows.push(csvRow.join(','));

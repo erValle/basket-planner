@@ -12,39 +12,44 @@ const playersController = require('../src/controllers/playersController');
 
 router.use(requireAuth);
 
-// CU.011: Listado de jugadores - admin, technical_director, coach
-router.get('/', requireAnyRole('admin', 'technical_director', 'coach'), validate({ query: playerQuerySchema }), playersController.listPlayers);
-
-// CU.011: Enroll player - admin, technical_director, coach
-router.post(
-	'/enroll',
-	requireAnyRole('admin', 'technical_director', 'coach'),
-	validate({ body: enrollPlayerSchema }),
-	playersController.enrollPlayer
-);
-
-// CU.015: Historial de jugador - admin, technical_director, coach, player (propio)
+// GET /players - Listado de jugadores - technical_director, coach
 router.get(
-	'/:id/history',
-	requireAnyRole('admin', 'technical_director', 'coach', 'player'),
-	validate({ params: idParamSchema }),
-	playersController.getPlayerHistory
+  '/',
+  requireAnyRole('technical_director', 'coach'),
+  validate({ query: playerQuerySchema }),
+  playersController.listPlayers
 );
 
-// CU.012: Edición de perfil jugador - admin, technical_director, coach
+// POST /players/enroll - Inscribir jugador (crear perfil de jugador) - solo admin (registra usuarios)
+router.post(
+  '/enroll',
+  requireAnyRole('admin'),
+  validate({ body: enrollPlayerSchema }),
+  playersController.enrollPlayer
+);
+
+// PUT /players/:id - Edición de perfil jugador - solo Director Técnico (gestiona jugadores de su club)
 router.put(
   '/:id',
-  requireAnyRole('admin', 'technical_director', 'coach'),
+  requireAnyRole('technical_director'),
   validate({ params: idParamSchema, body: updatePlayerProfileSchema }),
   playersController.updatePlayerProfile
 );
 
-// CU.014: Transferir jugador - admin, technical_director (su club), coach (su club)
+// GET /players/:id/history - Historial de jugador - technical_director, coach, player (propio)
+router.get(
+  '/:id/history',
+  requireAnyRole('technical_director', 'coach', 'player'),
+  validate({ params: idParamSchema }),
+  playersController.getPlayerHistory
+);
+
+// POST /players/:id/transfer - Transferir jugador - SOLO Director Técnico puede transferir
 router.post(
-	'/:id/transfer',
-	requireAnyRole('admin', 'technical_director', 'coach'),
-	validate({ params: idParamSchema, body: transferPlayerSchema }),
-	playersController.transferPlayer
+  '/:id/transfer',
+  requireAnyRole('technical_director'),
+  validate({ params: idParamSchema, body: transferPlayerSchema }),
+  playersController.transferPlayer
 );
 
 module.exports = router;

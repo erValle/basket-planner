@@ -14,43 +14,7 @@
         ></button>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <!-- Series -->
-        <div>
-          <label class="block text-[#9ca3af] text-[11px] mb-1">Series</label>
-          <p-inputNumber
-            [(ngModel)]="exercise.series"
-            [name]="'ex-series-' + exercise.id"
-            (blur)="markTouched('ex-series-' + exercise.id)"
-            (ngModelChange)="emitChange()"
-            [min]="1"
-            [showButtons]="true"
-            styleClass="w-full"
-            [inputStyleClass]="'w-full text-[13px]'"
-          ></p-inputNumber>
-          @if (hasError('ex-series-' + exercise.id, exercise.series > 0)) {
-            <div class="mt-1 text-[11px] text-red-300">Mín. 1</div>
-          }
-        </div>
-
-        <!-- Repeticiones -->
-        <div>
-          <label class="block text-[#9ca3af] text-[11px] mb-1">Reps</label>
-          <p-inputNumber
-            [(ngModel)]="exercise.reps"
-            [name]="'ex-reps-' + exercise.id"
-            (blur)="markTouched('ex-reps-' + exercise.id)"
-            (ngModelChange)="emitChange()"
-            [min]="1"
-            [showButtons]="true"
-            styleClass="w-full"
-            [inputStyleClass]="'w-full text-[13px]'"
-          ></p-inputNumber>
-          @if (hasError('ex-reps-' + exercise.id, exercise.reps > 0)) {
-            <div class="mt-1 text-[11px] text-red-300">Mín. 1</div>
-          }
-        </div>
-
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
         <!-- Duración -->
         <div>
           <label class="block text-[#9ca3af] text-[11px] mb-1">Duración (min)</label>
@@ -68,26 +32,55 @@
             <div class="mt-1 text-[11px] text-red-300">Mín. 1</div>
           }
         </div>
+
+        <!-- Intensidad -->
+        <div>
+          <label class="block text-[#9ca3af] text-[11px] mb-1">Intensidad</label>
+          <p-select
+            [(ngModel)]="exercise.intensity"
+            [name]="'ex-intensity-' + exercise.id"
+            [options]="intensityOptions"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="bp-select w-full"
+            [panelStyleClass]="'bp-select-panel'"
+            (onChange)="emitChange()"
+          ></p-select>
+        </div>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
         <!-- Dificultad 4D -->
         <div>
           <label class="block text-[#9ca3af] text-[11px] mb-1">Dificultad 4D</label>
-          <div class="bg-[#1f2937] border border-[#374151] rounded-md p-2 text-[13px] text-[#e5e7eb]">
+          <div
+            class="bg-[#1f2937] border border-[#374151] rounded-md p-2 text-[13px] text-[#e5e7eb]"
+          >
             @if (exercise.difficulty) {
               <div class="grid grid-cols-2 gap-x-4 gap-y-1">
                 @if (exercise.difficulty.tactica != null) {
-                  <span><span class="text-[#9ca3af]">Táctica:</span> {{ exercise.difficulty.tactica }}</span>
+                  <span
+                    ><span class="text-[#9ca3af]">Táctica:</span>
+                    {{ exercise.difficulty.tactica }}</span
+                  >
                 }
                 @if (exercise.difficulty.tecnica != null) {
-                  <span><span class="text-[#9ca3af]">Técnica:</span> {{ exercise.difficulty.tecnica }}</span>
+                  <span
+                    ><span class="text-[#9ca3af]">Técnica:</span>
+                    {{ exercise.difficulty.tecnica }}</span
+                  >
                 }
                 @if (exercise.difficulty.fisica != null) {
-                  <span><span class="text-[#9ca3af]">Física:</span> {{ exercise.difficulty.fisica }}</span>
+                  <span
+                    ><span class="text-[#9ca3af]">Física:</span>
+                    {{ exercise.difficulty.fisica }}</span
+                  >
                 }
                 @if (exercise.difficulty.mental != null) {
-                  <span><span class="text-[#9ca3af]">Mental:</span> {{ exercise.difficulty.mental }}</span>
+                  <span
+                    ><span class="text-[#9ca3af]">Mental:</span>
+                    {{ exercise.difficulty.mental }}</span
+                  >
                 }
               </div>
               <div class="mt-1 pt-1 border-t border-[#374151] text-[11px] text-[#9ca3af]">

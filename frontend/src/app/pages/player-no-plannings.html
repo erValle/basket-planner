@@ -1,22 +1,40 @@
 <app-shell title="Mi panel" subtitle="Planificaciones">
-	<div class="max-w-3xl mx-auto">
-		<div class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]" style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)">
-			<div class="flex items-start gap-4">
-				<div class="mt-1 text-[#93c5fd]">
-					<i class="pi pi-calendar" style="font-size: 20px"></i>
-				</div>
-				<div class="flex-1">
-					<div class="text-[18px] font-semibold text-[#f9fafb]">Aún no tienes planificaciones asignadas</div>
-					<div class="mt-2 text-[13px] text-[#9ca3af]">
-						Cuando tu entrenador asigne una planificación a tu equipo, aparecerá aquí automáticamente.
-					</div>
+  <div class="max-w-3xl mx-auto">
+    <div
+      class="bg-[#020617] rounded-lg p-6 border border-[#1f2937]"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
+      <div class="flex items-start gap-4">
+        <div class="mt-1 text-[#93c5fd]">
+          <i class="pi pi-calendar" style="font-size: 20px"></i>
+        </div>
+        <div class="flex-1">
+          <div class="text-[18px] font-semibold text-[#f9fafb]">
+            Aún no tienes planificaciones asignadas
+          </div>
+          <div class="mt-2 text-[13px] text-[#9ca3af]">
+            Cuando tu entrenador asigne una planificación a tu equipo, aparecerá aquí
+            automáticamente.
+          </div>
 
-					<div class="mt-4 flex flex-wrap gap-2">
-						<a pButton routerLink="/player" label="Volver a mi panel" icon="pi pi-arrow-left" class="p-button-text p-button-sm"></a>
-						<a pButton routerLink="/player" label="Ver mi resumen" icon="pi pi-chart-bar" class="p-button-sm"></a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+          <div class="mt-4 flex flex-wrap gap-2">
+            <a
+              pButton
+              routerLink="/player"
+              label="Volver a mi panel"
+              icon="pi pi-arrow-left"
+              class="p-button-text p-button-sm"
+            ></a>
+            <a
+              pButton
+              routerLink="/player"
+              label="Ver mi resumen"
+              icon="pi pi-chart-bar"
+              class="p-button-sm"
+            ></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </app-shell>

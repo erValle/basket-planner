@@ -10,6 +10,8 @@ const updatePlayerProfileSchema = Joi.object({
   maxCategory: Joi.string().allow('', null).max(50).optional(),
   height: Joi.number().min(0).max(300).allow(null).optional(),
   dateOfBirth: Joi.date().iso().allow(null).optional(),
-}).min(1).unknown(false);
+})
+  .min(1)
+  .unknown(false);
 
 module.exports = { updatePlayerProfileSchema };

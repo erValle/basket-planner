@@ -1,66 +1,66 @@
 <app-shell title="Nuevo club" subtitle="Crea el club y configura sus datos básicos.">
-	<p-toast></p-toast>
-	<div class="max-w-4xl mx-auto">
-		<app-page-header
-			[title]="'Nuevo club'"
-			[subtitle]="'Crea el club y configura sus datos básicos.'"
-		></app-page-header>
+  <p-toast></p-toast>
+  <div class="max-w-4xl mx-auto">
+    <app-page-header
+      [title]="'Nuevo club'"
+      [subtitle]="'Crea el club y configura sus datos básicos.'"
+    ></app-page-header>
 
-		<div
-			class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mt-6"
-			style="box-shadow: 0 4px 12px rgba(0,0,0,0.3)"
-		>
-			<div class="grid grid-cols-2 gap-6">
-				<div class="col-span-2">
-					<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre del club</label>
-					<input
-						pInputText
-						[(ngModel)]="form.name"
-						name="name"
-						placeholder="Ej.: Basket Planner Club"
-						class="w-full"
-					/>
-				</div>
+    <div
+      class="bg-[#020617] rounded-lg p-6 border border-[#1f2937] mt-6"
+      style="box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3)"
+    >
+      <div class="grid grid-cols-2 gap-6">
+        <div class="col-span-2">
+          <label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre del club</label>
+          <input
+            pInputText
+            [(ngModel)]="form.name"
+            name="name"
+            placeholder="Ej.: Basket Planner Club"
+            class="w-full"
+          />
+        </div>
 
-				<div>
-					<label class="block text-[#e5e7eb] text-[13px] mb-2">Ciudad</label>
-					<input
-						pInputText
-						[(ngModel)]="form.city"
-						name="city"
-						placeholder="Ej.: Valencia"
-						class="w-full"
-					/>
-				</div>
+        <div>
+          <label class="block text-[#e5e7eb] text-[13px] mb-2">Ciudad</label>
+          <input
+            pInputText
+            [(ngModel)]="form.city"
+            name="city"
+            placeholder="Ej.: Valencia"
+            class="w-full"
+          />
+        </div>
 
-				<div>
-					<label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre corto</label>
-					<input
-						pInputText
-						[(ngModel)]="form.shortName"
-						name="shortName"
-						placeholder="Ej.: BP"
-						class="w-full"
-					/>
-				</div>
-			</div>
+        <div>
+          <label class="block text-[#e5e7eb] text-[13px] mb-2">Nombre corto</label>
+          <input
+            pInputText
+            [(ngModel)]="form.shortName"
+            name="shortName"
+            placeholder="Ej.: BP"
+            class="w-full"
+          />
+        </div>
+      </div>
 
-			<div class="mt-6 flex justify-end gap-2">
-				<p-button
-					label="Cancelar"
-					severity="secondary"
-					[outlined]="true"
-					[disabled]="saving"
-					(click)="cancel()"
-					styleClass="bp-btn bp-btn-secondary"
-				></p-button>
-				<p-button
-					label="Guardar"
-					(click)="save()"
-					[disabled]="saving || !form.name.trim()"
-					styleClass="bp-btn bp-btn-primary"
-				></p-button>
-			</div>
-		</div>
-	</div>
+      <div class="mt-6 flex justify-end gap-2">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="saving"
+          (click)="cancel()"
+          styleClass="bp-btn bp-btn-secondary"
+        ></p-button>
+        <p-button
+          label="Guardar"
+          (click)="save()"
+          [disabled]="saving || !form.name.trim()"
+          styleClass="bp-btn bp-btn-primary"
+        ></p-button>
+      </div>
+    </div>
+  </div>
 </app-shell>

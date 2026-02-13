@@ -1,0 +1,4289 @@
+openapi: 3.1.0
+info:
+  title: Basket Planner API
+  description: |
+    API REST para el sistema de planificación de entrenamientos de baloncesto.
+
+    ## Autenticación
+    La API utiliza autenticación basada en JWT (Bearer Token). Para acceder a los endpoints protegidos,
+    incluye el token en el header `Authorization: Bearer <token>`.
+
+    ## Roles del sistema
+    - **admin**: Acceso completo a todas las funcionalidades
+    - **technical_director**: Gestión de su club y equipos
+    - **coach**: Gestión de sus equipos y entrenamientos
+    - **player**: Acceso a sus planificaciones y feedback
+    - **user**: Usuario base sin rol específico
+
+    ## Sistema de recomendación
+    El sistema utiliza un modelo TensorFlow TFRS (Two-Tower) para recomendar ejercicios
+    personalizados según objetivos, intensidad y equipamiento disponible.
+  version: 1.0.0
+  contact:
+    name: Basket Planner Team
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3000/api
+    description: Servidor de desarrollo
+  - url: https://api.basket-planner.com/api
+    description: Servidor de producción
+
+tags:
+  - name: Auth
+    description: Autenticación y gestión de sesión
+  - name: Users
+    description: Gestión de usuarios del sistema
+  - name: Clubs
+    description: Gestión de clubes deportivos
+  - name: Teams
+    description: Gestión de equipos y sus jugadores
+  - name: Players
+    description: Gestión específica de jugadores
+  - name: Exercises
+    description: Catálogo de ejercicios de entrenamiento
+  - name: Equipment
+    description: Gestión de material deportivo
+  - name: Training Plans
+    description: Planes de entrenamiento (incluye generación automática con IA)
+  - name: Training Plan Versions
+    description: Versionado de planes de entrenamiento
+  - name: Plan Assignments
+    description: Asignaciones de planes a usuarios
+  - name: Feedbacks
+    description: Valoraciones y comentarios sobre entrenamientos
+  - name: Metrics
+    description: Métricas del sistema
+  - name: Audit Logs
+    description: Registros de auditoría
+  - name: Monitoring
+    description: Monitorización y KPIs del sistema
+  - name: Recommender
+    description: Sistema de recomendación (modelo ML)
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtenido en el login
+
+  schemas:
+    # ==================== ERROR SCHEMAS ====================
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              examples: VALIDATION_ERROR
+            message:
+              type: string
+              examples: Validation failed
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  path:
+                    type: string
+                  message:
+                    type: string
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              examples: VALIDATION_ERROR
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+
+    # ==================== AUTH SCHEMAS ====================
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          examples: admin@examples.com
+        password:
+          type: string
+          minLength: 6
+          maxLength: 128
+          examples: password123
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT token para autenticación
+        tokenType:
+          type: string
+          examples: Bearer
+        expiresIn:
+          type: string
+          examples: 24h
+        user:
+          $ref: '#/components/schemas/UserBasic'
+
+    # ==================== USER SCHEMAS ====================
+    UserBasic:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, technical_director, coach, player, user]
+        status:
+          type: string
+          enum: [active, inactive]
+
+    User:
+      allOf:
+        - $ref: '#/components/schemas/UserBasic'
+        - type: object
+          properties:
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - name
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        password:
+          type: string
+          minLength: 6
+          maxLength: 128
+        role:
+          type: string
+          enum: [admin, technical_director, coach, player, user]
+          default: user
+        status:
+          type: string
+          enum: [active, inactive]
+
+    UpdateUserRequest:
+      type: object
+      minProperties: 1
+      properties:
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        password:
+          type: string
+          minLength: 6
+          maxLength: 128
+        role:
+          type: string
+          enum: [admin, technical_director, coach, player, user]
+        status:
+          type: string
+          enum: [active, inactive]
+
+    AssignUsersToClubRequest:
+      type: object
+      required:
+        - userIds
+        - clubId
+      properties:
+        userIds:
+          type: array
+          items:
+            type: integer
+          minItems: 1
+        clubId:
+          type: integer
+
+    # ==================== CLUB SCHEMAS ====================
+    Club:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        city:
+          type: string
+          nullable: true
+        country:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [active, inactive]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateClubRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+        city:
+          type: string
+          maxLength: 120
+          nullable: true
+        country:
+          type: string
+          maxLength: 120
+          nullable: true
+        status:
+          type: string
+          enum: [active, inactive]
+
+    UpdateClubRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+        city:
+          type: string
+          maxLength: 120
+          nullable: true
+        country:
+          type: string
+          maxLength: 120
+          nullable: true
+        status:
+          type: string
+          enum: [active, inactive]
+
+    # ==================== TEAM SCHEMAS ====================
+    Team:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+          nullable: true
+        clubId:
+          type: integer
+        coachId:
+          type: integer
+          nullable: true
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateTeamRequest:
+      type: object
+      required:
+        - name
+        - clubId
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        category:
+          type: string
+          maxLength: 60
+          nullable: true
+        clubId:
+          type: integer
+        coachId:
+          type: integer
+          nullable: true
+        active:
+          type: boolean
+
+    UpdateTeamRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        category:
+          type: string
+          maxLength: 60
+        clubId:
+          type: integer
+        coachId:
+          type: integer
+          nullable: true
+        active:
+          type: boolean
+
+    AddTeamPlayerRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: integer
+
+    AddTeamPlayersBulkRequest:
+      type: object
+      required:
+        - userIds
+      properties:
+        userIds:
+          type: array
+          items:
+            type: integer
+          minItems: 1
+
+    # ==================== PLAYER SCHEMAS ====================
+    Player:
+      type: object
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        status:
+          type: string
+        position:
+          type: string
+          nullable: true
+        category:
+          type: string
+          nullable: true
+        height:
+          type: number
+          nullable: true
+        dateOfBirth:
+          type: string
+          format: date
+          nullable: true
+
+    EnrollPlayerRequest:
+      type: object
+      required:
+        - userId
+      properties:
+        userId:
+          type: integer
+        clubId:
+          type: integer
+          description: Si se omite, se usa el club del coach
+        startDate:
+          type: string
+          format: date
+
+    UpdatePlayerProfileRequest:
+      type: object
+      minProperties: 1
+      properties:
+        firstName:
+          type: string
+          maxLength: 100
+        lastName:
+          type: string
+          maxLength: 100
+        status:
+          type: string
+          enum: [active, inactive]
+        position:
+          type: string
+          maxLength: 50
+          nullable: true
+        category:
+          type: string
+          maxLength: 50
+          nullable: true
+        maxCategory:
+          type: string
+          maxLength: 50
+          nullable: true
+        height:
+          type: number
+          minimum: 0
+          maximum: 300
+          nullable: true
+        dateOfBirth:
+          type: string
+          format: date
+          nullable: true
+
+    TransferPlayerRequest:
+      type: object
+      required:
+        - clubId
+      properties:
+        clubId:
+          type: integer
+        startDate:
+          type: string
+          format: date
+        closePreviousAt:
+          type: string
+          format: date
+        makePrimary:
+          type: boolean
+          default: true
+
+    # ==================== EXERCISE SCHEMAS ====================
+    ExerciseDifficulty:
+      type: object
+      required:
+        - tactica
+        - tecnica
+        - fisica
+        - mental
+      properties:
+        tactica:
+          type: integer
+          minimum: 1
+          maximum: 5
+        tecnica:
+          type: integer
+          minimum: 1
+          maximum: 5
+        fisica:
+          type: integer
+          minimum: 1
+          maximum: 5
+        mental:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    Exercise:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        type:
+          type: string
+          enum: [tecnico, tactico, fisico, tiro, defensa, ataque]
+        difficulty:
+          $ref: '#/components/schemas/ExerciseDifficulty'
+        duration:
+          type: integer
+          description: Duración en minutos
+        description:
+          type: string
+          nullable: true
+        tags:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: object
+              properties:
+                tipo_original:
+                  type: string
+                tags:
+                  type: array
+                  items:
+                    type: string
+                materiales:
+                  type: array
+                  items:
+                    type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateExerciseRequest:
+      type: object
+      required:
+        - name
+        - type
+        - difficulty
+        - duration
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 200
+        type:
+          type: string
+          enum: [tecnico, tactico, fisico, tiro, defensa, ataque]
+        difficulty:
+          $ref: '#/components/schemas/ExerciseDifficulty'
+        duration:
+          type: integer
+          minimum: 1
+        description:
+          type: string
+          nullable: true
+        tags:
+          oneOf:
+            - type: array
+              items:
+                type: string
+                maxLength: 40
+            - type: object
+        active:
+          type: boolean
+
+    UpdateExerciseRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 200
+        type:
+          type: string
+          enum: [tecnico, tactico, fisico, tiro, defensa, ataque]
+        difficulty:
+          $ref: '#/components/schemas/ExerciseDifficulty'
+        duration:
+          type: integer
+          minimum: 1
+        description:
+          type: string
+          nullable: true
+        tags:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: object
+        active:
+          type: boolean
+
+    # ==================== EQUIPMENT SCHEMAS ====================
+    Equipment:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        clubId:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [available, unavailable, maintenance]
+        characteristics:
+          type: object
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateEquipmentRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        clubId:
+          type: integer
+        status:
+          type: string
+          enum: [available, unavailable, maintenance]
+        characteristics:
+          type: object
+
+    UpdateEquipmentRequest:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        clubId:
+          type: integer
+        status:
+          type: string
+          enum: [available, unavailable, maintenance]
+        characteristics:
+          type: object
+
+    # ==================== TRAINING PLAN SCHEMAS ====================
+    TrainingPlan:
+      type: object
+      properties:
+        id:
+          type: integer
+        createdById:
+          type: integer
+        targetType:
+          type: string
+          enum: [team, user]
+        name:
+          type: string
+        goal:
+          type: string
+          nullable: true
+        type:
+          type: string
+          nullable: true
+        intensity:
+          type: string
+          nullable: true
+        duration:
+          type: integer
+          nullable: true
+        status:
+          type: string
+          enum: [draft, active, archived]
+        activeVersionId:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateTrainingPlanRequest:
+      type: object
+      required:
+        - createdById
+        - targetType
+        - name
+      properties:
+        createdById:
+          type: integer
+        targetType:
+          type: string
+          enum: [team, user]
+        name:
+          type: string
+          minLength: 2
+          maxLength: 200
+        goal:
+          type: string
+          nullable: true
+        type:
+          type: string
+          maxLength: 60
+        intensity:
+          type: string
+          maxLength: 60
+        duration:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum: [draft, active, archived]
+
+    UpdateTrainingPlanRequest:
+      type: object
+      minProperties: 1
+      properties:
+        targetType:
+          type: string
+          enum: [team, user]
+        name:
+          type: string
+          minLength: 2
+          maxLength: 200
+        goal:
+          type: string
+          nullable: true
+        type:
+          type: string
+          maxLength: 60
+        intensity:
+          type: string
+          maxLength: 60
+        duration:
+          type: integer
+          minimum: 1
+        status:
+          type: string
+          enum: [draft, active, archived]
+
+    # ==================== TRAINING PLAN VERSION SCHEMAS ====================
+    TrainingPlanVersion:
+      type: object
+      properties:
+        id:
+          type: integer
+        trainingPlanId:
+          type: integer
+        versionNumber:
+          type: integer
+        source:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date-time
+        comments:
+          type: string
+          nullable: true
+        sessions:
+          type: object
+          description: Estructura JSON con las sesiones del plan
+        createdFrom:
+          type: object
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateTrainingPlanVersionRequest:
+      type: object
+      required:
+        - versionNumber
+        - date
+      properties:
+        versionNumber:
+          type: integer
+          minimum: 1
+        source:
+          type: string
+          maxLength: 100
+        date:
+          type: string
+          format: date-time
+        comments:
+          type: string
+          nullable: true
+        sessions:
+          type: object
+        createdFrom:
+          type: object
+
+    UpdateTrainingPlanVersionRequest:
+      type: object
+      minProperties: 1
+      properties:
+        source:
+          type: string
+          maxLength: 100
+        date:
+          type: string
+          format: date-time
+        comments:
+          type: string
+          nullable: true
+        sessions:
+          type: object
+        createdFrom:
+          type: object
+
+    RestoreTrainingPlanVersionRequest:
+      type: object
+      properties:
+        comments:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date-time
+        source:
+          type: string
+          enum: [manual, automatic]
+          default: manual
+        createdFrom:
+          type: object
+
+    # ==================== PLAN ASSIGNMENT SCHEMAS ====================
+    PlanAssignment:
+      type: object
+      properties:
+        id:
+          type: integer
+        trainingPlanId:
+          type: integer
+        userId:
+          type: integer
+        assignedById:
+          type: integer
+        assignedAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [assigned, in_progress, completed, cancelled]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreatePlanAssignmentRequest:
+      type: object
+      required:
+        - trainingPlanId
+        - userId
+        - assignedById
+      properties:
+        trainingPlanId:
+          type: integer
+        userId:
+          type: integer
+        assignedById:
+          type: integer
+        assignedAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [assigned, in_progress, completed, cancelled]
+
+    UpdatePlanAssignmentRequest:
+      type: object
+      minProperties: 1
+      properties:
+        assignedById:
+          type: integer
+        assignedAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [assigned, in_progress, completed, cancelled]
+
+    # ==================== PLANNING GENERATION SCHEMAS ====================
+    IndividualGenerateRequest:
+      type: object
+      required:
+        - profile
+      properties:
+        profile:
+          type: object
+          required:
+            - playerId
+          properties:
+            playerId:
+              type: integer
+              description: ID del jugador para el que se genera el plan
+            position:
+              type: string
+              enum: [base, escolta, alero, ala-pivot, pivot]
+            numberOfSessions:
+              type: integer
+              minimum: 1
+              maximum: 7
+              default: 3
+              description: Número de sesiones a generar
+            sessionDurationMinutes:
+              type: integer
+              minimum: 15
+              maximum: 240
+              default: 75
+              description: Duración de cada sesión en minutos
+            intensity:
+              type: string
+              enum: [low, medium, high]
+              default: medium
+        goals:
+          type: array
+          items:
+            type: string
+            minLength: 2
+            maxLength: 64
+          maxItems: 20
+          default: []
+          description: Objetivos del entrenamiento (ej. tiro, defensa, pase)
+        constraints:
+          type: object
+          properties:
+            equipment:
+              type: array
+              items:
+                type: string
+              maxItems: 20
+              description: Equipamiento disponible para filtrar ejercicios
+
+    GroupGenerateRequest:
+      type: object
+      required:
+        - group
+        - profiles
+      properties:
+        group:
+          type: object
+          properties:
+            groupId:
+              type: integer
+            name:
+              type: string
+              minLength: 2
+              maxLength: 64
+            numberOfSessions:
+              type: integer
+              minimum: 1
+              maximum: 7
+              default: 3
+            sessionDurationMinutes:
+              type: integer
+              minimum: 15
+              maximum: 240
+              default: 90
+            intensity:
+              type: string
+              enum: [low, medium, high]
+              default: medium
+        profiles:
+          type: array
+          items:
+            type: object
+            required:
+              - playerId
+            properties:
+              playerId:
+                type: integer
+              position:
+                type: string
+                enum: [base, escolta, alero, ala-pivot, pivot]
+          minItems: 2
+          maxItems: 30
+        goals:
+          type: array
+          items:
+            type: string
+          maxItems: 20
+          default: []
+        constraints:
+          type: object
+          properties:
+            equipment:
+              type: array
+              items:
+                type: string
+              maxItems: 20
+
+    GeneratedPlan:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID del plan de entrenamiento creado
+        sessions:
+          type: array
+          items:
+            type: object
+            properties:
+              sessionNumber:
+                type: integer
+              totalDuration:
+                type: integer
+              exercises:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exercise'
+        partialGeneration:
+          type: boolean
+          description: Indica si la generación fue parcial por timeout
+        wasAborted:
+          type: boolean
+          description: Indica si la generación fue abortada
+        requestedSessions:
+          type: integer
+          description: Número de sesiones solicitadas originalmente
+
+    # ==================== FEEDBACK SCHEMAS ====================
+    FeedbackRating:
+      type: object
+      minProperties: 1
+      properties:
+        physicalEffort:
+          type: integer
+          minimum: 1
+          maximum: 10
+        technicalEffort:
+          type: integer
+          minimum: 1
+          maximum: 10
+        mentalEffort:
+          type: integer
+          minimum: 1
+          maximum: 10
+        overall:
+          type: integer
+          minimum: 1
+          maximum: 10
+        rpe:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: Rate of Perceived Exertion
+        fatigue:
+          type: integer
+          minimum: 1
+          maximum: 10
+        pain:
+          type: integer
+          minimum: 0
+          maximum: 10
+        sleep:
+          type: integer
+          minimum: 1
+          maximum: 5
+        stress:
+          type: integer
+          minimum: 1
+          maximum: 5
+        mood:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    Feedback:
+      type: object
+      properties:
+        id:
+          type: integer
+        trainingPlanVersionId:
+          type: integer
+        userId:
+          type: integer
+        targetType:
+          type: string
+          enum: [version, session]
+        sessionId:
+          type: string
+          nullable: true
+        rating:
+          $ref: '#/components/schemas/FeedbackRating'
+        comments:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateFeedbackRequest:
+      type: object
+      required:
+        - trainingPlanVersionId
+        - rating
+      properties:
+        trainingPlanVersionId:
+          type: integer
+        targetType:
+          type: string
+          enum: [version, session]
+          default: version
+        sessionId:
+          type: string
+          description: Requerido si targetType es 'session'
+        rating:
+          $ref: '#/components/schemas/FeedbackRating'
+        comments:
+          type: string
+          nullable: true
+
+    UpdateFeedbackRequest:
+      type: object
+      minProperties: 1
+      properties:
+        rating:
+          $ref: '#/components/schemas/FeedbackRating'
+        comments:
+          type: string
+          nullable: true
+
+    FeedbackStats:
+      type: object
+      properties:
+        totalFeedbacks:
+          type: integer
+        averageRatings:
+          type: object
+        feedbacksBySession:
+          type: array
+          items:
+            type: object
+
+    # ==================== METRIC SCHEMAS ====================
+    Metric:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        value:
+          type: number
+        metadata:
+          type: object
+        recordedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateMetricRequest:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        value:
+          type: number
+        metadata:
+          type: object
+        recordedAt:
+          type: string
+          format: date-time
+
+    # ==================== AUDIT LOG SCHEMAS ====================
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+          nullable: true
+        action:
+          type: string
+        entity:
+          type: string
+        entityId:
+          type: integer
+          nullable: true
+        metadata:
+          type: object
+        requestId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    # ==================== MONITORING SCHEMAS ====================
+    SystemStatus:
+      type: object
+      properties:
+        modelStatus:
+          type: string
+          enum: [loaded, not_loaded, error]
+        totalPlans:
+          type: integer
+        totalExercises:
+          type: integer
+        queryLatencyMs:
+          type: integer
+
+    KPIs:
+      type: object
+      properties:
+        totalActions:
+          type: integer
+        actionsPerDay:
+          type: number
+        errorRatePct:
+          type: number
+
+    # ==================== RECOMMENDER SCHEMAS ====================
+    RecommenderStatus:
+      type: object
+      properties:
+        activeVersion:
+          type: string
+        modelType:
+          type: string
+        isLoaded:
+          type: boolean
+        metrics:
+          type: object
+          properties:
+            accuracy:
+              type: number
+            coverage:
+              type: number
+            latencyMs:
+              type: number
+
+    # ==================== USER CLUB SCHEMAS ====================
+    UserClub:
+      type: object
+      properties:
+        id:
+          type: integer
+        userId:
+          type: integer
+        clubId:
+          type: integer
+        isPrimary:
+          type: boolean
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateUserClubRequest:
+      type: object
+      required:
+        - userId
+        - clubId
+      properties:
+        userId:
+          type: integer
+        clubId:
+          type: integer
+        isPrimary:
+          type: boolean
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+
+    # ==================== EXERCISE EQUIPMENT SCHEMAS ====================
+    ExerciseEquipment:
+      type: object
+      properties:
+        exerciseId:
+          type: integer
+        equipmentId:
+          type: integer
+        equipment:
+          $ref: '#/components/schemas/Equipment'
+
+    CreateExerciseEquipmentRequest:
+      type: object
+      required:
+        - equipmentId
+      properties:
+        equipmentId:
+          type: integer
+
+  responses:
+    BadRequest:
+      description: Datos de entrada inválidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+          examples:
+            error:
+              code: VALIDATION_ERROR
+              message: "Validation failed"
+              details:
+                - path: "email"
+                  message: "must be a valid email"
+
+    Unauthorized:
+      description: No autenticado - Token JWT inválido o expirado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            error:
+              code: UNAUTHORIZED
+              message: "Token not provided or invalid"
+
+    Forbidden:
+      description: No autorizado - Permisos insuficientes para esta acción
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            error:
+              code: FORBIDDEN
+              message: "You don't have permission to perform this action"
+
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            error:
+              code: NOT_FOUND
+              message: "Resource not found"
+
+    Conflict:
+      description: Conflicto - El recurso ya existe o hay un conflicto de estado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            error:
+              code: CONFLICT
+              message: "Resource already exists"
+
+    TooManyRequests:
+      description: Demasiadas solicitudes - Rate limit excedido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            error:
+              code: TOO_MANY_REQUESTS
+              message: "Too many requests, please try again later"
+
+    InternalError:
+      description: Error interno del servidor
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          examples:
+            error:
+              code: INTERNAL_SERVER_ERROR
+              message: "An unexpected error occurred"
+
+security:
+  - BearerAuth: []
+
+paths:
+  # ==================== HEALTH CHECK ====================
+  /health:
+    get:
+      summary: Health check
+      description: Endpoint para verificar que el servidor está funcionando. No requiere autenticación.
+      tags: [Monitoring]
+      security: []
+      responses:
+        '200':
+          description: Servidor funcionando correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    examples: OK
+
+  # ==================== AUTH ENDPOINTS ====================
+  /auth/login:
+    post:
+      summary: Iniciar sesión
+      description: |
+        Autentica un usuario y devuelve un token JWT.
+
+        **Caso de uso:** CU.001 - Autenticación
+
+        **Rate limit:** 5 intentos por minuto
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Credenciales inválidas o faltantes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examplesss:
+                missing_credentials:
+                  value:
+                    error: MISSING_CREDENTIALS
+                    message: Invalid credentials
+                invalid_credentials:
+                  value:
+                    error: INVALID_CREDENTIALS
+                    message: Invalid credentials
+        '403':
+          description: Usuario inactivo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                error: USER_NOT_ACTIVE
+                message: User account is not active
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
+  /auth/me:
+    get:
+      summary: Obtener usuario actual
+      description: |
+        Devuelve la información del usuario autenticado.
+
+        **Usado en:** Header de la aplicación, perfil de usuario
+      tags: [Auth]
+      responses:
+        '200':
+          description: Datos del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                error: USER_NOT_FOUND
+                message: User not found
+
+  # ==================== USER ENDPOINTS ====================
+  /users:
+    get:
+      summary: Listar usuarios
+      description: |
+        Lista todos los usuarios del sistema con filtros opcionales.
+
+        **Caso de uso:** CU.002 - Listado de usuarios
+
+        **Roles permitidos:** admin, technical_director
+
+        **Usado en:** Panel de administración de usuarios
+      tags: [Users]
+      parameters:
+        - name: email
+          in: query
+          schema:
+            type: string
+          description: Filtrar por email (búsqueda parcial)
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Búsqueda en email, firstName, lastName
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [admin, technical_director, coach, player, user]
+          description: Filtrar por rol
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, inactive]
+          description: Filtrar por estado
+      responses:
+        '200':
+          description: Lista de usuarios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Crear usuario
+      description: |
+        Crea un nuevo usuario en el sistema.
+
+        **Caso de uso:** CU.002 - Registro de usuarios
+
+        **Roles permitidos:** admin
+
+        **Usado en:** Panel de administración
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: Usuario creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Email ya registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/assign-to-club:
+    post:
+      summary: Asignar usuarios a un club
+      description: |
+        Asigna múltiples usuarios a un club, convirtiéndolos en jugadores.
+
+        **Roles permitidos:** admin, technical_director
+
+        **Usado en:** Gestión de plantillas de club
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignUsersToClubRequest'
+      responses:
+        '200':
+          description: Usuarios asignados correctamente
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /users/{id}:
+    get:
+      summary: Obtener usuario por ID
+      description: |
+        Obtiene los detalles de un usuario específico.
+
+        **Caso de uso:** CU.003 - Ver usuario
+
+        **Roles permitidos:** admin, technical_director, o el propio usuario
+      tags: [Users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Actualizar usuario
+      description: |
+        Actualiza los datos de un usuario.
+
+        **Caso de uso:** CU.003 - Edición de usuarios
+
+        **Roles permitidos:** admin, o el propio usuario
+      tags: [Users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Usuario actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Eliminar usuario
+      description: |
+        Elimina un usuario del sistema.
+
+        **Caso de uso:** CU.004 - Eliminación de usuarios
+
+        **Roles permitidos:** admin
+      tags: [Users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Usuario eliminado
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== CLUB ENDPOINTS ====================
+  /clubs:
+    get:
+      summary: Listar clubes
+      description: |
+        Lista todos los clubes del sistema.
+
+        **Caso de uso:** CU.005 - Listado de clubes
+
+        **Roles permitidos:** Todos los usuarios autenticados
+
+        **Usado en:** Selector de club, panel de administración
+      tags: [Clubs]
+      responses:
+        '200':
+          description: Lista de clubes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Club'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Crear club
+      description: |
+        Crea un nuevo club.
+
+        **Caso de uso:** CU.005 - Creación de clubes
+
+        **Roles permitidos:** admin
+      tags: [Clubs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateClubRequest'
+      responses:
+        '201':
+          description: Club creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Club'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /clubs/{id}:
+    get:
+      summary: Obtener club por ID
+      description: |
+        Obtiene los detalles de un club específico.
+
+        **Roles permitidos:** Todos los usuarios autenticados
+      tags: [Clubs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos del club
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Club'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Actualizar club
+      description: |
+        Actualiza los datos de un club.
+
+        **Caso de uso:** CU.006 - Edición de clubes
+
+        **Roles permitidos:** admin (global), technical_director (solo su club)
+      tags: [Clubs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateClubRequest'
+      responses:
+        '200':
+          description: Club actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Club'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Eliminar club
+      description: |
+        Elimina un club del sistema.
+
+        **Caso de uso:** CU.007 - Eliminación de clubes
+
+        **Roles permitidos:** admin
+      tags: [Clubs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Club eliminado
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== TEAM ENDPOINTS ====================
+  /teams:
+    get:
+      summary: Listar equipos
+      description: |
+        Lista todos los equipos con filtros opcionales.
+
+        **Caso de uso:** CU.008/009 - Listado de equipos
+
+        **Roles permitidos:** Todos los usuarios autenticados
+
+        **Usado en:** Selector de equipo, panel de gestión
+      tags: [Teams]
+      parameters:
+        - name: clubId
+          in: query
+          schema:
+            type: string
+          description: Filtrar por club
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: Filtrar por categoría
+      responses:
+        '200':
+          description: Lista de equipos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Team'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Crear equipo
+      description: |
+        Crea un nuevo equipo.
+
+        **Caso de uso:** CU.008 - Creación de equipos
+
+        **Roles permitidos:** admin, technical_director (su club), coach (su club)
+      tags: [Teams]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTeamRequest'
+      responses:
+        '201':
+          description: Equipo creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /teams/{id}:
+    get:
+      summary: Obtener equipo por ID
+      description: |
+        Obtiene los detalles de un equipo específico.
+
+        **Roles permitidos:** Todos los usuarios autenticados
+      tags: [Teams]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos del equipo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Actualizar equipo
+      description: |
+        Actualiza los datos de un equipo.
+
+        **Caso de uso:** CU.009 - Edición de equipos
+
+        **Roles permitidos:** admin, technical_director (su club), coach (sus equipos)
+      tags: [Teams]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTeamRequest'
+      responses:
+        '200':
+          description: Equipo actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Eliminar equipo
+      description: |
+        Elimina un equipo del sistema.
+
+        **Caso de uso:** CU.010 - Eliminación de equipos
+
+        **Roles permitidos:** admin
+      tags: [Teams]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Equipo eliminado
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /teams/{id}/players:
+    get:
+      summary: Listar jugadores del equipo
+      description: |
+        Lista los jugadores asignados a un equipo.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Teams]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de jugadores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Player'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    post:
+      summary: Añadir jugador al equipo
+      description: |
+        Añade un jugador a un equipo.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Teams]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTeamPlayerRequest'
+      responses:
+        '201':
+          description: Jugador añadido
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /teams/{id}/players/bulk:
+    post:
+      summary: Añadir múltiples jugadores al equipo
+      description: |
+        Añade varios jugadores a un equipo de una vez.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Teams]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTeamPlayersBulkRequest'
+      responses:
+        '201':
+          description: Jugadores añadidos
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /teams/{id}/players/{userId}:
+    delete:
+      summary: Eliminar jugador del equipo
+      description: |
+        Elimina un jugador de un equipo.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Teams]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Jugador eliminado del equipo
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== PLAYER ENDPOINTS ====================
+  /players:
+    get:
+      summary: Listar jugadores
+      description: |
+        Lista todos los jugadores (usuarios con rol player) con filtros opcionales.
+
+        **Caso de uso:** CU.011 - Listado de jugadores
+
+        **Roles permitidos:** admin, technical_director, coach
+
+        **Usado en:** Selector de jugadores, gestión de plantilla
+      tags: [Players]
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Búsqueda por nombre
+        - name: clubId
+          in: query
+          schema:
+            type: integer
+          description: Filtrar por club
+        - name: teamId
+          in: query
+          schema:
+            type: integer
+          description: Filtrar por equipo
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+          description: Límite de resultados
+      responses:
+        '200':
+          description: Lista de jugadores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Player'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /players/enroll:
+    post:
+      summary: Registrar jugador
+      description: |
+        Convierte un usuario existente (role=null) en jugador y lo asigna a un club.
+
+        **Caso de uso:** CU.011 - Registro de jugadores
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Players]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnrollPlayerRequest'
+      responses:
+        '201':
+          description: Jugador registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          description: Usuario ya es jugador
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /players/{id}:
+    put:
+      summary: Actualizar perfil de jugador
+      description: |
+        Actualiza el perfil deportivo de un jugador.
+
+        **Caso de uso:** CU.012 - Edición de perfil jugador
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Players]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlayerProfileRequest'
+      responses:
+        '200':
+          description: Perfil actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Player'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /players/{id}/history:
+    get:
+      summary: Historial del jugador
+      description: |
+        Obtiene el historial de un jugador (clubes, equipos, entrenamientos).
+
+        **Caso de uso:** CU.015 - Historial de jugador
+
+        **Roles permitidos:** admin, technical_director, coach, player (propio)
+      tags: [Players]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Historial del jugador
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /players/{id}/transfer:
+    post:
+      summary: Transferir jugador
+      description: |
+        Transfiere un jugador a otro club.
+
+        **Caso de uso:** CU.014 - Transferir jugador
+
+        **Roles permitidos:** admin, technical_director (su club), coach (su club)
+      tags: [Players]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferPlayerRequest'
+      responses:
+        '200':
+          description: Transferencia realizada
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== EXERCISE ENDPOINTS ====================
+  /exercises:
+    get:
+      summary: Listar ejercicios
+      description: |
+        Lista el catálogo completo de ejercicios.
+
+        **Caso de uso:** CU.016 - Catálogo de ejercicios
+
+        **Roles permitidos:** Todos los usuarios autenticados (incluido player)
+
+        **Usado en:** Catálogo de ejercicios, selector en planificaciones
+      tags: [Exercises]
+      responses:
+        '200':
+          description: Lista de ejercicios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exercise'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Crear ejercicio
+      description: |
+        Crea un nuevo ejercicio en el catálogo.
+
+        **Caso de uso:** CU.017 - Registro de ejercicios
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Exercises]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExerciseRequest'
+      responses:
+        '201':
+          description: Ejercicio creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /exercises/tags/popular:
+    get:
+      summary: Obtener etiquetas populares
+      description: |
+        Devuelve las etiquetas más usadas en los ejercicios.
+
+        **Usado en:** Filtros del catálogo, selector de objetivos
+      tags: [Exercises]
+      responses:
+        '200':
+          description: Lista de etiquetas populares
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    tag:
+                      type: string
+                    count:
+                      type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /exercises/{id}:
+    get:
+      summary: Obtener ejercicio por ID
+      description: |
+        Obtiene los detalles de un ejercicio específico.
+
+        **Roles permitidos:** Todos los usuarios autenticados
+      tags: [Exercises]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos del ejercicio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Actualizar ejercicio
+      description: |
+        Actualiza un ejercicio existente.
+
+        **Caso de uso:** CU.018 - Edición de ejercicios
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Exercises]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExerciseRequest'
+      responses:
+        '200':
+          description: Ejercicio actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Exercise'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Eliminar ejercicio
+      description: |
+        Elimina un ejercicio del catálogo.
+
+        **Caso de uso:** CU.019 - Eliminación de ejercicios
+
+        **Roles permitidos:** admin
+      tags: [Exercises]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Ejercicio eliminado
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== EQUIPMENT ENDPOINTS ====================
+  /equipment:
+    get:
+      summary: Listar material
+      description: |
+        Lista todo el material deportivo disponible.
+
+        **Caso de uso:** CU.020 - Listado de material
+
+        **Roles permitidos:** Todos los usuarios autenticados
+
+        **Usado en:** Selector de equipamiento en planificaciones
+      tags: [Equipment]
+      responses:
+        '200':
+          description: Lista de material
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Equipment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Crear material
+      description: |
+        Registra nuevo material deportivo.
+
+        **Caso de uso:** CU.020 - Registro de material
+
+        **Roles permitidos:** admin, technical_director (su club), coach (su club)
+      tags: [Equipment]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEquipmentRequest'
+      responses:
+        '201':
+          description: Material creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /equipment/{id}:
+    get:
+      summary: Obtener material por ID
+      tags: [Equipment]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos del material
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Actualizar material
+      description: |
+        Actualiza material existente.
+
+        **Caso de uso:** CU.021 - Edición de material
+
+        **Roles permitidos:** admin, technical_director (su club), coach (su club)
+      tags: [Equipment]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEquipmentRequest'
+      responses:
+        '200':
+          description: Material actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Equipment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Eliminar material
+      description: |
+        Elimina material del sistema.
+
+        **Caso de uso:** CU.022 - Eliminación de material
+
+        **Roles permitidos:** admin
+      tags: [Equipment]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Material eliminado
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== EXERCISE EQUIPMENT ENDPOINTS ====================
+  /exercises/{exerciseId}/equipment:
+    get:
+      summary: Listar equipamiento de ejercicio
+      description: |
+        Lista el equipamiento asociado a un ejercicio.
+      tags: [Exercises]
+      parameters:
+        - name: exerciseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de equipamiento
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExerciseEquipment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Asociar equipamiento a ejercicio
+      description: |
+        Asocia un material a un ejercicio.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Exercises]
+      parameters:
+        - name: exerciseId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExerciseEquipmentRequest'
+      responses:
+        '201':
+          description: Asociación creada
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /exercises/{exerciseId}/equipment/{equipmentId}:
+    delete:
+      summary: Eliminar asociación de equipamiento
+      description: |
+        Elimina la asociación de un material con un ejercicio.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Exercises]
+      parameters:
+        - name: exerciseId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: equipmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Asociación eliminada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== TRAINING PLAN ENDPOINTS ====================
+  /training-plans:
+    get:
+      summary: Listar planes de entrenamiento
+      description: |
+        Lista todos los planes de entrenamiento.
+
+        **Caso de uso:** CU.023/024/027 - Listado de planes
+
+        **Roles permitidos:** Todos los usuarios autenticados
+
+        **Usado en:** Panel de planificaciones
+      tags: [Training Plans]
+      responses:
+        '200':
+          description: Lista de planes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrainingPlan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Crear plan de entrenamiento
+      description: |
+        Crea un nuevo plan de entrenamiento manualmente.
+
+        **Caso de uso:** CU.023/024 - Creación de planes
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Training Plans]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrainingPlanRequest'
+      responses:
+        '201':
+          description: Plan creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlan'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /training-plans/{id}:
+    get:
+      summary: Obtener plan por ID
+      tags: [Training Plans]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos del plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlan'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Actualizar plan
+      description: |
+        Actualiza un plan de entrenamiento.
+
+        **Caso de uso:** CU.025 - Edición de planes
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Training Plans]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTrainingPlanRequest'
+      responses:
+        '200':
+          description: Plan actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlan'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Eliminar plan
+      description: |
+        Elimina un plan de entrenamiento.
+
+        **Caso de uso:** CU.026 - Eliminación de planes
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Training Plans]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Plan eliminado
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== TRAINING PLAN VERSION ENDPOINTS ====================
+  /training-plans/{trainingPlanId}/versions:
+    get:
+      summary: Listar versiones de un plan
+      description: |
+        Lista todas las versiones de un plan de entrenamiento.
+
+        **Caso de uso:** CU.027 - Visualización de versiones
+
+        **Roles permitidos:** Todos los usuarios autenticados
+      tags: [Training Plan Versions]
+      parameters:
+        - name: trainingPlanId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de versiones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrainingPlanVersion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Crear versión
+      description: |
+        Crea una nueva versión de un plan de entrenamiento.
+
+        **Caso de uso:** CU.025 - Versionado
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Training Plan Versions]
+      parameters:
+        - name: trainingPlanId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTrainingPlanVersionRequest'
+      responses:
+        '201':
+          description: Versión creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlanVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /training-plans/{trainingPlanId}/versions/paged:
+    get:
+      summary: Listar versiones paginadas
+      description: Lista versiones con paginación.
+      tags: [Training Plan Versions]
+      parameters:
+        - name: trainingPlanId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: Lista paginada de versiones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TrainingPlanVersion'
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /training-plans/{trainingPlanId}/versions/new:
+    post:
+      summary: Crear nueva versión desde la activa
+      description: |
+        Crea una nueva versión copiando la versión activa actual.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Training Plan Versions]
+      parameters:
+        - name: trainingPlanId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '201':
+          description: Nueva versión creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlanVersion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /training-plans/{trainingPlanId}/versions/{id}:
+    get:
+      summary: Obtener versión por ID
+      tags: [Training Plan Versions]
+      parameters:
+        - name: trainingPlanId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos de la versión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlanVersion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Actualizar versión
+      description: |
+        Actualiza una versión existente.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Training Plan Versions]
+      parameters:
+        - name: trainingPlanId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTrainingPlanVersionRequest'
+      responses:
+        '200':
+          description: Versión actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlanVersion'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Eliminar versión
+      description: |
+        Elimina una versión de un plan.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Training Plan Versions]
+      parameters:
+        - name: trainingPlanId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Versión eliminada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /training-plans/{trainingPlanId}/versions/{id}/restore:
+    post:
+      summary: Restaurar versión
+      description: |
+        Restaura una versión anterior creando una nueva versión con su contenido.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Training Plan Versions]
+      parameters:
+        - name: trainingPlanId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RestoreTrainingPlanVersionRequest'
+      responses:
+        '201':
+          description: Versión restaurada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrainingPlanVersion'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /training-plans/{trainingPlanId}/versions/{id}/activate:
+    post:
+      summary: Activar versión
+      description: |
+        Establece una versión como la versión activa del plan.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Training Plan Versions]
+      parameters:
+        - name: trainingPlanId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Versión activada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== PLAN ASSIGNMENT ENDPOINTS ====================
+  /plan-assignments:
+    get:
+      summary: Listar asignaciones
+      description: |
+        Lista todas las asignaciones de planes a usuarios.
+
+        **Caso de uso:** CU.027 - Visualización de asignaciones
+      tags: [Plan Assignments]
+      responses:
+        '200':
+          description: Lista de asignaciones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlanAssignment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Crear asignación
+      description: |
+        Asigna un plan de entrenamiento a un usuario.
+
+        **Caso de uso:** CU.023/024 - Asignación de planes
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Plan Assignments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePlanAssignmentRequest'
+      responses:
+        '201':
+          description: Asignación creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanAssignment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /plan-assignments/user/{userId}:
+    get:
+      summary: Asignaciones de un usuario
+      description: |
+        Lista las asignaciones de planes para un usuario específico.
+
+        **Roles permitidos:** admin, technical_director, coach, o el propio usuario
+
+        **Usado en:** Dashboard del jugador
+      tags: [Plan Assignments]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de asignaciones del usuario
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlanAssignment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /plan-assignments/training-plan/{trainingPlanId}:
+    get:
+      summary: Asignaciones de un plan
+      description: |
+        Lista los usuarios asignados a un plan específico.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Plan Assignments]
+      parameters:
+        - name: trainingPlanId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Lista de asignaciones del plan
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PlanAssignment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /plan-assignments/{id}:
+    get:
+      summary: Obtener asignación por ID
+      tags: [Plan Assignments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos de la asignación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanAssignment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Actualizar asignación
+      description: |
+        Actualiza una asignación existente.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Plan Assignments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePlanAssignmentRequest'
+      responses:
+        '200':
+          description: Asignación actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanAssignment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Eliminar asignación
+      description: |
+        Elimina una asignación de plan.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Plan Assignments]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Asignación eliminada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== TRAINING PLAN GENERATION ENDPOINTS ====================
+  /training-plans/generate/individual:
+    post:
+      summary: Generar plan individual
+      description: |
+        Genera un plan de entrenamiento personalizado para un jugador usando el sistema de recomendación con IA.
+
+        **Caso de uso:** CU.023 - Generación de plan individual
+
+        **Roles permitidos:** admin, technical_director, coach
+
+        **Usado en:** Asistente de nueva planificación
+
+        El sistema utiliza un modelo TensorFlow TFRS (Two-Tower) para seleccionar los ejercicios más adecuados según:
+        - Objetivos del entrenamiento
+        - Intensidad deseada
+        - Equipamiento disponible
+        - Duración de cada sesión
+      tags: [Training Plans]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndividualGenerateRequest'
+            examples:
+              profile:
+                playerId: 5
+                position: base
+                numberOfSessions: 3
+                sessionDurationMinutes: 75
+                intensity: medium
+              goals:
+                - tiro
+                - pase
+              constraints:
+                equipment:
+                  - balón
+                  - conos
+      responses:
+        '201':
+          description: Plan generado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedPlan'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          description: Error en la generación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /training-plans/generate/group:
+    post:
+      summary: Generar plan grupal
+      description: |
+        Genera un plan de entrenamiento para un grupo de jugadores.
+
+        **Caso de uso:** CU.024 - Generación de plan grupal
+
+        **Roles permitidos:** admin, technical_director, coach
+
+        Similar a la generación individual pero optimizado para grupos de 2-30 jugadores.
+      tags: [Training Plans]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GroupGenerateRequest'
+      responses:
+        '201':
+          description: Plan generado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GeneratedPlan'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          description: Error en la generación
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /training-plans/{id}/versions/{versionId}/export:
+    get:
+      summary: Exportar versión
+      description: |
+        Exporta una versión de planificación en formato CSV o PDF.
+
+        **Caso de uso:** CU.027 - Exportar versión
+
+        **Roles permitidos:** admin, technical_director, coach, player (propio)
+      tags: [Training Plans]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [csv, pdf]
+            default: csv
+      responses:
+        '200':
+          description: Archivo exportado
+          content:
+            text/csv:
+              schema:
+                type: string
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== FEEDBACK ENDPOINTS ====================
+  /feedbacks:
+    get:
+      summary: Listar feedbacks
+      description: |
+        Lista todos los feedbacks de entrenamientos.
+      tags: [Feedbacks]
+      responses:
+        '200':
+          description: Lista de feedbacks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Feedback'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Crear feedback
+      description: |
+        Crea un nuevo feedback para una versión de entrenamiento o sesión específica.
+
+        **Caso de uso:** CU.029 - Crear feedback
+
+        **Roles permitidos:** admin, technical_director, coach, player
+
+        **Usado en:** Pantalla de feedback post-entrenamiento
+      tags: [Feedbacks]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFeedbackRequest'
+      responses:
+        '201':
+          description: Feedback creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /feedbacks/{id}:
+    get:
+      summary: Obtener feedback por ID
+      tags: [Feedbacks]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos del feedback
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Actualizar feedback
+      description: |
+        Actualiza un feedback existente.
+
+        **Roles permitidos:** admin, technical_director, coach
+      tags: [Feedbacks]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFeedbackRequest'
+      responses:
+        '200':
+          description: Feedback actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Eliminar feedback
+      description: |
+        Elimina un feedback.
+
+        **Roles permitidos:** admin, technical_director
+      tags: [Feedbacks]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Feedback eliminado
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /feedbacks/version/{versionId}/can-provide:
+    get:
+      summary: Verificar si puede dar feedback
+      description: |
+        Verifica si el usuario actual puede proporcionar feedback para una versión.
+      tags: [Feedbacks]
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Resultado de la verificación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  canProvide:
+                    type: boolean
+                  reason:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /feedbacks/version/{versionId}/stats:
+    get:
+      summary: Estadísticas de feedback de versión
+      description: |
+        Obtiene estadísticas agregadas de feedbacks para una versión.
+      tags: [Feedbacks]
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Estadísticas de feedback
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /feedbacks/version/{versionId}/session/{sessionId}/stats:
+    get:
+      summary: Estadísticas de feedback de sesión
+      description: |
+        Obtiene estadísticas de feedbacks para una sesión específica.
+      tags: [Feedbacks]
+      parameters:
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Estadísticas de sesión
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FeedbackStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ==================== METRICS ENDPOINTS ====================
+  /metrics:
+    get:
+      summary: Listar métricas
+      description: |
+        Lista todas las métricas del sistema.
+
+        **Roles permitidos:** admin, technical_director
+      tags: [Metrics]
+      responses:
+        '200':
+          description: Lista de métricas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Metric'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Crear métrica
+      description: |
+        Registra una nueva métrica.
+
+        **Roles permitidos:** admin, technical_director
+      tags: [Metrics]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMetricRequest'
+      responses:
+        '201':
+          description: Métrica creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metric'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /metrics/{id}:
+    get:
+      summary: Obtener métrica por ID
+      tags: [Metrics]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos de la métrica
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metric'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Actualizar métrica
+      tags: [Metrics]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMetricRequest'
+      responses:
+        '200':
+          description: Métrica actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Metric'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Eliminar métrica
+      tags: [Metrics]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Métrica eliminada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== AUDIT LOG ENDPOINTS ====================
+  /audit-logs:
+    get:
+      summary: Listar registros de auditoría
+      description: |
+        Lista los registros de auditoría del sistema.
+
+        **Roles permitidos:** admin
+
+        **Usado en:** Panel de auditoría
+      tags: [Audit Logs]
+      parameters:
+        - name: action
+          in: query
+          schema:
+            type: string
+          description: Filtrar por acción
+        - name: entity
+          in: query
+          schema:
+            type: string
+          description: Filtrar por entidad
+        - name: userId
+          in: query
+          schema:
+            type: integer
+          description: Filtrar por usuario
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Fecha inicio
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Fecha fin
+      responses:
+        '200':
+          description: Lista de registros
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLog'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    delete:
+      summary: Eliminar todos los registros
+      description: |
+        Elimina todos los registros de auditoría.
+
+        **Roles permitidos:** admin
+
+        **Acción irreversible**
+      tags: [Audit Logs]
+      responses:
+        '204':
+          description: Registros eliminados
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /audit-logs/export.csv:
+    get:
+      summary: Exportar auditoría a CSV
+      description: |
+        Exporta los registros de auditoría en formato CSV.
+
+        **Roles permitidos:** admin
+      tags: [Audit Logs]
+      responses:
+        '200':
+          description: Archivo CSV
+          content:
+            text/csv:
+              schema:
+                type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /audit-logs/{id}:
+    get:
+      summary: Obtener registro por ID
+      tags: [Audit Logs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos del registro
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLog'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== MONITORING ENDPOINTS ====================
+  /monitoring/kpis:
+    post:
+      summary: Obtener KPIs del sistema
+      description: |
+        Obtiene indicadores clave de rendimiento del sistema.
+
+        **Caso de uso:** CU.030 - Monitorización del sistema
+
+        **Roles permitidos:** admin
+
+        **Usado en:** Dashboard de monitorización
+      tags: [Monitoring]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from:
+                  type: string
+                  format: date-time
+                to:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: KPIs del sistema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KPIs'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /monitoring/model-stats:
+    post:
+      summary: Estadísticas del modelo
+      description: |
+        Obtiene estadísticas de uso del modelo de recomendación.
+
+        **Roles permitidos:** admin
+      tags: [Monitoring]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                from:
+                  type: string
+                  format: date-time
+                to:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: Estadísticas del modelo
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /monitoring/system-health:
+    get:
+      summary: Estado de salud del sistema
+      description: |
+        Obtiene el estado de salud general del sistema.
+
+        **Roles permitidos:** admin
+      tags: [Monitoring]
+      responses:
+        '200':
+          description: Estado del sistema
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded, unhealthy]
+                  components:
+                    type: object
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ==================== RECOMMENDER ENDPOINTS ====================
+  /recommender/status:
+    get:
+      summary: Estado del recomendador
+      description: |
+        Obtiene el estado actual del sistema de recomendación.
+
+        **Caso de uso:** CU.028 - Sistema recomendador
+
+        **Roles permitidos:** admin
+      tags: [Recommender]
+      responses:
+        '200':
+          description: Estado del recomendador
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecommenderStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /recommender/versions:
+    get:
+      summary: Listar versiones del modelo
+      description: |
+        Lista las versiones disponibles del modelo de recomendación.
+
+        **Roles permitidos:** admin
+      tags: [Recommender]
+      responses:
+        '200':
+          description: Lista de versiones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    createdAt:
+                      type: string
+                    algorithm:
+                      type: string
+                    isActive:
+                      type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /recommender/train:
+    post:
+      summary: Entrenar modelo
+      description: |
+        Inicia un nuevo entrenamiento del modelo de recomendación.
+
+        **Roles permitidos:** admin
+
+        **Operación de larga duración**
+      tags: [Recommender]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                config:
+                  type: object
+                  description: Configuración de entrenamiento
+      responses:
+        '202':
+          description: Entrenamiento iniciado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                  status:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /recommender/jobs/{jobId}:
+    get:
+      summary: Estado del trabajo de entrenamiento
+      description: |
+        Obtiene el estado de un trabajo de entrenamiento.
+
+        **Roles permitidos:** admin
+      tags: [Recommender]
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Estado del trabajo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [pending, running, completed, failed]
+                  progress:
+                    type: number
+                  error:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== USER CLUBS ENDPOINTS ====================
+  /user-clubs:
+    get:
+      summary: Listar membresías de club
+      description: Lista todas las relaciones usuario-club.
+      tags: [Clubs]
+      responses:
+        '200':
+          description: Lista de membresías
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserClub'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      summary: Crear membresía de club
+      description: |
+        Crea una nueva relación usuario-club.
+
+        **Roles permitidos:** admin, technical_director
+      tags: [Clubs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserClubRequest'
+      responses:
+        '201':
+          description: Membresía creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserClub'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /user-clubs/{id}:
+    get:
+      summary: Obtener membresía por ID
+      tags: [Clubs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Datos de la membresía
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserClub'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Actualizar membresía
+      description: |
+        Actualiza una membresía de club.
+
+        **Roles permitidos:** admin, technical_director
+      tags: [Clubs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserClubRequest'
+      responses:
+        '200':
+          description: Membresía actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserClub'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Eliminar membresía
+      description: |
+        Elimina una membresía de club.
+
+        **Roles permitidos:** admin, technical_director
+      tags: [Clubs]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Membresía eliminada
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'

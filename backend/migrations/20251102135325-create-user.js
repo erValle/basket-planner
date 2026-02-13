@@ -3,7 +3,6 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-
     await queryInterface.sequelize.query(
       "CREATE TYPE enum_users_role AS ENUM ('admin', 'technical_director','coach','player', 'user');"
     );

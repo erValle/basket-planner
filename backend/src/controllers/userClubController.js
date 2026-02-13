@@ -33,7 +33,7 @@ const createUserClub = async (req, res, next) => {
       name: error.name,
       message: error.message,
       errors: error.errors,
-      original: error.original
+      original: error.original,
     });
     return next(error);
   }

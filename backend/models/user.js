@@ -31,10 +31,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'userId',
         as: 'planAssignments',
       });
-      this.hasMany(models.PlanAssignment,{
+      this.hasMany(models.PlanAssignment, {
         foreignKey: 'assignedById',
         as: 'assignedPlanAssignments',
-      })
+      });
     }
   }
 

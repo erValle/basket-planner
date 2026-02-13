@@ -23,7 +23,11 @@ const createForExercise = async (exerciseId, { equipmentId }) => {
 const deleteForExercise = async (exerciseId, equipmentId) => {
   const row = await ExerciseEquipment.findOne({ where: { exerciseId, equipmentId } });
   if (!row) {
-    throw errorUtils.httpError(StatusCodes.NOT_FOUND, 'EXERCISE_EQUIPMENT_NOT_FOUND', 'Relation not found');
+    throw errorUtils.httpError(
+      StatusCodes.NOT_FOUND,
+      'EXERCISE_EQUIPMENT_NOT_FOUND',
+      'Relation not found'
+    );
   }
   await row.destroy();
 };
