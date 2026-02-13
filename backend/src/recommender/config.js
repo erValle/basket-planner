@@ -8,16 +8,12 @@
  */
 
 module.exports = {
-  // ============================================================================
   // IDENTIFICACIÓN DEL MODELO
-  // ============================================================================
   modelVersion: '1.0.0-tfrs',
   description: 'Motor de recomendación con TensorFlow Recommenders y sistema híbrido',
   createdAt: '2026-01-23',
 
-  // ============================================================================
   // ARQUITECTURA DE LA RED NEURONAL
-  // ============================================================================
   architecture: {
     // Dimensión de los embeddings (representación vectorial)
     embeddingDim: 32,
@@ -41,9 +37,7 @@ module.exports = {
     l2Regularization: 0.001,
   },
 
-  // ============================================================================
   // CONFIGURACIÓN DE ENTRENAMIENTO
-  // ============================================================================
   training: {
     // Tasa de aprendizaje
     learningRate: 0.001,
@@ -67,9 +61,7 @@ module.exports = {
     loss: 'meanSquaredError',
   },
 
-  // ============================================================================
   // VALORES POR DEFECTO PARA GENERACIÓN DE PLANIFICACIONES
-  // ============================================================================
   defaults: {
     // Número de ejercicios por sesión si no se especifica
     targetExerciseCount: 12,
@@ -87,9 +79,7 @@ module.exports = {
     position: 'unknown',
   },
 
-  // ============================================================================
   // VOCABULARIOS Y ENCODINGS
-  // ============================================================================
   vocabularies: {
     // Intensidades
     intensities: ['low', 'medium', 'high'],
@@ -152,9 +142,7 @@ module.exports = {
     ],
   },
 
-  // ============================================================================
   // FEATURES DEL CONTEXTO (Usuario/Sesión)
-  // ============================================================================
   contextFeatures: {
     categorical: ['intensity', 'sessionPhase', 'position'],
     numerical: [
@@ -168,9 +156,7 @@ module.exports = {
     goals: 'goals',
   },
 
-  // ============================================================================
   // FEATURES DEL EJERCICIO (Item)
-  // ============================================================================
   exerciseFeatures: {
     categorical: ['type', 'exerciseId'],
     numerical: [
@@ -183,9 +169,7 @@ module.exports = {
     tags: 'tags',
   },
 
-  // ============================================================================
   // PESOS DEL SISTEMA DE SCORING
-  // ============================================================================
   weights: {
     // Peso del modelo neuronal vs reglas heurísticas
     neuralWeight: 0.7,
@@ -202,9 +186,7 @@ module.exports = {
     // Total: 0.30 + 0.20 + 0.15 + 0.20 + 0.10 + 0.05 = 1.0
   },
 
-  // ============================================================================
   // MAPEOS DE OBJETIVOS
-  // ============================================================================
 
   // Mapeo de objetivos a etiquetas relevantes
   goalToTags: {
@@ -380,9 +362,7 @@ module.exports = {
     tarjetas_colores: ['tarjetas', 'cards', 'color_cards'],
   },
 
-  // ============================================================================
   // MAPEO DE OBJETIVOS DEL FRONTEND A GOALS DEL MODELO
-  // ============================================================================
   // Este mapeo convierte los textos de OBJECTIVE_OPTIONS del frontend
   // a los goals reconocidos por el modelo de recomendación.
   // Cada objetivo del frontend puede mapear a uno o varios goals del modelo.
@@ -427,9 +407,7 @@ module.exports = {
     'Lectura del juego': ['tactics', 'tactica'],
   },
 
-  // ============================================================================
   // RUTAS DE MODELO GUARDADO
-  // ============================================================================
   paths: {
     modelDir: './saved_model',
     vocabularyFile: './vocabulary.json',

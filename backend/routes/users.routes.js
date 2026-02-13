@@ -19,7 +19,6 @@ const {
 const { idParamSchema } = require('../src/validation/commonSchemas');
 const { requireAnyRole, requireSelfOrRoles } = require('../src/middlewares/rbac');
 
-// ==================== /users ====================
 // GET  /users - Listado de usuarios - admin y technical_director (para añadir jugadores)
 router.get(
   '/',
@@ -30,7 +29,6 @@ router.get(
 // POST /users - Registro de usuarios - solo admin
 router.post('/', requireAnyRole('admin'), validate({ body: createUserSchema }), createUser);
 
-// ==================== /users/assign-to-club ====================
 // POST /users/assign-to-club - Asignar usuarios a club - admin y technical_director
 router.post(
   '/assign-to-club',
@@ -39,7 +37,6 @@ router.post(
   assignUsersToClub
 );
 
-// ==================== /users/:id ====================
 // GET    /users/:id - Ver usuario - admin o propio
 router.get(
   '/:id',

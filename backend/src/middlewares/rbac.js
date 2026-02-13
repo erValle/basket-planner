@@ -1,6 +1,6 @@
 /**
- * RBAC Middleware System
- * Provides authentication and authorization middlewares
+ * Sistema de Middlewares RBAC
+ * Proporciona middlewares de autenticacion y autorizacion
  */
 
 const { StatusCodes } = require('http-status-codes');
@@ -8,15 +8,9 @@ const { tokenDecode } = require('../libs/jwtHelper');
 const { hasPermission, hasAnyPermission } = require('../auth/permissions');
 const { logAudit } = require('../services/auditService');
 
-// ============================================================================
-// TOKEN EXTRACTION
-// ============================================================================
+// EXTRACCION DE TOKEN
 
-/**
- * Extract JWT token from Authorization header
- * @param {Object} req - Express request
- * @returns {string|null} - Token or null
- */
+
 const getToken = (req) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return null;
@@ -25,14 +19,12 @@ const getToken = (req) => {
   return parts[1];
 };
 
-// ============================================================================
-// AUTHENTICATION MIDDLEWARE
-// ============================================================================
+// MIDDLEWARE DE AUTENTICACION
 
 /**
- * Validates JWT token and attaches user to req.user
- * Returns 401 if no token or invalid token
- * Returns 403 if user is not active
+ * Valida el token JWT y adjunta el usuario a req.user
+ * Devuelve 401 si no hay token o es invalido
+ * Devuelve 403 si el usuario no esta activo
  */
 const requireAuth = (req, res, next) => {
   const token = getToken(req);
@@ -47,7 +39,7 @@ const requireAuth = (req, res, next) => {
   try {
     const decoded = tokenDecode(token);
 
-    // Check if user is active
+    // Verificar si el usuario esta activo
     if (decoded.status && decoded.status !== 'active') {
       return res.status(StatusCodes.FORBIDDEN).json({
         error: 'USER_NOT_ACTIVE',
@@ -55,7 +47,7 @@ const requireAuth = (req, res, next) => {
       });
     }
 
-    // Attach user info to request
+    // Adjuntar informacion del usuario a la peticion
     req.user = {
       id: parseInt(decoded.sub, 10),
       email: decoded.email,
@@ -73,14 +65,12 @@ const requireAuth = (req, res, next) => {
   }
 };
 
-// ============================================================================
-// ROLE-BASED AUTHORIZATION MIDDLEWARES
-// ============================================================================
+// MIDDLEWARES DE AUTORIZACION BASADOS EN ROLES
 
 /**
- * Checks if user has ANY of the specified roles
- * Returns 403 if user doesn't have required role
- * @param {string[]} roles - Array of allowed roles
+ * Comprueba si el usuario tiene ALGUNO de los roles especificados.
+ * Devuelve 403 si el usuario no tiene el rol requerido.
+ * @param {string[]} roles - Array de roles permitidos
  */
 const requireAnyRole =
   (...roles) =>
@@ -100,7 +90,7 @@ const requireAnyRole =
     }
 
     if (!roles.includes(req.user.role)) {
-      // Log unauthorized access attempt
+      // Registrar intento de acceso no autorizado
       logAudit({
         userId: req.user.id,
         action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
@@ -123,15 +113,9 @@ const requireAnyRole =
     next();
   };
 
-// ============================================================================
-// PERMISSION-BASED AUTHORIZATION MIDDLEWARES
-// ============================================================================
+// MIDDLEWARES DE AUTORIZACION BASADOS EN PERMISOS
 
-/**
- * Checks if user has a specific permission
- * Returns 403 if user doesn't have permission
- * @param {string} permission - Required permission
- */
+
 const requirePermission = (permission) => (req, res, next) => {
   if (!req.user) {
     return res.status(StatusCodes.UNAUTHORIZED).json({
@@ -148,7 +132,7 @@ const requirePermission = (permission) => (req, res, next) => {
   }
 
   if (!hasPermission(req.user.role, permission)) {
-    // Log unauthorized access attempt
+    // Registrar intento de acceso no autorizado
     logAudit({
       userId: req.user.id,
       action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
@@ -171,11 +155,6 @@ const requirePermission = (permission) => (req, res, next) => {
   next();
 };
 
-/**
- * Checks if user has ANY of the specified permissions
- * Returns 403 if user doesn't have any permission
- * @param {string[]} permissions - Array of permissions
- */
 const requireAnyPermission =
   (...permissions) =>
   (req, res, next) => {
@@ -194,7 +173,7 @@ const requireAnyPermission =
     }
 
     if (!hasAnyPermission(req.user.role, permissions)) {
-      // Log unauthorized access attempt
+      // Registrar intento de acceso no autorizado
       logAudit({
         userId: req.user.id,
         action: 'UNAUTHORIZED_ACCESS_ATTEMPT',
@@ -217,41 +196,9 @@ const requireAnyPermission =
     next();
   };
 
-// ============================================================================
-// SCOPE-BASED AUTHORIZATION MIDDLEWARES
-// ============================================================================
+// MIDDLEWARES DE AUTORIZACION BASADOS EN AMBITO
 
-/**
- * Validates scope-based access using a custom check function
- * The checkFn should return { allowed: boolean, reason?: string }
- *
- * @param {Function} checkFn - async function(req, res) that validates scope
- *
- * Example usage:
- * requireScope(async (req) => {
- *   const userId = req.user.id;
- *   const resourceId = req.params.id;
- *   const resource = await fetchResource(resourceId);
- *
- *   // Admin has global access
- *   if (req.user.role === 'admin') {
- *     return { allowed: true };
- *   }
- *
- *   // Check if user owns the resource
- *   if (resource.ownerId === userId) {
- *     return { allowed: true };
- *   }
- *
- *   // Check if user is assigned to the resource's club
- *   const userClub = await getUserClub(userId);
- *   if (userClub.clubId === resource.clubId) {
- *     return { allowed: true };
- *   }
- *
- *   return { allowed: false, reason: 'Resource not in your scope' };
- * })
- */
+
 const requireScope = (checkFn) => async (req, res, next) => {
   if (!req.user) {
     return res.status(StatusCodes.UNAUTHORIZED).json({
@@ -272,7 +219,7 @@ const requireScope = (checkFn) => async (req, res, next) => {
     }
 
     if (!result.allowed) {
-      // Log unauthorized scope access attempt
+      // Registrar intento de acceso de ambito no autorizado
       logAudit({
         userId: req.user.id,
         action: 'UNAUTHORIZED_SCOPE_ACCESS',
@@ -302,11 +249,7 @@ const requireScope = (checkFn) => async (req, res, next) => {
   }
 };
 
-/**
- * Allows access if user matches path param (self) OR has one of specified roles
- * @param {string} paramName - Name of the path parameter to check (default: 'id')
- * @param {string[]} roles - Array of roles that bypass the self-check
- */
+
 const requireSelfOrRoles =
   (paramName = 'id', ...roles) =>
   (req, res, next) => {
@@ -323,31 +266,24 @@ const requireSelfOrRoles =
       return next();
     }
 
-    // If not self, check roles
+    // Si no es el propio usuario, comprobar roles
     return requireAnyRole(...roles)(req, res, next);
   };
 
-// ============================================================================
-// EXPORTS
-// ============================================================================
+// EXPORTACIONES
 
 module.exports = {
-  // Authentication
+  // Autenticacion
   requireAuth,
 
-  // Role-based
+  // Basados en roles
   requireAnyRole,
 
-  // Permission-based
+  // Basados en permisos
   requirePermission,
   requireAnyPermission,
 
-  // Scope-based
+  // Basados en ambito
   requireScope,
   requireSelfOrRoles,
-
-  // Legacy aliases for backward compatibility
-  authenticateToken: requireAuth,
-  authorizeRoles: requireAnyRole,
-  authorizeSelfOrRoles: requireSelfOrRoles,
 };

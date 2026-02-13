@@ -17,7 +17,6 @@ const {
 
 router.use(requireAuth);
 
-// ==================== /equipment ====================
 // GET  /equipment - Todos autenticados pueden listar material
 router.get('/', listEquipment);
 // POST /equipment - Solo Director Técnico puede registrar material de su club
@@ -28,7 +27,6 @@ router.post(
   createEquipment
 );
 
-// ==================== /equipment/:id ====================
 // GET    /equipment/:id - Ver material (todos autenticados)
 router.get('/:id', validate({ params: idParamSchema }), getEquipment);
 // PUT    /equipment/:id - Solo Director Técnico puede editar material de su club

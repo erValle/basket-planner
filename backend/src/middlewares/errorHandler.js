@@ -9,12 +9,12 @@ const errorHandler = (err, req, res, next) => {
       ? getReasonPhrase(status)
       : err.message || 'Unexpected Error';
 
-  // Build a user-friendly message for validation errors
+  // Construir un mensaje legible para errores de validacion
   let userMessage = message;
   if (err.details && Array.isArray(err.details)) {
     const errorMessages = err.details
       .map((d) => {
-        // Clean up Joi error messages
+        // Limpiar mensajes de error de Joi
         let msg = d.message.replace(/"/g, '').trim();
         return `${d.path}: ${msg}`;
       })

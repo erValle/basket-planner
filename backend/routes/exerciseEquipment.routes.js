@@ -11,7 +11,6 @@ const {
 
 router.use(requireAuth);
 
-// ==================== /exercises/:exerciseId/equipment ====================
 // GET  /exercises/:exerciseId/equipment - Listar equipamiento de ejercicio - todos autenticados
 router.get('/', listForExercise);
 // POST /exercises/:exerciseId/equipment - Asociar equipamiento - admin, technical_director, coach
@@ -22,7 +21,6 @@ router.post(
   createForExercise
 );
 
-// ==================== /exercises/:exerciseId/equipment/:equipmentId ====================
 // DELETE /exercises/:exerciseId/equipment/:equipmentId - Eliminar asociación - admin, technical_director, coach
 router.delete(
   '/:equipmentId',

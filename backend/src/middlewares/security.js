@@ -4,9 +4,9 @@ const rateLimit = require('express-rate-limit');
 const express = require('express');
 
 function securityMiddleware(app) {
-  //Set security HTTP headers
+  // Cabeceras HTTP de seguridad
   app.use(helmet());
-  //Payload limit
+  // Limite de payload
   app.use(express.json({ limit: '1mb' }));
   app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
@@ -14,7 +14,7 @@ function securityMiddleware(app) {
     .split(',')
     .map((origin) => origin.trim());
 
-  //CORS configuration
+  // Configuracion de CORS
   app.use(
     cors({
       origin: function (origin, callback) {
@@ -34,7 +34,7 @@ function securityMiddleware(app) {
 
   const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 500, // Increased from 120 to 500 for development/testing
+    max: 500, // Aumentado de 120 a 500 para desarrollo/pruebas
     message: 'Too many requests from this IP, please try again later.',
     legacyHeaders: false,
     message: {
@@ -47,7 +47,7 @@ function securityMiddleware(app) {
 
   const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 50, // Increased from 20 to 50 for auth endpoints
+    max: 50, // Aumentado de 20 a 50 para endpoints de autenticacion
     message: {
       error: 'AUTH_RATE_LIMIT',
       message: 'Too many auth attempts from this IP, please try again later.',

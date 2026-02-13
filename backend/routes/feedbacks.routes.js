@@ -17,7 +17,6 @@ const {
 
 router.use(requireAuth);
 
-// ==================== /feedbacks ====================
 // GET  /feedbacks - Listar feedbacks - todos autenticados (jugadores ven solo los suyos)
 router.get('/', listFeedbacks);
 // POST /feedbacks - Crear feedback - Director Técnico, Entrenador y Jugador
@@ -28,20 +27,15 @@ router.post(
   createFeedback
 );
 
-// ==================== /feedbacks/version/:versionId/can-provide ====================
 // GET /feedbacks/version/:versionId/can-provide - Verificar si puede dar feedback
-// NOTA: Rutas específicas deben ir ANTES de las genéricas /:id
 router.get('/version/:versionId/can-provide', checkCanProvideFeedback);
 
-// ==================== /feedbacks/version/:versionId/stats ====================
 // GET /feedbacks/version/:versionId/stats - Estadísticas de feedback de versión
 router.get('/version/:versionId/stats', getVersionStats);
 
-// ==================== /feedbacks/version/:versionId/session/:sessionId/stats ====================
 // GET /feedbacks/version/:versionId/session/:sessionId/stats - Estadísticas de feedback de sesión
 router.get('/version/:versionId/session/:sessionId/stats', getSessionStats);
 
-// ==================== /feedbacks/:id ====================
 // GET    /feedbacks/:id - Ver feedback (todos autenticados)
 router.get('/:id', validate({ params: idParamSchema }), getFeedback);
 // PUT    /feedbacks/:id - Actualizar feedback - Director Técnico, Entrenador y Jugador (propio)

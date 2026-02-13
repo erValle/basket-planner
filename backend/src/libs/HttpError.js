@@ -1,22 +1,8 @@
 const { StatusCodes, getReasonPhrase } = require('http-status-codes');
 
-/**
- * Custom HTTP Error class for consistent error handling across the application.
- * Extends the native Error class to include HTTP-specific properties.
- *
- * @example
- * throw new HttpError(StatusCodes.NOT_FOUND, 'USER_NOT_FOUND', 'User not found');
- *
- * @example
- * throw HttpError.notFound('USER_NOT_FOUND', 'User not found');
- */
+
 class HttpError extends Error {
-  /**
-   * @param {number} status - HTTP status code
-   * @param {string} code - Application-specific error code (e.g., 'USER_NOT_FOUND')
-   * @param {string} [message] - Human-readable error message
-   * @param {Array|Object} [details] - Additional error details (validation errors, etc.)
-   */
+
   constructor(status, code, message, details = null) {
     super(message || code);
 
@@ -25,14 +11,14 @@ class HttpError extends Error {
     this.code = code;
     this.details = details;
 
-    // Maintains proper stack trace for where our error was thrown (only available on V8)
+    // Mantiene el stack trace correcto desde donde se lanzo el error (solo disponible en V8)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, HttpError);
     }
   }
 
   /**
-   * Serializes the error to a JSON-friendly object for API responses.
+   * Serializa el error a un objeto compatible con JSON para respuestas API.
    */
   toJSON() {
     return {
@@ -44,7 +30,7 @@ class HttpError extends Error {
     };
   }
 
-  // Factory methods for common HTTP errors
+  // Metodos factory para errores HTTP comunes
 
   static badRequest(code, message, details) {
     return new HttpError(StatusCodes.BAD_REQUEST, code, message, details);
@@ -75,7 +61,7 @@ class HttpError extends Error {
   }
 
   /**
-   * Creates an HttpError from a status code with default message.
+   * Crea un HttpError a partir de un codigo de estado con mensaje por defecto.
    */
   static fromStatus(status, code, message) {
     return new HttpError(

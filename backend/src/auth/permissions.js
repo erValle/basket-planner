@@ -1,11 +1,6 @@
-/**
- * RBAC Permissions System
- * Single source of truth for all permissions in the application
- */
 
-// ============================================================================
+
 // PERMISSION CONSTANTS (Atomic permissions grouped by domain)
-// ============================================================================
 
 const PERMISSIONS = {
   // Authentication
@@ -142,9 +137,7 @@ const PERMISSIONS = {
   USER_CLUBS_LIST: 'user_clubs:list',
 };
 
-// ============================================================================
 // ROLE-BASED PERMISSION MAPPING
-// ============================================================================
 
 const ROLE_PERMISSIONS = {
   // ADMIN: Funciones específicas de administrador del sistema
@@ -457,16 +450,9 @@ const ROLE_PERMISSIONS = {
   ],
 };
 
-// ============================================================================
 // HELPER FUNCTIONS
-// ============================================================================
 
-/**
- * Check if a role has a specific permission
- * @param {string} role - User role
- * @param {string} permission - Permission to check
- * @returns {boolean}
- */
+
 function hasPermission(role, permission) {
   if (!role || !permission) return false;
   const rolePermissions = ROLE_PERMISSIONS[role];
@@ -474,33 +460,18 @@ function hasPermission(role, permission) {
   return rolePermissions.includes(permission);
 }
 
-/**
- * Check if a role has ANY of the specified permissions
- * @param {string} role - User role
- * @param {string[]} permissions - Permissions to check
- * @returns {boolean}
- */
 function hasAnyPermission(role, permissions) {
   if (!role || !permissions || permissions.length === 0) return false;
   return permissions.some((permission) => hasPermission(role, permission));
 }
 
-/**
- * Check if a role has ALL of the specified permissions
- * @param {string} role - User role
- * @param {string[]} permissions - Permissions to check
- * @returns {boolean}
- */
+
 function hasAllPermissions(role, permissions) {
   if (!role || !permissions || permissions.length === 0) return false;
   return permissions.every((permission) => hasPermission(role, permission));
 }
 
-/**
- * Get all permissions for a role
- * @param {string} role - User role
- * @returns {string[]}
- */
+
 function getRolePermissions(role) {
   return ROLE_PERMISSIONS[role] || [];
 }

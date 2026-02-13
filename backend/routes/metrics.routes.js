@@ -14,7 +14,6 @@ const {
 
 router.use(requireAuth);
 
-// ==================== /metrics ====================
 // GET  /metrics - Listar métricas - admin, technical_director
 router.get('/', requireAnyRole('admin', 'technical_director'), listMetrics);
 // POST /metrics - Crear métrica - admin, technical_director
@@ -25,7 +24,6 @@ router.post(
   createMetric
 );
 
-// ==================== /metrics/:id ====================
 // GET    /metrics/:id - Ver métrica - admin, technical_director
 router.get(
   '/:id',

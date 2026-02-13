@@ -14,13 +14,11 @@ const {
 
 router.use(requireAuth);
 
-// ==================== /clubs ====================
 // GET  /clubs - Todos autenticados pueden listar clubes
 router.get('/', listClubs);
 // POST /clubs - Solo admin puede crear clubes
 router.post('/', requireAnyRole('admin'), validate({ body: createClubSchema }), createClub);
 
-// ==================== /clubs/:id ====================
 // GET    /clubs/:id - Ver club (todos autenticados)
 router.get('/:id', validate({ params: idParamSchema }), getClub);
 // PUT    /clubs/:id - Solo admin puede editar clubes

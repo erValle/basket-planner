@@ -14,7 +14,6 @@ const {
 
 router.use(requireAuth);
 
-// ==================== /user-clubs ====================
 // GET  /user-clubs - Listar membresías de club - todos autenticados
 router.get('/', listUserClubs);
 // POST /user-clubs - Crear membresía - admin, technical_director
@@ -25,7 +24,6 @@ router.post(
   createUserClub
 );
 
-// ==================== /user-clubs/:id ====================
 // GET    /user-clubs/:id - Ver membresía
 router.get('/:id', validate({ params: idParamSchema }), getUserClub);
 // PUT    /user-clubs/:id - Actualizar membresía - admin, technical_director

@@ -293,10 +293,6 @@ class TFRSExerciseScorer {
   }
 }
 
-// ============================================================================
-// FUNCIONES DE SCORING LEGACY (compatibilidad con código existente)
-// ============================================================================
-
 /**
  * Calcula la puntuación de coincidencia de etiquetas
  */
@@ -414,7 +410,7 @@ function scoreUniqueness(exerciseId, exercisesInSession) {
 }
 
 /**
- * Calcula la puntuación total de un ejercicio (legacy interface)
+ * Calcula la puntuación total de un ejercicio
  */
 function scoreExercise(exercise, context) {
   const weights = config.weights;
@@ -454,7 +450,6 @@ function scoreExercise(exercise, context) {
 
 module.exports = {
   TFRSExerciseScorer,
-  // Legacy exports
   scoreTagMatch,
   scoreTypeMatch,
   scoreDifficultyFit,

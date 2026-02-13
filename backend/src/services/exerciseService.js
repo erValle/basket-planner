@@ -220,7 +220,6 @@ const getAllExercisesForRecommender = async (filters = {}) => {
     }
 
     // Si no hay ejercicios en DB, usar JSON
-    console.log(' No se encontraron ejercicios en la BD, usando datos del JSON');
     return getAllExercisesFromJSON();
   } catch (error) {
     console.warn('Error al obtener ejercicios de la BD, usando JSON:', error.message);

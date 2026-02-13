@@ -4,19 +4,19 @@ API REST en Node.js/Express con Sequelize y PostgreSQL.
 
 ## Requisitos
 
-- Node.js: **24.11.0** (recomendado)
-- npm: **11.6.1**
+- Node.js: **20.0.0 o superior**
+- npm: **10.0.0 o superior**
 - Docker + Docker Compose (para PostgreSQL local)
 
 ## Configuración de entorno
 
-1) Copia el archivo de ejemplo:
+1. Copia el archivo de ejemplo:
 
 ```bash
 cp .env.sample .env
 ```
 
-2) Completa las variables en `.env`:
+2. Completa las variables en `.env`:
 
 - `DB_USER` / `DB_PASSWORD`: credenciales de PostgreSQL
 - `DB_HOST`: normalmente `localhost` si usas Docker local

@@ -136,7 +136,6 @@ export class Exercises implements OnInit {
     // Make Math available in template
     Math = Math;
 
-    // Método para formatear el tipo de ejercicio de forma legible
     formatType(type: string): string {
         return TYPE_LABELS[type] ?? type;
     }

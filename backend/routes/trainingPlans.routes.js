@@ -27,7 +27,6 @@ const { listVersions, exportVersion } = require('../src/controllers/planningVers
 
 router.use(requireAuth);
 
-// ==================== /training-plans ====================
 // GET  /training-plans - Listar planes - todos autenticados (jugadores ven solo los suyos)
 router.get('/', listTrainingPlans);
 // POST /training-plans - Crear planes - Director Técnico y Entrenador
@@ -38,7 +37,6 @@ router.post(
   createTrainingPlan
 );
 
-// ==================== /training-plans/generate/individual ====================
 // POST /training-plans/generate/individual - Generar plan individual - Director Técnico y Entrenador
 router.post(
   '/generate/individual',
@@ -47,7 +45,6 @@ router.post(
   generateIndividual
 );
 
-// ==================== /training-plans/generate/group ====================
 // POST /training-plans/generate/group - Generar plan grupal - Director Técnico y Entrenador
 router.post(
   '/generate/group',
@@ -56,7 +53,6 @@ router.post(
   generateGroup
 );
 
-// ==================== /training-plans/:id ====================
 // GET    /training-plans/:id - Ver plan (todos autenticados - jugadores solo los asignados)
 router.get('/:id', validate({ params: idParamSchema }), getTrainingPlan);
 // PUT    /training-plans/:id - Editar planes - Director Técnico y Entrenador
@@ -74,7 +70,6 @@ router.delete(
   deleteTrainingPlan
 );
 
-// ==================== /training-plans/:id/versions/:versionId/export ====================
 // GET /training-plans/:id/versions/:versionId/export - Exportar versión - technical_director, coach, player (propio)
 router.get(
   '/:id/versions/:versionId/export',

@@ -83,12 +83,10 @@ export class PlanningDetail {
     // Estado de colapso para cada sesión
     collapsedSessions: Record<string, boolean> = {};
 
-    // Método para alternar el estado de colapso de una sesión
     toggleSession(sessionId: string): void {
         this.collapsedSessions[sessionId] = !this.collapsedSessions[sessionId];
     }
 
-    // Método para verificar si una sesión está colapsada
     isSessionCollapsed(sessionId: string): boolean {
         return !!this.collapsedSessions[sessionId];
     }
@@ -307,14 +305,10 @@ export class PlanningDetail {
         const currentUser = this.userContext.getUserSnapshot();
         const role = this.userContext.getRoleSnapshot();
 
-        console.log('loadFeedbackForVersion called', { versionId, role, currentUser });
-
         if (!currentUser?.id) {
-            // Usuario no autenticado, no cargar feedback
             this.latestSurvey = null;
             this.allFeedbacks = [];
             this.loadingFeedbacks = false;
-            console.log('No user authenticated');
             this.cdr.markForCheck();
             return;
         }
@@ -333,10 +327,6 @@ export class PlanningDetail {
                     } else {
                         this.latestSurvey = null;
                     }
-                    console.log('Player feedback loaded:', {
-                        feedbackForVersion,
-                        latestSurvey: this.latestSurvey,
-                    });
                     this.cdr.markForCheck();
                 },
                 error: (e: unknown) => {
@@ -347,18 +337,14 @@ export class PlanningDetail {
             });
         }
 
-        // Si es ADMIN/COACH/DT: cargar TODOS los feedbacks para visualizar
         if (this.canViewAllFeedbacks()) {
-            console.log('Loading all feedbacks for version:', versionId);
             this.loadingFeedbacks = true;
             this.allFeedbacks = [];
-            this.feedbacksToShow = this.FEEDBACKS_PER_PAGE; // Resetear contador al cargar nueva versión
+            this.feedbacksToShow = this.FEEDBACKS_PER_PAGE;
 
             this.feedbackApi.listForVersion(Number(versionId)).subscribe({
                 next: (allResponse) => {
-                    console.log('All feedbacks loaded:', allResponse);
                     this.allFeedbacks = allResponse.items || [];
-                    console.log('All feedbacks array:', this.allFeedbacks);
                     this.loadingFeedbacks = false;
                     this.cdr.markForCheck();
                 },
@@ -624,11 +610,8 @@ export class PlanningDetail {
     }
 
     canViewAllFeedbacks(): boolean {
-        // Solo Director Técnico y Entrenador pueden ver todos los feedbacks
         const role = this.userContext.getRoleSnapshot();
-        const canView = role === 'technical_director' || role === 'coach';
-        console.log('canViewAllFeedbacks check:', { role, canView });
-        return canView;
+        return role === 'technical_director' || role === 'coach';
     }
 
     // Traducción de fases de entrenamiento

@@ -10,7 +10,7 @@ const {
   listAvailableModels,
 } = require('../src/recommender/modelManager');
 
-// CU.028: Solo admin puede acceder al sistema recomendador
+// Solo admin puede acceder al sistema recomendador
 router.use(requireAuth);
 router.use(requireAnyRole('admin'));
 

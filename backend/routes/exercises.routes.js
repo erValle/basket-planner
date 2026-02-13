@@ -15,7 +15,6 @@ const {
 
 router.use(requireAuth);
 
-// ==================== /exercises ====================
 // GET  /exercises - Todos autenticados pueden consultar el catálogo de ejercicios
 router.get('/', listExercises);
 // POST /exercises - Director Técnico y Entrenador pueden registrar ejercicios
@@ -26,11 +25,9 @@ router.post(
   createExercise
 );
 
-// ==================== /exercises/tags/popular ====================
-// GET /exercises/tags/popular - Obtener etiquetas populares (debe ir ANTES de /:id para evitar conflictos)
+// GET /exercises/tags/popular - Obtener etiquetas populares
 router.get('/tags/popular', getPopularTags);
 
-// ==================== /exercises/:id ====================
 // GET    /exercises/:id - Ver ejercicio (todos autenticados)
 router.get('/:id', validate({ params: idParamSchema }), getExercise);
 // PUT    /exercises/:id - Director Técnico y Entrenador pueden editar ejercicios

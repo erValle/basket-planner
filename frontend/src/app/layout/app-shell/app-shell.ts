@@ -61,14 +61,7 @@ export class AppShell implements OnInit {
     }
 
     get generalNav() {
-        const items = this.navItems.filter((i) => i.group === 'general' && this.hasAccess(i));
-        console.log(
-            '[AppShell] generalNav items:',
-            items.map((i) => i.route),
-            'role:',
-            this.auth.getRoleSnapshot(),
-        );
-        return items;
+        return this.navItems.filter((i) => i.group === 'general' && this.hasAccess(i));
     }
 
     get controlNav() {

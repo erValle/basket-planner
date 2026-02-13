@@ -12,7 +12,7 @@ const { getModelInfo, getModelConfig } = require('../src/recommender/modelManage
 
 router.use(requireAuth);
 
-// CU.030: Monitorización del sistema - solo admin
+// Monitorización del sistema - solo admin
 router.use(requireAnyRole('admin'));
 
 const clamp = (n, min, max) => Math.min(Math.max(n, min), max);

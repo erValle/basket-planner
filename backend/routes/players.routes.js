@@ -12,7 +12,6 @@ const playersController = require('../src/controllers/playersController');
 
 router.use(requireAuth);
 
-// ==================== /players ====================
 // GET /players - Listado de jugadores - technical_director, coach
 router.get(
   '/',
@@ -21,7 +20,6 @@ router.get(
   playersController.listPlayers
 );
 
-// ==================== /players/enroll ====================
 // POST /players/enroll - Inscribir jugador (crear perfil de jugador) - solo admin (registra usuarios)
 router.post(
   '/enroll',
@@ -30,7 +28,6 @@ router.post(
   playersController.enrollPlayer
 );
 
-// ==================== /players/:id ====================
 // PUT /players/:id - Edición de perfil jugador - solo Director Técnico (gestiona jugadores de su club)
 router.put(
   '/:id',
@@ -39,7 +36,6 @@ router.put(
   playersController.updatePlayerProfile
 );
 
-// ==================== /players/:id/history ====================
 // GET /players/:id/history - Historial de jugador - technical_director, coach, player (propio)
 router.get(
   '/:id/history',
@@ -48,7 +44,6 @@ router.get(
   playersController.getPlayerHistory
 );
 
-// ==================== /players/:id/transfer ====================
 // POST /players/:id/transfer - Transferir jugador - SOLO Director Técnico puede transferir
 router.post(
   '/:id/transfer',

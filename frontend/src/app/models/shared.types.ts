@@ -3,9 +3,7 @@
  * These types mirror the backend API responses for type safety.
  */
 
-// ============================================================================
 // Common Types
-// ============================================================================
 
 /**
  * Standard API response wrapper for paginated data.
@@ -41,9 +39,7 @@ export interface SelectOption<T = string> {
     value: T;
 }
 
-// ============================================================================
 // User & Auth Types
-// ============================================================================
 
 export type UserRole = 'admin' | 'technical_director' | 'coach' | 'player';
 
@@ -63,9 +59,7 @@ export interface AuthUser extends UserBase {
     token?: string;
 }
 
-// ============================================================================
 // Entity Types
-// ============================================================================
 
 export interface ClubBase {
     id: number;
@@ -100,9 +94,7 @@ export interface ExerciseBase {
 
 export type ExerciseType = 'tecnico' | 'tactico' | 'fisico' | 'tiro' | 'defensa' | 'ataque';
 
-// ============================================================================
 // Planning Types
-// ============================================================================
 
 export type PlanningStatus = 'draft' | 'active' | 'completed' | 'archived';
 
@@ -114,9 +106,7 @@ export interface PlanningBase {
     updatedAt: string;
 }
 
-// ============================================================================
 // Timestamps
-// ============================================================================
 
 export interface Timestamps {
     createdAt: string;

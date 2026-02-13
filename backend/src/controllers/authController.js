@@ -74,12 +74,10 @@ const changePassword = async (req, res, next) => {
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .json({
-        error: 'MISSING_PASSWORDS',
-        message: 'Current password and new password are required',
-      });
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      error: 'MISSING_PASSWORDS',
+      message: 'Current password and new password are required',
+    });
   }
 
   const user = await User.findByPk(req.user.id);

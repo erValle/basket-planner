@@ -17,9 +17,7 @@ async function ejemploUso() {
   console.log(`Modelo: ${model.config.modelVersion}`);
   console.log(`Ejercicios disponibles: ${exercises.length}\n`);
 
-  // ========================================
   // EJEMPLO 1: Fundamentos con intensidad baja
-  // ========================================
   console.log('EJEMPLO 1: Trabajando fundamentos - intensidad baja');
   console.log('-'.repeat(60));
 
@@ -47,9 +45,7 @@ async function ejemploUso() {
   });
   console.log(`      ... y ${session1.exercises.length - 5} ejercicios más\n`);
 
-  // ========================================
   // EJEMPLO 2: Tiro especializado - intensidad alta
-  // ========================================
   console.log('EJEMPLO 2: Entrenamiento especializado de tiro - intensidad alta');
   console.log('-'.repeat(60));
 
@@ -75,9 +71,7 @@ async function ejemploUso() {
     .filter((ex) => ex.tags?.some((t) => t.includes('tiro')));
   console.log(`   Ejercicios de tiro: ${shootingExercises.length}\n`);
 
-  // ========================================
   // EJEMPLO 3: Planificación con equipamiento limitado
-  // ========================================
   console.log('EJEMPLO 3: Equipamiento mínimo - solo balón y canasta');
   console.log('-'.repeat(60));
 
@@ -97,9 +91,7 @@ async function ejemploUso() {
   console.log(`   Total ejercicios: ${plan3.summary.totalExercises}`);
   console.log(`   Variedad: ${plan3.summary.exerciseVariety}\n`);
 
-  // ========================================
   // EJEMPLO 4: Equipo completo - Pick & Roll
-  // ========================================
   console.log('EJEMPLO 4: Equipo trabajando Pick & Roll y táctica');
   console.log('-'.repeat(60));
 
@@ -128,9 +120,7 @@ async function ejemploUso() {
   console.log(`   Ejercicios tácticos/PnR: ${tacticalEx.length}`);
   console.log(`   Ideal para trabajo de equipo\n`);
 
-  // ========================================
   // INFORMACIÓN ADICIONAL
-  // ========================================
   console.log('='.repeat(60));
   console.log('Información del Modelo\n');
 

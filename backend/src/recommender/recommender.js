@@ -421,23 +421,18 @@ async function generateSession(allExercises, sessionParams) {
  * @param {Function} options.onSessionGenerated - Callback cuando se genera una sesión (para streaming)
  */
 async function generatePlan(allExercises, planParams, options = {}) {
-  console.log('[generatePlan] Iniciando...');
   const { signal, onSessionGenerated } = options;
 
   const { goals: rawGoals = [], constraints = {}, profile = {}, numberOfSessions = 3 } = planParams;
 
   // Normalizar goals del frontend a goals del modelo
   const goals = normalizeGoals(rawGoals);
-  console.log(`   Goals normalizados: ${goals.length}`);
 
-  // Verificar si ya se canceló
   if (signal?.aborted) {
-    console.log('[generatePlan] Abortado antes de iniciar');
     return createEmptyPlanResult(goals);
   }
 
   if (!isInitialized) {
-    console.log('   Inicializando modelo...');
     await initializeModel(allExercises, true);
   }
 
@@ -460,12 +455,7 @@ async function generatePlan(allExercises, planParams, options = {}) {
   const HIGH_FIT_THRESHOLD = exerciseScarcity < 0.5 ? 0.6 : 0.8; // Más permisivo con pocos ejercicios
   const MEDIUM_FIT_THRESHOLD = exerciseScarcity < 0.5 ? 0.4 : 0.6; // Más permisivo
   const MAX_REPETITIONS_MEDIUM = exerciseScarcity < 0.5 ? 3 : 2; // Permitir más repeticiones
-  const MAX_REPETITIONS_HIGH = numberOfSessions; // Los de alta adecuación pueden repetirse en todas
-
-  console.log(
-    `   Ejercicios disponibles: ${filteredExercises.length}, escasez: ${exerciseScarcity.toFixed(2)}`
-  );
-  console.log(`   Umbrales: HIGH=${HIGH_FIT_THRESHOLD}, MEDIUM=${MEDIUM_FIT_THRESHOLD}`);
+  const MAX_REPETITIONS_HIGH = numberOfSessions;
 
   const effectiveDuration = maxDurationMinutes
     ? Math.min(sessionDuration, maxDurationMinutes)
@@ -499,7 +489,6 @@ async function generatePlan(allExercises, planParams, options = {}) {
   ];
 
   // PASO 1: Generar pool de ejercicios puntuados por fase
-  console.log('   PASO 1: Puntuando ejercicios por fase...');
   const exercisePoolByPhase = {};
   let maxScoreGlobal = 0;
 
@@ -523,14 +512,8 @@ async function generatePlan(allExercises, planParams, options = {}) {
 
     let scoredExercises;
     if (scorerInstance && modelInstance?.isTrained) {
-      console.log(
-        `   Scoring phase ${phase.name} con modelo TFRS (${phaseExercises.length} ejercicios)...`
-      );
       scoredExercises = await scorerInstance.scoreExercises(scoringContext, phaseExercises, {});
     } else {
-      console.log(
-        `   Scoring phase ${phase.name} con heurístico (${phaseExercises.length} ejercicios)...`
-      );
       const heuristicScorer = new HeuristicScorer();
       scoredExercises = phaseExercises
         .map((exercise) => {
@@ -539,7 +522,6 @@ async function generatePlan(allExercises, planParams, options = {}) {
         })
         .sort((a, b) => b.score - a.score);
     }
-    console.log(`   ✓ Phase ${phase.name} completada`);
 
     // Calcular max score para normalización
     if (scoredExercises.length > 0) {
@@ -549,7 +531,6 @@ async function generatePlan(allExercises, planParams, options = {}) {
 
     exercisePoolByPhase[phase.name] = scoredExercises;
   }
-  console.log('   PASO 1 completado');
 
   // Normalizar scores si es necesario (para que umbrales funcionen correctamente)
   if (maxScoreGlobal > 1) {
@@ -563,18 +544,15 @@ async function generatePlan(allExercises, planParams, options = {}) {
   }
 
   // PASO 2: Distribuir ejercicios entre sesiones con estrategia de repetición inteligente
-  console.log(`   PASO 2: Distribuyendo ${numberOfSessions} sesiones...`);
   const sessions = [];
   const exerciseUsageCount = new Map(); // exerciseId -> número de sesiones donde aparece
 
   for (let sessionIdx = 0; sessionIdx < numberOfSessions; sessionIdx++) {
     // Verificar si se canceló la generación
     if (signal?.aborted) {
-      console.log(`[generatePlan] Abortado después de ${sessions.length} sesiones`);
       break;
     }
 
-    console.log(`   Generando sesión ${sessionIdx + 1}/${numberOfSessions}...`);
     const sessionExercises = [];
     let totalDuration = 0;
     const sessionExerciseIds = new Set(); // Evitar duplicados dentro de la misma sesión
@@ -742,11 +720,6 @@ async function generatePlan(allExercises, planParams, options = {}) {
     0
   );
 
-  const statusMsg = wasAborted
-    ? `[generatePlan] Parcial (timeout): ${sessions.length}/${numberOfSessions} sesiones`
-    : `[generatePlan] Completado: ${sessions.length} sesiones`;
-  console.log(`${statusMsg}, ${totalExercises} ejercicios, ${totalDuration} min total`);
-
   return {
     modelVersion: config.modelVersion,
     generatedAt: new Date().toISOString(),
@@ -834,9 +807,4 @@ module.exports = {
   derivePreferredTypes,
   getModelInfo,
   getModelConfig,
-  // Legacy exports
-  scoreExercise,
-  filterExercises,
-  filterBySessionPhase,
-  config,
 };

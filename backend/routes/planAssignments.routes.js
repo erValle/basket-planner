@@ -19,7 +19,6 @@ const {
 
 router.use(requireAuth);
 
-// ==================== /plan-assignments ====================
 // GET  /plan-assignments - Listar asignaciones - todos autenticados (jugadores solo las suyas)
 router.get('/', listAssignments);
 // POST /plan-assignments - Crear asignación - Director Técnico y Entrenador
@@ -30,16 +29,13 @@ router.post(
   createAssignment
 );
 
-// ==================== /plan-assignments/user/:userId ====================
 // GET /plan-assignments/user/:userId - Ver asignaciones de usuario - propio o technical_director/coach
-// NOTA: Rutas específicas deben ir ANTES de las genéricas /:id
 router.get(
   '/user/:userId',
   requireSelfOrRoles('userId', 'technical_director', 'coach'),
   listAssignmentsForUser
 );
 
-// ==================== /plan-assignments/training-plan/:trainingPlanId ====================
 // GET /plan-assignments/training-plan/:trainingPlanId - Ver asignaciones de plan - technical_director, coach
 router.get(
   '/training-plan/:trainingPlanId',
@@ -47,7 +43,6 @@ router.get(
   listAssignmentsForPlan
 );
 
-// ==================== /plan-assignments/:id ====================
 // GET    /plan-assignments/:id - Ver asignación (todos autenticados)
 router.get('/:id', validate({ params: idParamSchema }), getAssignment);
 // PUT    /plan-assignments/:id - Editar asignación - Director Técnico y Entrenador

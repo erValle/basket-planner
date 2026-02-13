@@ -255,8 +255,6 @@ const deriveFocusTags = (goals) => {
 };
 
 const generateIndividual = async (input, auditCtx = {}, options = {}) => {
-  console.log('[generateIndividual] Iniciando generación...');
-  console.log('   Goals:', JSON.stringify(input.goals || []));
 
   const { signal } = options;
 
@@ -272,10 +270,6 @@ const generateIndividual = async (input, auditCtx = {}, options = {}) => {
     profile.maxSessionsPerWeek || // fallback a campo legacy
     3;
 
-  console.log(
-    `   Sessions: ${numberOfSessions}, Duration: ${sessionDurationMinutes}min, Intensity: ${intensity}`
-  );
-
   // Obtener equipamiento disponible en el sistema
   const clubId = profile.clubId || (input.constraints && input.constraints.clubId) || null;
   const availableEquipment = await getAvailableEquipmentAliases(clubId);
@@ -286,7 +280,6 @@ const generateIndividual = async (input, auditCtx = {}, options = {}) => {
   // Filtrar ejercicios según equipamiento disponible
   allExercises = filterExercisesByEquipment(allExercises, availableEquipment);
 
-  console.log(`Ejercicios disponibles después de filtrar por equipamiento: ${allExercises.length}`);
 
   // Obtener el modelo de recomendación activo
   const recommender = getActiveModel();
@@ -306,14 +299,11 @@ const generateIndividual = async (input, auditCtx = {}, options = {}) => {
   };
 
   // Generar planificación usando el modelo de recomendación
-  console.log('[generateIndividual] Llamando a recommender.generatePlan...');
   const startTime = Date.now();
   const generatedPlan = await recommender.generatePlan(allExercises, planParams, { signal });
-  console.log(`[generateIndividual] Plan generado en ${Date.now() - startTime}ms`);
 
   // Si no se generaron sesiones, devolver resultado vacío
   if (!generatedPlan.sessions || generatedPlan.sessions.length === 0) {
-    console.log('[generateIndividual] No se generaron sesiones');
     return {
       success: false,
       wasAborted: generatedPlan.wasAborted,
@@ -323,7 +313,6 @@ const generateIndividual = async (input, auditCtx = {}, options = {}) => {
   }
 
   // Guardar en la base de datos
-  console.log('[generateIndividual] Guardando en base de datos...');
   const trainingPlan = await TrainingPlan.create({
     createdById: auditCtx.user?.id || null,
     targetType: 'individual',
@@ -375,13 +364,8 @@ const generateIndividual = async (input, auditCtx = {}, options = {}) => {
         status: 'assigned',
         assignedAt: new Date(),
       });
-
-      console.log(
-        `Asignación automática creada: Plan ${trainingPlan.id} → Usuario ${profile.playerId}`
-      );
     } catch (err) {
-      console.error(' Error creando asignación automática:', err);
-      // No fallar la generación si falla la asignación
+      console.error('Error creando asignación automática:', err);
     }
   }
 
@@ -456,7 +440,6 @@ const generateGroup = async (input, auditCtx = {}, options = {}) => {
   // Filtrar ejercicios según equipamiento disponible
   allExercises = filterExercisesByEquipment(allExercises, availableEquipment);
 
-  console.log(`Ejercicios disponibles después de filtrar por equipamiento: ${allExercises.length}`);
 
   // Obtener el modelo de recomendación activo
   const recommender = getActiveModel();
@@ -550,11 +533,8 @@ const generateGroup = async (input, auditCtx = {}, options = {}) => {
             status: 'assigned',
             assignedAt: new Date(),
           });
-          console.log(
-            `Asignación automática creada: Plan ${trainingPlan.id} → Usuario ${profile.playerId}`
-          );
         } catch (err) {
-          console.error(` Error creando asignación para usuario ${profile.playerId}:`, err);
+          console.error(`Error creando asignación para usuario ${profile.playerId}:`, err);
         }
       }
     });

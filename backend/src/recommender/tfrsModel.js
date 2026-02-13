@@ -18,9 +18,7 @@ class TFRSRankingModel {
     this.isTrained = false;
   }
 
-  // ============================================================================
   // INICIALIZACIÓN
-  // ============================================================================
 
   initializeVocabularies(exerciseData = []) {
     const { vocabularies } = config;
@@ -116,9 +114,7 @@ class TFRSRankingModel {
     };
   }
 
-  // ============================================================================
   // CONSTRUCCIÓN DEL MODELO
-  // ============================================================================
 
   _calculateInputDimensions() {
     const contextCategoricalSize =
@@ -302,9 +298,7 @@ class TFRSRankingModel {
     return this.rankingModel;
   }
 
-  // ============================================================================
   // FEATURE ENGINEERING
-  // ============================================================================
 
   encodeContextFeatures(context) {
     const { defaults } = config;
@@ -398,9 +392,7 @@ class TFRSRankingModel {
     return (value - 1) / 4;
   }
 
-  // ============================================================================
   // PREDICCIÓN
-  // ============================================================================
 
   async predict(context, exercise) {
     if (!this.isInitialized) {
@@ -483,9 +475,7 @@ class TFRSRankingModel {
     }
   }
 
-  // ============================================================================
   // GUARDAR/CARGAR MODELO
-  // ============================================================================
 
   /**
    * Crea un IOHandler para guardar el modelo en archivos

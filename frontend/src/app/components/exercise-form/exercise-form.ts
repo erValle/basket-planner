@@ -313,19 +313,6 @@ export class ExerciseForm implements OnChanges, OnInit {
     }
 
     onSubmit(): void {
-        console.log('[ExerciseForm] onSubmit called, mode:', this.mode);
-        console.log('[ExerciseForm] form value:', this.form.getRawValue());
-        console.log('[ExerciseForm] form valid:', this.form.valid);
-        console.log('[ExerciseForm] form errors:', this.form.errors);
-
-        // Log individual field errors
-        Object.keys(this.form.controls).forEach((key) => {
-            const control = this.form.get(key);
-            if (control?.invalid) {
-                console.log(`[ExerciseForm] Field "${key}" is invalid:`, control.errors);
-            }
-        });
-
         if (this.mode === 'view') {
             this.cancel.emit();
             return;
@@ -342,11 +329,9 @@ export class ExerciseForm implements OnChanges, OnInit {
             if (this.form.controls.duracionMinutos.invalid) errors.push('Duración');
 
             this.formError = `Por favor, completa los campos obligatorios: ${errors.join(', ')}.`;
-            console.log('[ExerciseForm] Form invalid, showing error:', this.formError);
             return;
         }
 
-        console.log('[ExerciseForm] Emitting save event');
         this.save.emit(this.form.getRawValue());
     }
 

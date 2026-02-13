@@ -31,7 +31,6 @@ const {
 
 router.use(requireAuth);
 
-// ==================== /teams ====================
 // GET  /teams - Todos pueden listar equipos (autenticados)
 router.get('/', validate({ query: listTeamsQuerySchema }), listTeams);
 // POST /teams - Solo Director Técnico puede crear equipos de su club
@@ -42,7 +41,6 @@ router.post(
   createTeam
 );
 
-// ==================== /teams/:id ====================
 // GET    /teams/:id - Ver equipo (todos autenticados)
 router.get('/:id', validate({ params: idParamSchema }), getTeam);
 // PUT    /teams/:id - Solo Director Técnico puede editar equipos de su club
@@ -60,7 +58,6 @@ router.delete(
   deleteTeam
 );
 
-// ==================== /teams/:id/players ====================
 // GET  /teams/:id/players - Listar jugadores del equipo - technical_director, coach (solo lectura)
 router.get(
   '/:id/players',
@@ -76,7 +73,6 @@ router.post(
   addTeamPlayer
 );
 
-// ==================== /teams/:id/players/bulk ====================
 // POST /teams/:id/players/bulk - Añadir múltiples jugadores - solo Director Técnico
 router.post(
   '/:id/players/bulk',
@@ -85,7 +81,6 @@ router.post(
   addTeamPlayersBulk
 );
 
-// ==================== /teams/:id/players/:userId ====================
 // DELETE /teams/:id/players/:userId - Eliminar jugador del equipo - solo Director Técnico
 router.delete(
   '/:id/players/:userId',

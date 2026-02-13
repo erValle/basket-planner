@@ -363,7 +363,7 @@ export class Players {
         this.refresh(); // Refresh list when closing player detail
     }
 
-    // ---- Selection flow (kept imperative; UI renders from simple fields) ----
+    // ---- Selection flow ----
     openPlayerSelection() {
         this.selectedPlayerIds = [];
         this.availablePlayersForSelection = [];
